@@ -1,17 +1,24 @@
 'use server'
 
+import bcrypt from 'bcryptjs'
+import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 
-export async function registerUser(formData: FormData) {
+export async function registerUser(
+  prevState: { error?: string } | null,
+  formData: FormData
+) {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
 
   try {
-    const user = await prisma.user.create({
-      data: { email, password }
+    const hashedPassword = await bcrypt.hash(password, 10)
+    await prisma.user.create({
+      data: { email, password: hashedPassword }
     })
-    return { success: true, userId: user.id }
   } catch (error) {
-    return { success: false, error: 'Registration failed' }
+    return { error: 'An account with this email already exists.' }
   }
+
+  redirect('/')
 }

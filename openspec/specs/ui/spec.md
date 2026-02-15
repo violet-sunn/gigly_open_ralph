@@ -1,58 +1,49 @@
 # UI Specification Delta
 
-## ADDED Requirements
+## MODIFIED Requirements
 
-### Requirement: Next.js App Router Setup
-The system MUST use Next.js 15+ with App Router architecture.
+### Requirement: Homepage Landing Page
+The homepage at `/` MUST provide a clear entry point into the application instead of a generic placeholder.
 
-#### Scenario: Next.js initialization
-- GIVEN a new project
-- WHEN Next.js is initialized
-- THEN it MUST use App Router (app/ directory)
-- AND it MUST support TypeScript
-- AND it MUST be version 15 or higher
+#### Scenario: Homepage renders with navigation to register
+- GIVEN a user navigates to `/`
+- WHEN the page loads
+- THEN it MUST display the application name "Gigly"
+- AND it MUST display a call-to-action link/button to `/register`
+- AND the link MUST be clearly visible and styled
 
 **Acceptance Criteria:**
-- `package.json` shows `next` version >= 15.0.0
-- `app/` directory exists
-- `app/layout.tsx` exists with root layout
-- `app/page.tsx` exists with home page
-- TypeScript configuration is present
+- `app/page.tsx` renders a link or button pointing to `/register`
+- The link text is clear (e.g., "Get Started", "Sign Up")
+- The page is styled with Tailwind CSS
+- Clicking the link navigates to `/register`
 
 ---
 
-### Requirement: Tailwind CSS Integration
-The system MUST use Tailwind CSS for styling.
+## MODIFIED Requirements
 
-#### Scenario: Tailwind setup
-- GIVEN the Next.js project
-- WHEN Tailwind CSS is configured
-- THEN it MUST be available for styling components
-- AND utility classes MUST work in components
+### Requirement: Registration Form Feedback
+The registration form MUST provide visible feedback after submission.
 
-**Acceptance Criteria:**
-- `tailwind.config.ts` exists
-- `postcss.config.js` exists
-- Global CSS imports Tailwind directives
-- Tailwind classes render correctly in browser
+#### Scenario: Successful registration
+- GIVEN a user fills in valid email and password on `/register`
+- WHEN the form is submitted
+- THEN the user MUST be redirected to `/` or shown a success message
+- AND the form MUST NOT appear to do nothing
 
----
+#### Scenario: Failed registration (duplicate email)
+- GIVEN a user submits an email that already exists
+- WHEN the form is submitted
+- THEN an error message MUST be displayed on the page
+- AND the form MUST remain visible so the user can retry
 
-### Requirement: Registration Form UI
-The registration form MUST be styled and user-friendly.
-
-#### Scenario: Form styling
-- GIVEN the registration page
-- WHEN the form is rendered
-- THEN it MUST use Tailwind CSS classes
-- AND it MUST have clear labels
-- AND it MUST have appropriate input types
-- AND it MUST be centered or well-positioned on the page
+#### Scenario: Failed registration (missing fields)
+- GIVEN a user submits with empty email or password
+- WHEN the form is submitted
+- THEN HTML5 validation MUST prevent submission (existing `required` attributes)
 
 **Acceptance Criteria:**
-- Form uses Tailwind utility classes
-- Email input has `type="email"`
-- Password input has `type="password"`
-- Labels are associated with inputs
-- Submit button is clearly visible
-- Form has basic responsive design
+- On success: user is redirected to `/` or sees a success message
+- On error: an error message is displayed inline on the registration page
+- The form uses `useActionState` (React 19) or equivalent to track submission state
+- A loading/pending indicator is shown while the form submits

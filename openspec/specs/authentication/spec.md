@@ -1,56 +1,39 @@
 # Authentication Specification Delta
 
-## ADDED Requirements
+## MODIFIED Requirements
 
-### Requirement: User Registration Endpoint
-The system MUST provide a Server Action to create new users.
+### Requirement: Password Hashing
+The registration Server Action MUST hash passwords before storing them in the database.
 
-#### Scenario: User creation via Server Action
-- GIVEN a registration form submission
-- WHEN the Server Action receives email, password, and optional role
-- THEN it MUST create a new user in the database
-- AND return success or error status
+#### Scenario: Password is hashed on registration
+- GIVEN a user submits a registration form with a plaintext password
+- WHEN the Server Action processes the request
+- THEN the password MUST be hashed using bcrypt before being saved
+- AND the stored password MUST NOT equal the plaintext input
 
 **Acceptance Criteria:**
-- Server Action function exists (e.g., `createUser` or `registerUser`)
-- Function is marked with `'use server'` directive
-- Function accepts email and password parameters
-- Function creates user via Prisma client
-- Function returns a result object with success/error status
+- `bcryptjs` package is installed
+- `registerUser` action hashes the password with `bcrypt.hash()` before `prisma.user.create()`
+- Stored password in the database is a bcrypt hash (starts with `$2a$` or `$2b$`)
 
 ---
 
-### Requirement: User Registration Form
-The system MUST provide a registration page at /register with a form.
+### Requirement: Registration Action Redirect
+The registration Server Action MUST redirect the user on success instead of silently returning an object.
 
-#### Scenario: Registration form rendering
-- GIVEN a user navigates to /register
-- WHEN the page loads
-- THEN it MUST display a registration form
-- AND the form MUST include email input field
-- AND the form MUST include password input field
-- AND the form MUST include a submit button
+#### Scenario: Redirect after successful registration
+- GIVEN a valid registration submission
+- WHEN the user is created successfully
+- THEN the action MUST call `redirect('/')` from `next/navigation`
+- AND the user MUST land on the homepage
 
-**Acceptance Criteria:**
-- Page exists at `app/register/page.tsx`
-- Form renders with email input (type="email")
-- Form renders with password input (type="password")
-- Form renders with submit button
-- Form uses Server Action for submission
-
----
-
-### Requirement: Visual Verification
-The registration form MUST be visually verifiable.
-
-#### Scenario: Screenshot verification
-- GIVEN the registration page is rendered
-- WHEN a screenshot is taken
-- THEN the form elements MUST be visible
-- AND the layout MUST be functional
+#### Scenario: Error returned on failure
+- GIVEN a registration submission that fails (e.g., duplicate email)
+- WHEN the Server Action catches the error
+- THEN it MUST return an object with an error message
+- AND the form MUST display that message to the user
 
 **Acceptance Criteria:**
-- Screenshot shows email input field
-- Screenshot shows password input field
-- Screenshot shows submit button
-- Form is styled with Tailwind CSS
+- On success: `redirect('/')` is called (from `next/navigation`)
+- On failure: `{ error: string }` is returned
+- The `registerUser` function signature is compatible with `useActionState`
