@@ -16,24 +16,27 @@ model User {
   role         String        @default("USER")
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
-  gigs         Gig[]
+  gigs         Gig[]         @relation("ClientGigs")
   applications Application[]
+  assignedGigs Gig[]         @relation("AssignedGigs")
 }
 
 model Gig {
-  id           String        @id @default(cuid())
-  title        String
-  description  String
-  budget       Int
-  serviceFee   Int
-  totalAmount  Int
-  status       String        @default("OPEN")
-  tags         String        @default("")
-  clientId     String
-  client       User          @relation(fields: [clientId], references: [id])
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  applications Application[]
+  id                    String        @id @default(cuid())
+  title                 String
+  description           String
+  budget                Int
+  serviceFee            Int
+  totalAmount           Int
+  status                String        @default("OPEN")
+  tags                  String        @default("")
+  clientId              String
+  client                User          @relation("ClientGigs", fields: [clientId], references: [id])
+  assignedSpecialistId  String?
+  assignedSpecialist    User?         @relation("AssignedGigs", fields: [assignedSpecialistId], references: [id])
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  applications          Application[]
 }
 
 model Application {

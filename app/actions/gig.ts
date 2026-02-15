@@ -88,3 +88,100 @@ export async function applyToGig(
 
   redirect(`/dashboard/gigs/${gigId}`)
 }
+
+export async function acceptApplication(
+  prevState: { error?: string } | null,
+  formData: FormData
+) {
+  const session = await getSession()
+  if (!session) redirect('/login')
+
+  if (session.role !== 'CLIENT') {
+    return { error: 'Only clients can manage applications.' }
+  }
+
+  const applicationId = formData.get('applicationId') as string
+
+  const application = await prisma.application.findUnique({
+    where: { id: applicationId },
+    include: { gig: true },
+  })
+
+  if (!application) {
+    return { error: 'Application not found.' }
+  }
+
+  if (application.gig.clientId !== session.userId) {
+    return { error: 'Only the gig owner can manage applications.' }
+  }
+
+  if (application.gig.status !== 'OPEN') {
+    return { error: 'This gig is no longer accepting applications.' }
+  }
+
+  if (application.status !== 'PENDING') {
+    return { error: 'This application is no longer pending.' }
+  }
+
+  await prisma.$transaction([
+    prisma.application.update({
+      where: { id: applicationId },
+      data: { status: 'ACCEPTED' },
+    }),
+    prisma.gig.update({
+      where: { id: application.gigId },
+      data: {
+        status: 'IN_PROGRESS',
+        assignedSpecialistId: application.specialistId,
+      },
+    }),
+    prisma.application.updateMany({
+      where: {
+        gigId: application.gigId,
+        id: { not: applicationId },
+        status: 'PENDING',
+      },
+      data: { status: 'REJECTED' },
+    }),
+  ])
+
+  redirect(`/dashboard/gigs/${application.gigId}`)
+}
+
+export async function rejectApplication(
+  prevState: { error?: string } | null,
+  formData: FormData
+) {
+  const session = await getSession()
+  if (!session) redirect('/login')
+
+  if (session.role !== 'CLIENT') {
+    return { error: 'Only clients can manage applications.' }
+  }
+
+  const applicationId = formData.get('applicationId') as string
+
+  const application = await prisma.application.findUnique({
+    where: { id: applicationId },
+    include: { gig: true },
+  })
+
+  if (!application) {
+    return { error: 'Application not found.' }
+  }
+
+  if (application.gig.clientId !== session.userId) {
+    return { error: 'Only the gig owner can manage applications.' }
+  }
+
+  if (application.status !== 'PENDING') {
+    return { error: 'This application is no longer pending.' }
+  }
+
+  await prisma.application.update({
+    where: { id: applicationId },
+    data: { status: 'REJECTED' },
+  })
+
+  redirect(`/dashboard/gigs/${application.gigId}`)
+}

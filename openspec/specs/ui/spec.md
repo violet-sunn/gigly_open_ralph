@@ -111,6 +111,7 @@ The dashboard MUST render different content based on the user's role.
 - THEN the page MUST display "Client Dashboard" heading
 - AND it MUST show a "Post a Gig" link to `/dashboard/gigs/new`
 - AND it MUST show a "My Gigs" section listing the user's gigs with title, budget (₽), status, and date
+- AND IN_PROGRESS gigs MUST show the assigned specialist's email
 - AND if no gigs exist, it MUST show "No gigs posted yet."
 - AND it MUST display a "Sign out" button
 
@@ -242,6 +243,9 @@ The system MUST provide a page at `/dashboard/gigs/[id]` showing full gig detail
 - THEN the page MUST display the gig details
 - AND it MUST NOT show the apply form
 - AND if the CLIENT owns the gig, it MUST show the list of applications with specialist email, cover letter, status, and date
+- AND if the gig is OPEN, each PENDING application MUST show "Accept" and "Reject" buttons
+- AND if the gig is IN_PROGRESS, applications MUST show status badges ("Accepted" / "Rejected") instead of buttons
+- AND if the gig is IN_PROGRESS, the assigned specialist's email MUST be shown prominently
 
 #### Scenario: Gig not found
 - GIVEN a non-existent gig ID
@@ -261,8 +265,12 @@ The system MUST provide a page at `/dashboard/gigs/[id]` showing full gig detail
 
 **Acceptance Criteria:**
 - `app/dashboard/gigs/[id]/page.tsx` exists as a server component
-- Queries gig by ID with `include: { client: true, applications: true }`
+- Queries gig by ID with `include: { client: true, assignedSpecialist: true, applications: true }`
 - SPECIALIST sees apply form (or "already applied" message)
 - CLIENT who owns the gig sees applications list
-- Uses `useActionState` with `applyToGig` action in a client component
-- Uses `useFormStatus` for pending state
+- OPEN gigs: PENDING applications show Accept/Reject buttons via `ApplicationActions` client component
+- IN_PROGRESS gigs: applications show status badges, assigned specialist email displayed
+- `ApplicationActions` uses `useActionState` with `acceptApplication` / `rejectApplication`
+- `ApplicationActions` uses `useFormStatus` for pending states ("Accepting..." / "Rejecting...")
+- Each button submits a form with hidden `applicationId` field
+- Inline error display from action state

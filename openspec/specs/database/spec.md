@@ -32,8 +32,9 @@ The system MUST define a User model with id, email, password, role fields, and r
   - `role` field as String with @default("USER") for backwards compatibility
   - `createdAt` field as DateTime with @default(now())
   - `updatedAt` field as DateTime with @updatedAt
-  - `gigs` relation field (Gig[])
+  - `gigs` relation field (Gig[]) via "ClientGigs"
   - `applications` relation field (Application[])
+  - `assignedGigs` relation field (Gig[]) via "AssignedGigs"
 
 #### Scenario: Role values
 - GIVEN a new user registration
@@ -62,7 +63,7 @@ The system MUST define a User model with id, email, password, role fields, and r
 ---
 
 ### Requirement: Gig Model
-The system MUST define a Gig model linked to the User model with a relation to Application.
+The system MUST define a Gig model linked to the User model with a relation to Application and an optional assigned specialist.
 
 #### Scenario: Gig schema definition
 - GIVEN the Prisma schema file
@@ -77,7 +78,9 @@ The system MUST define a Gig model linked to the User model with a relation to A
   - `status` field as String with @default("OPEN")
   - `tags` field as String with @default("") (comma-separated)
   - `clientId` field as String (foreign key to User)
-  - `client` relation to User model
+  - `client` relation to User model via "ClientGigs"
+  - `assignedSpecialistId` field as String? (nullable, foreign key to User)
+  - `assignedSpecialist` relation to User model via "AssignedGigs" (optional)
   - `createdAt` field as DateTime with @default(now())
   - `updatedAt` field as DateTime with @updatedAt
   - `applications` relation field (Application[])
@@ -87,10 +90,17 @@ The system MUST define a Gig model linked to the User model with a relation to A
 - WHEN queried with `include: { applications: true }`
 - THEN it MUST return the gig's applications array
 
+#### Scenario: Gig transitions to IN_PROGRESS
+- GIVEN a Gig with status "OPEN"
+- WHEN an application is accepted
+- THEN the Gig `status` MUST be updated to "IN_PROGRESS"
+- AND `assignedSpecialistId` MUST be set to the accepted specialist's userId
+
 **Acceptance Criteria:**
 - `npx prisma validate` passes
 - Gig table exists in SQLite with all columns
 - Gig model includes `applications Application[]` relation field
+- Gig model includes `assignedSpecialistId String?` and `assignedSpecialist` relation
 
 ---
 
@@ -115,6 +125,8 @@ The system MUST define an Application model linking a Specialist to a Gig.
 **Acceptance Criteria:**
 - `npx prisma validate` passes
 - Application table exists with unique constraint on (gigId, specialistId)
+- Application status supports "PENDING", "ACCEPTED", "REJECTED"
+- No orphaned PENDING applications after an accept operation
 
 ---
 

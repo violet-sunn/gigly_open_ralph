@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ApplyForm } from './apply-form'
+import { ApplicationActions } from './application-actions'
 
 function formatRoubles(kopecks: number): string {
   return new Intl.NumberFormat('ru-RU').format(kopecks / 100)
@@ -18,6 +19,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
     where: { id },
     include: {
       client: { select: { email: true } },
+      assignedSpecialist: { select: { email: true } },
       applications: {
         include: { specialist: { select: { email: true } } },
         orderBy: { createdAt: 'desc' },
@@ -104,6 +106,13 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
 
         {isOwner && (
           <div className="mt-6 bg-white rounded-lg shadow-md p-6">
+            {gig.status === 'IN_PROGRESS' && gig.assignedSpecialist && (
+              <div className="mb-4 p-3 bg-blue-50 rounded-md">
+                <p className="text-sm text-blue-800">
+                  <span className="font-medium">Assigned to:</span> {gig.assignedSpecialist.email}
+                </p>
+              </div>
+            )}
             <h3 className="text-lg font-medium text-gray-900 mb-4">
               Applications ({gig.applications.length})
             </h3>
@@ -115,12 +124,21 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
                   <li key={app.id} className="border-b border-gray-100 pb-3 last:border-0 last:pb-0">
                     <div className="flex justify-between items-start">
                       <span className="text-sm font-medium text-gray-900">{app.specialist.email}</span>
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">{app.status}</span>
+                      {app.status === 'ACCEPTED' ? (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">Accepted</span>
+                      ) : app.status === 'REJECTED' ? (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700">Rejected</span>
+                      ) : (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">Pending</span>
+                      )}
                     </div>
                     {app.coverLetter && (
                       <p className="mt-1 text-sm text-gray-600">{app.coverLetter}</p>
                     )}
                     <p className="mt-1 text-xs text-gray-400">{app.createdAt.toLocaleDateString('ru-RU')}</p>
+                    {app.status === 'PENDING' && gig.status === 'OPEN' && (
+                      <ApplicationActions applicationId={app.id} />
+                    )}
                   </li>
                 ))}
               </ul>

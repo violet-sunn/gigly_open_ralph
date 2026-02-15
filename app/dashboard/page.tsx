@@ -16,7 +16,10 @@ export default async function DashboardPage() {
     ? await prisma.gig.findMany({
         where: { clientId: session.userId },
         orderBy: { createdAt: 'desc' },
-        include: { _count: { select: { applications: true } } },
+        include: {
+          _count: { select: { applications: true } },
+          assignedSpecialist: { select: { email: true } },
+        },
       })
     : []
 
@@ -54,7 +57,9 @@ export default async function DashboardPage() {
                       <li key={gig.id} className="border-b border-gray-100 pb-2 last:border-0 last:pb-0">
                         <div className="flex justify-between items-start">
                           <span className="text-sm font-medium text-gray-900">{gig.title}</span>
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">{gig.status}</span>
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${
+                            gig.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
+                          }`}>{gig.status}</span>
                         </div>
                         <div className="flex justify-between mt-1">
                           <span className="text-xs text-gray-500">{formatRoubles(gig.budget)} ₽</span>
@@ -62,6 +67,9 @@ export default async function DashboardPage() {
                             {gig._count.applications} app{gig._count.applications !== 1 ? 's' : ''} · {gig.createdAt.toLocaleDateString('ru-RU')}
                           </span>
                         </div>
+                        {gig.assignedSpecialist && (
+                          <p className="mt-1 text-xs text-blue-600">Specialist: {gig.assignedSpecialist.email}</p>
+                        )}
                       </li>
                     ))}
                   </ul>
