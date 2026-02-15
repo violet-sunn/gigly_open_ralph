@@ -10,10 +10,42 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  role      String   @default("USER")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String        @id @default(cuid())
+  email        String        @unique
+  password     String
+  role         String        @default("USER")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  gigs         Gig[]
+  applications Application[]
+}
+
+model Gig {
+  id           String        @id @default(cuid())
+  title        String
+  description  String
+  budget       Int
+  serviceFee   Int
+  totalAmount  Int
+  status       String        @default("OPEN")
+  tags         String        @default("")
+  clientId     String
+  client       User          @relation(fields: [clientId], references: [id])
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  applications Application[]
+}
+
+model Application {
+  id           String   @id @default(cuid())
+  gigId        String
+  gig          Gig      @relation(fields: [gigId], references: [id])
+  specialistId String
+  specialist   User     @relation(fields: [specialistId], references: [id])
+  coverLetter  String   @default("")
+  status       String   @default("PENDING")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([gigId, specialistId])
 }
