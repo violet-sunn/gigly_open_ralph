@@ -1,6 +1,6 @@
-# Database Specification Delta
+# Database Specification
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Prisma ORM Setup
 The system MUST use Prisma as the database ORM with SQLite as the database provider.
@@ -29,14 +29,22 @@ The system MUST define a User model with id, email, password, and role fields.
   - `id` field as String with @id and @default(cuid())
   - `email` field as String with @unique
   - `password` field as String
-  - `role` field as String with default value "USER"
+  - `role` field as String with @default("USER") for backwards compatibility
   - `createdAt` field as DateTime with @default(now())
   - `updatedAt` field as DateTime with @updatedAt
+
+#### Scenario: Role values
+- GIVEN a new user registration
+- WHEN the role is set
+- THEN it MUST be one of `"CLIENT"`, `"SPECIALIST"`, or `"ADMIN"`
+- AND the `registerUser` action MUST only accept `"CLIENT"` or `"SPECIALIST"`
+- AND `"ADMIN"` MUST only be assignable directly in the database
 
 **Acceptance Criteria:**
 - Run `npx prisma format` without errors
 - Run `npx prisma validate` without errors
 - Model includes all required fields with correct types
+- `registerUser` validates role is `"CLIENT"` or `"SPECIALIST"`
 
 ---
 

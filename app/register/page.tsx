@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
+import Link from 'next/link'
 import { registerUser } from '@/app/actions/auth'
 
 function SubmitButton() {
@@ -33,6 +34,27 @@ export default function RegisterPage() {
         </div>
         <form action={formAction} className="mt-8 space-y-6">
           <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                I am a
+              </label>
+              <div className="flex gap-4">
+                <label className="flex-1 cursor-pointer">
+                  <input type="radio" name="role" value="CLIENT" className="peer sr-only" required />
+                  <div className="p-3 text-center border border-gray-300 rounded-md peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 hover:bg-gray-50 transition-colors">
+                    <span className="text-sm font-medium">Client</span>
+                    <p className="text-xs text-gray-500 mt-1">Post gigs, hire specialists</p>
+                  </div>
+                </label>
+                <label className="flex-1 cursor-pointer">
+                  <input type="radio" name="role" value="SPECIALIST" className="peer sr-only" required />
+                  <div className="p-3 text-center border border-gray-300 rounded-md peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 hover:bg-gray-50 transition-colors">
+                    <span className="text-sm font-medium">Specialist</span>
+                    <p className="text-xs text-gray-500 mt-1">Browse gigs, get hired</p>
+                  </div>
+                </label>
+              </div>
+            </div>
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Email address
@@ -67,6 +89,12 @@ export default function RegisterPage() {
             <SubmitButton />
           </div>
         </form>
+        <p className="text-center text-sm text-gray-600">
+          Already have an account?{' '}
+          <Link href="/login" className="text-blue-600 hover:text-blue-500 font-medium">
+            Sign in
+          </Link>
+        </p>
       </div>
     </div>
   )

@@ -5,15 +5,15 @@
 version: "1.1"
 
 project:
-  name: "my-project"
+  name: "Gigly"
   repoRoot: "."
   language: "ts"
-  packageManager: "npm"          # user-defined: npm | pnpm | yarn | bun
+  packageManager: "npm" # user-defined: npm | pnpm | yarn | bun
 
 defaults:
   backend: "cursor"
-  workspaceMode: "patch"       # "worktree" | "patch"
-  checkpointMode: "commit"     # "commit" | "patch"
+  workspaceMode: "patch" # "worktree" | "patch"
+  checkpointMode: "commit" # "commit" | "patch"
   validators:
     - typecheck
     - test
@@ -23,19 +23,19 @@ defaults:
 # NOTE: These are defaults; users can override or disable.
 artifacts:
   enabled: true
-  rootDir: "ralphy-spec"        # default; can be overridden via CLI: --artifact-dir
-  statusIcons: "emoji"          # "emoji" | "ascii" | "none"
+  rootDir: "ralphy-spec" # default; can be overridden via CLI: --artifact-dir
+  statusIcons: "emoji" # "emoji" | "ascii" | "none"
 
 # Run-level budgets (hard limits for entire run)
 budgets:
   run:
-    money_usd: 20              # Max USD per run
-    tokens: 2000000            # Max tokens per run
-    wall_time_minutes: 90      # Max wall clock time
-    max_iterations_total: 80   # Max total iterations across all tasks
-  
+    money_usd: 20 # Max USD per run
+    tokens: 2000000 # Max tokens per run
+    wall_time_minutes: 90 # Max wall clock time
+    max_iterations_total: 80 # Max total iterations across all tasks
+
   limits:
-    max_parallel_tasks: 1      # Concurrent tasks (v1: always 1)
+    max_parallel_tasks: 1 # Concurrent tasks (v1: always 1)
     max_parallel_validators: 2 # Concurrent validators
     command_timeout_seconds: 900
 
@@ -106,16 +106,16 @@ tasks: []
 # - id: "fix-typo-001"
 #   title: "Fix typo in error message"
 #   goal: "Correct spelling in validation error"
-#   
+#
 #   sprint:
 #     size: XS                 # Uses XS defaults: $0.20 optimal, 3 max iter
 #     intent: "fix"            # No refactoring allowed
-#   
+#
 #   files_contract:
 #     allowed: ["src/utils/validation.ts"]
 #     forbidden: []
 #     allow_new_files: false
-#   
+#
 #   acceptance:
 #     - id: "acc-1"
 #       text: "Error message spelled correctly"
@@ -125,11 +125,11 @@ tasks: []
 # - id: "auth-001"
 #   title: "JWT middleware"
 #   goal: "Add JWT auth middleware for API routes"
-#   
+#
 #   sprint:
 #     size: M
 #     intent: "feature"        # Limited refactoring allowed
-#   
+#
 #   budget:                    # Optional: override sprint defaults
 #     optimal:
 #       usd: 1.2
@@ -144,7 +144,7 @@ tasks: []
 #       tokens: 250000
 #       time_minutes: 20
 #       max_iterations: 8
-#   
+#
 #   files_contract:
 #     allowed:
 #       - "src/middleware/**"
@@ -152,11 +152,11 @@ tasks: []
 #     forbidden:
 #       - "src/db/**"
 #     allow_new_files: true
-#   
+#
 #   context:
 #     docs: ["README.md"]
 #     files: ["src/api/index.ts"]
-#   
+#
 #   acceptance:
 #     - id: "acc-1"
 #       text: "Requests without token return 401"
@@ -169,7 +169,7 @@ tasks: []
 #       type: "evidence"
 #       evidence:
 #         must_include_files: ["src/**/__tests__/**"]
-#   
+#
 #   validators: ["typecheck", "test", "lint"]
 #   done_policy:
 #     require_all_validators_pass: true
@@ -180,11 +180,11 @@ tasks: []
 #   title: "Migrate to Prisma"
 #   goal: "Replace raw SQL with Prisma ORM"
 #   deps: ["auth-001"]         # Depends on auth task
-#   
+#
 #   sprint:
 #     size: L
 #     intent: "refactor"       # Full refactoring allowed
-#   
+#
 #   files_contract:
 #     allowed:
 #       - "src/db/**"
@@ -192,7 +192,7 @@ tasks: []
 #     forbidden:
 #       - "src/api/**"         # Don't touch API layer
 #     allow_new_files: true
-#   
+#
 #   acceptance:
 #     - id: "acc-1"
 #       text: "All database queries use Prisma"
@@ -204,7 +204,7 @@ tasks: []
 # ============================================================
 # BUDGET TIERS EXPLAINED
 # ============================================================
-# 
+#
 # OPTIMAL: Expected cost for correct completion
 #   - Agent operates normally with full context
 #   - All features enabled (self-review, planning)
