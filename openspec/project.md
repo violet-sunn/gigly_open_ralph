@@ -38,6 +38,14 @@ totalAmount: The amount Client pays. (Budget + Fee)
 status: OPEN -> IN_PROGRESS -> REVIEW -> COMPLETED -> PAID.
 tags: Stack requirements (e.g., "React", "Python").
 
+The Application
+Links a Specialist to a Gig.
+
+Fields:
+status: PENDING -> ACCEPTED | REJECTED.
+coverLetter: Optional free-text message.
+Constraints: One application per specialist per gig. Only SPECIALIST role can apply. Only on OPEN gigs.
+
 ## Stack
 
 - Language: TypeScript
@@ -67,3 +75,43 @@ tags: Stack requirements (e.g., "React", "Python").
 - Middleware for auth route guards (protect `/dashboard`, redirect logged-in users from `/login` and `/register`)
 - Passwords hashed with bcryptjs before storage
 - `SESSION_SECRET` env var required for JWT signing
+- Role included in JWT session payload (userId, email, role)
+- Role is immutable after registration; ADMIN only assignable via DB
+
+## Completed Changes
+
+1. **project-initialization** — Next.js 15+ with App Router, Prisma + SQLite, Tailwind CSS, User model, registration page with Server Action.
+2. **homepage-and-registration-flow** — Landing page linking to `/register`, registration feedback (error/success), password hashing with bcryptjs.
+3. **user-login-and-sessions** — Login page at `/login`, JWT sessions via `jose` in HTTP-only cookies, logout action, auto-login after registration, middleware route protection.
+4. **role-selection-and-dashboards** — Role selector on registration (CLIENT / SPECIALIST), role persisted in session, role-based dashboards with placeholder CTAs.
+5. **gig-creation** — Gig model (title, description, budget, serviceFee, totalAmount, status, tags), `createGig` server action, gig creation form at `/dashboard/gigs/new` (CLIENT only), client dashboard lists own gigs. Service fee: 20% of budget.
+6. **specialist-gig-browsing** — Application model, gig browsing at `/dashboard/gigs` (OPEN gigs), gig detail at `/dashboard/gigs/[id]` with apply form (SPECIALIST only), specialist dashboard lists their applications, client dashboard shows application count per gig.
+7. **application-management** — `acceptApplication` and `rejectApplication` server actions (CLIENT only), `assignedSpecialistId` on Gig, gig transitions OPEN → IN_PROGRESS on accept, auto-reject remaining PENDING applications, Accept/Reject buttons on gig detail for gig owner.
+8. **client-gig-detail-link** — Client dashboard "My Gigs" list items are now clickable links to gig detail pages (`/dashboard/gigs/[id]`), enabling clients to navigate from their dashboard to manage applications.
+
+## Current State
+
+The core marketplace loop is functional: Clients register, create gigs, review applications, and accept a specialist. Specialists register, browse open gigs, and apply. Accepting an application assigns the specialist and moves the gig to IN_PROGRESS.
+
+### Implemented
+
+- User registration with role selection (CLIENT / SPECIALIST)
+- Login / logout with JWT sessions
+- Role-based dashboards
+- Gig creation (CLIENT) with budget + 20% fee calculation
+- Gig browsing and application (SPECIALIST)
+
+### Not Yet Implemented
+
+- Application management: accept / reject (CLIENT)
+- Gig lifecycle: OPEN → IN_PROGRESS
+- Gig lifecycle beyond IN_PROGRESS (REVIEW, COMPLETED, PAID)
+- Payment / escrow flow
+- Specialist notifications (email, in-app)
+- Client and specialist profile pages (Company Name, INN/KPP, Tech Stack)
+- Admin dashboard and moderation
+- Search, filter, pagination on gig browsing
+- Gig editing or deletion
+- Password reset / email verification
+- OAuth / social login
+- Messaging between client and specialist

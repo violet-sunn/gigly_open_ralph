@@ -111,9 +111,22 @@ The dashboard MUST render different content based on the user's role.
 - THEN the page MUST display "Client Dashboard" heading
 - AND it MUST show a "Post a Gig" link to `/dashboard/gigs/new`
 - AND it MUST show a "My Gigs" section listing the user's gigs with title, budget (₽), status, and date
+- AND each gig in "My Gigs" MUST be a clickable link to `/dashboard/gigs/{gig.id}`
 - AND IN_PROGRESS gigs MUST show the assigned specialist's email
 - AND if no gigs exist, it MUST show "No gigs posted yet."
 - AND it MUST display a "Sign out" button
+
+#### Scenario: Client clicks a gig in "My Gigs"
+- GIVEN a CLIENT user is on `/dashboard`
+- AND the "My Gigs" section lists at least one gig
+- WHEN the client clicks on a gig item
+- THEN the browser MUST navigate to `/dashboard/gigs/{gig.id}`
+
+#### Scenario: Gig list item shows clickable affordance
+- GIVEN a CLIENT user is on `/dashboard`
+- AND the "My Gigs" section lists at least one gig
+- WHEN the user hovers over a gig item
+- THEN the item MUST visually indicate it is clickable (e.g., background color change or cursor pointer)
 
 #### Scenario: Specialist visits dashboard
 - GIVEN a user with role "SPECIALIST" is logged in
@@ -137,6 +150,7 @@ The dashboard MUST render different content based on the user's role.
 - Both views include the sign-out form
 - CLIENT view queries gigs via Prisma and lists them with application count
 - "Post a Gig" is a `<Link>` to `/dashboard/gigs/new`
+- Each gig in "My Gigs" MUST be wrapped in a `<Link href="/dashboard/gigs/{gig.id}">` with `block` class and `hover:bg-gray-50` for visual feedback
 - SPECIALIST view queries applications via Prisma and lists them
 - "Browse Gigs" is a `<Link>` to `/dashboard/gigs`
 

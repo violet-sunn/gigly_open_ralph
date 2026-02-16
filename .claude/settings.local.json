@@ -25,7 +25,8 @@
       "Bash(git commit:*)",
       "Bash(npm ls bcryptjs)",
       "Bash(npm run build)",
-      "Bash(npm ls:*)"
+      "Bash(npm ls:*)",
+      "Bash(command -v:*)"
     ]
   }
 }
