@@ -2,20 +2,77 @@ import { getSession } from '@/lib/session'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import GigFilters from './components/GigFilters'
 
 function formatRoubles(kopecks: number): string {
   return new Intl.NumberFormat('ru-RU').format(kopecks / 100)
 }
 
-export default async function GigBrowsePage() {
+export default async function GigBrowsePage({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined }
+}) {
   const session = await getSession()
   if (!session) redirect('/login')
 
+  // Extract filter parameters from searchParams
+  const search = typeof searchParams.search === 'string' ? searchParams.search : undefined
+  const tagsParam = typeof searchParams.tags === 'string' ? searchParams.tags : undefined
+  const tags = tagsParam ? tagsParam.split(',').map(t => t.trim()).filter(Boolean) : []
+  const minBudgetParam = typeof searchParams.minBudget === 'string' ? searchParams.minBudget : undefined
+  const minBudget = minBudgetParam ? parseInt(minBudgetParam, 10) : undefined
+  const maxBudgetParam = typeof searchParams.maxBudget === 'string' ? searchParams.maxBudget : undefined
+  const maxBudget = maxBudgetParam ? parseInt(maxBudgetParam, 10) : undefined
+  const sort = typeof searchParams.sort === 'string' ? searchParams.sort : 'newest'
+
+  // Build dynamic Prisma where clause with nested AND/OR
+  const andConditions: any[] = [{ status: 'OPEN' }]
+
+  // Text search: title OR description
+  if (search) {
+    andConditions.push({
+      OR: [
+        { title: { contains: search } },
+        { description: { contains: search } }
+      ]
+    })
+  }
+
+  // Tag filtering: tag1 OR tag2 OR tag3
+  if (tags.length > 0) {
+    andConditions.push({
+      OR: tags.map(tag => ({ tags: { contains: tag } }))
+    })
+  }
+
+  // Budget range: combine min and max into single condition
+  const budgetCondition: any = {}
+  if (minBudget && !isNaN(minBudget) && minBudget > 0) {
+    budgetCondition.gte = minBudget * 100
+  }
+  if (maxBudget && !isNaN(maxBudget) && maxBudget > 0) {
+    budgetCondition.lte = maxBudget * 100
+  }
+  if (Object.keys(budgetCondition).length > 0) {
+    andConditions.push({ budget: budgetCondition })
+  }
+
+  const where = { AND: andConditions }
+
+  // Build dynamic orderBy
+  let orderBy: any = { createdAt: 'desc' }
+  if (sort === 'budget-desc') orderBy = { budget: 'desc' }
+  if (sort === 'budget-asc') orderBy = { budget: 'asc' }
+
   const gigs = await prisma.gig.findMany({
-    where: { status: 'OPEN' },
-    orderBy: { createdAt: 'desc' },
+    where,
+    orderBy,
     include: { client: { select: { email: true } } },
   })
+
+  // Check if any filters are active
+  const hasActiveFilters = search || tags.length > 0 || minBudget || maxBudget
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -26,9 +83,18 @@ export default async function GigBrowsePage() {
             ← Back to Dashboard
           </Link>
         </div>
+
+        {/* Filter Panel */}
+        <GigFilters />
+
+        {/* Gig List */}
         {gigs.length === 0 ? (
           <div className="bg-white rounded-lg shadow-md p-8 text-center">
-            <p className="text-sm text-gray-500">No open gigs available.</p>
+            <p className="text-sm text-gray-500">
+              {hasActiveFilters
+                ? 'No gigs match your filters. Try adjusting your search criteria.'
+                : 'No open gigs available.'}
+            </p>
           </div>
         ) : (
           <ul className="space-y-4">

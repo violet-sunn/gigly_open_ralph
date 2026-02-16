@@ -18,6 +18,16 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const session = await verifySession(request)
 
+  // Admin routes — require ADMIN role
+  if (pathname.startsWith('/admin')) {
+    if (!session) {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+    if (session.role !== 'ADMIN') {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+  }
+
   // Protected routes — require auth
   if (pathname.startsWith('/dashboard')) {
     if (!session) {
@@ -36,5 +46,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/login', '/register'],
+  matcher: ['/dashboard/:path*', '/login', '/register', '/admin/:path*'],
 }

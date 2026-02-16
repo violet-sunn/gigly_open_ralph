@@ -67,6 +67,10 @@ export async function applyToGig(
     return { error: 'Gig not found.' }
   }
 
+  if (gig.closedByAdmin) {
+    return { error: 'This gig has been closed by administrators.' }
+  }
+
   if (gig.status !== 'OPEN') {
     return { error: 'This gig is no longer accepting applications.' }
   }

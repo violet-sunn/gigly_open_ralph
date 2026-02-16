@@ -32,7 +32,9 @@
       "Bash(grep -n \"MarkAsPaidButton\" app/dashboard/gigs/[id]/page.tsx)",
       "Bash(grep -A 3 \"status === ''COMPLETED''\" app/dashboard/gigs/[id]/page.tsx)",
       "Bash(grep:*)",
-      "Bash(openspec/specs/gig/spec.md:*)"
+      "Bash(openspec/specs/gig/spec.md:*)",
+      "Bash(VALIDATION_REPORT.md:*)",
+      "Bash(wc -l app/**/*.tsx app/**/*.ts lib/*.ts)"
     ]
   }
 }

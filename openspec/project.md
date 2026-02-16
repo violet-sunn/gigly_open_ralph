@@ -72,11 +72,12 @@ Constraints: One application per specialist per gig. Only SPECIALIST role can ap
 - Server Actions for mutations
 - Prisma for database access
 - SQLite for local development
-- Middleware for auth route guards (protect `/dashboard`, redirect logged-in users from `/login` and `/register`)
+- Middleware for auth route guards (protect `/dashboard`, `/admin`, redirect logged-in users from `/login` and `/register`)
 - Passwords hashed with bcryptjs before storage
 - `SESSION_SECRET` env var required for JWT signing
 - Role included in JWT session payload (userId, email, role)
 - Role is immutable after registration; ADMIN only assignable via DB
+- Admin routes protected by middleware (requires ADMIN role)
 
 ## Completed Changes
 
@@ -91,10 +92,12 @@ Constraints: One application per specialist per gig. Only SPECIALIST role can ap
 9. **gig-work-submission-and-approval** — `submitWork` server action (SPECIALIST only, assigned specialist), `approveWork` server action (CLIENT only, gig owner), gig lifecycle transitions IN_PROGRESS → REVIEW → COMPLETED, Submit Work and Approve Work UI forms on gig detail pages.
 10. **specialist-profiles** — ClientProfile and SpecialistProfile models with 1:1 relations to User, profile view/edit/public pages at `/dashboard/profile`, `updateProfile` server action with role-based validation, profile completion hints on dashboard, client company names on gig details, specialist profiles (tech stack, experience level) displayed in applications list.
 11. **payment-tracking-simplified** — `paidAt` field on Gig model, `markAsPaid` server action (CLIENT only, gig owner), gig lifecycle transition COMPLETED → PAID, payment status display on gig detail and dashboards, "Mark as Paid" button for CLIENT owners on COMPLETED gigs. Simplified implementation without actual payment gateway integration.
+12. **gig-filtering-and-search** — Filter panel component at `/dashboard/gigs` with text search (title/description), multi-tag filtering (React, Python, TypeScript, Node.js, Go, Rust, Docker, Kubernetes), budget range filtering (min/max in roubles), sort options (newest, highest budget, lowest budget), URL-based filter state for shareable/bookmarkable views, AND logic between filter types with OR logic within each type.
+13. **admin-role-and-moderation** — ADMIN role implementation with full moderation capabilities. User.suspended field prevents login, Gig.closedByAdmin prevents applications, ModerationLog model tracks all moderation actions. Admin dashboard at `/admin` with statistics, user management page with suspend/unsuspend actions, gig management page with close action. Middleware protects admin routes. All moderation actions use transactions and create audit logs.
 
 ## Current State
 
-The core marketplace loop is functional: Clients register, create gigs, review applications, accept a specialist, and approve completed work. Specialists register, browse open gigs, apply, and submit work for review. The full gig lifecycle (OPEN → IN_PROGRESS → REVIEW → COMPLETED → PAID) is now implemented. Users can create and manage profiles with role-specific information (company details for clients, tech stack and experience for specialists). Clients can mark completed gigs as paid to track payment status.
+The core marketplace loop is functional: Clients register, create gigs, review applications, accept a specialist, and approve completed work. Specialists register, browse open gigs with filtering and search capabilities, apply, and submit work for review. The full gig lifecycle (OPEN → IN_PROGRESS → REVIEW → COMPLETED → PAID) is now implemented. Users can create and manage profiles with role-specific information (company details for clients, tech stack and experience for specialists). Clients can mark completed gigs as paid to track payment status. Specialists can efficiently find relevant gigs using text search, tag filters, budget range filters, and sorting options. Admins can moderate the platform by suspending users, closing gigs, and viewing audit logs.
 
 ### Implemented
 
@@ -105,20 +108,23 @@ The core marketplace loop is functional: Clients register, create gigs, review a
 - Profile view, edit, and public profile pages
 - Gig creation (CLIENT) with budget + 20% fee calculation
 - Gig browsing and application (SPECIALIST)
+- Gig filtering and search: text search, multi-tag filtering, budget range, sorting
 - Application management: accept / reject (CLIENT)
 - Gig lifecycle: OPEN → IN_PROGRESS → REVIEW → COMPLETED → PAID
 - Work submission (SPECIALIST) and approval (CLIENT)
 - Payment tracking: mark as paid (CLIENT), payment status display
 - Client company names displayed on gig details
 - Specialist profiles (tech stack, experience level) displayed in applications
+- Admin role and moderation: suspend/unsuspend users, close gigs, audit logging
+- Admin dashboard with platform statistics
+- User and gig management pages with filtering
 
 ### Not Yet Implemented
 
 - Actual payment gateway integration (Stripe, PayPal, etc.)
 - Escrow account management
 - Specialist notifications (email, in-app)
-- Admin dashboard and moderation
-- Search, filter, pagination on gig browsing
+- Pagination on gig browsing
 - Gig editing or deletion
 - Password reset / email verification
 - OAuth / social login

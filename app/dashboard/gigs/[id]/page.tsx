@@ -41,6 +41,14 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
         },
         orderBy: { createdAt: 'desc' },
       },
+      moderations: session.role === 'ADMIN' ? {
+        include: {
+          admin: {
+            select: { email: true }
+          }
+        },
+        orderBy: { createdAt: 'desc' }
+      } : false,
     },
   })
 
@@ -247,6 +255,42 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
                   </li>
                 ))}
               </ul>
+            )}
+          </div>
+        )}
+
+        {session.role === 'ADMIN' && gig.moderations && gig.moderations.length > 0 && (
+          <div className="mt-6 bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Moderation History</h3>
+            <ul className="space-y-3">
+              {gig.moderations.map((log) => (
+                <li key={log.id} className="border-b border-gray-100 pb-3 last:border-0 last:pb-0">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <span className="text-sm font-medium text-gray-900">
+                        {log.action === 'CLOSE_GIG' ? 'Gig Closed' : log.action}
+                      </span>
+                      <p className="text-sm text-gray-600 mt-1">{log.reason}</p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        By {log.admin.email} on {new Date(log.createdAt).toLocaleString('ru-RU')}
+                      </p>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {gig.closedByAdmin && (
+          <div className="mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-sm text-red-800 font-medium">
+              This gig has been closed by administrators and is no longer accepting applications.
+            </p>
+            {gig.closedAt && (
+              <p className="text-xs text-red-600 mt-1">
+                Closed on {new Date(gig.closedAt).toLocaleString('ru-RU')}
+              </p>
             )}
           </div>
         )}

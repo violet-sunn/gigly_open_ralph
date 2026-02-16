@@ -17,6 +17,11 @@ export async function registerUser(
     return { error: 'Please select a role.' }
   }
 
+  // Explicitly reject ADMIN role during registration
+  if (role === 'ADMIN') {
+    return { error: 'Please select a role.' }
+  }
+
   try {
     const hashedPassword = await bcrypt.hash(password, 10)
     const user = await prisma.user.create({
@@ -45,6 +50,10 @@ export async function loginUser(
   const valid = await bcrypt.compare(password, user.password)
   if (!valid) {
     return { error: 'Invalid email or password.' }
+  }
+
+  if (user.suspended) {
+    return { error: 'Your account has been suspended. Please contact support.' }
   }
 
   await createSession(user.id, user.email, user.role)
