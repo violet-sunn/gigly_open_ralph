@@ -26,7 +26,13 @@
       "Bash(npm ls bcryptjs)",
       "Bash(npm run build)",
       "Bash(npm ls:*)",
-      "Bash(command -v:*)"
+      "Bash(command -v:*)",
+      "Bash(kill 721)",
+      "Bash(openspec/specs/ui/spec.md:*)",
+      "Bash(grep -n \"MarkAsPaidButton\" app/dashboard/gigs/[id]/page.tsx)",
+      "Bash(grep -A 3 \"status === ''COMPLETED''\" app/dashboard/gigs/[id]/page.tsx)",
+      "Bash(grep:*)",
+      "Bash(openspec/specs/gig/spec.md:*)"
     ]
   }
 }

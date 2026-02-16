@@ -6,6 +6,7 @@ import { ApplyForm } from './apply-form'
 import { ApplicationActions } from './application-actions'
 import { SubmitWorkForm } from './submit-work-form'
 import { ApproveWorkForm } from './approve-work-form'
+import { MarkAsPaidButton } from '@/app/components/MarkAsPaidButton'
 
 function formatRoubles(kopecks: number): string {
   return new Intl.NumberFormat('ru-RU').format(kopecks / 100)
@@ -20,10 +21,24 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
   const gig = await prisma.gig.findUnique({
     where: { id },
     include: {
-      client: { select: { email: true } },
+      client: {
+        select: {
+          email: true,
+          id: true,
+        },
+        include: { clientProfile: true }
+      },
       assignedSpecialist: { select: { email: true } },
       applications: {
-        include: { specialist: { select: { email: true } } },
+        include: {
+          specialist: {
+            select: {
+              email: true,
+              id: true,
+            },
+            include: { specialistProfile: true }
+          }
+        },
         orderBy: { createdAt: 'desc' },
       },
     },
@@ -57,8 +72,24 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
         <div className="mt-4 bg-white rounded-lg shadow-md p-6 space-y-4">
           <div className="flex justify-between items-start">
             <h2 className="text-2xl font-bold text-gray-900">{gig.title}</h2>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">{gig.status}</span>
+            <span className={`text-xs px-2 py-0.5 rounded-full ${
+              gig.status === 'PAID' ? 'bg-green-100 text-green-700' :
+              gig.status === 'COMPLETED' ? 'bg-yellow-100 text-yellow-700' :
+              'bg-blue-100 text-blue-700'
+            }`}>
+              {gig.status === 'PAID' ? 'Paid' :
+               gig.status === 'COMPLETED' ? 'Completed - Awaiting Payment' :
+               gig.status}
+            </span>
           </div>
+
+          {gig.status === 'PAID' && gig.paidAt && (
+            <div className="p-3 bg-green-50 rounded-md">
+              <p className="text-sm text-green-800">
+                <span className="font-medium">Payment confirmed on:</span> {gig.paidAt.toLocaleDateString('ru-RU')}
+              </p>
+            </div>
+          )}
 
           <p className="text-sm text-gray-600 whitespace-pre-wrap">{gig.description}</p>
 
@@ -70,6 +101,17 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
             <div>
               <span className="text-gray-500">Posted by:</span>
               <span className="ml-2 font-medium">{gig.client.email}</span>
+              {gig.client.clientProfile?.companyName && (
+                <>
+                  <br />
+                  <Link
+                    href={`/dashboard/profile/${gig.client.id}`}
+                    className="ml-2 text-blue-600 hover:underline"
+                  >
+                    {gig.client.clientProfile.companyName}
+                  </Link>
+                </>
+              )}
             </div>
           </div>
 
@@ -111,7 +153,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
           <div className="mt-6 bg-white rounded-lg shadow-md p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Submit Your Work</h3>
             <p className="text-sm text-gray-600 mb-4">
-              Once you've completed the work, submit it for client review.
+              Once you&apos;ve completed the work, submit it for client review.
             </p>
             <SubmitWorkForm gigId={gig.id} />
           </div>
@@ -128,9 +170,19 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
               </div>
             )}
             <p className="text-sm text-gray-600 mb-4">
-              Review the specialist's work and approve it to mark the gig as completed.
+              Review the specialist&apos;s work and approve it to mark the gig as completed.
             </p>
             <ApproveWorkForm gigId={gig.id} />
+          </div>
+        )}
+
+        {isOwner && gig.status === 'COMPLETED' && (
+          <div className="mt-6 bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Mark as Paid</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Once you&apos;ve paid the specialist, mark this gig as paid to complete the transaction.
+            </p>
+            <MarkAsPaidButton gigId={gig.id} />
           </div>
         )}
 
@@ -153,7 +205,21 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
                 {gig.applications.map((app) => (
                   <li key={app.id} className="border-b border-gray-100 pb-3 last:border-0 last:pb-0">
                     <div className="flex justify-between items-start">
-                      <span className="text-sm font-medium text-gray-900">{app.specialist.email}</span>
+                      <div className="flex-1">
+                        <Link
+                          href={`/dashboard/profile/${app.specialist.id}`}
+                          className="text-sm font-medium text-blue-600 hover:underline"
+                        >
+                          {app.specialist.specialistProfile?.displayName
+                            ? `${app.specialist.specialistProfile.displayName} (${app.specialist.email})`
+                            : app.specialist.email}
+                        </Link>
+                        {app.specialist.specialistProfile?.experienceLevel && (
+                          <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                            {app.specialist.specialistProfile.experienceLevel}
+                          </span>
+                        )}
+                      </div>
                       {app.status === 'ACCEPTED' ? (
                         <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">Accepted</span>
                       ) : app.status === 'REJECTED' ? (
@@ -162,6 +228,15 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
                         <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">Pending</span>
                       )}
                     </div>
+                    {app.specialist.specialistProfile?.techStack && (
+                      <div className="mt-2 flex gap-2 flex-wrap">
+                        {app.specialist.specialistProfile.techStack.split(',').map((tech) => tech.trim()).filter(Boolean).map((tech) => (
+                          <span key={tech} className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                     {app.coverLetter && (
                       <p className="mt-1 text-sm text-gray-600">{app.coverLetter}</p>
                     )}

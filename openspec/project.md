@@ -89,28 +89,34 @@ Constraints: One application per specialist per gig. Only SPECIALIST role can ap
 7. **application-management** — `acceptApplication` and `rejectApplication` server actions (CLIENT only), `assignedSpecialistId` on Gig, gig transitions OPEN → IN_PROGRESS on accept, auto-reject remaining PENDING applications, Accept/Reject buttons on gig detail for gig owner.
 8. **client-gig-detail-link** — Client dashboard "My Gigs" list items are now clickable links to gig detail pages (`/dashboard/gigs/[id]`), enabling clients to navigate from their dashboard to manage applications.
 9. **gig-work-submission-and-approval** — `submitWork` server action (SPECIALIST only, assigned specialist), `approveWork` server action (CLIENT only, gig owner), gig lifecycle transitions IN_PROGRESS → REVIEW → COMPLETED, Submit Work and Approve Work UI forms on gig detail pages.
+10. **specialist-profiles** — ClientProfile and SpecialistProfile models with 1:1 relations to User, profile view/edit/public pages at `/dashboard/profile`, `updateProfile` server action with role-based validation, profile completion hints on dashboard, client company names on gig details, specialist profiles (tech stack, experience level) displayed in applications list.
+11. **payment-tracking-simplified** — `paidAt` field on Gig model, `markAsPaid` server action (CLIENT only, gig owner), gig lifecycle transition COMPLETED → PAID, payment status display on gig detail and dashboards, "Mark as Paid" button for CLIENT owners on COMPLETED gigs. Simplified implementation without actual payment gateway integration.
 
 ## Current State
 
-The core marketplace loop is functional: Clients register, create gigs, review applications, accept a specialist, and approve completed work. Specialists register, browse open gigs, apply, and submit work for review. The full gig lifecycle (OPEN → IN_PROGRESS → REVIEW → COMPLETED) is now implemented.
+The core marketplace loop is functional: Clients register, create gigs, review applications, accept a specialist, and approve completed work. Specialists register, browse open gigs, apply, and submit work for review. The full gig lifecycle (OPEN → IN_PROGRESS → REVIEW → COMPLETED → PAID) is now implemented. Users can create and manage profiles with role-specific information (company details for clients, tech stack and experience for specialists). Clients can mark completed gigs as paid to track payment status.
 
 ### Implemented
 
 - User registration with role selection (CLIENT / SPECIALIST)
 - Login / logout with JWT sessions
-- Role-based dashboards
+- Role-based dashboards with profile completion hints
+- User profiles (ClientProfile and SpecialistProfile tables)
+- Profile view, edit, and public profile pages
 - Gig creation (CLIENT) with budget + 20% fee calculation
 - Gig browsing and application (SPECIALIST)
 - Application management: accept / reject (CLIENT)
-- Gig lifecycle: OPEN → IN_PROGRESS → REVIEW → COMPLETED
+- Gig lifecycle: OPEN → IN_PROGRESS → REVIEW → COMPLETED → PAID
 - Work submission (SPECIALIST) and approval (CLIENT)
+- Payment tracking: mark as paid (CLIENT), payment status display
+- Client company names displayed on gig details
+- Specialist profiles (tech stack, experience level) displayed in applications
 
 ### Not Yet Implemented
 
-- Gig lifecycle: COMPLETED → PAID transition
-- Payment / escrow flow
+- Actual payment gateway integration (Stripe, PayPal, etc.)
+- Escrow account management
 - Specialist notifications (email, in-app)
-- Client and specialist profile pages (Company Name, INN/KPP, Tech Stack)
 - Admin dashboard and moderation
 - Search, filter, pagination on gig browsing
 - Gig editing or deletion

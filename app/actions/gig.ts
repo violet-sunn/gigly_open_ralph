@@ -255,3 +255,45 @@ export async function approveWork(
 
   redirect(`/dashboard/gigs/${gigId}`)
 }
+
+export async function markAsPaid(
+  prevState: { error?: string } | null,
+  formData: FormData
+) {
+  const session = await getSession()
+  if (!session) redirect('/login')
+
+  if (session.role !== 'CLIENT') {
+    return { error: 'Only clients can mark gigs as paid.' }
+  }
+
+  const gigId = formData.get('gigId') as string
+
+  const gig = await prisma.gig.findUnique({ where: { id: gigId } })
+
+  if (!gig) {
+    return { error: 'Gig not found.' }
+  }
+
+  if (gig.clientId !== session.userId) {
+    return { error: 'Only the gig owner can mark this gig as paid.' }
+  }
+
+  if (gig.status === 'PAID') {
+    return { error: 'This gig has already been marked as paid.' }
+  }
+
+  if (gig.status !== 'COMPLETED') {
+    return { error: 'Only completed gigs can be marked as paid.' }
+  }
+
+  await prisma.gig.update({
+    where: { id: gigId },
+    data: {
+      status: 'PAID',
+      paidAt: new Date()
+    },
+  })
+
+  redirect(`/dashboard/gigs/${gigId}`)
+}

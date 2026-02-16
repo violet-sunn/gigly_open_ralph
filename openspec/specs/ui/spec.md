@@ -288,3 +288,181 @@ The system MUST provide a page at `/dashboard/gigs/[id]` showing full gig detail
 - `ApplicationActions` uses `useFormStatus` for pending states ("Accepting..." / "Rejecting...")
 - Each button submits a form with hidden `applicationId` field
 - Inline error display from action state
+
+---
+
+### Requirement: Profile View Page
+The system MUST provide a profile view page at `/dashboard/profile` showing the authenticated user's profile from their respective profile table.
+
+#### Scenario: SPECIALIST views own profile
+- GIVEN an authenticated user with role "SPECIALIST"
+- WHEN they navigate to `/dashboard/profile`
+- THEN the page MUST query the user with `include: { specialistProfile: true }`
+- AND if `specialistProfile` is null, display "Profile not set up yet" with a link to edit
+- AND if `specialistProfile` exists, display all profile fields
+
+#### Scenario: CLIENT views own profile
+- GIVEN an authenticated user with role "CLIENT"
+- WHEN they navigate to `/dashboard/profile`
+- THEN the page MUST query the user with `include: { clientProfile: true }`
+- AND if `clientProfile` is null, display "Profile not set up yet" with a link to edit
+- AND if `clientProfile` exists, display all profile fields
+
+**Acceptance Criteria:**
+- `app/dashboard/profile/page.tsx` exists as a server component
+- Handles null profile gracefully
+- Displays "Not set" for empty string fields
+- Hourly rate displayed in roubles (converted from kopecks)
+
+---
+
+### Requirement: Profile Edit Page
+The system MUST provide a profile edit page at `/dashboard/profile/edit` with a form to update profile fields.
+
+#### Scenario: Form shows role-specific fields
+- GIVEN an authenticated user
+- WHEN they navigate to `/dashboard/profile/edit`
+- THEN the form MUST show fields appropriate for their role
+- AND SPECIALIST sees: displayName, techStack, experienceLevel, bio, hourlyRate
+- AND CLIENT sees: companyName, inn, kpp, contactPerson, phoneNumber
+
+#### Scenario: Form pre-fills existing data
+- GIVEN a user with existing profile data
+- WHEN they navigate to `/dashboard/profile/edit`
+- THEN all form fields MUST be pre-filled with current values
+
+**Acceptance Criteria:**
+- `app/dashboard/profile/edit/page.tsx` exists
+- Uses `useActionState` with `updateProfile` action
+- Uses `useFormStatus` for pending state
+- CLIENT form marks companyName and inn as required
+
+---
+
+### Requirement: Public Profile View Page
+The system MUST provide a public profile view page at `/dashboard/profile/[userId]` showing another user's profile (read-only).
+
+#### Scenario: View SPECIALIST public profile
+- GIVEN an authenticated user
+- WHEN they navigate to `/dashboard/profile/[userId]` for a SPECIALIST
+- THEN the page MUST display public profile information
+- AND MUST NOT show the user's email address
+
+#### Scenario: View own profile via public URL
+- GIVEN an authenticated user
+- WHEN they navigate to `/dashboard/profile/[userId]` where userId matches their own
+- THEN they MUST be redirected to `/dashboard/profile`
+
+**Acceptance Criteria:**
+- `app/dashboard/profile/[userId]/page.tsx` exists as a server component
+- Hides sensitive fields (email, INN, KPP, phone for CLIENT)
+- Redirects own profile to `/dashboard/profile`
+- Handles null profiles gracefully
+
+---
+
+### Requirement: Dashboard Profile Integration
+The dashboard MUST show profile completion hints and provide access to profile pages.
+
+#### Scenario: CLIENT dashboard shows profile completion hint
+- GIVEN a user with role "CLIENT" is logged in
+- AND the user has incomplete profile (missing companyName or inn)
+- WHEN they visit `/dashboard`
+- THEN the page MUST display a notice to complete their profile
+
+#### Scenario: SPECIALIST dashboard shows profile completion hint
+- GIVEN a user with role "SPECIALIST" is logged in
+- AND the user has incomplete profile (missing techStack or experienceLevel)
+- WHEN they visit `/dashboard`
+- THEN the page MUST display a notice to complete their profile
+
+#### Scenario: Dashboard shows profile link
+- GIVEN an authenticated user (any role)
+- WHEN they visit `/dashboard`
+- THEN the page MUST display a "My Profile" link to `/dashboard/profile`
+
+**Acceptance Criteria:**
+- Dashboard queries user with appropriate profile relation
+- Shows profile completion notice if key fields are missing
+- Includes "My Profile" link in dashboard navigation
+
+---
+
+### Requirement: Payment Status Display on Gig Detail Page
+The gig detail page MUST display payment status and provide payment actions for eligible users.
+
+#### Scenario: CLIENT owner views COMPLETED gig
+- GIVEN an authenticated CLIENT user who owns a gig
+- AND the gig status is "COMPLETED"
+- WHEN they navigate to `/dashboard/gigs/[id]`
+- THEN the page MUST display a "Mark as Paid" button
+- AND the button MUST be in a form that submits to `markAsPaid` action
+- AND the page MUST show status badge "Completed - Awaiting Payment"
+
+#### Scenario: CLIENT owner views PAID gig
+- GIVEN an authenticated CLIENT user who owns a gig
+- AND the gig status is "PAID"
+- WHEN they navigate to `/dashboard/gigs/[id]`
+- THEN the page MUST display status badge "Paid"
+- AND the page MUST display the payment date (formatted from paidAt)
+- AND the page MUST NOT show the "Mark as Paid" button
+
+#### Scenario: SPECIALIST views COMPLETED gig (assigned to them)
+- GIVEN an authenticated SPECIALIST user who is the assigned specialist
+- AND the gig status is "COMPLETED"
+- WHEN they navigate to `/dashboard/gigs/[id]`
+- THEN the page MUST display status badge "Completed - Awaiting Payment"
+- AND the page MUST NOT show the "Mark as Paid" button (not the owner)
+
+#### Scenario: SPECIALIST views PAID gig (assigned to them)
+- GIVEN an authenticated SPECIALIST user who is the assigned specialist
+- AND the gig status is "PAID"
+- WHEN they navigate to `/dashboard/gigs/[id]`
+- THEN the page MUST display status badge "Paid"
+- AND the page MUST display the payment date
+- AND the page MUST show a message like "Payment confirmed on [date]"
+
+#### Scenario: Mark as Paid button shows loading state
+- GIVEN a CLIENT owner clicks "Mark as Paid"
+- WHEN the server action is processing
+- THEN the submit button MUST show "Marking as Paid..." text
+- AND the button MUST be disabled
+
+#### Scenario: Mark as Paid form shows error
+- GIVEN a CLIENT submits the mark as paid form and the server action returns an error
+- WHEN the error is returned
+- THEN the error message MUST be displayed inline near the button
+
+**Acceptance Criteria:**
+- Gig detail page queries gig with paidAt field
+- Status badge shows "Paid" for PAID gigs, "Completed - Awaiting Payment" for COMPLETED gigs
+- "Mark as Paid" button only visible to CLIENT owner on COMPLETED gigs
+- Payment date formatted as locale date string (e.g., "February 16, 2026")
+- Uses client component `MarkAsPaidButton` with `useActionState` and `useFormStatus`
+- Form includes hidden `gigId` field
+- Inline error display from action state
+
+---
+
+### Requirement: Payment Status on Dashboards
+The dashboard MUST display payment status for gigs in the user's lists.
+
+#### Scenario: CLIENT dashboard shows payment status
+- GIVEN a user with role "CLIENT" is logged in
+- WHEN they visit `/dashboard`
+- THEN each gig in "My Gigs" MUST show its status
+- AND COMPLETED gigs MUST show "Awaiting Payment"
+- AND PAID gigs MUST show "Paid on [date]"
+
+#### Scenario: SPECIALIST dashboard shows payment status
+- GIVEN a user with role "SPECIALIST" is logged in
+- WHEN they visit `/dashboard`
+- THEN each application in "My Applications" MUST show the gig status
+- AND if the gig is PAID, it MUST show "Paid on [date]"
+- AND if the gig is COMPLETED, it MUST show "Completed - Awaiting Payment"
+
+**Acceptance Criteria:**
+- Dashboard queries gigs/applications with paidAt field included
+- Status display logic handles PAID status
+- Payment dates formatted consistently (locale date string)
+- PAID gigs visually distinguished (e.g., green badge or checkmark icon)

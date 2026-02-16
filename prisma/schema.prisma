@@ -10,33 +10,36 @@ datasource db {
 }
 
 model User {
-  id           String        @id @default(cuid())
-  email        String        @unique
-  password     String
-  role         String        @default("USER")
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  gigs         Gig[]         @relation("ClientGigs")
-  applications Application[]
-  assignedGigs Gig[]         @relation("AssignedGigs")
+  id                String             @id @default(cuid())
+  email             String             @unique
+  password          String
+  role              String             @default("USER")
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  gigs              Gig[]              @relation("ClientGigs")
+  applications      Application[]
+  assignedGigs      Gig[]              @relation("AssignedGigs")
+  clientProfile     ClientProfile?
+  specialistProfile SpecialistProfile?
 }
 
 model Gig {
-  id                    String        @id @default(cuid())
-  title                 String
-  description           String
-  budget                Int
-  serviceFee            Int
-  totalAmount           Int
-  status                String        @default("OPEN")
-  tags                  String        @default("")
-  clientId              String
-  client                User          @relation("ClientGigs", fields: [clientId], references: [id])
-  assignedSpecialistId  String?
-  assignedSpecialist    User?         @relation("AssignedGigs", fields: [assignedSpecialistId], references: [id])
-  createdAt             DateTime      @default(now())
-  updatedAt             DateTime      @updatedAt
-  applications          Application[]
+  id                   String        @id @default(cuid())
+  title                String
+  description          String
+  budget               Int
+  serviceFee           Int
+  totalAmount          Int
+  status               String        @default("OPEN")
+  tags                 String        @default("")
+  clientId             String
+  client               User          @relation("ClientGigs", fields: [clientId], references: [id])
+  assignedSpecialistId String?
+  assignedSpecialist   User?         @relation("AssignedGigs", fields: [assignedSpecialistId], references: [id])
+  paidAt               DateTime?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  applications         Application[]
 }
 
 model Application {
@@ -51,4 +54,28 @@ model Application {
   updatedAt    DateTime @updatedAt
 
   @@unique([gigId, specialistId])
+}
+
+model ClientProfile {
+  userId        String   @id
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyName   String
+  inn           String
+  kpp           String   @default("")
+  contactPerson String   @default("")
+  phoneNumber   String   @default("")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model SpecialistProfile {
+  userId          String   @id
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName     String   @default("")
+  techStack       String   @default("")
+  experienceLevel String   @default("")
+  bio             String   @default("")
+  hourlyRate      Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }

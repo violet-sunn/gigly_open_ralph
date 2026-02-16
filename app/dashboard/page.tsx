@@ -12,6 +12,23 @@ export default async function DashboardPage() {
   const session = await getSession()
   if (!session) redirect('/login')
 
+  // Fetch user with profile
+  const user = await prisma.user.findUnique({
+    where: { id: session.userId },
+    include: {
+      clientProfile: true,
+      specialistProfile: true,
+    },
+  })
+
+  // Check profile completion
+  let profileIncomplete = false
+  if (session.role === 'CLIENT') {
+    profileIncomplete = !user?.clientProfile || !user.clientProfile.companyName || !user.clientProfile.inn
+  } else if (session.role === 'SPECIALIST') {
+    profileIncomplete = !user?.specialistProfile || !user.specialistProfile.techStack || !user.specialistProfile.experienceLevel
+  }
+
   const gigs = session.role === 'CLIENT'
     ? await prisma.gig.findMany({
         where: { clientId: session.userId },
@@ -26,7 +43,15 @@ export default async function DashboardPage() {
   const applications = session.role === 'SPECIALIST'
     ? await prisma.application.findMany({
         where: { specialistId: session.userId },
-        include: { gig: { select: { title: true } } },
+        include: {
+          gig: {
+            select: {
+              title: true,
+              status: true,
+              paidAt: true,
+            }
+          }
+        },
         orderBy: { createdAt: 'desc' },
       })
     : []
@@ -40,7 +65,23 @@ export default async function DashboardPage() {
               <h2 className="text-3xl font-bold text-gray-900">Client Dashboard</h2>
               <p className="mt-2 text-sm text-gray-600">Signed in as {session.email}</p>
             </div>
+            {profileIncomplete && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
+                <p className="text-sm text-yellow-800">
+                  Complete your profile to build trust with specialists.{' '}
+                  <Link href="/dashboard/profile/edit" className="underline font-medium">
+                    Complete profile
+                  </Link>
+                </p>
+              </div>
+            )}
             <div className="space-y-4">
+              <Link
+                href="/dashboard/profile"
+                className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              >
+                My Profile
+              </Link>
               <Link
                 href="/dashboard/gigs/new"
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
@@ -59,8 +100,15 @@ export default async function DashboardPage() {
                           <div className="flex justify-between items-start">
                             <span className="text-sm font-medium text-gray-900">{gig.title}</span>
                             <span className={`text-xs px-2 py-0.5 rounded-full ${
-                              gig.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
-                            }`}>{gig.status}</span>
+                              gig.status === 'PAID' ? 'bg-green-100 text-green-700' :
+                              gig.status === 'COMPLETED' ? 'bg-yellow-100 text-yellow-700' :
+                              gig.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-700' :
+                              'bg-gray-100 text-gray-700'
+                            }`}>
+                              {gig.status === 'PAID' ? 'Paid' :
+                               gig.status === 'COMPLETED' ? 'Completed' :
+                               gig.status}
+                            </span>
                           </div>
                           <div className="flex justify-between mt-1">
                             <span className="text-xs text-gray-500">{formatRoubles(gig.budget)} ₽</span>
@@ -68,6 +116,12 @@ export default async function DashboardPage() {
                               {gig._count.applications} app{gig._count.applications !== 1 ? 's' : ''} · {gig.createdAt.toLocaleDateString('ru-RU')}
                             </span>
                           </div>
+                          {gig.status === 'PAID' && gig.paidAt && (
+                            <p className="mt-1 text-xs text-green-600">Paid on {gig.paidAt.toLocaleDateString('ru-RU')}</p>
+                          )}
+                          {gig.status === 'COMPLETED' && (
+                            <p className="mt-1 text-xs text-yellow-600">Awaiting Payment</p>
+                          )}
                           {gig.assignedSpecialist && (
                             <p className="mt-1 text-xs text-blue-600">Specialist: {gig.assignedSpecialist.email}</p>
                           )}
@@ -85,7 +139,23 @@ export default async function DashboardPage() {
               <h2 className="text-3xl font-bold text-gray-900">Specialist Dashboard</h2>
               <p className="mt-2 text-sm text-gray-600">Signed in as {session.email}</p>
             </div>
+            {profileIncomplete && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
+                <p className="text-sm text-yellow-800">
+                  Complete your profile to stand out when applying to gigs.{' '}
+                  <Link href="/dashboard/profile/edit" className="underline font-medium">
+                    Complete profile
+                  </Link>
+                </p>
+              </div>
+            )}
             <div className="space-y-4">
+              <Link
+                href="/dashboard/profile"
+                className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              >
+                My Profile
+              </Link>
               <Link
                 href="/dashboard/gigs"
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700"
@@ -102,10 +172,26 @@ export default async function DashboardPage() {
                       <li key={app.id} className="border-b border-gray-100 pb-2 last:border-0 last:pb-0">
                         <div className="flex justify-between items-start">
                           <span className="text-sm font-medium text-gray-900">{app.gig.title}</span>
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">{app.status}</span>
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${
+                            app.status === 'ACCEPTED' ? 'bg-green-100 text-green-700' :
+                            app.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
+                            'bg-yellow-100 text-yellow-700'
+                          }`}>{app.status}</span>
                         </div>
-                        <div className="mt-1">
+                        <div className="mt-1 space-y-1">
                           <span className="text-xs text-gray-400">{app.createdAt.toLocaleDateString('ru-RU')}</span>
+                          {app.gig.status === 'PAID' && app.gig.paidAt && (
+                            <p className="text-xs text-green-600">Paid on {app.gig.paidAt.toLocaleDateString('ru-RU')}</p>
+                          )}
+                          {app.gig.status === 'COMPLETED' && (
+                            <p className="text-xs text-yellow-600">Completed - Awaiting Payment</p>
+                          )}
+                          {app.gig.status === 'REVIEW' && (
+                            <p className="text-xs text-blue-600">Under Review</p>
+                          )}
+                          {app.gig.status === 'IN_PROGRESS' && app.status === 'ACCEPTED' && (
+                            <p className="text-xs text-blue-600">In Progress</p>
+                          )}
                         </div>
                       </li>
                     ))}

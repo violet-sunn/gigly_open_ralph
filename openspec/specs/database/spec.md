@@ -20,7 +20,7 @@ The system MUST use Prisma as the database ORM with SQLite as the database provi
 ---
 
 ### Requirement: User Model
-The system MUST define a User model with id, email, password, role fields, and relations to Gig and Application.
+The system MUST define a User model with id, email, password, role fields, relations to Gig and Application, AND 1:1 relations to ClientProfile and SpecialistProfile.
 
 #### Scenario: User schema definition
 - GIVEN the Prisma schema file
@@ -35,6 +35,8 @@ The system MUST define a User model with id, email, password, role fields, and r
   - `gigs` relation field (Gig[]) via "ClientGigs"
   - `applications` relation field (Application[])
   - `assignedGigs` relation field (Gig[]) via "AssignedGigs"
+  - `clientProfile` relation field (ClientProfile?)
+  - `specialistProfile` relation field (SpecialistProfile?)
 
 #### Scenario: Role values
 - GIVEN a new user registration
@@ -81,6 +83,7 @@ The system MUST define a Gig model linked to the User model with a relation to A
   - `client` relation to User model via "ClientGigs"
   - `assignedSpecialistId` field as String? (nullable, foreign key to User)
   - `assignedSpecialist` relation to User model via "AssignedGigs" (optional)
+  - `paidAt` field as DateTime? (nullable, tracks payment timestamp)
   - `createdAt` field as DateTime with @default(now())
   - `updatedAt` field as DateTime with @updatedAt
   - `applications` relation field (Application[])
@@ -96,11 +99,19 @@ The system MUST define a Gig model linked to the User model with a relation to A
 - THEN the Gig `status` MUST be updated to "IN_PROGRESS"
 - AND `assignedSpecialistId` MUST be set to the accepted specialist's userId
 
+#### Scenario: Gig transitions to PAID status
+- GIVEN a Gig with status "COMPLETED"
+- WHEN the gig is marked as paid
+- THEN the Gig `status` MUST be updated to "PAID"
+- AND `paidAt` MUST be set to the current timestamp
+
 **Acceptance Criteria:**
 - `npx prisma validate` passes
 - Gig table exists in SQLite with all columns
 - Gig model includes `applications Application[]` relation field
 - Gig model includes `assignedSpecialistId String?` and `assignedSpecialist` relation
+- Gig model includes `paidAt DateTime?` field
+- Gig status supports "PAID" value
 
 ---
 
@@ -127,6 +138,72 @@ The system MUST define an Application model linking a Specialist to a Gig.
 - Application table exists with unique constraint on (gigId, specialistId)
 - Application status supports "PENDING", "ACCEPTED", "REJECTED"
 - No orphaned PENDING applications after an accept operation
+
+---
+
+### Requirement: ClientProfile Model
+The system MUST define a ClientProfile model with a 1:1 relation to User for storing CLIENT-specific profile data.
+
+#### Scenario: ClientProfile schema definition
+- GIVEN the Prisma schema file
+- WHEN the ClientProfile model is defined
+- THEN it MUST include:
+  - `userId` field as String with @id (primary key and foreign key)
+  - `user` relation to User model
+  - `companyName` field as String
+  - `inn` field as String (Individual Taxpayer Number)
+  - `kpp` field as String with @default("")
+  - `contactPerson` field as String with @default("")
+  - `phoneNumber` field as String with @default("")
+  - `createdAt` field as DateTime with @default(now())
+  - `updatedAt` field as DateTime with @updatedAt
+
+#### Scenario: ClientProfile is created lazily
+- GIVEN a new CLIENT user who has never edited their profile
+- WHEN the user record is queried
+- THEN `clientProfile` MUST be null
+- AND the user MUST still be able to use the platform
+
+**Acceptance Criteria:**
+- ClientProfile model uses `userId String @id` (not auto-generated id)
+- User model includes `clientProfile ClientProfile?` relation field
+- Migration creates ClientProfile table with CASCADE delete
+
+---
+
+### Requirement: SpecialistProfile Model
+The system MUST define a SpecialistProfile model with a 1:1 relation to User for storing SPECIALIST-specific profile data.
+
+#### Scenario: SpecialistProfile schema definition
+- GIVEN the Prisma schema file
+- WHEN the SpecialistProfile model is defined
+- THEN it MUST include:
+  - `userId` field as String with @id (primary key and foreign key)
+  - `user` relation to User model
+  - `displayName` field as String with @default("")
+  - `techStack` field as String with @default("")
+  - `experienceLevel` field as String with @default("")
+  - `bio` field as String with @default("")
+  - `hourlyRate` field as Int with @default(0) (stored in kopecks)
+  - `createdAt` field as DateTime with @default(now())
+  - `updatedAt` field as DateTime with @updatedAt
+
+#### Scenario: SpecialistProfile is created lazily
+- GIVEN a new SPECIALIST user who has never edited their profile
+- WHEN the user record is queried
+- THEN `specialistProfile` MUST be null
+- AND the user MUST still be able to use the platform
+
+#### Scenario: Hourly rate stored in kopecks
+- GIVEN a SPECIALIST user sets hourly rate to 5000 roubles
+- WHEN the profile is saved
+- THEN hourlyRate MUST be stored as 500000 kopecks (5000 × 100)
+
+**Acceptance Criteria:**
+- SpecialistProfile model uses `userId String @id` (not auto-generated id)
+- User model includes `specialistProfile SpecialistProfile?` relation field
+- Migration creates SpecialistProfile table with CASCADE delete
+- All fields have default values (no nullable fields except the relation itself)
 
 ---
 
