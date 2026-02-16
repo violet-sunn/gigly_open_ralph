@@ -185,3 +185,73 @@ export async function rejectApplication(
 
   redirect(`/dashboard/gigs/${application.gigId}`)
 }
+
+export async function submitWork(
+  prevState: { error?: string } | null,
+  formData: FormData
+) {
+  const session = await getSession()
+  if (!session) redirect('/login')
+
+  if (session.role !== 'SPECIALIST') {
+    return { error: 'Only specialists can submit work.' }
+  }
+
+  const gigId = formData.get('gigId') as string
+
+  const gig = await prisma.gig.findUnique({ where: { id: gigId } })
+
+  if (!gig) {
+    return { error: 'Gig not found.' }
+  }
+
+  if (gig.status !== 'IN_PROGRESS') {
+    return { error: 'Work can only be submitted for gigs in progress.' }
+  }
+
+  if (gig.assignedSpecialistId !== session.userId) {
+    return { error: 'Only the assigned specialist can submit work.' }
+  }
+
+  await prisma.gig.update({
+    where: { id: gigId },
+    data: { status: 'REVIEW' },
+  })
+
+  redirect(`/dashboard/gigs/${gigId}`)
+}
+
+export async function approveWork(
+  prevState: { error?: string } | null,
+  formData: FormData
+) {
+  const session = await getSession()
+  if (!session) redirect('/login')
+
+  if (session.role !== 'CLIENT') {
+    return { error: 'Only clients can approve work.' }
+  }
+
+  const gigId = formData.get('gigId') as string
+
+  const gig = await prisma.gig.findUnique({ where: { id: gigId } })
+
+  if (!gig) {
+    return { error: 'Gig not found.' }
+  }
+
+  if (gig.status !== 'REVIEW') {
+    return { error: 'Work can only be approved for gigs under review.' }
+  }
+
+  if (gig.clientId !== session.userId) {
+    return { error: 'Only the gig owner can approve work.' }
+  }
+
+  await prisma.gig.update({
+    where: { id: gigId },
+    data: { status: 'COMPLETED' },
+  })
+
+  redirect(`/dashboard/gigs/${gigId}`)
+}

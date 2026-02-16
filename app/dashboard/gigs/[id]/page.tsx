@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ApplyForm } from './apply-form'
 import { ApplicationActions } from './application-actions'
+import { SubmitWorkForm } from './submit-work-form'
+import { ApproveWorkForm } from './approve-work-form'
 
 function formatRoubles(kopecks: number): string {
   return new Intl.NumberFormat('ru-RU').format(kopecks / 100)
@@ -43,6 +45,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
   const hasApplied = session.role === 'SPECIALIST' &&
     gig.applications.some((app) => app.specialistId === session.userId)
   const isOwner = session.role === 'CLIENT' && gig.clientId === session.userId
+  const isAssignedSpecialist = session.role === 'SPECIALIST' && gig.assignedSpecialistId === session.userId
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -101,6 +104,33 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
                 <ApplyForm gigId={gig.id} />
               </>
             )}
+          </div>
+        )}
+
+        {isAssignedSpecialist && gig.status === 'IN_PROGRESS' && (
+          <div className="mt-6 bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Submit Your Work</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Once you've completed the work, submit it for client review.
+            </p>
+            <SubmitWorkForm gigId={gig.id} />
+          </div>
+        )}
+
+        {isOwner && gig.status === 'REVIEW' && (
+          <div className="mt-6 bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Review Submitted Work</h3>
+            {gig.assignedSpecialist && (
+              <div className="mb-4 p-3 bg-blue-50 rounded-md">
+                <p className="text-sm text-blue-800">
+                  <span className="font-medium">Submitted by:</span> {gig.assignedSpecialist.email}
+                </p>
+              </div>
+            )}
+            <p className="text-sm text-gray-600 mb-4">
+              Review the specialist's work and approve it to mark the gig as completed.
+            </p>
+            <ApproveWorkForm gigId={gig.id} />
           </div>
         )}
 

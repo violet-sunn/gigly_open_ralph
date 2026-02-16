@@ -88,10 +88,11 @@ Constraints: One application per specialist per gig. Only SPECIALIST role can ap
 6. **specialist-gig-browsing** — Application model, gig browsing at `/dashboard/gigs` (OPEN gigs), gig detail at `/dashboard/gigs/[id]` with apply form (SPECIALIST only), specialist dashboard lists their applications, client dashboard shows application count per gig.
 7. **application-management** — `acceptApplication` and `rejectApplication` server actions (CLIENT only), `assignedSpecialistId` on Gig, gig transitions OPEN → IN_PROGRESS on accept, auto-reject remaining PENDING applications, Accept/Reject buttons on gig detail for gig owner.
 8. **client-gig-detail-link** — Client dashboard "My Gigs" list items are now clickable links to gig detail pages (`/dashboard/gigs/[id]`), enabling clients to navigate from their dashboard to manage applications.
+9. **gig-work-submission-and-approval** — `submitWork` server action (SPECIALIST only, assigned specialist), `approveWork` server action (CLIENT only, gig owner), gig lifecycle transitions IN_PROGRESS → REVIEW → COMPLETED, Submit Work and Approve Work UI forms on gig detail pages.
 
 ## Current State
 
-The core marketplace loop is functional: Clients register, create gigs, review applications, and accept a specialist. Specialists register, browse open gigs, and apply. Accepting an application assigns the specialist and moves the gig to IN_PROGRESS.
+The core marketplace loop is functional: Clients register, create gigs, review applications, accept a specialist, and approve completed work. Specialists register, browse open gigs, apply, and submit work for review. The full gig lifecycle (OPEN → IN_PROGRESS → REVIEW → COMPLETED) is now implemented.
 
 ### Implemented
 
@@ -100,12 +101,13 @@ The core marketplace loop is functional: Clients register, create gigs, review a
 - Role-based dashboards
 - Gig creation (CLIENT) with budget + 20% fee calculation
 - Gig browsing and application (SPECIALIST)
+- Application management: accept / reject (CLIENT)
+- Gig lifecycle: OPEN → IN_PROGRESS → REVIEW → COMPLETED
+- Work submission (SPECIALIST) and approval (CLIENT)
 
 ### Not Yet Implemented
 
-- Application management: accept / reject (CLIENT)
-- Gig lifecycle: OPEN → IN_PROGRESS
-- Gig lifecycle beyond IN_PROGRESS (REVIEW, COMPLETED, PAID)
+- Gig lifecycle: COMPLETED → PAID transition
 - Payment / escrow flow
 - Specialist notifications (email, in-app)
 - Client and specialist profile pages (Company Name, INN/KPP, Tech Stack)
