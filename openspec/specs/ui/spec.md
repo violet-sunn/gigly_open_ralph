@@ -166,6 +166,9 @@ The system MUST provide a form at `/dashboard/gigs/new` for CLIENT users to crea
   - Title input (text, required)
   - Description textarea (required)
   - Acceptance Criteria textarea (required, labeled "Definition of Done" or "Acceptance Criteria")
+  - Goal/Outcome textarea (optional, with helpful placeholder and helper text)
+  - Deliverables textarea (optional, with helpful placeholder and helper text)
+  - Constraints/Preferences textarea (optional, with helpful placeholder and helper text)
   - Budget input (number, required, in roubles)
   - Tags input (text, optional, comma-separated)
   - A live fee preview showing: budget, service fee (20%), and total amount
@@ -214,6 +217,17 @@ The system MUST provide a form at `/dashboard/gigs/new` for CLIENT users to crea
 - WHEN a user navigates to `/dashboard/gigs/new`
 - THEN they MUST be redirected to `/login` (handled by existing middleware)
 
+#### Scenario: Optional structured fields render correctly
+- GIVEN an authenticated CLIENT user on the gig creation form
+- WHEN the page renders
+- THEN three optional textarea fields MUST be displayed:
+  - Goal/Outcome field with label, placeholder example, and helper text
+  - Deliverables field with label, placeholder example, and helper text
+  - Constraints/Preferences field with label, placeholder example, and helper text
+- AND the fields MUST be positioned after "Definition of Done", before budget
+- AND the fields MUST be visually grouped with "Additional Details (Optional)" heading
+- AND no `required` attribute on optional fields
+
 **Acceptance Criteria:**
 - `app/dashboard/gigs/new/page.tsx` exists
 - Uses `useActionState` with `createGig` action
@@ -223,6 +237,12 @@ The system MUST provide a form at `/dashboard/gigs/new` for CLIENT users to crea
   - Label: "Definition of Done" or "Acceptance Criteria"
   - Placeholder with example text
   - Helper text: "Minimum 50 characters. Clear criteria prevent disputes and scope creep."
+- Three optional fields (goal, deliverables, constraints):
+  - Each has label, placeholder with realistic example, helper text
+  - Each has `name` attribute, `rows={3}`
+  - No `required` attribute
+  - Positioned after acceptanceCriteria, before budget
+  - Visual grouping with "Additional Details (Optional)" heading
 - Budget input accepts roubles, displays fee breakdown in real-time
 - Displays `state?.error` when present
 
@@ -286,6 +306,22 @@ The system MUST provide a page at `/dashboard/gigs/[id]` showing full gig detail
 - THEN the acceptance criteria section MUST display "Not specified" or similar placeholder
 - AND the section MUST still be visible (not hidden)
 
+#### Scenario: Structured requirement fields displayed when present
+- GIVEN a gig with non-empty goal, deliverables, and/or constraints
+- WHEN any authenticated user views the gig detail page
+- THEN the page MUST display an "Additional Requirements" section
+- AND the section MUST be positioned after description, before or alongside "Definition of Done"
+- AND each non-empty field MUST be displayed with:
+  - Clear subsection heading (e.g., "🎯 Goal / Desired Outcome")
+  - Content with preserved whitespace (`white-space: pre-wrap`)
+- AND empty fields MUST be hidden (not shown as "Not specified")
+
+#### Scenario: Structured fields hidden when all empty
+- GIVEN a gig where goal, deliverables, and constraints are all empty strings
+- WHEN any authenticated user views the gig detail page
+- THEN the "Additional Requirements" section MUST NOT be displayed at all
+- AND the page MUST render normally with existing fields only
+
 #### Scenario: CLIENT views gig detail
 - GIVEN an authenticated CLIENT user
 - WHEN they navigate to `/dashboard/gigs/[id]`
@@ -321,6 +357,22 @@ The system MUST provide a page at `/dashboard/gigs/[id]` showing full gig detail
   - Positioned prominently (before or after description)
   - Handles null values gracefully (shows "Not specified")
   - Preserves whitespace with `white-space: pre-wrap`
+- Structured requirement fields section:
+  - "Additional Requirements" heading
+  - Only renders if at least one field (goal, deliverables, constraints) has content
+  - Individual subsections for each non-empty field with clear headings
+  - Each subsection preserves whitespace with `white-space: pre-wrap`
+  - Positioned after description, before or alongside "Definition of Done"
+  - Empty fields are hidden (no "Not specified" placeholders)
+  - Visible to all roles (no role-based hiding)
+- SPECIALIST sees apply form (or "already applied" message)
+- CLIENT who owns the gig sees applications list
+- OPEN gigs: PENDING applications show Accept/Reject buttons via `ApplicationActions` client component
+- IN_PROGRESS gigs: applications show status badges, assigned specialist email displayed
+- `ApplicationActions` uses `useActionState` with `acceptApplication` / `rejectApplication`
+- `ApplicationActions` uses `useFormStatus` for pending states ("Accepting..." / "Rejecting...")
+- Each button submits a form with hidden `applicationId` field
+- Inline error display from action state
 - SPECIALIST sees apply form (or "already applied" message)
 - CLIENT who owns the gig sees applications list
 - OPEN gigs: PENDING applications show Accept/Reject buttons via `ApplicationActions` client component

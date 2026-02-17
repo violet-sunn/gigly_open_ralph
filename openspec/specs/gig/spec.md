@@ -7,7 +7,7 @@ The system MUST provide a `createGig` server action that creates a gig for the a
 
 #### Scenario: Successful gig creation
 - GIVEN an authenticated user with role "CLIENT"
-- WHEN `createGig` is called with valid title, description, acceptanceCriteria, budget (in roubles), and tags
+- WHEN `createGig` is called with valid title, description, acceptanceCriteria, budget (in roubles), tags, AND optional goal, deliverables, constraints
 - THEN a Gig record MUST be created with:
   - `budget` = input budget converted to kopecks (× 100)
   - `serviceFee` = budget × 0.20
@@ -15,6 +15,9 @@ The system MUST provide a `createGig` server action that creates a gig for the a
   - `status` = "OPEN"
   - `clientId` = session userId
   - `acceptanceCriteria` = input acceptanceCriteria (trimmed)
+  - `goal` = input goal (trimmed) or empty string if not provided
+  - `deliverables` = input deliverables (trimmed) or empty string if not provided
+  - `constraints` = input constraints (trimmed) or empty string if not provided
 - AND the action MUST redirect to `/dashboard`
 
 #### Scenario: Non-CLIENT user attempts gig creation
@@ -44,12 +47,28 @@ The system MUST provide a `createGig` server action that creates a gig for the a
 - WHEN `createGig` is called
 - THEN it MUST return `{ error: 'Budget must be a positive number.' }`
 
+#### Scenario: Gig creation without optional fields
+- GIVEN an authenticated user with role "CLIENT"
+- WHEN `createGig` is called with required fields only (no goal, deliverables, or constraints)
+- THEN a Gig record MUST be created successfully
+- AND the optional fields MUST default to empty strings ("")
+- AND the action MUST redirect to `/dashboard`
+
+#### Scenario: Optional fields are trimmed
+- GIVEN a CLIENT user provides goal, deliverables, or constraints with leading/trailing whitespace
+- WHEN `createGig` is called
+- THEN all three optional fields MUST be trimmed before storage
+- AND empty strings after trimming MUST be stored as ""
+
 **Acceptance Criteria:**
 - `createGig` is exported from `app/actions/gig.ts` with `'use server'`
 - Signature is `(prevState: { error?: string } | null, formData: FormData)` (useActionState-compatible)
-- formData includes `acceptanceCriteria` field (textarea)
+- formData includes `acceptanceCriteria` field (textarea) and optional fields: `goal`, `deliverables`, `constraints`
 - acceptanceCriteria is trimmed before validation and storage
 - acceptanceCriteria minimum length: 50 characters (after trimming)
+- All three optional fields are trimmed before storage
+- Empty or missing optional fields default to empty string ""
+- No validation errors for short or empty optional fields
 - Budget input is in roubles (user-facing), stored in kopecks (DB)
 - Service fee is 20% of budget
 - On success: redirects to `/dashboard`

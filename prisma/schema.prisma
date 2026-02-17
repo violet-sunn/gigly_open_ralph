@@ -34,6 +34,9 @@ model Gig {
   title                String
   description          String
   acceptanceCriteria   String?
+  goal                 String          @default("")
+  deliverables         String          @default("")
+  constraints          String          @default("")
   budget               Int
   serviceFee           Int
   totalAmount          Int

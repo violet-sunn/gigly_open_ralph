@@ -75,6 +75,10 @@ The system MUST define a Gig model linked to the User model with a relation to A
   - `id` field as String with @id and @default(cuid())
   - `title` field as String
   - `description` field as String
+  - `acceptanceCriteria` field as String? (nullable)
+  - `goal` field as String with @default("") (optional structured requirement field)
+  - `deliverables` field as String with @default("") (optional structured requirement field)
+  - `constraints` field as String with @default("") (optional structured requirement field)
   - `budget` field as Int (amount in kopecks)
   - `serviceFee` field as Int (calculated as 20% of budget, in kopecks)
   - `totalAmount` field as Int (budget + serviceFee, in kopecks)

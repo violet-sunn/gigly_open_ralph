@@ -471,10 +471,11 @@ Constraints: One application per specialist per gig. Only SPECIALIST role can ap
 15. **messaging-iteration-3** — Complete message sending functionality with `sendMessage` server action, message form UI component, and validation. Content validation (required, max 2000 characters), authorization (only gig owner or assigned specialist), gig state checks (must have assigned specialist, not closed). Redirect on success to refresh message list. MessageForm component with maxLength attribute and error display. Messages displayed below gig details for authorized users.
 16. **messaging-iteration-4** — Enhanced messaging UX with visual distinction between senders and edge case handling. Client messages left-aligned with blue accent, specialist messages right-aligned with green accent. Shows informational message when no specialist assigned ("Messaging will be available once a specialist is assigned to this gig"). Hides message form on closed gigs with appropriate notice. Messaging available across all gig statuses (IN_PROGRESS, REVIEW, COMPLETED, PAID) where specialist is assigned. Backend whitespace validation enforced.
 17. **bug-fix-1** — Fixed PrismaClientValidationError in gig detail page caused by mixing `select` and `include` at the same nesting level. Refactored `prisma.gig.findUnique()` query in `/dashboard/gigs/[id]/page.tsx` to use `include` consistently throughout nested relations. Added Prisma query conventions to project documentation to prevent similar issues.
+18. **requirements-iteration-2** — Added three optional structured requirement fields to help clients articulate requirements: goal (desired outcome), deliverables (specific outputs), and constraints (technical preferences/timeline). Fields added to Gig model with empty string defaults. Gig creation form includes "Additional Details (Optional)" section with helpful placeholders and examples. Gig detail page displays "Additional Requirements" section when fields are filled, positioned prominently for specialist visibility. All fields are optional, backward compatible (existing gigs display gracefully), and designed to guide non-technical clients without feeling like homework.
 
 ## Current State
 
-The core marketplace loop is functional: Clients register, create gigs, review applications, accept a specialist, and approve completed work. Specialists register, browse open gigs with filtering and search capabilities, apply, and submit work for review. The full gig lifecycle (OPEN → IN_PROGRESS → REVIEW → COMPLETED → PAID) is now implemented. Users can create and manage profiles with role-specific information (company details for clients, tech stack and experience for specialists). Clients can mark completed gigs as paid to track payment status. Specialists can efficiently find relevant gigs using text search, tag filters, budget range filters, and sorting options. Admins can moderate the platform by suspending users, closing gigs, and viewing audit logs. Gig-scoped messaging is fully functional with visual distinction between client and specialist messages, edge case handling, and availability across all gig statuses where a specialist is assigned.
+The core marketplace loop is functional: Clients register, create gigs, review applications, accept a specialist, and approve completed work. Specialists register, browse open gigs with filtering and search capabilities, apply, and submit work for review. The full gig lifecycle (OPEN → IN_PROGRESS → REVIEW → COMPLETED → PAID) is now implemented. Users can create and manage profiles with role-specific information (company details for clients, tech stack and experience for specialists). Clients can mark completed gigs as paid to track payment status. Specialists can efficiently find relevant gigs using text search, tag filters, budget range filters, and sorting options. Admins can moderate the platform by suspending users, closing gigs, and viewing audit logs. Gig-scoped messaging is fully functional with visual distinction between client and specialist messages, edge case handling, and availability across all gig statuses where a specialist is assigned. Gig creation now includes optional structured requirement fields (goal, deliverables, constraints) to help clients articulate clear requirements and reduce scope creep.
 
 ### Implemented
 
@@ -484,6 +485,7 @@ The core marketplace loop is functional: Clients register, create gigs, review a
 - User profiles (ClientProfile and SpecialistProfile tables)
 - Profile view, edit, and public profile pages
 - Gig creation (CLIENT) with budget + 20% fee calculation
+- Gig creation with optional structured requirement fields (goal, deliverables, constraints)
 - Gig browsing and application (SPECIALIST)
 - Gig filtering and search: text search, multi-tag filtering, budget range, sorting
 - Application management: accept / reject (CLIENT)
@@ -492,6 +494,7 @@ The core marketplace loop is functional: Clients register, create gigs, review a
 - Payment tracking: mark as paid (CLIENT), payment status display
 - Client company names displayed on gig details
 - Specialist profiles (tech stack, experience level) displayed in applications
+- Structured requirement fields displayed on gig detail page when filled
 - Admin role and moderation: suspend/unsuspend users, close gigs, audit logging
 - Admin dashboard with platform statistics
 - User and gig management pages with filtering

@@ -105,6 +105,33 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
 
           <p className="text-sm text-gray-600 whitespace-pre-wrap">{gig.description}</p>
 
+          {(gig.goal || gig.deliverables || gig.constraints) && (
+            <div className="mt-6 border-t pt-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Additional Requirements</h3>
+
+              {gig.goal && (
+                <div className="mb-4">
+                  <h4 className="text-sm font-medium text-gray-700 mb-1">🎯 Goal / Desired Outcome</h4>
+                  <p className="text-gray-900 whitespace-pre-wrap">{gig.goal}</p>
+                </div>
+              )}
+
+              {gig.deliverables && (
+                <div className="mb-4">
+                  <h4 className="text-sm font-medium text-gray-700 mb-1">📦 Specific Deliverables</h4>
+                  <p className="text-gray-900 whitespace-pre-wrap">{gig.deliverables}</p>
+                </div>
+              )}
+
+              {gig.constraints && (
+                <div className="mb-4">
+                  <h4 className="text-sm font-medium text-gray-700 mb-1">⚙️ Constraints & Preferences</h4>
+                  <p className="text-gray-900 whitespace-pre-wrap">{gig.constraints}</p>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="border-l-4 border-blue-500 bg-blue-50 p-4 mb-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               Definition of Done

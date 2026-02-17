@@ -22,6 +22,11 @@ export async function createGig(
   const budgetRaw = formData.get('budget') as string
   const tags = ((formData.get('tags') as string) || '').trim()
 
+  // Optional structured requirement fields
+  const goal = ((formData.get('goal') as string) || '').trim()
+  const deliverables = ((formData.get('deliverables') as string) || '').trim()
+  const constraints = ((formData.get('constraints') as string) || '').trim()
+
   if (!title || !description || !acceptanceCriteria) {
     return { error: 'Title, description, and acceptance criteria are required.' }
   }
@@ -44,6 +49,9 @@ export async function createGig(
       title,
       description,
       acceptanceCriteria,
+      goal,
+      deliverables,
+      constraints,
       budget: budgetKopecks,
       serviceFee,
       totalAmount,

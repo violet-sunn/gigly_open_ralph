@@ -83,6 +83,63 @@ export function GigForm() {
         </p>
       </div>
 
+      <div className="mt-6 pt-6 border-t border-gray-200">
+        <h3 className="text-base font-medium text-gray-900 mb-4">Additional Details (Optional)</h3>
+        <p className="text-sm text-gray-600 mb-4">
+          Help specialists understand your needs better by providing more context.
+        </p>
+
+        <div className="space-y-6">
+          <div>
+            <label htmlFor="goal" className="block text-sm font-medium text-gray-700">
+              Goal / Desired Outcome
+            </label>
+            <textarea
+              id="goal"
+              name="goal"
+              rows={3}
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
+              placeholder="Example: We need to migrate our user authentication from custom solution to OAuth 2.0 to improve security and reduce maintenance burden."
+            />
+            <p className="mt-1 text-sm text-gray-500">
+              Optional: Describe the business or technical problem you're solving. What does success look like?
+            </p>
+          </div>
+
+          <div>
+            <label htmlFor="deliverables" className="block text-sm font-medium text-gray-700">
+              Specific Deliverables
+            </label>
+            <textarea
+              id="deliverables"
+              name="deliverables"
+              rows={3}
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
+              placeholder="Example: 1. OAuth 2.0 integration with Google and GitHub&#10;2. Migration script for existing users&#10;3. Updated documentation&#10;4. Deployment to staging and production"
+            />
+            <p className="mt-1 text-sm text-gray-500">
+              Optional: List concrete outputs you expect (features, documentation, deployments, etc.)
+            </p>
+          </div>
+
+          <div>
+            <label htmlFor="constraints" className="block text-sm font-medium text-gray-700">
+              Constraints & Preferences
+            </label>
+            <textarea
+              id="constraints"
+              name="constraints"
+              rows={3}
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
+              placeholder="Example: Must maintain backward compatibility with existing API endpoints. Prefer using Passport.js library. Deadline: end of Q1 2026."
+            />
+            <p className="mt-1 text-sm text-gray-500">
+              Optional: Technical preferences, timeline considerations, compatibility requirements, or other constraints.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div>
         <label htmlFor="budget" className="block text-sm font-medium text-gray-700">
           Budget (₽)
