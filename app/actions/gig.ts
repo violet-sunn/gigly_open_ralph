@@ -17,11 +17,17 @@ export async function createGig(
 
   const title = (formData.get('title') as string)?.trim()
   const description = (formData.get('description') as string)?.trim()
+  const acceptanceCriteriaRaw = (formData.get('acceptanceCriteria') as string) || ''
+  const acceptanceCriteria = acceptanceCriteriaRaw.trim()
   const budgetRaw = formData.get('budget') as string
   const tags = ((formData.get('tags') as string) || '').trim()
 
-  if (!title || !description) {
-    return { error: 'Title and description are required.' }
+  if (!title || !description || !acceptanceCriteria) {
+    return { error: 'Title, description, and acceptance criteria are required.' }
+  }
+
+  if (acceptanceCriteria.length < 50) {
+    return { error: 'Acceptance criteria must be at least 50 characters.' }
   }
 
   const budgetRoubles = Number(budgetRaw)
@@ -37,6 +43,7 @@ export async function createGig(
     data: {
       title,
       description,
+      acceptanceCriteria,
       budget: budgetKopecks,
       serviceFee,
       totalAmount,

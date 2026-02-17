@@ -165,10 +165,25 @@ The system MUST provide a form at `/dashboard/gigs/new` for CLIENT users to crea
 - THEN the page MUST display a form with:
   - Title input (text, required)
   - Description textarea (required)
+  - Acceptance Criteria textarea (required, labeled "Definition of Done" or "Acceptance Criteria")
   - Budget input (number, required, in roubles)
   - Tags input (text, optional, comma-separated)
   - A live fee preview showing: budget, service fee (20%), and total amount
   - A "Post Gig" submit button
+
+#### Scenario: Acceptance criteria field has helpful guidance
+- GIVEN a CLIENT user is on the gig creation form
+- WHEN they view the acceptance criteria field
+- THEN the field MUST have:
+  - Label: "Definition of Done" or "Acceptance Criteria"
+  - Placeholder text with example (e.g., "What does 'done' look like? Be specific: deliverables, quality standards, success metrics...")
+  - Helper text below field: "Minimum 50 characters. Clear criteria prevent disputes and scope creep."
+
+#### Scenario: Form validates acceptance criteria length
+- GIVEN a CLIENT user enters acceptance criteria shorter than 50 characters
+- WHEN they submit the form
+- THEN the server action MUST return an error
+- AND the error MUST be displayed inline on the form
 
 #### Scenario: Live fee calculation preview
 - GIVEN a CLIENT user is on the gig creation form
@@ -203,6 +218,11 @@ The system MUST provide a form at `/dashboard/gigs/new` for CLIENT users to crea
 - `app/dashboard/gigs/new/page.tsx` exists
 - Uses `useActionState` with `createGig` action
 - Uses `useFormStatus` for pending state on submit button
+- Acceptance criteria field:
+  - `<textarea name="acceptanceCriteria" required rows={5} />`
+  - Label: "Definition of Done" or "Acceptance Criteria"
+  - Placeholder with example text
+  - Helper text: "Minimum 50 characters. Clear criteria prevent disputes and scope creep."
 - Budget input accepts roubles, displays fee breakdown in real-time
 - Displays `state?.error` when present
 
@@ -247,14 +267,29 @@ The system MUST provide a page at `/dashboard/gigs/[id]` showing full gig detail
 #### Scenario: Specialist views gig detail
 - GIVEN an authenticated SPECIALIST user
 - WHEN they navigate to `/dashboard/gigs/[id]` for an existing gig
-- THEN the page MUST display: title, description, budget (₽), tags, status, and client email
+- THEN the page MUST display: title, description, acceptance criteria, budget (₽), tags, status, and client email
 - AND it MUST display an "Apply" form with a cover letter textarea and submit button
 - AND if the specialist has already applied, the form MUST be replaced with "You have already applied" message
+
+#### Scenario: Acceptance criteria displayed prominently
+- GIVEN any authenticated user views a gig detail page
+- WHEN the page renders
+- THEN the acceptance criteria MUST be displayed:
+  - In a visually distinct section (e.g., bordered box or card)
+  - With heading "Definition of Done" or "Acceptance Criteria"
+  - Positioned between description and budget/tags (high visibility)
+  - Formatted with preserved whitespace (white-space: pre-wrap)
+
+#### Scenario: Legacy gig without acceptance criteria
+- GIVEN a gig created before this change (acceptanceCriteria is null)
+- WHEN any user views the gig detail page
+- THEN the acceptance criteria section MUST display "Not specified" or similar placeholder
+- AND the section MUST still be visible (not hidden)
 
 #### Scenario: CLIENT views gig detail
 - GIVEN an authenticated CLIENT user
 - WHEN they navigate to `/dashboard/gigs/[id]`
-- THEN the page MUST display the gig details
+- THEN the page MUST display the gig details (including acceptance criteria)
 - AND it MUST NOT show the apply form
 - AND if the CLIENT owns the gig, it MUST show the list of applications with specialist email, cover letter, status, and date
 - AND if the gig is OPEN, each PENDING application MUST show "Accept" and "Reject" buttons
@@ -280,6 +315,12 @@ The system MUST provide a page at `/dashboard/gigs/[id]` showing full gig detail
 **Acceptance Criteria:**
 - `app/dashboard/gigs/[id]/page.tsx` exists as a server component
 - Queries gig by ID with `include: { client: true, assignedSpecialist: true, applications: true }`
+- Acceptance criteria section:
+  - Heading: "Definition of Done" or "Acceptance Criteria"
+  - Visually distinct (border, background, or card styling)
+  - Positioned prominently (before or after description)
+  - Handles null values gracefully (shows "Not specified")
+  - Preserves whitespace with `white-space: pre-wrap`
 - SPECIALIST sees apply form (or "already applied" message)
 - CLIENT who owns the gig sees applications list
 - OPEN gigs: PENDING applications show Accept/Reject buttons via `ApplicationActions` client component

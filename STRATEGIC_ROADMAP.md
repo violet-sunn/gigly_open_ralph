@@ -454,7 +454,7 @@ Requirements clarity is a first-class differentiator. FL.ru/Habr are "post and p
 - Link to example gigs from creation form
 - Works on all browsers
 
-**Test:** Create gig with short acceptance criteria (see warning). Create with detailed criteria (no warning). Check form UX on mobile and desktop.
+**Test:** Create gig with short acceptance criteria (see warning). Create with detailed criteria (no warning). Check form UX on desktop.
 
 ---
 

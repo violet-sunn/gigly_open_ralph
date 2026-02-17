@@ -33,6 +33,7 @@ model Gig {
   id                   String          @id @default(cuid())
   title                String
   description          String
+  acceptanceCriteria   String?
   budget               Int
   serviceFee           Int
   totalAmount          Int

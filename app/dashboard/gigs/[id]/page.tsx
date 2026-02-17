@@ -105,6 +105,15 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
 
           <p className="text-sm text-gray-600 whitespace-pre-wrap">{gig.description}</p>
 
+          <div className="border-l-4 border-blue-500 bg-blue-50 p-4 mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Definition of Done
+            </h3>
+            <p className="text-gray-700 whitespace-pre-wrap">
+              {gig.acceptanceCriteria || 'Not specified'}
+            </p>
+          </div>
+
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <span className="text-gray-500">Budget:</span>

@@ -67,6 +67,23 @@ export function GigForm() {
       </div>
 
       <div>
+        <label htmlFor="acceptanceCriteria" className="block text-sm font-medium text-gray-700">
+          Definition of Done (Acceptance Criteria) *
+        </label>
+        <textarea
+          id="acceptanceCriteria"
+          name="acceptanceCriteria"
+          required
+          rows={5}
+          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
+          placeholder="What does 'done' look like? Be specific: deliverables, quality standards, success metrics. Example: 'API returns user data in JSON format with <200ms response time, includes unit tests with >80% coverage, deployed to staging environment.'"
+        />
+        <p className="mt-1 text-sm text-gray-500">
+          Minimum 50 characters. Clear criteria prevent disputes and scope creep.
+        </p>
+      </div>
+
+      <div>
         <label htmlFor="budget" className="block text-sm font-medium text-gray-700">
           Budget (₽)
         </label>
