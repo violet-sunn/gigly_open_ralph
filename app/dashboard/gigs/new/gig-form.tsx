@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { createGig } from '@/app/actions/gig'
+import { CharacterCounter } from './character-counter'
 
 function SubmitButton() {
   const { pending } = useFormStatus()
@@ -24,6 +25,12 @@ function formatRoubles(amount: number): string {
 export function GigForm() {
   const [state, formAction] = useActionState(createGig, null)
   const [budget, setBudget] = useState('')
+
+  // Character count state for textarea fields
+  const [acceptanceCriteriaCount, setAcceptanceCriteriaCount] = useState(0)
+  const [goalCount, setGoalCount] = useState(0)
+  const [deliverablesCount, setDeliverablesCount] = useState(0)
+  const [constraintsCount, setConstraintsCount] = useState(0)
 
   const budgetNum = Number(budget)
   const showPreview = budgetNum > 0 && Number.isFinite(budgetNum)
@@ -75,12 +82,20 @@ export function GigForm() {
           name="acceptanceCriteria"
           required
           rows={5}
+          onChange={(e) => setAcceptanceCriteriaCount(e.target.value.length)}
           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
           placeholder="What does 'done' look like? Be specific: deliverables, quality standards, success metrics. Example: 'API returns user data in JSON format with <200ms response time, includes unit tests with >80% coverage, deployed to staging environment.'"
         />
-        <p className="mt-1 text-sm text-gray-500">
-          Minimum 50 characters. Clear criteria prevent disputes and scope creep.
-        </p>
+        <div className="mt-1 flex justify-between items-start">
+          <p className="text-sm text-gray-500">
+            Minimum 50 characters. Clear criteria prevent disputes and scope creep.
+          </p>
+          <CharacterCounter
+            current={acceptanceCriteriaCount}
+            min={50}
+            label="Acceptance criteria character count"
+          />
+        </div>
       </div>
 
       <div className="mt-6 pt-6 border-t border-gray-200">
@@ -98,12 +113,20 @@ export function GigForm() {
               id="goal"
               name="goal"
               rows={3}
+              onChange={(e) => setGoalCount(e.target.value.length)}
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
               placeholder="Example: We need to migrate our user authentication from custom solution to OAuth 2.0 to improve security and reduce maintenance burden."
             />
-            <p className="mt-1 text-sm text-gray-500">
-              Optional: Describe the business or technical problem you&apos;re solving. What does success look like?
-            </p>
+            <div className="mt-1 flex justify-between items-start">
+              <p className="text-sm text-gray-500">
+                Optional: Describe the business or technical problem you&apos;re solving. What does success look like?
+              </p>
+              <CharacterCounter
+                current={goalCount}
+                max={1000}
+                label="Goal character count"
+              />
+            </div>
           </div>
 
           <div>
@@ -114,12 +137,20 @@ export function GigForm() {
               id="deliverables"
               name="deliverables"
               rows={3}
+              onChange={(e) => setDeliverablesCount(e.target.value.length)}
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
               placeholder="Example: 1. OAuth 2.0 integration with Google and GitHub&#10;2. Migration script for existing users&#10;3. Updated documentation&#10;4. Deployment to staging and production"
             />
-            <p className="mt-1 text-sm text-gray-500">
-              Optional: List concrete outputs you expect (features, documentation, deployments, etc.)
-            </p>
+            <div className="mt-1 flex justify-between items-start">
+              <p className="text-sm text-gray-500">
+                Optional: List concrete outputs you expect (features, documentation, deployments, etc.)
+              </p>
+              <CharacterCounter
+                current={deliverablesCount}
+                max={1000}
+                label="Deliverables character count"
+              />
+            </div>
           </div>
 
           <div>
@@ -130,12 +161,20 @@ export function GigForm() {
               id="constraints"
               name="constraints"
               rows={3}
+              onChange={(e) => setConstraintsCount(e.target.value.length)}
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
               placeholder="Example: Must maintain backward compatibility with existing API endpoints. Prefer using Passport.js library. Deadline: end of Q1 2026."
             />
-            <p className="mt-1 text-sm text-gray-500">
-              Optional: Technical preferences, timeline considerations, compatibility requirements, or other constraints.
-            </p>
+            <div className="mt-1 flex justify-between items-start">
+              <p className="text-sm text-gray-500">
+                Optional: Technical preferences, timeline considerations, compatibility requirements, or other constraints.
+              </p>
+              <CharacterCounter
+                current={constraintsCount}
+                max={1000}
+                label="Constraints character count"
+              />
+            </div>
           </div>
         </div>
       </div>

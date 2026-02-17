@@ -228,6 +228,71 @@ The system MUST provide a form at `/dashboard/gigs/new` for CLIENT users to crea
 - AND the fields MUST be visually grouped with "Additional Details (Optional)" heading
 - AND no `required` attribute on optional fields
 
+#### Scenario: Character count displays for acceptanceCriteria field
+- GIVEN a CLIENT user is on the gig creation form
+- WHEN they type in the acceptanceCriteria textarea
+- THEN the form MUST display a real-time character count below the field
+- AND the count MUST show format "X / 50 characters (minimum)"
+- AND the count MUST be right-aligned
+- AND when character count is below 50, the text MUST be red (text-red-600)
+- AND when character count is 50 or above, the text MUST be gray (text-gray-600)
+
+#### Scenario: Character count displays for optional goal field
+- GIVEN a CLIENT user is on the gig creation form
+- WHEN they type in the goal textarea
+- THEN the form MUST display a real-time character count
+- AND the count MUST show format "X / 1000 characters"
+- AND the count MUST be right-aligned
+- AND the text MUST be gray (text-gray-600) when under 900 characters
+- AND the text MUST be orange (text-orange-600) when 900 or more characters
+
+#### Scenario: Character count displays for optional deliverables field
+- GIVEN a CLIENT user is on the gig creation form
+- WHEN they type in the deliverables textarea
+- THEN the form MUST display a real-time character count
+- AND the count MUST show format "X / 1000 characters"
+- AND the count MUST be right-aligned
+- AND the text MUST be gray (text-gray-600) when under 900 characters
+- AND the text MUST be orange (text-orange-600) when 900 or more characters
+
+#### Scenario: Character count displays for optional constraints field
+- GIVEN a CLIENT user is on the gig creation form
+- WHEN they type in the constraints textarea
+- THEN the form MUST display a real-time character count
+- AND the count MUST show format "X / 1000 characters"
+- AND the count MUST be right-aligned
+- AND the text MUST be gray (text-gray-600) when under 900 characters
+- AND the text MUST be orange (text-orange-600) when 900 or more characters
+
+#### Scenario: Character count updates in real-time
+- GIVEN a CLIENT user is typing in any textarea field
+- WHEN they add or delete characters
+- THEN the character count MUST update immediately without delay
+- AND the count MUST reflect the current `.length` of the textarea value
+- AND the color coding MUST update based on current count
+
+#### Scenario: Character count is accessible
+- GIVEN a CLIENT user with a screen reader is on the gig creation form
+- WHEN they interact with a textarea field
+- THEN the character count MUST be announced by the screen reader
+- AND the count element MUST have `aria-live="polite"` attribute
+- AND the count element MUST have descriptive `aria-label` or visible text
+
+#### Scenario: Character count does not interfere with validation
+- GIVEN a CLIENT user submits the form with acceptanceCriteria under 50 characters
+- WHEN the form is submitted
+- THEN the server-side validation MUST still reject the submission
+- AND the character count display MUST NOT bypass or replace server validation
+- AND the error message from server MUST still be displayed
+
+#### Scenario: Character count layout is non-intrusive
+- GIVEN a CLIENT user is viewing the gig creation form
+- WHEN they see the character counts
+- THEN each count MUST be positioned on the same line as the helper text
+- AND each count MUST be right-aligned (text-right or ml-auto)
+- AND each count MUST use small font size (text-sm)
+- AND the counts MUST NOT push other form elements out of alignment
+
 **Acceptance Criteria:**
 - `app/dashboard/gigs/new/page.tsx` exists
 - Uses `useActionState` with `createGig` action
@@ -237,14 +302,26 @@ The system MUST provide a form at `/dashboard/gigs/new` for CLIENT users to crea
   - Label: "Definition of Done" or "Acceptance Criteria"
   - Placeholder with example text
   - Helper text: "Minimum 50 characters. Clear criteria prevent disputes and scope creep."
+  - Real-time character counter showing "X / 50 characters (minimum)"
+  - Red text (text-red-600) when under 50, gray (text-gray-600) when 50+
 - Three optional fields (goal, deliverables, constraints):
   - Each has label, placeholder with realistic example, helper text
   - Each has `name` attribute, `rows={3}`
   - No `required` attribute
   - Positioned after acceptanceCriteria, before budget
   - Visual grouping with "Additional Details (Optional)" heading
+  - Real-time character counter showing "X / 1000 characters"
+  - Gray text (text-gray-600) when under 900, orange (text-orange-600) when 900+
+- Character counters:
+  - All four textarea fields display character counts
+  - Update in real-time via `onChange` handler
+  - Right-aligned with text-sm class
+  - Each has `aria-live="polite"` for accessibility
+  - Positioned on same line as helper text using flex layout
+  - No performance degradation or input lag
 - Budget input accepts roubles, displays fee breakdown in real-time
 - Displays `state?.error` when present
+- Server-side validation unchanged (still validates min 50 chars for acceptanceCriteria)
 
 ---
 
