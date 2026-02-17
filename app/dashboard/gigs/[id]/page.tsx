@@ -274,13 +274,32 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
           </div>
         )}
 
-        {canViewMessages && (
+        {(isOwner || isAssignedSpecialist) && (
           <div className="mt-6 bg-white rounded-lg shadow-md p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Messages</h3>
-            <MessageList messages={gig.messages} />
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              <MessageForm gigId={gig.id} />
-            </div>
+            {gig.assignedSpecialistId === null ? (
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
+                <p className="text-sm text-blue-800">
+                  Messaging will be available once a specialist is assigned to this gig.
+                </p>
+              </div>
+            ) : (
+              <>
+                <MessageList messages={gig.messages} currentUserId={session.userId} gigClientId={gig.clientId} />
+                {!gig.closedByAdmin && (
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <MessageForm gigId={gig.id} />
+                  </div>
+                )}
+                {gig.closedByAdmin && (
+                  <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-md">
+                    <p className="text-sm text-gray-600">
+                      This gig has been closed by administrators. Messaging is no longer available.
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         )}
 
