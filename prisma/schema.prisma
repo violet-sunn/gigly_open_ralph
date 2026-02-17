@@ -24,6 +24,7 @@ model User {
   specialistProfile SpecialistProfile?
   adminActions      ModerationLog[]    @relation("AdminActions")
   moderations       ModerationLog[]    @relation("UserModerations")
+  sentMessages      Message[]          @relation("SentMessages")
 
   @@index([suspended])
 }
@@ -48,6 +49,7 @@ model Gig {
   updatedAt            DateTime        @updatedAt
   applications         Application[]
   moderations          ModerationLog[] @relation("GigModerations")
+  messages             Message[]
 
   @@index([closedByAdmin])
 }
@@ -91,19 +93,33 @@ model SpecialistProfile {
 }
 
 model ModerationLog {
-  id           String    @id @default(cuid())
+  id           String   @id @default(cuid())
   action       String
   reason       String
   adminId      String
-  admin        User      @relation("AdminActions", fields: [adminId], references: [id])
+  admin        User     @relation("AdminActions", fields: [adminId], references: [id])
   targetUserId String?
-  targetUser   User?     @relation("UserModerations", fields: [targetUserId], references: [id])
+  targetUser   User?    @relation("UserModerations", fields: [targetUserId], references: [id])
   targetGigId  String?
-  targetGig    Gig?      @relation("GigModerations", fields: [targetGigId], references: [id])
-  createdAt    DateTime  @default(now())
+  targetGig    Gig?     @relation("GigModerations", fields: [targetGigId], references: [id])
+  createdAt    DateTime @default(now())
 
   @@index([adminId])
   @@index([targetUserId])
   @@index([targetGigId])
+  @@index([createdAt])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  gigId     String
+  gig       Gig      @relation(fields: [gigId], references: [id])
+  senderId  String
+  sender    User     @relation("SentMessages", fields: [senderId], references: [id])
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([gigId])
   @@index([createdAt])
 }

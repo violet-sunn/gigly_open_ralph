@@ -37,6 +37,7 @@ The system MUST define a User model with id, email, password, role fields, relat
   - `assignedGigs` relation field (Gig[]) via "AssignedGigs"
   - `clientProfile` relation field (ClientProfile?)
   - `specialistProfile` relation field (SpecialistProfile?)
+  - `sentMessages` relation field (Message[]) via "SentMessages"
 
 #### Scenario: Role values
 - GIVEN a new user registration
@@ -87,6 +88,7 @@ The system MUST define a Gig model linked to the User model with a relation to A
   - `createdAt` field as DateTime with @default(now())
   - `updatedAt` field as DateTime with @updatedAt
   - `applications` relation field (Application[])
+  - `messages` relation field (Message[])
 
 #### Scenario: Gig has applications relation
 - GIVEN the updated Gig model
@@ -204,6 +206,66 @@ The system MUST define a SpecialistProfile model with a 1:1 relation to User for
 - User model includes `specialistProfile SpecialistProfile?` relation field
 - Migration creates SpecialistProfile table with CASCADE delete
 - All fields have default values (no nullable fields except the relation itself)
+
+---
+
+### Requirement: Message Model
+The system MUST define a Message model for storing text messages between clients and specialists within the context of a gig.
+
+#### Scenario: Message schema definition
+- GIVEN the Prisma schema file
+- WHEN the Message model is defined
+- THEN it MUST include:
+  - `id` field as String with @id and @default(cuid())
+  - `gigId` field as String (foreign key to Gig)
+  - `gig` relation to Gig model
+  - `senderId` field as String (foreign key to User)
+  - `sender` relation to User model via "SentMessages"
+  - `content` field as String (the message text)
+  - `createdAt` field as DateTime with @default(now())
+  - `updatedAt` field as DateTime with @updatedAt
+- AND there MUST be an index on `gigId` for efficient message retrieval
+- AND there MUST be an index on `createdAt` for chronological ordering
+
+#### Scenario: Message belongs to Gig
+- GIVEN a Message record with a valid gigId
+- WHEN queried with `include: { gig: true }`
+- THEN it MUST return the associated Gig record
+
+#### Scenario: Message belongs to User (sender)
+- GIVEN a Message record with a valid senderId
+- WHEN queried with `include: { sender: true }`
+- THEN it MUST return the associated User record (the sender)
+
+#### Scenario: Gig has many Messages
+- GIVEN a Gig record
+- WHEN queried with `include: { messages: true }`
+- THEN it MUST return an array of Message records associated with that gig
+- AND messages MUST be orderable by createdAt
+
+#### Scenario: User has many sent Messages
+- GIVEN a User record
+- WHEN queried with `include: { sentMessages: true }`
+- THEN it MUST return an array of Message records where the user is the sender
+
+#### Scenario: Message content is required
+- GIVEN an attempt to create a Message with empty or null content
+- WHEN the database operation is executed
+- THEN it MUST fail with a validation error (content is non-nullable String)
+
+#### Scenario: Message requires valid foreign keys
+- GIVEN an attempt to create a Message with non-existent gigId or senderId
+- WHEN the database operation is executed
+- THEN it MUST fail with a foreign key constraint error
+
+**Acceptance Criteria:**
+- Run `npx prisma format` without errors
+- Run `npx prisma validate` without errors
+- Message model includes all required fields with correct types
+- Gig model includes `messages Message[]` relation field
+- User model includes `sentMessages Message[]` relation field
+- Indexes exist on `gigId` and `createdAt`
+- Migration creates Message table with proper foreign key constraints
 
 ---
 
