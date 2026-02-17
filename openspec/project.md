@@ -431,6 +431,14 @@ Constraints: One application per specialist per gig. Only SPECIALIST role can ap
 - Route protection: Next.js middleware (`middleware.ts`)
 - File structure: Next.js App Router conventions
 
+### Prisma Query Conventions
+
+- Use `include` for relations when you need the full related object
+- Use `select` when you need specific fields only
+- **NEVER mix `select` and `include` at the same nesting level** (will throw `PrismaClientValidationError`)
+- Prefer `include` for simplicity unless performance requires field selection
+- For conditional includes based on authorization, use `false` for the negative case (not `undefined`)
+
 ## Architecture
 
 - App Router with server components by default
@@ -462,6 +470,7 @@ Constraints: One application per specialist per gig. Only SPECIALIST role can ap
 14. **messaging-iteration-1** — Message model for gig-scoped messaging between clients and assigned specialists. Database schema with Message table, relations to Gig and User (sender), foreign key constraints, and indexes on gigId and createdAt. Data layer only - no UI or server actions yet. Messages can be created and tested via Prisma Studio.
 15. **messaging-iteration-3** — Complete message sending functionality with `sendMessage` server action, message form UI component, and validation. Content validation (required, max 2000 characters), authorization (only gig owner or assigned specialist), gig state checks (must have assigned specialist, not closed). Redirect on success to refresh message list. MessageForm component with maxLength attribute and error display. Messages displayed below gig details for authorized users.
 16. **messaging-iteration-4** — Enhanced messaging UX with visual distinction between senders and edge case handling. Client messages left-aligned with blue accent, specialist messages right-aligned with green accent. Shows informational message when no specialist assigned ("Messaging will be available once a specialist is assigned to this gig"). Hides message form on closed gigs with appropriate notice. Messaging available across all gig statuses (IN_PROGRESS, REVIEW, COMPLETED, PAID) where specialist is assigned. Backend whitespace validation enforced.
+17. **bug-fix-1** — Fixed PrismaClientValidationError in gig detail page caused by mixing `select` and `include` at the same nesting level. Refactored `prisma.gig.findUnique()` query in `/dashboard/gigs/[id]/page.tsx` to use `include` consistently throughout nested relations. Added Prisma query conventions to project documentation to prevent similar issues.
 
 ## Current State
 

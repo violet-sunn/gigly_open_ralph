@@ -24,20 +24,12 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
     where: { id },
     include: {
       client: {
-        select: {
-          email: true,
-          id: true,
-        },
         include: { clientProfile: true }
       },
-      assignedSpecialist: { select: { email: true } },
+      assignedSpecialist: true,
       applications: {
         include: {
           specialist: {
-            select: {
-              email: true,
-              id: true,
-            },
             include: { specialistProfile: true }
           }
         },
@@ -46,10 +38,9 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
       messages: {
         include: {
           sender: {
-            select: { email: true, id: true },
             include: {
-              clientProfile: { select: { companyName: true } },
-              specialistProfile: { select: { displayName: true } }
+              clientProfile: true,
+              specialistProfile: true
             }
           }
         },
@@ -57,9 +48,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
       },
       moderations: session.role === 'ADMIN' ? {
         include: {
-          admin: {
-            select: { email: true }
-          }
+          admin: true
         },
         orderBy: { createdAt: 'desc' }
       } : false,
