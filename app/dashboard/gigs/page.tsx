@@ -107,7 +107,14 @@ export default async function GigBrowsePage({
                   className="block bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
                 >
                   <div className="flex justify-between items-start">
-                    <h3 className="text-lg font-medium text-gray-900">{gig.title}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-lg font-medium text-gray-900">{gig.title}</h3>
+                      {gig.isExample && (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                          ✨ Example
+                        </span>
+                      )}
+                    </div>
                     <span className="text-sm font-medium text-green-700">{formatRoubles(gig.budget)} ₽</span>
                   </div>
                   <p className="mt-1 text-sm text-gray-500 line-clamp-2">{gig.description}</p>

@@ -8,6 +8,9 @@
     "start": "next start",
     "lint": "next lint"
   },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "dependencies": {
     "@libsql/client": "^0.17.0",
     "@prisma/adapter-libsql": "^7.4.0",

@@ -103,6 +103,23 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
             </div>
           )}
 
+          {gig.isExample && (
+            <div className="mb-6 p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
+              <div className="flex items-start">
+                <span className="text-2xl mr-3">✨</span>
+                <div>
+                  <h3 className="text-sm font-semibold text-indigo-900 mb-1">
+                    Example Gig
+                  </h3>
+                  <p className="text-sm text-indigo-700">
+                    This is an example gig demonstrating best practices for writing clear requirements.
+                    Use this as a reference when creating your own gigs.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <p className="text-sm text-gray-600 whitespace-pre-wrap">{gig.description}</p>
 
           {(gig.goal || gig.deliverables || gig.constraints) && (
@@ -180,7 +197,16 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
 
         {session.role === 'SPECIALIST' && (
           <div className="mt-6 bg-white rounded-lg shadow-md p-6">
-            {hasApplied ? (
+            {gig.isExample ? (
+              <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                <p className="text-sm text-gray-700">
+                  This is an example gig for demonstration purposes. You cannot apply to example gigs.
+                </p>
+                <p className="text-sm text-gray-600 mt-2">
+                  Use this example to understand what clear requirements look like when posting your own gigs.
+                </p>
+              </div>
+            ) : hasApplied ? (
               <div className="text-center">
                 <p className="text-sm text-green-700 font-medium">You have already applied to this gig.</p>
               </div>

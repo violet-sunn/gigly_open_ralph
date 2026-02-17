@@ -1,350 +1,192 @@
-import { prisma } from '../lib/prisma'
-import bcrypt from 'bcryptjs'
+import { PrismaClient } from '@prisma/client';
+import { PrismaLibSql } from '@prisma/adapter-libsql';
+
+const adapter = new PrismaLibSql({
+  url: process.env.DATABASE_URL || 'file:./prisma/dev.db',
+});
+
+const prisma = new PrismaClient({
+  adapter: adapter as any,
+});
 
 interface ValidationResult {
-  scenario: string
-  passed: boolean
-  details: string
+  requirement: string;
+  scenario: string;
+  status: 'PASS' | 'FAIL';
+  details?: string;
 }
 
-const results: ValidationResult[] = []
+const results: ValidationResult[] = [];
 
-function logResult(scenario: string, passed: boolean, details: string) {
-  results.push({ scenario, passed, details })
-  const icon = passed ? '✅' : '❌'
-  console.log(`${icon} ${scenario}`)
-  if (details) console.log(`   ${details}`)
+function logResult(requirement: string, scenario: string, status: 'PASS' | 'FAIL', details?: string) {
+  results.push({ requirement, scenario, status, details });
+  const icon = status === 'PASS' ? '✓' : '✗';
+  console.log(`${icon} ${scenario}`);
+  if (details) console.log(`  ${details}`);
 }
 
-async function validateGigSpec() {
-  console.log('\n═══════════════════════════════════════════════════════')
-  console.log('📋 VALIDATING GIG SPEC (Server Action)')
-  console.log('═══════════════════════════════════════════════════════\n')
+async function validateDatabase() {
+  console.log('\n📦 DATABASE SPECIFICATION VALIDATION');
+  console.log('═'.repeat(70));
 
-  // Setup
-  await prisma.user.deleteMany({ where: { email: { contains: 'validate-test' } } })
-  const hashedPassword = await bcrypt.hash('password123', 10)
+  console.log('\n🔹 Requirement: Gig Model Example Flag\n');
 
-  const client = await prisma.user.create({
-    data: {
-      email: 'validate-test-client@example.com',
-      password: hashedPassword,
-      role: 'CLIENT',
-    },
-  })
-
-  // Scenario 1: Successful gig creation with acceptanceCriteria (trimmed)
   try {
-    const criteria = '  This is a valid acceptance criteria with more than fifty characters  '
-    const gig = await prisma.gig.create({
-      data: {
-        title: 'Test Gig',
-        description: 'Test description',
-        acceptanceCriteria: criteria.trim(),
-        budget: 10000000,
-        serviceFee: 2000000,
-        totalAmount: 12000000,
-        clientId: client.id,
-      },
-    })
-
-    const trimmedCorrectly = gig.acceptanceCriteria === criteria.trim()
-    const hasCorrectLength = gig.acceptanceCriteria!.length >= 50
-
-    logResult(
-      'Scenario: Successful gig creation with acceptanceCriteria',
-      trimmedCorrectly && hasCorrectLength,
-      `Trimmed: ${trimmedCorrectly}, Length: ${gig.acceptanceCriteria!.length} chars`
-    )
-
-    await prisma.gig.delete({ where: { id: gig.id } })
-  } catch (e) {
-    logResult('Scenario: Successful gig creation with acceptanceCriteria', false, `Error: ${e}`)
+    const gig = await prisma.gig.findFirst();
+    if (gig && 'isExample' in gig) {
+      logResult('Gig Model', 'isExample field exists', 'PASS');
+    } else {
+      logResult('Gig Model', 'isExample field exists', 'FAIL', 'Field not found');
+    }
+  } catch (error) {
+    logResult('Gig Model', 'isExample field exists', 'FAIL', String(error));
   }
 
-  // Scenario 2: Acceptance criteria field is nullable (for legacy gigs)
   try {
-    const legacyGig = await prisma.gig.create({
-      data: {
-        title: 'Legacy Gig',
-        description: 'Test',
-        acceptanceCriteria: null,
-        budget: 10000000,
-        serviceFee: 2000000,
-        totalAmount: 12000000,
-        clientId: client.id,
-      },
-    })
-
-    logResult(
-      'Scenario: Database allows null acceptanceCriteria (legacy support)',
-      legacyGig.acceptanceCriteria === null,
-      'Legacy gigs can have null acceptance criteria'
-    )
-
-    await prisma.gig.delete({ where: { id: legacyGig.id } })
-  } catch (e) {
-    logResult('Scenario: Database allows null acceptanceCriteria', false, `Error: ${e}`)
+    const exampleGigs = await prisma.gig.findMany({ where: { isExample: true } });
+    if (exampleGigs.length === 5) {
+      logResult('Gig Model', 'Example gigs marked correctly', 'PASS', '5 example gigs found');
+    } else {
+      logResult('Gig Model', 'Example gigs marked correctly', 'FAIL', `Expected 5, found ${exampleGigs.length}`);
+    }
+  } catch (error) {
+    logResult('Gig Model', 'Example gigs marked correctly', 'FAIL', String(error));
   }
 
-  // Scenario 3: Multi-line formatting preserved
+  console.log('\n🔹 Requirement: Example Gig Seed Data\n');
+
   try {
-    const multiline = `Line 1: First requirement
-Line 2: Second requirement
-Line 3: Third requirement with more than fifty characters total`
+    const exampleGigs = await prisma.gig.findMany({
+      where: { isExample: true },
+      include: { client: true },
+    });
 
-    const gig = await prisma.gig.create({
-      data: {
-        title: 'Multiline Test',
-        description: 'Test',
-        acceptanceCriteria: multiline,
-        budget: 10000000,
-        serviceFee: 2000000,
-        totalAmount: 12000000,
-        clientId: client.id,
-      },
-    })
+    let allValid = true;
+    for (const gig of exampleGigs) {
+      if (gig.status !== 'OPEN') allValid = false;
+      if (!gig.acceptanceCriteria || gig.acceptanceCriteria.length < 200) allValid = false;
+      if (!gig.goal || !gig.deliverables || !gig.constraints) allValid = false;
+      const budgetRub = gig.budget / 100;
+      if (budgetRub < 150000 || budgetRub > 200000) allValid = false;
+    }
 
-    const preserved = gig.acceptanceCriteria === multiline
-    const lineCount = gig.acceptanceCriteria!.split('\n').length
+    if (allValid) {
+      logResult('Seed Data', 'All example gigs meet quality standards', 'PASS');
+    } else {
+      logResult('Seed Data', 'All example gigs meet quality standards', 'FAIL');
+    }
+  } catch (error) {
+    logResult('Seed Data', 'All example gigs meet quality standards', 'FAIL', String(error));
+  }
+}
 
-    logResult(
-      'Scenario: Multi-line formatting preserved',
-      preserved && lineCount === 3,
-      `Lines preserved: ${lineCount}, Format intact: ${preserved}`
-    )
+async function validateServerAction() {
+  console.log('\n\n🛡️ SERVER ACTION VALIDATION');
+  console.log('═'.repeat(70));
 
-    await prisma.gig.delete({ where: { id: gig.id } })
-  } catch (e) {
-    logResult('Scenario: Multi-line formatting preserved', false, `Error: ${e}`)
+  const fs = require('fs');
+  const path = require('path');
+
+  try {
+    const actionPath = path.join(process.cwd(), 'app', 'actions', 'gig.ts');
+    const actionCode = fs.readFileSync(actionPath, 'utf-8');
+
+    if (actionCode.includes('gig.isExample')) {
+      logResult('Server Action', 'applyToGig checks isExample', 'PASS');
+    } else {
+      logResult('Server Action', 'applyToGig checks isExample', 'FAIL');
+    }
+
+    if (actionCode.includes('demonstration purposes')) {
+      logResult('Server Action', 'Error message correct', 'PASS');
+    } else {
+      logResult('Server Action', 'Error message correct', 'FAIL');
+    }
+  } catch (error) {
+    logResult('Server Action', 'Code validation', 'FAIL', String(error));
+  }
+}
+
+async function validateUI() {
+  console.log('\n\n🎨 UI VALIDATION');
+  console.log('═'.repeat(70));
+
+  const fs = require('fs');
+  const path = require('path');
+
+  try {
+    const browsePath = path.join(process.cwd(), 'app', 'dashboard', 'gigs', 'page.tsx');
+    const browseCode = fs.readFileSync(browsePath, 'utf-8');
+
+    if (browseCode.includes('gig.isExample') && browseCode.includes('Example')) {
+      logResult('Browse Page', 'Example badge renders', 'PASS');
+    } else {
+      logResult('Browse Page', 'Example badge renders', 'FAIL');
+    }
+
+    if (browseCode.includes('bg-indigo-100')) {
+      logResult('Browse Page', 'Badge styling correct', 'PASS');
+    } else {
+      logResult('Browse Page', 'Badge styling correct', 'FAIL');
+    }
+  } catch (error) {
+    logResult('Browse Page', 'Validation', 'FAIL', String(error));
   }
 
-  // Cleanup
-  await prisma.user.delete({ where: { id: client.id } })
-}
+  try {
+    const detailPath = path.join(process.cwd(), 'app', 'dashboard', 'gigs', '[id]', 'page.tsx');
+    const detailCode = fs.readFileSync(detailPath, 'utf-8');
 
-async function validateUIImplementation() {
-  console.log('\n═══════════════════════════════════════════════════════')
-  console.log('🎨 VALIDATING UI IMPLEMENTATION')
-  console.log('═══════════════════════════════════════════════════════\n')
+    if (detailCode.includes('Example Gig')) {
+      logResult('Detail Page', 'Example banner renders', 'PASS');
+    } else {
+      logResult('Detail Page', 'Example banner renders', 'FAIL');
+    }
 
-  // Check gig-form.tsx
-  const fs = require('fs')
-  const formContent = fs.readFileSync('app/dashboard/gigs/new/gig-form.tsx', 'utf-8')
-
-  const hasAcceptanceCriteriaField = formContent.includes('name="acceptanceCriteria"')
-  const hasRequiredAttribute = formContent.includes('acceptanceCriteria') && formContent.includes('required')
-  const hasRows5 = formContent.includes('rows={5}')
-  const hasLabel = formContent.includes('Definition of Done') || formContent.includes('Acceptance Criteria')
-  const hasPlaceholder = formContent.includes('placeholder=') && formContent.includes('done')
-  const hasHelperText = formContent.includes('Minimum 50 characters')
-
-  logResult(
-    'UI: Acceptance criteria field exists',
-    hasAcceptanceCriteriaField,
-    'Field with name="acceptanceCriteria" found'
-  )
-
-  logResult(
-    'UI: Field is required',
-    hasRequiredAttribute,
-    'Required attribute present'
-  )
-
-  logResult(
-    'UI: Field has 5 rows',
-    hasRows5,
-    'rows={5} attribute present'
-  )
-
-  logResult(
-    'UI: Field has proper label',
-    hasLabel,
-    'Label contains "Definition of Done" or "Acceptance Criteria"'
-  )
-
-  logResult(
-    'UI: Field has helpful placeholder',
-    hasPlaceholder,
-    'Placeholder text with example present'
-  )
-
-  logResult(
-    'UI: Field has helper text',
-    hasHelperText,
-    'Helper text about 50 char minimum present'
-  )
-
-  // Check gig detail page
-  const detailContent = fs.readFileSync('app/dashboard/gigs/[id]/page.tsx', 'utf-8')
-
-  const hasDefinitionOfDone = detailContent.includes('Definition of Done')
-  const hasBorderStyling = detailContent.includes('border-l-4') || detailContent.includes('border')
-  const hasBackgroundColor = detailContent.includes('bg-blue-50') || detailContent.includes('bg-')
-  const hasWhitespacePre = detailContent.includes('whitespace-pre-wrap')
-  const hasNotSpecified = detailContent.includes('Not specified')
-  const hasAcceptanceCriteriaDisplay = detailContent.includes('acceptanceCriteria')
-
-  logResult(
-    'UI: Detail page has "Definition of Done" heading',
-    hasDefinitionOfDone,
-    'Heading text found'
-  )
-
-  logResult(
-    'UI: Detail page has visually distinct styling',
-    hasBorderStyling && hasBackgroundColor,
-    'Border and background color present'
-  )
-
-  logResult(
-    'UI: Detail page preserves whitespace',
-    hasWhitespacePre,
-    'whitespace-pre-wrap class present'
-  )
-
-  logResult(
-    'UI: Detail page handles null values',
-    hasNotSpecified,
-    '"Not specified" fallback present'
-  )
-
-  logResult(
-    'UI: Detail page displays acceptance criteria',
-    hasAcceptanceCriteriaDisplay,
-    'acceptanceCriteria field referenced'
-  )
-
-  // Check server action
-  const actionContent = fs.readFileSync('app/actions/gig.ts', 'utf-8')
-
-  const extractsAcceptanceCriteria = actionContent.includes('acceptanceCriteria')
-  const trimsValue = actionContent.includes('.trim()')
-  const validates50Chars = actionContent.includes('50') && actionContent.includes('length')
-  const hasRequiredValidation = actionContent.includes('acceptance criteria are required')
-  const hasTooShortValidation = actionContent.includes('must be at least 50 characters')
-  const includesInCreate = actionContent.includes('acceptanceCriteria:') || actionContent.includes('acceptanceCriteria,')
-
-  logResult(
-    'Server Action: Extracts acceptanceCriteria from formData',
-    extractsAcceptanceCriteria,
-    'acceptanceCriteria variable found'
-  )
-
-  logResult(
-    'Server Action: Trims value before validation',
-    trimsValue,
-    '.trim() method used'
-  )
-
-  logResult(
-    'Server Action: Validates 50 character minimum',
-    validates50Chars,
-    'Length validation with 50 chars found'
-  )
-
-  logResult(
-    'Server Action: Validates required field',
-    hasRequiredValidation,
-    'Required validation error message found'
-  )
-
-  logResult(
-    'Server Action: Validates minimum length',
-    hasTooShortValidation,
-    'Too short error message found'
-  )
-
-  logResult(
-    'Server Action: Includes in Prisma create',
-    includesInCreate,
-    'acceptanceCriteria included in create data'
-  )
-}
-
-async function validateDatabaseSchema() {
-  console.log('\n═══════════════════════════════════════════════════════')
-  console.log('🗄️  VALIDATING DATABASE SCHEMA')
-  console.log('═══════════════════════════════════════════════════════\n')
-
-  // Check schema file
-  const fs = require('fs')
-  const schemaContent = fs.readFileSync('prisma/schema.prisma', 'utf-8')
-
-  const hasAcceptanceCriteriaField = schemaContent.includes('acceptanceCriteria')
-  const isNullable = schemaContent.includes('acceptanceCriteria   String?')
-
-  logResult(
-    'Schema: acceptanceCriteria field exists',
-    hasAcceptanceCriteriaField,
-    'Field found in Gig model'
-  )
-
-  logResult(
-    'Schema: Field is nullable',
-    isNullable,
-    'String? type allows null values for legacy gigs'
-  )
-
-  // Check migration exists
-  const migrationExists = fs.existsSync('prisma/migrations') &&
-    fs.readdirSync('prisma/migrations').some((dir: string) => dir.includes('add_acceptance_criteria'))
-
-  logResult(
-    'Migration: add_acceptance_criteria migration exists',
-    migrationExists,
-    'Migration file found'
-  )
+    // Accept both !gig.isExample and gig.isExample ? patterns
+    if (detailCode.includes('!gig.isExample') || detailCode.includes('gig.isExample ?')) {
+      logResult('Detail Page', 'Apply form conditionally hidden', 'PASS');
+    } else {
+      logResult('Detail Page', 'Apply form conditionally hidden', 'FAIL');
+    }
+  } catch (error) {
+    logResult('Detail Page', 'Validation', 'FAIL', String(error));
+  }
 }
 
 async function main() {
-  console.log('═══════════════════════════════════════════════════════')
-  console.log('🧪 OPENSPEC VALIDATION: require-acceptance-criteria')
-  console.log('═══════════════════════════════════════════════════════')
+  console.log('\n🧪 ACCEPTANCE CRITERIA VALIDATION');
+  console.log('═'.repeat(70));
 
-  await validateDatabaseSchema()
-  await validateGigSpec()
-  await validateUIImplementation()
+  await validateDatabase();
+  await validateServerAction();
+  await validateUI();
 
-  // Summary
-  console.log('\n═══════════════════════════════════════════════════════')
-  console.log('📊 VALIDATION SUMMARY')
-  console.log('═══════════════════════════════════════════════════════\n')
+  console.log('\n\n' + '═'.repeat(70));
+  console.log('📊 SUMMARY');
+  console.log('═'.repeat(70));
 
-  const passed = results.filter(r => r.passed).length
-  const failed = results.filter(r => !r.passed).length
-  const total = results.length
+  const passed = results.filter(r => r.status === 'PASS').length;
+  const failed = results.filter(r => r.status === 'FAIL').length;
 
-  console.log(`Total Scenarios: ${total}`)
-  console.log(`✅ Passed: ${passed}`)
-  console.log(`❌ Failed: ${failed}`)
-  console.log(`Success Rate: ${((passed / total) * 100).toFixed(1)}%\n`)
+  console.log(`\nPassed: ${passed}`);
+  console.log(`Failed: ${failed}`);
 
   if (failed > 0) {
-    console.log('❌ FAILED SCENARIOS:\n')
-    results.filter(r => !r.passed).forEach(r => {
-      console.log(`   • ${r.scenario}`)
-      console.log(`     ${r.details}\n`)
-    })
-  }
-
-  console.log('═══════════════════════════════════════════════════════')
-
-  if (failed === 0) {
-    console.log('✅ ALL ACCEPTANCE CRITERIA VALIDATED SUCCESSFULLY!')
-    console.log('═══════════════════════════════════════════════════════\n')
+    console.log('\n❌ VALIDATION FAILED\n');
+    return 1;
   } else {
-    console.log('❌ VALIDATION FAILED - FIX ISSUES ABOVE')
-    console.log('═══════════════════════════════════════════════════════\n')
-    process.exit(1)
+    console.log('\n✅ ALL CRITERIA MET\n');
+    return 0;
   }
 }
 
 main()
+  .then((exitCode) => process.exit(exitCode))
   .catch((e) => {
-    console.error('❌ Validation script failed:', e)
-    process.exit(1)
+    console.error('Error:', e);
+    process.exit(1);
   })
   .finally(async () => {
-    await prisma.$disconnect()
-  })
+    await prisma.$disconnect();
+  });

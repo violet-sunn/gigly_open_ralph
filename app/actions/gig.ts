@@ -111,6 +111,10 @@ export async function applyToGig(
     return { error: 'Gig not found.' }
   }
 
+  if (gig.isExample) {
+    return { error: 'This is an example gig for demonstration purposes. You cannot apply to example gigs.' }
+  }
+
   if (gig.closedByAdmin) {
     return { error: 'This gig has been closed by administrators.' }
   }
