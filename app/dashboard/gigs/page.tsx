@@ -11,20 +11,22 @@ function formatRoubles(kopecks: number): string {
 export default async function GigBrowsePage({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined }
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
   const session = await getSession()
   if (!session) redirect('/login')
 
+  const params = await searchParams
+
   // Extract filter parameters from searchParams
-  const search = typeof searchParams.search === 'string' ? searchParams.search : undefined
-  const tagsParam = typeof searchParams.tags === 'string' ? searchParams.tags : undefined
+  const search = typeof params.search === 'string' ? params.search : undefined
+  const tagsParam = typeof params.tags === 'string' ? params.tags : undefined
   const tags = tagsParam ? tagsParam.split(',').map(t => t.trim()).filter(Boolean) : []
-  const minBudgetParam = typeof searchParams.minBudget === 'string' ? searchParams.minBudget : undefined
+  const minBudgetParam = typeof params.minBudget === 'string' ? params.minBudget : undefined
   const minBudget = minBudgetParam ? parseInt(minBudgetParam, 10) : undefined
-  const maxBudgetParam = typeof searchParams.maxBudget === 'string' ? searchParams.maxBudget : undefined
+  const maxBudgetParam = typeof params.maxBudget === 'string' ? params.maxBudget : undefined
   const maxBudget = maxBudgetParam ? parseInt(maxBudgetParam, 10) : undefined
-  const sort = typeof searchParams.sort === 'string' ? searchParams.sort : 'newest'
+  const sort = typeof params.sort === 'string' ? params.sort : 'newest'
 
   // Build dynamic Prisma where clause with nested AND/OR
   const andConditions: any[] = [{ status: 'OPEN' }]

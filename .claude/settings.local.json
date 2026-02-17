@@ -34,7 +34,9 @@
       "Bash(grep:*)",
       "Bash(openspec/specs/gig/spec.md:*)",
       "Bash(VALIDATION_REPORT.md:*)",
-      "Bash(wc -l app/**/*.tsx app/**/*.ts lib/*.ts)"
+      "Bash(wc -l app/**/*.tsx app/**/*.ts lib/*.ts)",
+      "Bash(test:*)",
+      "Bash(test -f app/dashboard/gigs/[id]/message-form.tsx)"
     ]
   }
 }

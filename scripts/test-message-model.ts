@@ -107,7 +107,7 @@ async function testMessageModel() {
       where: { id: gig.id },
       include: { messages: true },
     });
-    if (gigWithMessages?.messages.length >= 2) {
+    if (gigWithMessages && gigWithMessages.messages.length >= 2) {
       console.log(`   ✅ Gig has ${gigWithMessages.messages.length} messages`);
     } else {
       throw new Error('Gig → Messages relation failed');
@@ -119,7 +119,7 @@ async function testMessageModel() {
       where: { id: client.id },
       include: { sentMessages: true },
     });
-    if (userWithMessages?.sentMessages.length >= 1) {
+    if (userWithMessages && userWithMessages.sentMessages.length >= 1) {
       console.log(`   ✅ User has ${userWithMessages.sentMessages.length} sent messages`);
     } else {
       throw new Error('User → sentMessages relation failed');

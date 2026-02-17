@@ -301,3 +301,64 @@ export async function markAsPaid(
 
   redirect(`/dashboard/gigs/${gigId}`)
 }
+
+export async function sendMessage(
+  prevState: { error?: string } | null,
+  formData: FormData
+) {
+  const session = await getSession()
+  if (!session) redirect('/login')
+
+  const gigId = formData.get('gigId') as string
+  const contentRaw = (formData.get('content') as string) || ''
+
+  // Validate length before trimming
+  if (contentRaw.length > 2000) {
+    return { error: 'Message is too long. Maximum 2000 characters allowed.' }
+  }
+
+  const content = contentRaw.trim()
+
+  if (!content) {
+    return { error: 'Message content is required.' }
+  }
+
+  const gig = await prisma.gig.findUnique({
+    where: { id: gigId },
+    select: {
+      id: true,
+      clientId: true,
+      assignedSpecialistId: true,
+      closedByAdmin: true,
+    },
+  })
+
+  if (!gig) {
+    return { error: 'Gig not found.' }
+  }
+
+  if (gig.closedByAdmin) {
+    return { error: 'Cannot send messages to a closed gig.' }
+  }
+
+  if (!gig.assignedSpecialistId) {
+    return { error: 'Cannot send messages until a specialist is assigned.' }
+  }
+
+  const isOwner = gig.clientId === session.userId
+  const isAssignedSpecialist = gig.assignedSpecialistId === session.userId
+
+  if (!isOwner && !isAssignedSpecialist) {
+    return { error: 'You are not authorized to send messages on this gig.' }
+  }
+
+  await prisma.message.create({
+    data: {
+      gigId,
+      senderId: session.userId,
+      content,
+    },
+  })
+
+  redirect(`/dashboard/gigs/${gigId}`)
+}

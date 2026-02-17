@@ -7,6 +7,8 @@ import { ApplicationActions } from './application-actions'
 import { SubmitWorkForm } from './submit-work-form'
 import { ApproveWorkForm } from './approve-work-form'
 import { MarkAsPaidButton } from '@/app/components/MarkAsPaidButton'
+import { MessageList } from './message-list'
+import { MessageForm } from './message-form'
 
 function formatRoubles(kopecks: number): string {
   return new Intl.NumberFormat('ru-RU').format(kopecks / 100)
@@ -41,6 +43,18 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
         },
         orderBy: { createdAt: 'desc' },
       },
+      messages: {
+        include: {
+          sender: {
+            select: { email: true, id: true },
+            include: {
+              clientProfile: { select: { companyName: true } },
+              specialistProfile: { select: { displayName: true } }
+            }
+          }
+        },
+        orderBy: { createdAt: 'asc' }
+      },
       moderations: session.role === 'ADMIN' ? {
         include: {
           admin: {
@@ -69,6 +83,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
     gig.applications.some((app) => app.specialistId === session.userId)
   const isOwner = session.role === 'CLIENT' && gig.clientId === session.userId
   const isAssignedSpecialist = session.role === 'SPECIALIST' && gig.assignedSpecialistId === session.userId
+  const canViewMessages = (isOwner || isAssignedSpecialist) && gig.assignedSpecialistId !== null
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -259,6 +274,16 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
           </div>
         )}
 
+        {canViewMessages && (
+          <div className="mt-6 bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Messages</h3>
+            <MessageList messages={gig.messages} />
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <MessageForm gigId={gig.id} />
+            </div>
+          </div>
+        )}
+
         {session.role === 'ADMIN' && gig.moderations && gig.moderations.length > 0 && (
           <div className="mt-6 bg-white rounded-lg shadow-md p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Moderation History</h3>
@@ -272,7 +297,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
                       </span>
                       <p className="text-sm text-gray-600 mt-1">{log.reason}</p>
                       <p className="text-xs text-gray-400 mt-1">
-                        By {log.admin.email} on {new Date(log.createdAt).toLocaleString('ru-RU')}
+                        By {'admin' in log ? (log as any).admin.email : 'Admin'} on {new Date(log.createdAt).toLocaleString('ru-RU')}
                       </p>
                     </div>
                   </div>

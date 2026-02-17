@@ -460,10 +460,11 @@ Constraints: One application per specialist per gig. Only SPECIALIST role can ap
 12. **gig-filtering-and-search** — Filter panel component at `/dashboard/gigs` with text search (title/description), multi-tag filtering (React, Python, TypeScript, Node.js, Go, Rust, Docker, Kubernetes), budget range filtering (min/max in roubles), sort options (newest, highest budget, lowest budget), URL-based filter state for shareable/bookmarkable views, AND logic between filter types with OR logic within each type.
 13. **admin-role-and-moderation** — ADMIN role implementation with full moderation capabilities. User.suspended field prevents login, Gig.closedByAdmin prevents applications, ModerationLog model tracks all moderation actions. Admin dashboard at `/admin` with statistics, user management page with suspend/unsuspend actions, gig management page with close action. Middleware protects admin routes. All moderation actions use transactions and create audit logs.
 14. **messaging-iteration-1** — Message model for gig-scoped messaging between clients and assigned specialists. Database schema with Message table, relations to Gig and User (sender), foreign key constraints, and indexes on gigId and createdAt. Data layer only - no UI or server actions yet. Messages can be created and tested via Prisma Studio.
+15. **messaging-iteration-3** — Complete message sending functionality with `sendMessage` server action, message form UI component, and validation. Content validation (required, max 2000 characters), authorization (only gig owner or assigned specialist), gig state checks (must have assigned specialist, not closed). Redirect on success to refresh message list. MessageForm component with maxLength attribute and error display. Messages displayed below gig details for authorized users.
 
 ## Current State
 
-The core marketplace loop is functional: Clients register, create gigs, review applications, accept a specialist, and approve completed work. Specialists register, browse open gigs with filtering and search capabilities, apply, and submit work for review. The full gig lifecycle (OPEN → IN_PROGRESS → REVIEW → COMPLETED → PAID) is now implemented. Users can create and manage profiles with role-specific information (company details for clients, tech stack and experience for specialists). Clients can mark completed gigs as paid to track payment status. Specialists can efficiently find relevant gigs using text search, tag filters, budget range filters, and sorting options. Admins can moderate the platform by suspending users, closing gigs, and viewing audit logs. The messaging data layer is in place for gig-scoped communication between clients and specialists (UI implementation pending).
+The core marketplace loop is functional: Clients register, create gigs, review applications, accept a specialist, and approve completed work. Specialists register, browse open gigs with filtering and search capabilities, apply, and submit work for review. The full gig lifecycle (OPEN → IN_PROGRESS → REVIEW → COMPLETED → PAID) is now implemented. Users can create and manage profiles with role-specific information (company details for clients, tech stack and experience for specialists). Clients can mark completed gigs as paid to track payment status. Specialists can efficiently find relevant gigs using text search, tag filters, budget range filters, and sorting options. Admins can moderate the platform by suspending users, closing gigs, and viewing audit logs. Gig-scoped messaging is fully functional, allowing clients and assigned specialists to communicate within the platform with content validation and access control.
 
 ### Implemented
 
@@ -484,6 +485,7 @@ The core marketplace loop is functional: Clients register, create gigs, review a
 - Admin role and moderation: suspend/unsuspend users, close gigs, audit logging
 - Admin dashboard with platform statistics
 - User and gig management pages with filtering
+- Gig-scoped messaging: send/view messages between client and assigned specialist with validation
 
 ### Not Yet Implemented
 
