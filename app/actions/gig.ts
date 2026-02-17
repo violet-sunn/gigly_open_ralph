@@ -75,7 +75,36 @@ export async function applyToGig(
   }
 
   const gigId = formData.get('gigId') as string
-  const coverLetter = ((formData.get('coverLetter') as string) || '').trim()
+  const approach = ((formData.get('approach') as string) || '').trim()
+  const questions = ((formData.get('questions') as string) || '').trim()
+  const estimatedEffort = ((formData.get('estimatedEffort') as string) || '').trim()
+
+  // Validate required fields
+  if (!approach) {
+    return { error: 'Technical approach is required.' }
+  }
+  if (!questions) {
+    return { error: 'Clarifying questions are required.' }
+  }
+
+  // Validate minimum lengths
+  if (approach.length < 100) {
+    return { error: 'Technical approach must be at least 100 characters. Please provide more detail about your methodology.' }
+  }
+  if (questions.length < 50) {
+    return { error: 'Clarifying questions must be at least 50 characters. What do you need to know about the requirements?' }
+  }
+
+  // Validate maximum lengths
+  if (approach.length > 2000) {
+    return { error: 'Technical approach is too long. Maximum 2000 characters allowed.' }
+  }
+  if (questions.length > 1000) {
+    return { error: 'Clarifying questions are too long. Maximum 1000 characters allowed.' }
+  }
+  if (estimatedEffort.length > 200) {
+    return { error: 'Estimated effort is too long. Maximum 200 characters allowed.' }
+  }
 
   const gig = await prisma.gig.findUnique({ where: { id: gigId } })
   if (!gig) {
@@ -101,7 +130,10 @@ export async function applyToGig(
     data: {
       gigId,
       specialistId: session.userId,
-      coverLetter,
+      approach,
+      questions,
+      estimatedEffort,
+      coverLetter: '', // Legacy field, set to empty string
     },
   })
 

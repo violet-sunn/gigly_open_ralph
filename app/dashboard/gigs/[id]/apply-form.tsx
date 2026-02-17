@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { applyToGig } from '@/app/actions/gig'
 
@@ -12,13 +12,16 @@ function SubmitButton() {
       disabled={pending}
       className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
     >
-      {pending ? 'Applying...' : 'Apply'}
+      {pending ? 'Submitting...' : 'Submit Application'}
     </button>
   )
 }
 
 export function ApplyForm({ gigId }: { gigId: string }) {
   const [state, formAction] = useActionState(applyToGig, null)
+  const [approachCount, setApproachCount] = useState(0)
+  const [questionsCount, setQuestionsCount] = useState(0)
+  const [effortCount, setEffortCount] = useState(0)
 
   return (
     <form action={formAction} className="space-y-4">
@@ -28,18 +31,77 @@ export function ApplyForm({ gigId }: { gigId: string }) {
           <p className="text-sm text-red-700">{state.error}</p>
         </div>
       )}
+
+      {/* Technical Approach */}
       <div>
-        <label htmlFor="coverLetter" className="block text-sm font-medium text-gray-700">
-          Cover Letter <span className="text-gray-400">(optional)</span>
+        <label htmlFor="approach" className="block text-sm font-medium text-gray-700">
+          Technical Approach / Methodology <span className="text-red-500">*</span>
         </label>
+        <p className="text-xs text-gray-500 mt-1">
+          How will you approach this work? What methodology, tools, or architecture will you use? Be specific about your technical plan.
+        </p>
         <textarea
-          id="coverLetter"
-          name="coverLetter"
-          rows={4}
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 sm:text-sm"
-          placeholder="Tell the client why you're a great fit..."
+          id="approach"
+          name="approach"
+          rows={6}
+          minLength={100}
+          maxLength={2000}
+          required
+          onChange={(e) => setApproachCount(e.target.value.length)}
+          className="mt-2 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 sm:text-sm"
+          placeholder="How will you approach this work? What methodology, tools, or architecture will you use? Be specific about your technical plan."
         />
+        <p className="text-xs text-gray-500 mt-1">
+          {approachCount} / 2000 characters (minimum 100)
+        </p>
       </div>
+
+      {/* Clarifying Questions */}
+      <div>
+        <label htmlFor="questions" className="block text-sm font-medium text-gray-700">
+          Clarifying Questions <span className="text-red-500">*</span>
+        </label>
+        <p className="text-xs text-gray-500 mt-1">
+          What questions do you have about the requirements? What needs clarification before you can provide an accurate estimate?
+        </p>
+        <textarea
+          id="questions"
+          name="questions"
+          rows={4}
+          minLength={50}
+          maxLength={1000}
+          required
+          onChange={(e) => setQuestionsCount(e.target.value.length)}
+          className="mt-2 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 sm:text-sm"
+          placeholder="What questions do you have about the requirements? What needs clarification before you can provide an accurate estimate?"
+        />
+        <p className="text-xs text-gray-500 mt-1">
+          {questionsCount} / 1000 characters (minimum 50)
+        </p>
+      </div>
+
+      {/* Estimated Effort */}
+      <div>
+        <label htmlFor="estimatedEffort" className="block text-sm font-medium text-gray-700">
+          Estimated Effort <span className="text-gray-400">(optional)</span>
+        </label>
+        <p className="text-xs text-gray-500 mt-1">
+          How long do you estimate this will take?
+        </p>
+        <textarea
+          id="estimatedEffort"
+          name="estimatedEffort"
+          rows={2}
+          maxLength={200}
+          onChange={(e) => setEffortCount(e.target.value.length)}
+          className="mt-2 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 sm:text-sm"
+          placeholder="e.g., '2-3 weeks', '40 hours', 'depends on answers to questions above'"
+        />
+        <p className="text-xs text-gray-500 mt-1">
+          {effortCount} / 200 characters
+        </p>
+      </div>
+
       <SubmitButton />
     </form>
   )

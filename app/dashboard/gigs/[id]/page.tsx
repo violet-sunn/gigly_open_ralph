@@ -285,8 +285,32 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
                         ))}
                       </div>
                     )}
-                    {app.coverLetter && (
-                      <p className="mt-1 text-sm text-gray-600">{app.coverLetter}</p>
+                    {/* Structured fields for new applications */}
+                    {app.approach && app.questions ? (
+                      <div className="mt-3 space-y-3">
+                        <div>
+                          <h5 className="text-sm font-semibold text-gray-900">🔧 Technical Approach</h5>
+                          <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap">{app.approach}</p>
+                        </div>
+                        <div>
+                          <h5 className="text-sm font-semibold text-gray-900">❓ Clarifying Questions</h5>
+                          <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap">{app.questions}</p>
+                        </div>
+                        {app.estimatedEffort && (
+                          <div>
+                            <h5 className="text-sm font-semibold text-gray-500">⏱️ Estimated Effort</h5>
+                            <p className="mt-1 text-sm text-gray-600 whitespace-pre-wrap">{app.estimatedEffort}</p>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      /* Legacy cover letter for old applications */
+                      app.coverLetter && (
+                        <div className="mt-3">
+                          <h5 className="text-sm font-semibold text-gray-900">Cover Letter</h5>
+                          <p className="mt-1 text-sm text-gray-600 whitespace-pre-wrap">{app.coverLetter}</p>
+                        </div>
+                      )
                     )}
                     <p className="mt-1 text-xs text-gray-400">{app.createdAt.toLocaleDateString('ru-RU')}</p>
                     {app.status === 'PENDING' && gig.status === 'OPEN' && (

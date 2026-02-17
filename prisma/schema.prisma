@@ -59,15 +59,18 @@ model Gig {
 }
 
 model Application {
-  id           String   @id @default(cuid())
-  gigId        String
-  gig          Gig      @relation(fields: [gigId], references: [id])
-  specialistId String
-  specialist   User     @relation(fields: [specialistId], references: [id])
-  coverLetter  String   @default("")
-  status       String   @default("PENDING")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id              String   @id @default(cuid())
+  gigId           String
+  gig             Gig      @relation(fields: [gigId], references: [id])
+  specialistId    String
+  specialist      User     @relation(fields: [specialistId], references: [id])
+  coverLetter     String   @default("")
+  approach        String   @default("")
+  questions       String   @default("")
+  estimatedEffort String   @default("")
+  status          String   @default("PENDING")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   @@unique([gigId, specialistId])
 }

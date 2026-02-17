@@ -102,7 +102,7 @@ export function GigForm() {
               placeholder="Example: We need to migrate our user authentication from custom solution to OAuth 2.0 to improve security and reduce maintenance burden."
             />
             <p className="mt-1 text-sm text-gray-500">
-              Optional: Describe the business or technical problem you're solving. What does success look like?
+              Optional: Describe the business or technical problem you&apos;re solving. What does success look like?
             </p>
           </div>
 
