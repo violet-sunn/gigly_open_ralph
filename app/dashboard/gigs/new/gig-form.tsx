@@ -4,6 +4,7 @@ import { useActionState, useState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { createGig } from '@/app/actions/gig'
 import { CharacterCounter } from './character-counter'
+import { AcceptanceCriteriaQualityWarning } from '@/app/components/AcceptanceCriteriaQualityWarning'
 
 function SubmitButton() {
   const { pending } = useFormStatus()
@@ -28,6 +29,7 @@ export function GigForm() {
 
   // Character count state for textarea fields
   const [acceptanceCriteriaCount, setAcceptanceCriteriaCount] = useState(0)
+  const [acHasInteracted, setAcHasInteracted] = useState(false)
   const [goalCount, setGoalCount] = useState(0)
   const [deliverablesCount, setDeliverablesCount] = useState(0)
   const [constraintsCount, setConstraintsCount] = useState(0)
@@ -82,9 +84,18 @@ export function GigForm() {
           name="acceptanceCriteria"
           required
           rows={5}
-          onChange={(e) => setAcceptanceCriteriaCount(e.target.value.length)}
+          onChange={(e) => {
+            setAcceptanceCriteriaCount(e.target.value.length)
+            if (!acHasInteracted) {
+              setAcHasInteracted(true)
+            }
+          }}
           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
           placeholder="What does 'done' look like? Be specific: deliverables, quality standards, success metrics. Example: 'API returns user data in JSON format with <200ms response time, includes unit tests with >80% coverage, deployed to staging environment.'"
+        />
+        <AcceptanceCriteriaQualityWarning
+          characterCount={acceptanceCriteriaCount}
+          hasInteracted={acHasInteracted}
         />
         <div className="mt-1 flex justify-between items-start">
           <p className="text-sm text-gray-500">
