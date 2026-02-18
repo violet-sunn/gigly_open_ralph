@@ -856,6 +856,1155 @@ Requirements clarity is a first-class differentiator. FL.ru/Habr are "post and p
 
 ---
 
+---
+
+## ═══════════════════════════════════════════════════════════════════════════════
+## PHASE 1.5: MVP QA & POLISH (Production Readiness)
+## ═══════════════════════════════════════════════════════════════════════════════
+
+**Phase Status:** 🔄 **CURRENT PHASE** - Development cycle complete, transitioning to production readiness
+
+**Phase Goal:** Transform the functional MVP (20 completed changes) into a production-ready platform through security hardening, infrastructure preparation, critical feature additions, and quality improvements.
+
+**Phase Duration:** 8-12 weeks (depending on resource availability and AI vs human implementation approach)
+
+**Key Principle:** This phase does NOT add new marketplace features. Focus is on hardening, polishing, and preparing what exists for real users.
+
+---
+
+### AI Feasibility Legend
+
+Each change includes an AI feasibility assessment:
+- ✅ **FULLY FEASIBLE** - AI can complete with high confidence via ralphy-spec
+- ⚠️ **PARTIALLY FEASIBLE** - AI can implement, human review/setup required
+- 🔴 **HUMAN REQUIRED** - Cannot be done by AI, requires human expertise
+- ⏸️ **BLOCKED** - Depends on external factors (credentials, services, infrastructure)
+
+---
+
+---
+
+#### Change MQP-1: pagination-implementation
+
+**Priority:** **HIGH - PERFORMANCE** | **Size:** S | **Estimated Effort:** 2-3 days
+
+**AI Feasibility:** ✅ **FULLY FEASIBLE** (95% AI, 5% human testing)
+
+**Strategic Context:**
+
+Current implementation loads ALL open gigs at once, causing performance degradation with 100+ gigs. This creates poor user experience with large datasets and will become a critical issue as the platform scales.
+
+**Why This Change:**
+
+- Performance issue: Loading all gigs causes slow page loads
+- Poor UX: Users must scroll through hundreds of gigs
+- Scalability blocker: Will break with 500+ gigs
+- Standard feature: Users expect pagination on listing pages
+
+**Scope:**
+
+- Add pagination to gig browsing (`/dashboard/gigs`)
+- Add pagination to admin user management (`/admin/users`)
+- Add pagination to admin gig management (`/admin/gigs`)
+- Maintain all existing filter/search functionality
+- Show page numbers and navigation controls
+- Default: 20-50 items per page
+
+**AI Implementation Notes:**
+
+This is an ideal candidate for AI implementation via ralphy-spec:
+- Well-defined, standard feature with clear requirements
+- No external dependencies or credentials needed
+- Straightforward database queries (LIMIT, OFFSET)
+- Standard UI patterns (page numbers, next/prev buttons)
+- Can be fully tested without production environment
+
+**Explicitly Deferred:**
+
+- ❌ Infinite scroll (pagination is simpler and sufficient)
+- ❌ Customizable page size (fixed at 20-50 items)
+- ❌ "Jump to page" input (page numbers sufficient)
+
+---
+
+### Implementation Iterations (Ralph Loop)
+
+**Each iteration should take 2-4 hours and be independently testable.**
+
+#### Iteration MQP-1.1: Add Pagination to Gig Browsing
+
+**Estimated Time:** 2-3 hours
+
+**Goal:** Enable paginated browsing of gigs to improve performance with large datasets.
+
+**Ralphy-Plan Command:**
+
+```
+/ralphy-plan pagination-gig-browsing "Loading all gigs at once causes performance issues with 100+ gigs. Add pagination to gig browsing page to load gigs in manageable chunks. Requirements: (1) Show 20-50 gigs per page, (2) Display page numbers and next/prev navigation, (3) Maintain existing filter and search functionality with pagination, (4) URL should reflect current page for bookmarking, (5) Performance should improve significantly with large datasets. Propose: pagination approach (offset-based or cursor-based), page size, UI design for navigation controls, and how to integrate with existing filters. Test: verify pagination works correctly, filters work with pagination, and performance improves with large datasets."
+```
+
+**Acceptance Criteria:**
+
+- Gig browsing shows 20-50 gigs per page (not all at once)
+- Page navigation controls work correctly (next, prev, page numbers)
+- Existing filters and search work with pagination
+- URL reflects current page (e.g., `/dashboard/gigs?page=2`)
+- Performance improved with 100+ gigs in database
+- Edge cases handled (empty pages, last page, invalid page numbers)
+
+**Test:** Create 100+ test gigs. Browse gigs, verify only 20-50 load per page. Apply filters, verify pagination resets to page 1. Navigate to page 2, verify URL updates and correct gigs display. Test edge cases (page 999, page 0, negative page).
+
+---
+
+#### Iteration MQP-1.2: Add Pagination to Admin User Management
+
+**Estimated Time:** 1-2 hours
+
+**Goal:** Enable paginated user management for admins to handle large user bases.
+
+**Ralphy-Plan Command:**
+
+```
+/ralphy-plan pagination-admin-users "Admin user management page will become unusable with 100+ users. Add pagination to admin user list to improve performance and usability. Requirements: (1) Show 20-50 users per page, (2) Maintain existing role and status filters with pagination, (3) Display page navigation controls, (4) URL should reflect current page. Propose: how to integrate pagination with existing filters, UI placement for navigation controls. Test: verify pagination works with user filters."
+```
+
+**Acceptance Criteria:**
+
+- Admin user list shows 20-50 users per page
+- Page navigation controls work correctly
+- Role and status filters work with pagination
+- URL reflects current page
+- Performance improved with 100+ users
+
+**Test:** Create 100+ test users. View admin user management, verify pagination works. Apply role filter, verify pagination resets. Navigate pages, verify correct users display.
+
+---
+
+#### Iteration MQP-1.3: Add Pagination to Admin Gig Management
+
+**Estimated Time:** 1-2 hours
+
+**Goal:** Enable paginated gig management for admins to handle large gig volumes.
+
+**Ralphy-Plan Command:**
+
+```
+/ralphy-plan pagination-admin-gigs "Admin gig management page will become unusable with 100+ gigs. Add pagination to admin gig list to improve performance and usability. Requirements: (1) Show 20-50 gigs per page, (2) Maintain existing status and closed filters with pagination, (3) Display page navigation controls, (4) URL should reflect current page. Propose: how to integrate pagination with existing filters, UI placement for navigation controls. Test: verify pagination works with gig filters."
+```
+
+**Acceptance Criteria:**
+
+- Admin gig list shows 20-50 gigs per page
+- Page navigation controls work correctly
+- Status and closed filters work with pagination
+- URL reflects current page
+- Performance improved with 100+ gigs
+
+**Test:** Create 100+ test gigs. View admin gig management, verify pagination works. Apply status filter, verify pagination resets. Navigate pages, verify correct gigs display.
+
+---
+
+**Total for Change MQP-1:** 3 iterations × 1-3 hours = 4-8 hours
+
+---
+
+---
+
+#### Change MQP-2: password-reset-flow
+
+**Priority:** **HIGH - USER EXPERIENCE** | **Size:** S | **Estimated Effort:** 2-3 days
+
+**AI Feasibility:** ✅ **FULLY FEASIBLE** (90% AI, 10% human testing)
+
+**Strategic Context:**
+
+Users who forget passwords are permanently locked out, creating support burden and poor user experience. Password reset is a standard feature expected by all users.
+
+**Why This Change:**
+
+- Critical UX issue: Users cannot recover forgotten passwords
+- Support burden: Manual password resets require admin intervention
+- Standard feature: All modern web apps have password reset
+- Security requirement: Secure token-based reset flow
+
+**Scope:**
+
+- Generate secure, time-limited reset tokens (crypto-random, 1-hour expiration)
+- Send reset email with link to reset form
+- Reset password form with validation (min 8 chars, complexity rules)
+- Invalidate all existing sessions after password reset
+- Store reset tokens securely in database
+
+**Dependencies:**
+
+- Requires email service from Change MQP-4 (can use mock email for development)
+
+**AI Implementation Notes:**
+
+This is fully feasible for AI implementation:
+- Well-defined security pattern (token generation, expiration)
+- Standard form with validation
+- Clear business logic (invalidate sessions)
+- Can be developed with mock email service
+- Testable without production email
+
+---
+
+### Implementation Iterations (Ralph Loop)
+
+#### Iteration MQP-2.1: Add Password Reset Token Model
+
+**Estimated Time:** 1-2 hours
+
+**Goal:** Enable secure storage and validation of password reset tokens.
+
+**Ralphy-Plan Command:**
+
+```
+/ralphy-plan password-reset-model "Users need a way to reset forgotten passwords securely. Build the data foundation for password reset tokens. Requirements: (1) Tokens must be cryptographically secure and unpredictable, (2) Tokens must expire after 1 hour, (3) Each token must be linked to a specific user, (4) Used tokens must be invalidated, (5) Multiple reset requests should invalidate previous tokens. Propose: database schema for reset tokens, token generation approach (crypto.randomBytes), expiration mechanism, and how to validate tokens. Test: manually create reset tokens and verify they can be validated and expire correctly."
+```
+
+**Acceptance Criteria:**
+
+- Reset tokens stored securely in database
+- Tokens are cryptographically random (not guessable)
+- Tokens expire after 1 hour
+- Each token linked to specific user
+- Previous tokens invalidated when new reset requested
+- Used tokens cannot be reused
+
+**Test:** Generate reset token for user, verify it's stored. Wait 1 hour, verify token is expired. Generate new token for same user, verify old token is invalidated.
+
+---
+
+#### Iteration MQP-2.2: Implement Password Reset Request
+
+**Estimated Time:** 2-3 hours
+
+**Goal:** Enable users to request password reset via email.
+
+**Ralphy-Plan Command:**
+
+```
+/ralphy-plan password-reset-request "Users who forget passwords need a way to request a reset. Implement password reset request flow that generates a secure token and sends reset email. Requirements: (1) User enters email address on reset request page, (2) If email exists, generate reset token and send email with reset link, (3) If email doesn't exist, show same success message (prevent email enumeration), (4) Reset link should include token and be time-limited, (5) Email should be clear and professional. Propose: reset request form, token generation and email sending logic, email template content, and security considerations. For development, use mock email service (console.log). Test: verify reset request generates token and would send email."
+```
+
+**Acceptance Criteria:**
+
+- Reset request form accepts email address
+- Valid email generates token and sends email
+- Invalid email shows same success message (security)
+- Reset email contains time-limited link with token
+- Email template is clear and professional
+- Works with mock email service for development
+
+**Test:** Request reset for existing user, verify token generated and email logged. Request reset for non-existent email, verify same success message shown (no indication email doesn't exist).
+
+---
+
+#### Iteration MQP-2.3: Implement Password Reset Form
+
+**Estimated Time:** 2-3 hours
+
+**Goal:** Enable users to set new password using reset token.
+
+**Ralphy-Plan Command:**
+
+```
+/ralphy-plan password-reset-form "Users with valid reset tokens need a form to set their new password. Implement password reset form with validation and security checks. Requirements: (1) Form accepts new password and confirmation, (2) Validate token is valid and not expired, (3) Enforce password requirements (min 8 chars, complexity), (4) Hash new password with bcrypt, (5) Invalidate reset token after use, (6) Invalidate all existing user sessions, (7) Show clear error messages for invalid/expired tokens. Propose: form design, validation logic, session invalidation approach, and error handling. Test: verify password reset works with valid token, fails with invalid/expired token, and invalidates sessions."
+```
+
+**Acceptance Criteria:**
+
+- Reset form validates token before showing form
+- Password validation enforced (min 8 chars, complexity)
+- Password confirmation must match
+- New password hashed with bcrypt
+- Reset token invalidated after successful reset
+- All existing user sessions invalidated
+- Clear error messages for invalid/expired tokens
+- User redirected to login after successful reset
+
+**Test:** Use valid reset token, set new password, verify it works. Try to reuse same token, verify it fails. Login with old password, verify it fails. Login with new password, verify it works. Verify old sessions are invalidated.
+
+---
+
+**Total for Change MQP-2:** 3 iterations × 1-3 hours = 5-8 hours
+
+---
+
+---
+
+#### Change MQP-3: security-hardening-core
+
+**Priority:** **CRITICAL - PRODUCTION BLOCKER** | **Size:** M | **Estimated Effort:** 1 week
+
+**AI Feasibility:** ⚠️ **PARTIALLY FEASIBLE** (60% AI, 40% human review required)
+
+**Strategic Context:**
+
+Current codebase has critical security vulnerabilities that must be fixed before production deployment. These are not optional improvements - they are production blockers that could lead to data breaches, account compromises, and platform abuse.
+
+**Why This Change:**
+
+- **XSS vulnerability:** No input sanitization allows script injection
+- **Spam vulnerability:** No rate limiting allows abuse
+- **Weak passwords:** No requirements allow easy compromise
+- **Service fee bug:** 20% in code vs 10% in docs (overcharging users)
+- **Missing documentation:** No .env.example for secure deployment
+
+**Scope:**
+
+1. Fix service fee discrepancy (decide 10% or 20%, update code OR docs)
+2. Add input sanitization (DOMPurify) for all user-generated content
+3. Add rate limiting to prevent spam and brute force attacks
+4. Add password requirements (min 8 chars, complexity rules)
+5. Create .env.example with secure configuration guidance
+6. Verify CSRF protection is active (Next.js 15 built-in)
+
+**AI Implementation Notes:**
+
+AI can implement all code changes, but:
+- ⚠️ Rate limiting thresholds require human judgment (usage patterns)
+- 🔴 Security review by human required before production
+- ⚠️ Service fee decision requires business decision (10% or 20%)
+
+**CRITICAL:** All security changes must be reviewed by human with security expertise before production deployment.
+
+---
+
+### Implementation Iterations (Ralph Loop)
+
+#### Iteration MQP-3.1: Fix Service Fee Discrepancy
+
+**Estimated Time:** 1-2 hours
+
+**Goal:** Resolve discrepancy between documented (10%) and implemented (20%) service fee.
+
+**Ralphy-Plan Command:**
+
+```
+/ralphy-plan service-fee-fix "There's a critical discrepancy: documentation states 10% service fee, but code implements 20%. This means clients are being overcharged. Fix this discrepancy by either updating code to 10% OR updating all documentation to 20%. Requirements: (1) Decide which value is correct (10% or 20%), (2) Update either code OR all documentation to match, (3) Ensure consistency across codebase, documentation, and user-facing text, (4) Update any existing test data or examples. Propose: which value to use (recommend 10% as documented), what needs to be changed, and how to ensure consistency. Test: verify service fee calculation matches documentation."
+```
+
+**Acceptance Criteria:**
+
+- Service fee is consistent across code and documentation
+- Fee calculation in `app/actions/gig.ts` matches documented rate
+- All documentation updated (project.md, STRATEGIC_ROADMAP.md, UI text)
+- User-facing text clearly states the fee percentage
+- Test calculations verify correct fee
+
+**Test:** Create gig with 100,000 RUB budget. Verify service fee is 10,000 RUB (10%) or 20,000 RUB (20%), matching documentation. Check all docs mention same percentage.
+
+---
+
+#### Iteration MQP-3.2: Add Input Sanitization
+
+**Estimated Time:** 3-4 hours
+
+**Goal:** Prevent XSS attacks by sanitizing all user-generated content.
+
+**Ralphy-Plan Command:**
+
+```
+/ralphy-plan input-sanitization "User-generated content (gig descriptions, messages, profiles) is not sanitized, allowing XSS attacks. Add DOMPurify to sanitize all user inputs before storage and display. Requirements: (1) Install DOMPurify library, (2) Sanitize all user inputs in server actions before database storage, (3) Sanitize on display as additional safety layer, (4) Preserve safe HTML formatting (line breaks, basic formatting), (5) Remove all script tags, event handlers, and dangerous attributes. Propose: where to add sanitization (server actions, display components), DOMPurify configuration, and what content needs sanitization. Test: verify malicious scripts are removed while safe content is preserved."
+```
+
+**Acceptance Criteria:**
+
+- DOMPurify installed and configured
+- All user inputs sanitized in server actions before storage
+- Sanitization applied to: gig descriptions, messages, profile fields, application text
+- Script tags and event handlers removed
+- Safe HTML preserved (line breaks, basic formatting)
+- Sanitization tested with common XSS payloads
+
+**Test:** Try to submit gig with `<script>alert('XSS')</script>` in description. Verify script is removed but description is saved. Try various XSS payloads, verify all are sanitized.
+
+---
+
+#### Iteration MQP-3.3: Add Rate Limiting
+
+**Estimated Time:** 3-4 hours
+
+**Goal:** Prevent spam and brute force attacks with rate limiting.
+
+**Ralphy-Plan Command:**
+
+```
+/ralphy-plan rate-limiting "Server actions have no rate limiting, allowing spam applications, message flooding, and brute force login attempts. Add rate limiting to critical endpoints. Requirements: (1) Install rate limiting library (@upstash/ratelimit or similar), (2) Add rate limits to: login (5 attempts/15min), registration (3 attempts/hour), application submission (10/hour), message sending (30/hour), (3) Return clear error messages when rate limit exceeded, (4) Use IP-based rate limiting for anonymous endpoints, user-based for authenticated, (5) Conservative defaults that can be adjusted later. Propose: which library to use, rate limit thresholds for each endpoint, error handling approach. Test: verify rate limits work and show clear errors."
+```
+
+**Acceptance Criteria:**
+
+- Rate limiting library installed and configured
+- Rate limits applied to: login, registration, applications, messages
+- Conservative thresholds set (can be adjusted by human later)
+- Clear error messages when limit exceeded
+- IP-based limiting for anonymous endpoints
+- User-based limiting for authenticated endpoints
+- Rate limit state persists (not reset on server restart)
+
+**Test:** Attempt 6 logins in 15 minutes, verify 6th is blocked. Submit 11 applications in 1 hour, verify 11th is blocked. Send 31 messages in 1 hour, verify 31st is blocked.
+
+---
+
+#### Iteration MQP-3.4: Add Password Requirements
+
+**Estimated Time:** 1-2 hours
+
+**Goal:** Enforce strong password requirements to prevent account compromise.
+
+**Ralphy-Plan Command:**
+
+```
+/ralphy-plan password-requirements "No password requirements allow weak passwords like '123456'. Add validation to enforce strong passwords. Requirements: (1) Minimum 8 characters, (2) At least one uppercase letter, (3) At least one lowercase letter, (4) At least one number, (5) Clear error messages explaining requirements, (6) Apply to both registration and password reset. Propose: validation logic, error messages, where to enforce (client and server). Test: verify weak passwords are rejected with clear errors."
+```
+
+**Acceptance Criteria:**
+
+- Password validation enforced on registration and reset
+- Minimum 8 characters required
+- Must contain uppercase, lowercase, and number
+- Clear error messages explain requirements
+- Validation on both client (UX) and server (security)
+- Existing users not affected (only new passwords)
+
+**Test:** Try to register with '123456', verify rejected. Try 'Password1', verify accepted. Try 'password1', verify rejected (no uppercase). Try 'PASSWORD1', verify rejected (no lowercase).
+
+---
+
+#### Iteration MQP-3.5: Create .env.example
+
+**Estimated Time:** 1 hour
+
+**Goal:** Provide secure configuration guidance for deployment.
+
+**Ralphy-Plan Command:**
+
+```
+/ralphy-plan env-example "No .env.example file means developers don't know what environment variables are required or how to set them securely. Create comprehensive .env.example with all required variables and security guidance. Requirements: (1) Document all required environment variables, (2) Provide example values (not real secrets), (3) Include comments explaining each variable, (4) Provide guidance for generating secure SESSION_SECRET, (5) Include optional variables with defaults. Propose: what variables to document, example values, security guidance. Test: verify .env.example is complete and clear."
+```
+
+**Acceptance Criteria:**
+
+- .env.example file created in project root
+- All required variables documented
+- Example values provided (not real secrets)
+- Comments explain purpose of each variable
+- Guidance for generating secure SESSION_SECRET
+- Optional variables documented with defaults
+- Clear instructions for deployment
+
+**Test:** Delete .env, copy .env.example to .env, fill in values following guidance, verify app works.
+
+---
+
+#### Iteration MQP-3.6: Verify CSRF Protection
+
+**Estimated Time:** 1 hour
+
+**Goal:** Confirm Next.js 15 built-in CSRF protection is active.
+
+**Ralphy-Plan Command:**
+
+```
+/ralphy-plan csrf-verification "Next.js 15 has built-in CSRF protection for Server Actions, but we need to verify it's active and working. Check that CSRF protection is enabled and test that it prevents cross-site requests. Requirements: (1) Verify Next.js CSRF protection is enabled by default, (2) Test that Server Actions reject requests without proper CSRF tokens, (3) Document CSRF protection status, (4) Ensure no configuration disables CSRF protection. Propose: how to verify CSRF protection, what to test, what to document. Test: verify CSRF protection prevents unauthorized requests."
+```
+
+**Acceptance Criteria:**
+
+- Next.js 15 CSRF protection verified as active
+- Server Actions reject requests without CSRF tokens
+- No configuration disables CSRF protection
+- CSRF protection status documented
+- Team understands CSRF protection is active
+
+**Test:** Attempt to call Server Action from external site (without CSRF token), verify it's rejected. Call from within app, verify it works.
+
+---
+
+**Total for Change MQP-3:** 6 iterations × 1-4 hours = 10-18 hours
+
+**CRITICAL:** Human security review required after implementation before production deployment.
+
+---
+
+---
+
+#### Change MQP-4: email-notifications-system
+
+**Priority:** **HIGH - USER EXPERIENCE** | **Size:** M | **Estimated Effort:** 1 week
+
+**AI Feasibility:** ⚠️ **PARTIALLY FEASIBLE** (70% AI, 30% human setup)
+
+**Strategic Context:**
+
+Users miss critical updates (application accepted, work submitted, messages received) because they must manually check the dashboard. This creates friction, reduces engagement, and leads to missed opportunities. Email notifications are essential for keeping users informed and engaged.
+
+**Why This Change:**
+
+- Critical updates missed: Users don't know when applications are accepted
+- Reduced engagement: Users forget to check platform
+- Poor UX: Manual dashboard checking is friction
+- Standard feature: All modern platforms have email notifications
+
+**Scope:**
+
+- Set up email service integration (SendGrid, Postmark, or similar)
+- Implement notification triggers for critical events:
+  - Application received (notify CLIENT)
+  - Application accepted/rejected (notify SPECIALIST)
+  - Work submitted for review (notify CLIENT)
+  - Work approved (notify SPECIALIST)
+  - New message received (notify both parties)
+  - Gig closed by admin (notify both parties)
+- Create email templates (simple, text-based acceptable for MVP)
+- Add unsubscribe mechanism
+- Add email preferences (users can disable certain notifications)
+
+**AI Implementation Notes:**
+
+AI can implement all notification code, but:
+- ⏸️ Requires email service API keys (human must set up account)
+- ⏸️ Requires DNS configuration for SPF/DKIM (human must configure)
+- ✅ AI can write all trigger logic and templates
+- ⚠️ Email delivery testing requires real service
+
+**Dependencies:**
+
+- Human must set up email service account (SendGrid, Postmark, etc.)
+- Human must configure DNS records (SPF, DKIM, DMARC)
+- Human must provide API keys for integration
+
+**Development Approach:**
+
+- Phase 1 (AI): Implement all code with mock email service (console.log)
+- Phase 2 (Human): Set up real email service, configure API keys, test delivery
+
+---
+
+### Implementation Iterations (Ralph Loop)
+
+#### Iteration MQP-4.1: Add Email Notification Model
+
+**Estimated Time:** 2-3 hours
+
+**Goal:** Enable tracking of sent notifications and user preferences.
+
+**Ralphy-Plan Command:**
+
+```
+/ralphy-plan email-notification-model "Users need email notifications for critical events, but we also need to track what was sent and allow users to manage preferences. Build the data foundation for email notifications. Requirements: (1) Track which notifications were sent to which users, (2) Store notification type, recipient, status (sent/failed), and timestamp, (3) Support user preferences for enabling/disabling notification types, (4) Prevent duplicate notifications for same event, (5) Support future features like notification history and retry logic. Propose: database schema for notifications and preferences, what notification types to support, how to prevent duplicates. Test: manually create notification records and verify tracking works."
+```
+
+**Acceptance Criteria:**
+
+- Notification records track sent emails
+- User preferences stored for each notification type
+- Notification types: APPLICATION_RECEIVED, APPLICATION_ACCEPTED, APPLICATION_REJECTED, WORK_SUBMITTED, WORK_APPROVED, MESSAGE_RECEIVED, GIG_CLOSED
+- Duplicate prevention mechanism
+- Timestamps for audit trail
+
+**Test:** Create notification record, verify it's stored. Create user preferences, verify they're stored. Attempt duplicate notification, verify it's prevented.
+
+---
+
+#### Iteration MQP-4.2: Implement Email Service Integration
+
+**Estimated Time:** 2-3 hours
+
+**Goal:** Integrate email service provider for sending notifications.
+
+**Ralphy-Plan Command:**
+
+```
+/ralphy-plan email-service-integration "Implement email service integration to send notifications. For development, use mock service (console.log). For production, support SendGrid or Postmark. Requirements: (1) Abstract email service behind interface for easy switching, (2) Support both mock (development) and real (production) email services, (3) Handle email sending errors gracefully, (4) Log all email attempts for debugging, (5) Support HTML and plain text email formats. Propose: email service abstraction design, how to switch between mock and real service, error handling approach. Test: verify mock email service logs emails correctly."
+```
+
+**Acceptance Criteria:**
+
+- Email service abstracted behind interface
+- Mock email service logs to console (development)
+- Real email service integration code ready (SendGrid/Postmark)
+- Error handling for failed sends
+- All email attempts logged
+- Supports HTML and plain text formats
+
+**Test:** Send test email with mock service, verify it's logged to console. Verify error handling works for failed sends.
+
+---
+
+#### Iteration MQP-4.3: Create Email Templates
+
+**Estimated Time:** 3-4 hours
+
+**Goal:** Create professional email templates for all notification types.
+
+**Ralphy-Plan Command:**
+
+```
+/ralphy-plan email-templates "Create email templates for all notification types. Templates should be professional, clear, and include relevant information and action links. Requirements: (1) Template for each notification type (7 types), (2) Include relevant context (gig title, user names, etc.), (3) Include action links (view gig, view application, view message), (4) Professional but friendly tone, (5) Plain text and HTML versions, (6) Unsubscribe link in footer, (7) Gigly branding (simple, text-based acceptable). Propose: template structure, what information to include, tone and style. Test: verify templates render correctly with sample data."
+```
+
+**Acceptance Criteria:**
+
+- Email template for each notification type
+- Templates include relevant context and action links
+- Professional and clear tone
+- Both HTML and plain text versions
+- Unsubscribe link in footer
+- Templates tested with sample data
+
+**Test:** Render each template with sample data, verify all information displays correctly, links work, and formatting is professional.
+
+---
+
+#### Iteration MQP-4.4: Implement Notification Triggers
+
+**Estimated Time:** 3-4 hours
+
+**Goal:** Trigger email notifications for critical events.
+
+**Ralphy-Plan Command:**
+
+```
+/ralphy-plan notification-triggers "Implement notification triggers in server actions to send emails when critical events occur. Requirements: (1) Trigger APPLICATION_RECEIVED when application submitted, (2) Trigger APPLICATION_ACCEPTED/REJECTED when application status changes, (3) Trigger WORK_SUBMITTED when specialist submits work, (4) Trigger WORK_APPROVED when client approves work, (5) Trigger MESSAGE_RECEIVED when message sent, (6) Trigger GIG_CLOSED when admin closes gig, (7) Check user preferences before sending, (8) Handle errors gracefully (don't block main action if email fails). Propose: where to add triggers in server actions, how to check preferences, error handling approach. Test: verify notifications triggered for each event type."
+```
+
+**Acceptance Criteria:**
+
+- Notifications triggered for all critical events
+- User preferences checked before sending
+- Email failures don't block main actions
+- Notifications include relevant context
+- Duplicate notifications prevented
+- All triggers tested
+
+**Test:** Submit application, verify CLIENT receives email. Accept application, verify SPECIALIST receives email. Submit work, verify CLIENT receives email. Send message, verify recipient receives email. Close gig as admin, verify both parties receive email.
+
+---
+
+#### Iteration MQP-4.5: Add Unsubscribe Mechanism
+
+**Estimated Time:** 2-3 hours
+
+**Goal:** Allow users to unsubscribe from email notifications.
+
+**Ralphy-Plan Command:**
+
+```
+/ralphy-plan unsubscribe-mechanism "Users must be able to unsubscribe from email notifications. Implement unsubscribe mechanism with preferences page. Requirements: (1) Unsubscribe link in every email, (2) Unsubscribe page allows selecting which notification types to disable, (3) Users can re-enable notifications later, (4) Unsubscribe tokens are secure and user-specific, (5) Preferences page accessible from dashboard. Propose: unsubscribe token generation, preferences page design, how to store preferences. Test: verify users can unsubscribe and re-enable notifications."
+```
+
+**Acceptance Criteria:**
+
+- Unsubscribe link in every email footer
+- Unsubscribe page shows all notification types
+- Users can disable/enable specific notification types
+- Unsubscribe tokens are secure
+- Preferences accessible from dashboard
+- Preferences persist correctly
+
+**Test:** Click unsubscribe link in email, verify preferences page loads. Disable notification type, verify no emails sent for that type. Re-enable, verify emails resume.
+
+---
+
+**Total for Change MQP-4:** 5 iterations × 2-4 hours = 12-18 hours
+
+**HUMAN SETUP REQUIRED:** Email service account, API keys, DNS configuration (SPF, DKIM, DMARC)
+
+---
+
+---
+
+#### Change MQP-5: infrastructure-migration
+
+**Priority:** **CRITICAL - PRODUCTION BLOCKER** | **Size:** M | **Estimated Effort:** 1 week
+
+**AI Feasibility:** 🔴 **HUMAN REQUIRED** (20% AI, 80% human work)
+
+**Strategic Context:**
+
+SQLite is not production-ready for multi-user web applications. It has no concurrent write support, file-based locking issues, and no replication. PostgreSQL migration is required before production deployment.
+
+**Why This Change:**
+
+- SQLite limitations: No concurrent writes, file-based locking
+- Production requirement: PostgreSQL needed for multi-user environment
+- Scalability: SQLite cannot handle production load
+- Data safety: PostgreSQL has better backup and recovery
+
+**Scope:**
+
+1. Provision PostgreSQL database (Neon, Supabase, Railway, or self-hosted)
+2. Update Prisma schema for PostgreSQL compatibility
+3. Migrate existing data from SQLite to PostgreSQL
+4. Test all queries and transactions
+5. Set up error tracking (Sentry)
+6. Configure production hosting (Vercel, Railway, or Russian providers)
+7. Set up staging and production environments
+8. Configure environment variables securely
+9. Set up monitoring and logging
+
+**AI Implementation Notes:**
+
+AI can help with:
+- ✅ Generate Prisma schema changes for PostgreSQL
+- ✅ Write Sentry integration code
+- ✅ Create deployment documentation
+
+Human must do:
+- 🔴 Provision PostgreSQL database
+- 🔴 Perform data migration
+- 🔴 Set up hosting and deployment
+- 🔴 Configure DNS and SSL
+- 🔴 Set up monitoring and alerts
+
+**CRITICAL:** This is infrastructure work that requires DevOps expertise. Do not attempt with AI alone.
+
+---
+
+### Implementation Approach
+
+**This change requires human DevOps expertise and cannot be fully automated by AI.**
+
+**Human Tasks:**
+
+1. **Database Provisioning** (2-3 hours)
+   - Choose provider (Neon, Supabase, Railway recommended for ease)
+   - Create PostgreSQL database
+   - Configure connection string
+   - Set up backups
+
+2. **Data Migration** (2-3 hours)
+   - Export data from SQLite
+   - Import data to PostgreSQL
+   - Verify data integrity
+   - Test all queries
+
+3. **Hosting Setup** (2-3 hours)
+   - Choose hosting provider (Vercel, Railway, or Russian providers)
+   - Configure deployment
+   - Set up staging and production environments
+   - Configure environment variables
+
+4. **Monitoring Setup** (1-2 hours)
+   - Set up Sentry account
+   - Configure error tracking
+   - Set up uptime monitoring
+   - Configure alerts
+
+**AI Can Assist With:**
+
+- Generate Prisma schema changes for PostgreSQL compatibility
+- Write Sentry integration code
+- Create deployment documentation
+- Write database migration scripts
+
+**Total Effort:** 8-12 hours of human DevOps work
+
+**⏸️ POSTPONE:** Mark this change as "requires human infrastructure setup" and proceed with other MQP changes that AI can handle.
+
+---
+
+---
+
+#### Change MQP-6: test-coverage-foundation
+
+**Priority:** **HIGH - CODE QUALITY** | **Size:** L | **Estimated Effort:** 2-3 weeks
+
+**AI Feasibility:** ⚠️ **PARTIALLY FEASIBLE** (60% AI, 40% human review)
+
+**Strategic Context:**
+
+Zero test coverage means the platform cannot be deployed confidently. Tests are essential for catching regressions, validating business logic, and ensuring quality. Without tests, every change risks breaking existing functionality.
+
+**Why This Change:**
+
+- Zero test coverage: Cannot deploy confidently
+- Regression risk: Changes may break existing features
+- Business logic validation: Need to verify state transitions work correctly
+- Quality assurance: Tests document expected behavior
+
+**Scope:**
+
+- Set up testing framework (Jest or Vitest)
+- Unit tests for critical business logic:
+  - Gig lifecycle state transitions
+  - Application acceptance/rejection logic
+  - Authorization checks
+  - Service fee calculations
+  - Password hashing and validation
+- Integration tests for critical paths:
+  - User registration → gig creation → application → acceptance
+  - Messaging flow
+  - Admin moderation
+- E2E tests for critical user journeys (Playwright)
+
+**AI Implementation Notes:**
+
+AI can write tests, but:
+- ⚠️ Tests may not catch real bugs (test the wrong things)
+- ⚠️ Coverage may miss edge cases
+- 🔴 Human review required to validate test quality
+- ⚠️ E2E tests require human judgment for comprehensive coverage
+
+**CRITICAL:** AI-written tests must be reviewed by human to ensure they actually test the right behavior.
+
+---
+
+### Implementation Iterations (Ralph Loop)
+
+#### Iteration MQP-6.1: Set Up Testing Framework
+
+**Estimated Time:** 2-3 hours
+
+**Goal:** Configure testing framework for unit, integration, and E2E tests.
+
+**Ralphy-Plan Command:**
+
+```
+/ralphy-plan testing-framework-setup "Set up comprehensive testing framework for the platform. Requirements: (1) Choose and configure testing framework (Vitest recommended for Next.js), (2) Configure test environment for Next.js App Router, (3) Set up test database (SQLite in-memory for speed), (4) Configure test scripts in package.json, (5) Set up code coverage reporting, (6) Create example test to verify setup works. Propose: which testing framework to use, configuration approach, test database setup. Test: verify example test runs successfully."
+```
+
+**Acceptance Criteria:**
+
+- Testing framework installed and configured
+- Test environment configured for Next.js
+- Test database configured (in-memory SQLite)
+- Test scripts in package.json (test, test:watch, test:coverage)
+- Code coverage reporting configured
+- Example test passes
+
+**Test:** Run `npm test`, verify example test passes. Run `npm run test:coverage`, verify coverage report generated.
+
+---
+
+#### Iteration MQP-6.2: Unit Tests for Gig Lifecycle
+
+**Estimated Time:** 4-6 hours
+
+**Goal:** Test gig state transitions and business logic.
+
+**Ralphy-Plan Command:**
+
+```
+/ralphy-plan unit-tests-gig-lifecycle "Write unit tests for gig lifecycle state transitions to ensure business logic works correctly. Requirements: (1) Test OPEN → IN_PROGRESS transition (accept application), (2) Test IN_PROGRESS → REVIEW transition (submit work), (3) Test REVIEW → COMPLETED transition (approve work), (4) Test COMPLETED → PAID transition (mark as paid), (5) Test invalid transitions are prevented, (6) Test authorization checks (only owner can transition), (7) Test edge cases (already transitioned, invalid states). Propose: test structure, what scenarios to cover, how to mock database. Test: verify all tests pass and cover critical scenarios."
+```
+
+**Acceptance Criteria:**
+
+- Tests for all valid state transitions
+- Tests for invalid transitions (should fail)
+- Tests for authorization checks
+- Tests for edge cases
+- All tests pass
+- Code coverage >80% for gig lifecycle logic
+
+**Test:** Run tests, verify all pass. Check coverage report, verify gig lifecycle logic is well-covered.
+
+---
+
+#### Iteration MQP-6.3: Unit Tests for Application Logic
+
+**Estimated Time:** 3-4 hours
+
+**Goal:** Test application acceptance/rejection logic.
+
+**Ralphy-Plan Command:**
+
+```
+/ralphy-plan unit-tests-application-logic "Write unit tests for application acceptance and rejection logic. Requirements: (1) Test application acceptance transitions gig to IN_PROGRESS, (2) Test application acceptance auto-rejects other applications, (3) Test application rejection leaves gig OPEN, (4) Test duplicate applications prevented, (5) Test authorization checks (only gig owner can accept/reject), (6) Test edge cases (gig not OPEN, application already processed). Propose: test structure, scenarios to cover. Test: verify all tests pass."
+```
+
+**Acceptance Criteria:**
+
+- Tests for application acceptance flow
+- Tests for auto-reject logic
+- Tests for application rejection
+- Tests for duplicate prevention
+- Tests for authorization
+- Tests for edge cases
+- All tests pass
+
+**Test:** Run tests, verify all pass. Verify application logic is well-covered.
+
+---
+
+#### Iteration MQP-6.4: Unit Tests for Authorization
+
+**Estimated Time:** 3-4 hours
+
+**Goal:** Test authorization checks across all server actions.
+
+**Ralphy-Plan Command:**
+
+```
+/ralphy-plan unit-tests-authorization "Write unit tests for authorization checks to ensure users can only perform allowed actions. Requirements: (1) Test only CLIENT can create gigs, (2) Test only SPECIALIST can apply to gigs, (3) Test only gig owner can accept/reject applications, (4) Test only assigned specialist can submit work, (5) Test only gig owner can approve work and mark as paid, (6) Test only ADMIN can suspend users and close gigs, (7) Test unauthorized actions are rejected with clear errors. Propose: test structure, how to test authorization. Test: verify all authorization checks work correctly."
+```
+
+**Acceptance Criteria:**
+
+- Tests for all role-based authorization checks
+- Tests for ownership-based authorization
+- Tests verify unauthorized actions are rejected
+- Tests verify error messages are clear
+- All tests pass
+- Authorization logic well-covered
+
+**Test:** Run tests, verify all pass. Verify authorization checks are comprehensive.
+
+---
+
+#### Iteration MQP-6.5: Integration Tests for Critical Paths
+
+**Estimated Time:** 6-8 hours
+
+**Goal:** Test complete user journeys end-to-end.
+
+**Ralphy-Plan Command:**
+
+```
+/ralphy-plan integration-tests-critical-paths "Write integration tests for critical user journeys that span multiple actions. Requirements: (1) Test complete gig lifecycle: register → create gig → apply → accept → submit → approve → mark paid, (2) Test messaging flow: assign specialist → send messages → receive messages, (3) Test admin moderation: suspend user → verify cannot login, close gig → verify cannot apply, (4) Test filters and search work correctly, (5) Use test database with realistic data. Propose: test structure, how to set up test data, what journeys to test. Test: verify all integration tests pass."
+```
+
+**Acceptance Criteria:**
+
+- Integration test for complete gig lifecycle
+- Integration test for messaging flow
+- Integration test for admin moderation
+- Integration test for filters and search
+- Tests use realistic test data
+- All tests pass
+- Tests catch integration issues
+
+**Test:** Run integration tests, verify all pass. Verify tests catch issues when business logic breaks.
+
+---
+
+**Total for Change MQP-6:** 5 iterations × 3-6 hours = 18-30 hours
+
+**HUMAN REVIEW REQUIRED:** All tests must be reviewed by human to ensure they test the right behavior and catch real bugs.
+
+---
+
+---
+
+#### Change MQP-7: ui-ux-implementation
+
+**Priority:** **HIGH - USER EXPERIENCE** | **Size:** XL | **Estimated Effort:** 4-6 weeks
+
+**AI Feasibility:** ⚠️ **PARTIALLY FEASIBLE** (70% AI, 30% human polish)
+
+**Strategic Context:**
+
+Current UI is functional but not polished. Professional UI is critical for B2B marketplace credibility. Designer team needs to implement proper designs for all pages.
+
+**Why This Change:**
+
+- Current UI is "horrendous" (functional but ugly)
+- B2B credibility requires professional UI
+- Designer team has mockups ready
+- Desktop-only requirement makes AI implementation viable
+
+**Scope:**
+
+- Install shadcn/ui component library
+- Create design system document (colors, spacing, typography)
+- Implement designs for all key pages:
+  - Landing page
+  - Registration/login
+  - Client dashboard
+  - Specialist dashboard
+  - Gig creation form
+  - Gig detail page
+  - Gig browsing with filters
+  - Profile pages (view/edit)
+  - Admin dashboard
+  - Messaging interface
+- Ensure visual consistency across all pages
+- Desktop-only (1280px+ width)
+- Maintain all existing functionality
+
+**AI Implementation Notes:**
+
+AI can achieve 80-90% visual accuracy:
+- ✅ Claude can see Figma screenshots and implement designs
+- ✅ shadcn/ui provides consistent component foundation
+- ⚠️ 2-3 iterations per page needed for accuracy
+- ⚠️ Remaining 10-20% requires human polish
+
+**Implementation Options:**
+
+**Option A: AI-Only (4-6 weeks, $20/month for v0.dev)**
+- Accept 80-90% visual accuracy
+- Launch with "good enough" UI
+- Polish later when budget allows
+
+**Option B: Hybrid (3-4 weeks, 30-50k RUB)**
+- AI implements structure and layout (80-90%)
+- Human frontend dev polishes remaining 10-20%
+- Best balance of speed, cost, and quality
+
+**Option C: Human-Only (2-3 weeks, 50-100k RUB)**
+- Hire frontend dev for full implementation
+- Highest quality, fastest timeline
+- Most expensive
+
+**Recommended: Option B (Hybrid)**
+
+---
+
+### Implementation Approach
+
+**Prerequisites:**
+
+- Designer must provide Figma mockups for all pages
+- Export mockups as PNG (1280px width, desktop-only)
+- Define design system (colors, spacing, typography)
+
+**Phase 1: AI Implementation (3-4 weeks)**
+
+1. Install shadcn/ui component library
+2. Create design system document from Figma
+3. For each page:
+   - Export Figma mockup as PNG
+   - Upload to Claude with prompt
+   - Claude implements with 2-3 iterations
+   - Test functionality is preserved
+4. Review visual consistency across pages
+
+**Phase 2: Human Polish (1 week, 30-50k RUB)**
+
+1. Frontend dev reviews all pages
+2. Fixes remaining 10-20% visual discrepancies
+3. Ensures pixel-perfect accuracy
+4. Polishes animations and micro-interactions
+5. Final QA and consistency check
+
+**Total Effort:** 4-5 weeks (3-4 weeks AI + 1 week human)
+
+**⏸️ DECISION REQUIRED:** Choose implementation option (A, B, or C) based on budget and timeline constraints.
+
+---
+
+---
+
+#### Change MQP-8: production-validation
+
+**Priority:** **CRITICAL - LAUNCH READINESS** | **Size:** L | **Estimated Effort:** 1-2 weeks
+
+**AI Feasibility:** 🔴 **HUMAN REQUIRED** (30% AI, 70% human expertise)
+
+**Strategic Context:**
+
+Production validation requires security expertise, QA experience, and human judgment. This is the final gate before launching to real users and cannot be automated by AI.
+
+**Why This Change:**
+
+- Security audit: Verify no vulnerabilities before launch
+- Performance testing: Ensure platform handles expected load
+- End-to-end testing: Verify all user journeys work
+- Beta testing: Gather feedback from real users
+- Go/no-go decision: Human judgment required
+
+**Scope:**
+
+1. **Security Audit**
+   - Review all security fixes from MQP-3
+   - Penetration testing (basic)
+   - Verify HTTPS, secure cookies, CSRF protection
+   - Check for OWASP Top 10 vulnerabilities
+
+2. **Performance Testing**
+   - Load testing with realistic user volumes
+   - Database query optimization
+   - Identify and fix bottlenecks
+   - Set up performance monitoring
+
+3. **End-to-End Testing**
+   - Complete user journeys with real data
+   - Test all edge cases and error scenarios
+   - Verify email notifications work
+   - Test admin moderation flows
+
+4. **Documentation**
+   - Deployment guide
+   - Environment setup instructions
+   - Troubleshooting guide
+   - API documentation (if needed)
+
+5. **Beta Testing**
+   - Deploy to staging environment
+   - Recruit 5-10 friendly beta testers
+   - Gather feedback on functionality and UX
+   - Fix critical issues discovered
+
+**AI Can Help With:**
+
+- ✅ Write documentation (deployment guides, troubleshooting)
+- ✅ Create load test scripts
+- ✅ Write E2E test scenarios
+
+**Human Must Do:**
+
+- 🔴 Security audit and penetration testing
+- 🔴 Interpret performance test results
+- 🔴 Coordinate beta testing
+- 🔴 Make go/no-go launch decision
+
+**Total Effort:** 1-2 weeks of human security and QA work
+
+**⏸️ POSTPONE:** Mark this change as "requires human security and QA expertise" and schedule after all other MQP changes are complete.
+
+---
+
+---
+
+## ═══════════════════════════════════════════════════════════════════════════════
+## END OF PHASE 1.5: MVP QA & POLISH
+## ═══════════════════════════════════════════════════════════════════════════════
+
+**Phase Summary:**
+
+- **Total Changes:** 8 (MQP-1 through MQP-8)
+- **AI-Feasible:** 3 changes (MQP-1, MQP-2, MQP-3 partial)
+- **AI with Human Setup:** 2 changes (MQP-4, MQP-6)
+- **Human Required:** 3 changes (MQP-5, MQP-7 partial, MQP-8)
+
+**Recommended Implementation Sequence:**
+
+**Weeks 1-2: High-Confidence AI Tasks**
+1. MQP-1: Pagination (2-3 days, AI-only)
+2. MQP-2: Password Reset (2-3 days, AI-only)
+3. MQP-3: Security Hardening (1 week, AI + human review)
+
+**Weeks 3-5: AI with Human Setup**
+4. MQP-4: Email Notifications (1 week, AI code + human service setup)
+5. MQP-6: Test Coverage (2-3 weeks, AI writes + human reviews)
+
+**Weeks 6-9: Human-Led with AI Support**
+6. MQP-5: Infrastructure Migration (1 week, human DevOps + AI code)
+7. MQP-7: UI/UX Implementation (3-4 weeks, AI 80% + human polish 20%)
+
+**Weeks 10-12: Human Validation**
+8. MQP-8: Production Validation (1-2 weeks, human security + QA)
+
+**Total Timeline:** 10-12 weeks to production-ready
+
+**Budget Estimate:**
+- AI implementation: Included in development time
+- Frontend dev (MQP-7): 30-50k RUB
+- Security audit (MQP-8): 40-80k RUB
+- Infrastructure (MQP-5): $50-100/month
+- **Total: 70-130k RUB one-time + $50-100/month ongoing**
+
+---
+
+---
+
 ### Phase 2: Post-MVP Infrastructure (Build After Validation)
 
 ---
