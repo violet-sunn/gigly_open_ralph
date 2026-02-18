@@ -357,8 +357,12 @@ The gig creation form MUST organize fields into three visually distinct sections
 - WHEN they see the "Requirements & Success Criteria" section
 - THEN the section MUST contain:
   - Heading: "Requirements & Success Criteria" (h3 or equivalent)
+  - Link to example gigs: "💡 View example gigs for inspiration" (right-aligned in section header, opens /dashboard/gigs in new tab)
   - Description: "Define what success looks like and help specialists understand your needs"
   - Fields: acceptanceCriteria (textarea with character counter and quality warning), goal (optional textarea), deliverables (optional textarea), constraints (optional textarea)
+- AND the section header MUST use flex layout (flex items-center justify-between) with heading on left and example link on right
+- AND the example link MUST open in new tab (target="_blank") with security attributes (rel="noopener noreferrer")
+- AND the example link MUST use secondary styling (text-sm text-indigo-600 hover:text-indigo-800 underline)
 - AND the section MUST be the second section in the form (after Basic Information)
 - AND the section MUST have a light background color (e.g., bg-gray-50)
 - AND the section MUST have a border (e.g., border-gray-200)

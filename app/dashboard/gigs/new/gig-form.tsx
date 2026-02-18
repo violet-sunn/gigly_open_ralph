@@ -87,7 +87,17 @@ export function GigForm() {
 
       {/* Section 2: Requirements & Success Criteria */}
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">Requirements &amp; Success Criteria</h3>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-lg font-semibold text-gray-900">Requirements &amp; Success Criteria</h3>
+          <a
+            href="/dashboard/gigs"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-indigo-600 hover:text-indigo-800 underline"
+          >
+            💡 View example gigs for inspiration
+          </a>
+        </div>
         <p className="text-sm text-gray-600 mb-4">
           Define what success looks like and help specialists understand your needs
         </p>
