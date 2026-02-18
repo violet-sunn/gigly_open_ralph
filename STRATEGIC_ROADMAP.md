@@ -1014,7 +1014,7 @@ This is an ideal candidate for AI implementation via ralphy-spec:
 
 **Priority:** **HIGH - USER EXPERIENCE** | **Size:** S | **Estimated Effort:** 2-3 days
 
-**AI Feasibility:** ✅ **FULLY FEASIBLE** (90% AI, 10% human testing)
+**AI Feasibility:** ⏸️ **BLOCKED** - Depends on MQP-4 (Email) and MQP-5 (Infrastructure)
 
 **Strategic Context:**
 
@@ -1027,6 +1027,29 @@ Users who forget passwords are permanently locked out, creating support burden a
 - Standard feature: All modern web apps have password reset
 - Security requirement: Secure token-based reset flow
 
+**CRITICAL DEPENDENCY:**
+
+This change is **BLOCKED** until infrastructure is in place:
+- ⏸️ Requires MQP-5 (Infrastructure Migration) - hosting and domain
+- ⏸️ Requires MQP-4 (Email Notifications) - email service setup
+- Cannot be fully implemented or tested without these dependencies
+
+**Implementation Options:**
+
+**Option A: Wait for Infrastructure (Recommended)**
+- Implement MQP-5 (Infrastructure) first
+- Implement MQP-4 (Email) second
+- Then implement MQP-2 (Password Reset)
+- Can be fully tested and validated
+
+**Option B: Implement with Mock Email (Development Only)**
+- AI implements password reset logic with mock email (console.log)
+- Cannot be tested with real users
+- Must be revisited after infrastructure is ready
+- Risk: Code may need changes when integrating real email
+
+**Recommended Approach:** Option A - Wait for infrastructure before implementing password reset.
+
 **Scope:**
 
 - Generate secure, time-limited reset tokens (crypto-random, 1-hour expiration)
@@ -1037,7 +1060,8 @@ Users who forget passwords are permanently locked out, creating support burden a
 
 **Dependencies:**
 
-- Requires email service from Change MQP-4 (can use mock email for development)
+- **HARD DEPENDENCY:** MQP-5 (Infrastructure Migration) - provides hosting and domain
+- **HARD DEPENDENCY:** MQP-4 (Email Notifications) - provides email service
 
 **AI Implementation Notes:**
 
@@ -1337,7 +1361,7 @@ AI can implement all code changes, but:
 
 **Priority:** **HIGH - USER EXPERIENCE** | **Size:** M | **Estimated Effort:** 1 week
 
-**AI Feasibility:** ⚠️ **PARTIALLY FEASIBLE** (70% AI, 30% human setup)
+**AI Feasibility:** ⏸️ **BLOCKED** - Depends on MQP-5 (Infrastructure)
 
 **Strategic Context:**
 
@@ -1349,6 +1373,30 @@ Users miss critical updates (application accepted, work submitted, messages rece
 - Reduced engagement: Users forget to check platform
 - Poor UX: Manual dashboard checking is friction
 - Standard feature: All modern platforms have email notifications
+
+**CRITICAL DEPENDENCY:**
+
+This change is **BLOCKED** until infrastructure is in place:
+- ⏸️ Requires MQP-5 (Infrastructure Migration) - hosting and domain for sending emails
+- ⏸️ Requires email service account (SendGrid, Postmark, etc.)
+- ⏸️ Requires DNS configuration (SPF, DKIM, DMARC)
+- Cannot send real emails without hosted domain
+
+**Implementation Options:**
+
+**Option A: Wait for Infrastructure (Recommended)**
+- Implement MQP-5 (Infrastructure) first
+- Set up email service with proper domain
+- Then implement MQP-4 (Email Notifications)
+- Can be fully tested with real email delivery
+
+**Option B: Implement with Mock Email (Development Only)**
+- AI implements all notification code with mock email (console.log)
+- Cannot test real email delivery
+- Must be revisited after infrastructure is ready
+- Risk: Email templates may need adjustments for real service
+
+**Recommended Approach:** Option A - Wait for infrastructure before implementing email notifications.
 
 **Scope:**
 
@@ -1364,24 +1412,11 @@ Users miss critical updates (application accepted, work submitted, messages rece
 - Add unsubscribe mechanism
 - Add email preferences (users can disable certain notifications)
 
-**AI Implementation Notes:**
-
-AI can implement all notification code, but:
-- ⏸️ Requires email service API keys (human must set up account)
-- ⏸️ Requires DNS configuration for SPF/DKIM (human must configure)
-- ✅ AI can write all trigger logic and templates
-- ⚠️ Email delivery testing requires real service
-
 **Dependencies:**
 
-- Human must set up email service account (SendGrid, Postmark, etc.)
-- Human must configure DNS records (SPF, DKIM, DMARC)
-- Human must provide API keys for integration
-
-**Development Approach:**
-
-- Phase 1 (AI): Implement all code with mock email service (console.log)
-- Phase 2 (Human): Set up real email service, configure API keys, test delivery
+- **HARD DEPENDENCY:** MQP-5 (Infrastructure Migration) - provides hosting and domain
+- **HARD DEPENDENCY:** Human must set up email service account
+- **HARD DEPENDENCY:** Human must configure DNS records (SPF, DKIM, DMARC)
 
 ---
 
@@ -1976,23 +2011,90 @@ Production validation requires security expertise, QA experience, and human judg
 
 **Recommended Implementation Sequence:**
 
-**Weeks 1-2: High-Confidence AI Tasks**
-1. MQP-1: Pagination (2-3 days, AI-only)
-2. MQP-2: Password Reset (2-3 days, AI-only)
-3. MQP-3: Security Hardening (1 week, AI + human review)
+**⚠️ CRITICAL DEPENDENCY CHAIN:**
 
-**Weeks 3-5: AI with Human Setup**
-4. MQP-4: Email Notifications (1 week, AI code + human service setup)
-5. MQP-6: Test Coverage (2-3 weeks, AI writes + human reviews)
+```
+MQP-5 (Infrastructure) → MQP-4 (Email) → MQP-2 (Password Reset)
+```
 
-**Weeks 6-9: Human-Led with AI Support**
-6. MQP-5: Infrastructure Migration (1 week, human DevOps + AI code)
-7. MQP-7: UI/UX Implementation (3-4 weeks, AI 80% + human polish 20%)
+Email features (MQP-2, MQP-4) are **BLOCKED** until infrastructure is deployed. Cannot send emails without hosted domain.
 
-**Weeks 10-12: Human Validation**
-8. MQP-8: Production Validation (1-2 weeks, human security + QA)
+---
 
-**Total Timeline:** 10-12 weeks to production-ready
+**Weeks 1-2: AI-Feasible Tasks (No Dependencies)**
+
+1. ✅ **MQP-1: Pagination** (2-3 days, AI-only)
+   - No dependencies
+   - Low risk, high value
+   - Ideal first task for AI
+
+2. ⚠️ **MQP-3: Security Hardening** (1 week, AI + human review)
+   - No dependencies
+   - Critical for production
+   - AI implements, human reviews
+
+**Weeks 3-4: Infrastructure Setup (Human-Required)**
+
+3. 🔴 **MQP-5: Infrastructure Migration** (1 week, human DevOps)
+   - **MUST BE DONE BEFORE EMAIL FEATURES**
+   - Provides hosting, domain, database
+   - Human DevOps work required
+   - Blocks MQP-2 and MQP-4
+
+**Weeks 5-6: Email Features (After Infrastructure)**
+
+4. ⏸️ **MQP-4: Email Notifications** (1 week, AI code + human setup)
+   - Depends on MQP-5 (infrastructure)
+   - Human sets up email service
+   - AI implements notification code
+   - Blocks MQP-2
+
+5. ⏸️ **MQP-2: Password Reset** (2-3 days, AI-only)
+   - Depends on MQP-4 (email) and MQP-5 (infrastructure)
+   - Can be implemented after email service is working
+   - AI-feasible once dependencies met
+
+**Weeks 7-9: Quality & Testing (Parallel Work)**
+
+6. ⚠️ **MQP-6: Test Coverage** (2-3 weeks, AI writes + human reviews)
+   - Can start in parallel with other work
+   - AI writes tests
+   - Human reviews test quality
+
+**Weeks 10-13: UI/UX Polish (After Core Features Stable)**
+
+7. ⚠️ **MQP-7: UI/UX Implementation** (3-4 weeks, AI 80% + human polish 20%)
+   - Should wait until core features are stable
+   - AI implements with shadcn/ui
+   - Human frontend dev polishes
+
+**Weeks 14-15: Final Validation (Human-Required)**
+
+8. 🔴 **MQP-8: Production Validation** (1-2 weeks, human security + QA)
+   - Must be last
+   - Human security audit
+   - Human QA testing
+   - Go/no-go decision
+
+**Total Timeline:** 14-15 weeks to production-ready (adjusted for dependencies)
+
+---
+
+**Alternative Approach: Mock Email Development**
+
+If infrastructure setup is delayed, can implement MQP-2 and MQP-4 with mock email:
+
+**Pros:**
+- AI can implement code immediately
+- No waiting for infrastructure
+- Code is ready when infrastructure is deployed
+
+**Cons:**
+- Cannot test real email delivery
+- May need code changes when integrating real service
+- Risk of wasted effort if email integration differs from expectations
+
+**Recommendation:** Wait for infrastructure (MQP-5) before implementing email features. This ensures code works correctly from the start and can be properly tested.
 
 **Budget Estimate:**
 - AI implementation: Included in development time
