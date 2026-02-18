@@ -8,7 +8,7 @@ export default defineConfig({
     environment: 'node',
     globals: true,
     setupFiles: ['__tests__/setup.ts'],
-    fileParallelism: false, // Run test files sequentially to avoid DB locks
+    fileParallelism: true, // Safe with per-worker database isolation
     exclude: ['**/node_modules/**', '**/e2e/**', '**/*.spec.ts'], // Exclude Playwright tests
     coverage: {
       provider: 'v8',

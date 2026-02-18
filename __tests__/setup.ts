@@ -1,4 +1,16 @@
-import { execSync } from 'child_process'
+import { beforeAll, afterAll } from 'vitest'
+import { setupTestDatabase, cleanupTestDatabase, setTestPrismaClient } from './helpers/db'
+import { PrismaClient } from '@prisma/client'
 
-// Reset test database before all tests
-execSync('npx tsx __tests__/setup-db.ts', { stdio: 'inherit' })
+let testClient: PrismaClient | undefined
+
+// Setup: Each worker gets its own isolated in-memory database
+beforeAll(async () => {
+  testClient = await setupTestDatabase()
+  setTestPrismaClient(testClient)
+})
+
+// Teardown: Cleanup database after all tests in this worker
+afterAll(async () => {
+  await cleanupTestDatabase(testClient)
+})

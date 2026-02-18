@@ -47,3 +47,6 @@ test.db
 test.db-journal
 
 /app/generated/prisma
+memdb_*.db
+memdb_*.db-wal
+memdb_*.db-shm
