@@ -1204,32 +1204,6 @@ AI can write accurate tests because:
 
 ---
 
-#### Iteration MQP-2.4: Work Submission & Approval Tests (Changes 10-11)
-
-**Estimated Time:** 4-6 hours
-
-**Goal:** Verify work submission and approval flow work correctly.
-
-**Ralphy-Plan Command:**
-
-```
-/ralphy-plan work-submission-tests "Write comprehensive tests for work submission and approval. Read specs from openspec/archive/10-work-submission/ and 11-work-approval/ to understand requirements. Requirements: (1) Test assigned specialist can submit work when gig is IN_PROGRESS, (2) Test submitting work transitions gig to REVIEW, (3) Test CLIENT can approve submitted work, (4) Test approving work transitions gig to COMPLETED, (5) Test only assigned specialist can submit work, (6) Test only gig owner can approve work, (7) Test cannot submit/approve in wrong states. Use spec scenarios as test cases. Propose: test structure, what scenarios to cover. Test: all tests pass and cover spec requirements."
-```
-
-**Acceptance Criteria:**
-
-- Tests for work submission by assigned specialist
-- Tests for state transition to REVIEW
-- Tests for work approval by client
-- Tests for state transition to COMPLETED
-- Tests for authorization (only assigned specialist, only owner)
-- Tests for invalid state transitions
-- All spec scenarios covered
-
-**Test:** Run tests, verify all pass. Check coverage for work submission code is >80%. Verify state transitions work correctly.
-
----
-
 #### Iteration MQP-2.5: Work Submission & Approval Tests (Changes 10-11)
 
 **Estimated Time:** 4-6 hours
