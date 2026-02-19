@@ -514,6 +514,162 @@ describe('Gig Lifecycle Tests', () => {
       await prisma.user.delete({ where: { id: client.id } })
       await prisma.user.delete({ where: { id: specialist.id } })
     })
+
+    // Gap-fill tests: Complete state validation coverage
+    it('cannot submit work on REVIEW gig', async () => {
+      // Gap-fill: Spec scenario "Submit work on gig with wrong status"
+      const prisma = getTestPrismaClient()
+
+      const client = await createTestUser(prisma, { role: 'CLIENT' })
+      const specialist = await createTestUser(prisma, { role: 'SPECIALIST' })
+
+      const gig = await createTestGig(prisma, {
+        clientId: client.id,
+        status: 'REVIEW',
+        assignedSpecialistId: specialist.id
+      })
+
+      const formData = new FormData()
+      formData.append('gigId', gig.id)
+
+      await withAuthContext(specialist, async () => {
+        const result = await submitWork(null, formData)
+        expect(result).toEqual({ error: 'Work can only be submitted for gigs in progress.' })
+      })
+
+      // Verify gig status unchanged
+      const updatedGig = await prisma.gig.findUnique({ where: { id: gig.id } })
+      expect(updatedGig!.status).toBe('REVIEW')
+
+      // Cleanup
+      await prisma.gig.delete({ where: { id: gig.id } })
+      await prisma.user.delete({ where: { id: client.id } })
+      await prisma.user.delete({ where: { id: specialist.id } })
+    })
+
+    it('cannot submit work on COMPLETED gig', async () => {
+      // Gap-fill: Spec scenario "Submit work on gig with wrong status"
+      const prisma = getTestPrismaClient()
+
+      const client = await createTestUser(prisma, { role: 'CLIENT' })
+      const specialist = await createTestUser(prisma, { role: 'SPECIALIST' })
+
+      const gig = await createTestGig(prisma, {
+        clientId: client.id,
+        status: 'COMPLETED',
+        assignedSpecialistId: specialist.id
+      })
+
+      const formData = new FormData()
+      formData.append('gigId', gig.id)
+
+      await withAuthContext(specialist, async () => {
+        const result = await submitWork(null, formData)
+        expect(result).toEqual({ error: 'Work can only be submitted for gigs in progress.' })
+      })
+
+      // Verify gig status unchanged
+      const updatedGig = await prisma.gig.findUnique({ where: { id: gig.id } })
+      expect(updatedGig!.status).toBe('COMPLETED')
+
+      // Cleanup
+      await prisma.gig.delete({ where: { id: gig.id } })
+      await prisma.user.delete({ where: { id: client.id } })
+      await prisma.user.delete({ where: { id: specialist.id } })
+    })
+
+    it('cannot submit work on PAID gig', async () => {
+      // Gap-fill: Spec scenario "Submit work on gig with wrong status"
+      const prisma = getTestPrismaClient()
+
+      const client = await createTestUser(prisma, { role: 'CLIENT' })
+      const specialist = await createTestUser(prisma, { role: 'SPECIALIST' })
+
+      const gig = await createTestGig(prisma, {
+        clientId: client.id,
+        status: 'PAID',
+        assignedSpecialistId: specialist.id
+      })
+
+      const formData = new FormData()
+      formData.append('gigId', gig.id)
+
+      await withAuthContext(specialist, async () => {
+        const result = await submitWork(null, formData)
+        expect(result).toEqual({ error: 'Work can only be submitted for gigs in progress.' })
+      })
+
+      // Verify gig status unchanged
+      const updatedGig = await prisma.gig.findUnique({ where: { id: gig.id } })
+      expect(updatedGig!.status).toBe('PAID')
+
+      // Cleanup
+      await prisma.gig.delete({ where: { id: gig.id } })
+      await prisma.user.delete({ where: { id: client.id } })
+      await prisma.user.delete({ where: { id: specialist.id } })
+    })
+
+    it('cannot approve work on COMPLETED gig', async () => {
+      // Gap-fill: Spec scenario "Approve work on gig with wrong status"
+      const prisma = getTestPrismaClient()
+
+      const client = await createTestUser(prisma, { role: 'CLIENT' })
+      const specialist = await createTestUser(prisma, { role: 'SPECIALIST' })
+
+      const gig = await createTestGig(prisma, {
+        clientId: client.id,
+        status: 'COMPLETED',
+        assignedSpecialistId: specialist.id
+      })
+
+      const formData = new FormData()
+      formData.append('gigId', gig.id)
+
+      await withAuthContext(client, async () => {
+        const result = await approveWork(null, formData)
+        expect(result).toEqual({ error: 'Work can only be approved for gigs under review.' })
+      })
+
+      // Verify gig status unchanged
+      const updatedGig = await prisma.gig.findUnique({ where: { id: gig.id } })
+      expect(updatedGig!.status).toBe('COMPLETED')
+
+      // Cleanup
+      await prisma.gig.delete({ where: { id: gig.id } })
+      await prisma.user.delete({ where: { id: client.id } })
+      await prisma.user.delete({ where: { id: specialist.id } })
+    })
+
+    it('cannot approve work on PAID gig', async () => {
+      // Gap-fill: Spec scenario "Approve work on gig with wrong status"
+      const prisma = getTestPrismaClient()
+
+      const client = await createTestUser(prisma, { role: 'CLIENT' })
+      const specialist = await createTestUser(prisma, { role: 'SPECIALIST' })
+
+      const gig = await createTestGig(prisma, {
+        clientId: client.id,
+        status: 'PAID',
+        assignedSpecialistId: specialist.id
+      })
+
+      const formData = new FormData()
+      formData.append('gigId', gig.id)
+
+      await withAuthContext(client, async () => {
+        const result = await approveWork(null, formData)
+        expect(result).toEqual({ error: 'Work can only be approved for gigs under review.' })
+      })
+
+      // Verify gig status unchanged
+      const updatedGig = await prisma.gig.findUnique({ where: { id: gig.id } })
+      expect(updatedGig!.status).toBe('PAID')
+
+      // Cleanup
+      await prisma.gig.delete({ where: { id: gig.id } })
+      await prisma.user.delete({ where: { id: client.id } })
+      await prisma.user.delete({ where: { id: specialist.id } })
+    })
   })
 
   describe('Authorization checks', () => {

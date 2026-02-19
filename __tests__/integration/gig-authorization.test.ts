@@ -762,4 +762,191 @@ describe('Gig Authorization Tests', () => {
     await prisma.user.delete({ where: { id: client2.id } })
     await prisma.user.delete({ where: { id: specialist.id } })
   })
+
+  // Gap-fill tests: Role validation
+  it('CLIENT cannot submit work', async () => {
+    // Gap-fill: Spec scenario "Non-SPECIALIST user attempts to submit work"
+    const prisma = getTestPrismaClient()
+    const hashedPassword = await (await import('bcryptjs')).hash('password123', 10)
+
+    const client = await prisma.user.create({
+      data: {
+        email: `client-${Date.now()}@example.com`,
+        password: hashedPassword,
+        role: 'CLIENT'
+      }
+    })
+
+    const specialist = await prisma.user.create({
+      data: {
+        email: `specialist-${Date.now()}@example.com`,
+        password: hashedPassword,
+        role: 'SPECIALIST'
+      }
+    })
+
+    const gig = await prisma.gig.create({
+      data: {
+        title: 'Test Gig',
+        description: 'Description',
+        acceptanceCriteria: 'Criteria',
+        budget: 10000000,
+        serviceFee: 2000000,
+        totalAmount: 12000000,
+        tags: 'React',
+        clientId: client.id,
+        status: 'IN_PROGRESS',
+        assignedSpecialistId: specialist.id
+      }
+    })
+
+    const formData = new FormData()
+    formData.append('gigId', gig.id)
+
+    await withAuthContext(client, async () => {
+      const result = await submitWork(null, formData)
+      expect(result).toEqual({ error: 'Only specialists can submit work.' })
+    })
+
+    // Verify gig status unchanged
+    const unchangedGig = await prisma.gig.findUnique({ where: { id: gig.id } })
+    expect(unchangedGig?.status).toBe('IN_PROGRESS')
+
+    // Cleanup
+    await prisma.gig.delete({ where: { id: gig.id } })
+    await prisma.user.delete({ where: { id: client.id } })
+    await prisma.user.delete({ where: { id: specialist.id } })
+  })
+
+  it('SPECIALIST cannot approve work', async () => {
+    // Gap-fill: Spec scenario "Non-CLIENT user attempts to approve work"
+    const prisma = getTestPrismaClient()
+    const hashedPassword = await (await import('bcryptjs')).hash('password123', 10)
+
+    const client = await prisma.user.create({
+      data: {
+        email: `client-${Date.now()}@example.com`,
+        password: hashedPassword,
+        role: 'CLIENT'
+      }
+    })
+
+    const specialist = await prisma.user.create({
+      data: {
+        email: `specialist-${Date.now()}@example.com`,
+        password: hashedPassword,
+        role: 'SPECIALIST'
+      }
+    })
+
+    const gig = await prisma.gig.create({
+      data: {
+        title: 'Test Gig',
+        description: 'Description',
+        acceptanceCriteria: 'Criteria',
+        budget: 10000000,
+        serviceFee: 2000000,
+        totalAmount: 12000000,
+        tags: 'React',
+        clientId: client.id,
+        status: 'REVIEW',
+        assignedSpecialistId: specialist.id
+      }
+    })
+
+    const formData = new FormData()
+    formData.append('gigId', gig.id)
+
+    await withAuthContext(specialist, async () => {
+      const result = await approveWork(null, formData)
+      expect(result).toEqual({ error: 'Only clients can approve work.' })
+    })
+
+    // Verify gig status unchanged
+    const unchangedGig = await prisma.gig.findUnique({ where: { id: gig.id } })
+    expect(unchangedGig?.status).toBe('REVIEW')
+
+    // Cleanup
+    await prisma.gig.delete({ where: { id: gig.id } })
+    await prisma.user.delete({ where: { id: client.id } })
+    await prisma.user.delete({ where: { id: specialist.id } })
+  })
+
+  // Gap-fill tests: Edge cases
+  it('Submit work on non-existent gig', async () => {
+    // Gap-fill: Spec scenario "Gig not found"
+    const prisma = getTestPrismaClient()
+    const hashedPassword = await (await import('bcryptjs')).hash('password123', 10)
+
+    const specialist = await prisma.user.create({
+      data: {
+        email: `specialist-${Date.now()}@example.com`,
+        password: hashedPassword,
+        role: 'SPECIALIST'
+      }
+    })
+
+    const formData = new FormData()
+    formData.append('gigId', 'non-existent-gig-id')
+
+    await withAuthContext(specialist, async () => {
+      const result = await submitWork(null, formData)
+      expect(result).toEqual({ error: 'Gig not found.' })
+    })
+
+    // Cleanup
+    await prisma.user.delete({ where: { id: specialist.id } })
+  })
+
+  it('Approve work on non-existent gig', async () => {
+    // Gap-fill: Spec scenario "Gig not found"
+    const prisma = getTestPrismaClient()
+    const hashedPassword = await (await import('bcryptjs')).hash('password123', 10)
+
+    const client = await prisma.user.create({
+      data: {
+        email: `client-${Date.now()}@example.com`,
+        password: hashedPassword,
+        role: 'CLIENT'
+      }
+    })
+
+    const formData = new FormData()
+    formData.append('gigId', 'non-existent-gig-id')
+
+    await withAuthContext(client, async () => {
+      const result = await approveWork(null, formData)
+      expect(result).toEqual({ error: 'Gig not found.' })
+    })
+
+    // Cleanup
+    await prisma.user.delete({ where: { id: client.id } })
+  })
+
+  // Gap-fill tests: Authentication checks
+  it('Unauthenticated user redirected on submitWork', async () => {
+    // Gap-fill: Spec scenario "Unauthenticated user attempts to submit work"
+    const formData = new FormData()
+    formData.append('gigId', 'some-gig-id')
+
+    try {
+      await submitWork(null, formData)
+      throw new Error('Should have redirected')
+    } catch (error: any) {
+      expect(error.message).toContain('NEXT_REDIRECT:/login')
+    }
+  })
+
+  it('Unauthenticated user redirected on approveWork', async () => {
+    // Gap-fill: Spec scenario "Unauthenticated user attempts to approve work"
+    const formData = new FormData()
+    formData.append('gigId', 'some-gig-id')
+
+    try {
+      await approveWork(null, formData)
+      throw new Error('Should have redirected')
+    } catch (error: any) {
+      expect(error.message).toContain('NEXT_REDIRECT:/login')
+    }
+  })
 })
