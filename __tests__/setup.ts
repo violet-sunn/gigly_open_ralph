@@ -1,6 +1,11 @@
 import { beforeAll, afterAll } from 'vitest'
 import { setupTestDatabase, cleanupTestDatabase, setTestPrismaClient } from './helpers/db'
 import { PrismaClient } from '@prisma/client'
+import { config } from 'dotenv'
+import path from 'path'
+
+// Load test environment variables
+config({ path: path.resolve(process.cwd(), '.env.test') })
 
 let testClient: PrismaClient | undefined
 
