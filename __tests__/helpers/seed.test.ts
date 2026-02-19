@@ -12,8 +12,10 @@ describe('Seed Data Helpers', () => {
         expect(user.role).toBe('CLIENT')
         expect(user.password).toBeDefined()
         expect(user.clientProfile).toBeTruthy()
-        expect(user.clientProfile?.companyName).toBe('Test Company')
-        expect(user.clientProfile?.inn).toBe('1234567890')
+        // Check for Russian company name (contains "ООО")
+        expect(user.clientProfile?.companyName).toMatch(/ООО/)
+        // Check for realistic INN (10 digits)
+        expect(user.clientProfile?.inn).toMatch(/^\d{10}$/)
       })
     })
 
@@ -23,6 +25,8 @@ describe('Seed Data Helpers', () => {
 
         expect(user.role).toBe('SPECIALIST')
         expect(user.specialistProfile).toBeTruthy()
+        // Check for Russian display name (contains Cyrillic)
+        expect(user.specialistProfile?.displayName).toMatch(/[А-Яа-я]/)
         expect(user.specialistProfile?.techStack).toBe('React, TypeScript')
         expect(user.specialistProfile?.experienceLevel).toBe('SENIOR')
         expect(user.clientProfile).toBeNull()
@@ -71,11 +75,14 @@ describe('Seed Data Helpers', () => {
       await withTestTransaction(async (tx) => {
         const gig = await createTestGig(tx)
 
-        expect(gig.title).toBe('Test Gig')
-        expect(gig.description).toBe('Test gig description')
-        expect(gig.budget).toBe(100000)
-        expect(gig.serviceFee).toBe(10000)
-        expect(gig.totalAmount).toBe(110000)
+        // Check for Russian title (contains Cyrillic)
+        expect(gig.title).toMatch(/[А-Яа-я]/)
+        // Check for Russian description (contains Cyrillic)
+        expect(gig.description).toMatch(/[А-Яа-я]/)
+        // Check updated budget values
+        expect(gig.budget).toBe(150000)
+        expect(gig.serviceFee).toBe(15000)
+        expect(gig.totalAmount).toBe(165000)
         expect(gig.status).toBe('OPEN')
         expect(gig.tags).toBe('React,TypeScript')
         expect(gig.client).toBeTruthy()
@@ -115,9 +122,16 @@ describe('Seed Data Helpers', () => {
       await withTestTransaction(async (tx) => {
         const app = await createTestApplication(tx)
 
-        expect(app.approach).toBe('Test technical approach')
-        expect(app.questions).toBe('Test clarifying questions')
-        expect(app.estimatedEffort).toBe('2 weeks')
+        // Check for Russian approach (contains Cyrillic, length 100-2000)
+        expect(app.approach).toMatch(/[А-Яа-я]/)
+        expect(app.approach.length).toBeGreaterThanOrEqual(100)
+        expect(app.approach.length).toBeLessThanOrEqual(2000)
+        // Check for Russian questions (contains Cyrillic, length 50-1000)
+        expect(app.questions).toMatch(/[А-Яа-я]/)
+        expect(app.questions.length).toBeGreaterThanOrEqual(50)
+        expect(app.questions.length).toBeLessThanOrEqual(1000)
+        // Check for Russian effort estimate
+        expect(app.estimatedEffort).toBeTruthy()
         expect(app.status).toBe('PENDING')
         expect(app.gig).toBeTruthy()
         expect(app.specialist).toBeTruthy()

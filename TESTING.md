@@ -383,6 +383,331 @@ SESSION_SECRET="test-secret-key-for-jwt-signing-min-32-chars"
 
 ## Test Database
 
+## Mock Data Factories
+
+The test suite includes factory functions that generate realistic Russian test data for all models. These factories guarantee validation-compliant data and support easy composition of related entities.
+
+### Overview
+
+Factory functions are located in `__tests__/helpers/seed.ts` and provide:
+
+- **Realistic Russian data** - Names, companies, gig titles, and messages in Russian
+- **Validation compliance** - All defaults pass model validations
+- **Easy overrides** - Customize any field while keeping sensible defaults
+- **Composability** - Create complex related data graphs easily
+- **Transaction-safe** - Work seamlessly with `withTestTransaction()`
+
+### Russian Data Generators
+
+Use these functions to generate realistic Russian data directly:
+
+```typescript
+import {
+  generateRussianName,
+  generateRussianCompany,
+  generateRussianINN,
+  generateRussianGigTitle,
+  generateRussianGigDescription,
+  generateRussianMessage,
+  generateRussianApproach,
+  generateRussianQuestions,
+  generateRussianEffort
+} from '../helpers/seed'
+
+// Examples
+const name = generateRussianName()        // "Александр Петров"
+const company = generateRussianCompany()  // "ООО \"ТехноСтарт\""
+const inn = generateRussianINN()          // "7743013902"
+const title = generateRussianGigTitle()   // "Разработка REST API..."
+```
+
+### Factory Functions
+
+#### `createTestUser(tx, overrides?)`
+
+Creates a user with appropriate profile based on role.
+
+```typescript
+import { createTestUser } from '../helpers/seed'
+
+await withTestTransaction(async (tx) => {
+  // Create CLIENT with defaults
+  const client = await createTestUser(tx, { role: 'CLIENT' })
+  // client.clientProfile.companyName = "ООО \"ТехноСтарт\""
+  // client.clientProfile.inn = "7743013902"
+
+  // Create SPECIALIST with defaults
+  const specialist = await createTestUser(tx, { role: 'SPECIALIST' })
+  // specialist.specialistProfile.displayName = "Александр Петров"
+  // specialist.specialistProfile.experienceLevel = "SENIOR"
+
+  // Create with custom values
+  const customUser = await createTestUser(tx, {
+    role: 'SPECIALIST',
+    displayName: 'Иван Иванов',
+    techStack: 'Python, Django',
+    experienceLevel: 'MIDDLE'
+  })
+})
+```
+
+**Default Values:**
+
+| Field | CLIENT | SPECIALIST |
+|-------|--------|------------|
+| email | `test-{timestamp}-{random}@example.com` (unique) | Same |
+| password | `password123` (hashed) | Same |
+| companyName | Random Russian company | N/A |
+| inn | Random realistic INN (10 digits) | N/A |
+| displayName | N/A | Random Russian name |
+| techStack | N/A | "React, TypeScript" |
+| experienceLevel | N/A | "SENIOR" |
+| hourlyRate | N/A | 5000 (kopecks) |
+
+#### `createTestGig(tx, overrides?)`
+
+Creates a gig with realistic Russian content. Auto-creates client if not provided.
+
+```typescript
+import { createTestGig } from '../helpers/seed'
+
+await withTestTransaction(async (tx) => {
+  // Create with defaults
+  const gig = await createTestGig(tx)
+  // gig.title = "Разработка REST API..."
+  // gig.budget = 150000 (kopecks)
+  // gig.serviceFee = 15000 (10% of budget)
+  // gig.totalAmount = 165000
+
+  // Create with existing client
+  const client = await createTestUser(tx, { role: 'CLIENT' })
+  const gigForClient = await createTestGig(tx, { clientId: client.id })
+
+  // Create with custom values
+  const customGig = await createTestGig(tx, {
+    title: 'Кастомный проект',
+    budget: 200000,
+    serviceFee: 20000,
+    totalAmount: 220000,
+    status: 'IN_PROGRESS'
+  })
+})
+```
+
+**Default Values:**
+
+| Field | Default |
+|-------|---------|
+| title | Random Russian gig title |
+| description | Random Russian gig description |
+| budget | 150000 (kopecks) |
+| serviceFee | 15000 (10% of budget) |
+| totalAmount | 165000 (budget + serviceFee) |
+| status | "OPEN" |
+| tags | "React,TypeScript" |
+
+#### `createTestApplication(tx, overrides?)`
+
+Creates an application with Russian structured fields. Auto-creates gig and specialist if not provided.
+
+```typescript
+import { createTestApplication } from '../helpers/seed'
+
+await withTestTransaction(async (tx) => {
+  // Create with defaults
+  const app = await createTestApplication(tx)
+  // app.approach = "Буду использовать архитектуру REST..."
+  // app.questions = "Какие требования к производительности..."
+  // app.estimatedEffort = "2 недели"
+
+  // Create for existing gig and specialist
+  const gig = await createTestGig(tx)
+  const specialist = await createTestUser(tx, { role: 'SPECIALIST' })
+  const appForGig = await createTestApplication(tx, {
+    gigId: gig.id,
+    specialistId: specialist.id
+  })
+
+  // Create with custom content
+  const customApp = await createTestApplication(tx, {
+    approach: 'Мой уникальный подход длиной более 100 символов...',
+    questions: 'Мои вопросы длиной более 50 символов...',
+    estimatedEffort: '5 дней'
+  })
+})
+```
+
+**Default Values:**
+
+| Field | Default |
+|-------|---------|
+| approach | Random Russian technical approach (100-500 chars) |
+| questions | Random Russian clarifying questions (50-200 chars) |
+| estimatedEffort | Random Russian effort estimate |
+| coverLetter | "" (empty, legacy field) |
+| status | "PENDING" |
+
+#### `createTestMessage(tx, overrides?)`
+
+Creates a message with Russian content. Auto-creates gig and sender if not provided.
+
+```typescript
+import { createTestMessage } from '../helpers/seed'
+
+await withTestTransaction(async (tx) => {
+  // Create with defaults
+  const message = await createTestMessage(tx)
+  // message.content = "Добрый день! Уточните, пожалуйста..."
+
+  // Create for existing gig and sender
+  const gig = await createTestGig(tx)
+  const user = await createTestUser(tx)
+  const msgForGig = await createTestMessage(tx, {
+    gigId: gig.id,
+    senderId: user.id
+  })
+
+  // Create with custom content
+  const customMsg = await createTestMessage(tx, {
+    content: 'Кастомное сообщение'
+  })
+})
+```
+
+**Default Values:**
+
+| Field | Default |
+|-------|---------|
+| content | Random Russian message |
+
+### Common Patterns
+
+#### Creating a user with defaults
+
+```typescript
+await withTestTransaction(async (tx) => {
+  const client = await createTestUser(tx, { role: 'CLIENT' })
+  const specialist = await createTestUser(tx, { role: 'SPECIALIST' })
+
+  // All data is realistic and validation-compliant
+  expect(client.clientProfile?.companyName).toMatch(/ООО/)
+  expect(specialist.specialistProfile?.displayName).toMatch(/[А-Яа-я]/)
+})
+```
+
+#### Creating a gig with applications
+
+```typescript
+await withTestTransaction(async (tx) => {
+  // Create one gig
+  const gig = await createTestGig(tx)
+
+  // Create multiple applications for the same gig
+  const app1 = await createTestApplication(tx, { gigId: gig.id })
+  const app2 = await createTestApplication(tx, { gigId: gig.id })
+  const app3 = await createTestApplication(tx, { gigId: gig.id })
+
+  // Each application automatically gets a different specialist
+  expect(app1.specialistId).not.toBe(app2.specialistId)
+})
+```
+
+#### Creating a complete workflow
+
+```typescript
+await withTestTransaction(async (tx) => {
+  // 1. Create client and gig
+  const client = await createTestUser(tx, { role: 'CLIENT' })
+  const gig = await createTestGig(tx, { clientId: client.id })
+
+  // 2. Create specialist and application
+  const specialist = await createTestUser(tx, { role: 'SPECIALIST' })
+  const app = await createTestApplication(tx, {
+    gigId: gig.id,
+    specialistId: specialist.id
+  })
+
+  // 3. Accept application
+  await tx.gig.update({
+    where: { id: gig.id },
+    data: {
+      status: 'IN_PROGRESS',
+      assignedSpecialistId: specialist.id
+    }
+  })
+
+  // 4. Create messages
+  const msg1 = await createTestMessage(tx, {
+    gigId: gig.id,
+    senderId: client.id
+  })
+  const msg2 = await createTestMessage(tx, {
+    gigId: gig.id,
+    senderId: specialist.id
+  })
+
+  // All data is Russian and realistic
+})
+```
+
+#### Using Russian data generators directly
+
+```typescript
+await withTestTransaction(async (tx) => {
+  // Generate custom Russian data
+  const customUser = await createTestUser(tx, {
+    role: 'SPECIALIST',
+    displayName: generateRussianName(),
+    techStack: 'Go, Kubernetes, PostgreSQL'
+  })
+
+  const customGig = await createTestGig(tx, {
+    title: generateRussianGigTitle(),
+    description: generateRussianGigDescription()
+  })
+})
+```
+
+### Validation Compliance
+
+All factory defaults are guaranteed to pass model validations:
+
+- **User**: Email unique, password hashed, role valid
+- **ClientProfile**: companyName and inn non-empty, inn is 10 digits
+- **SpecialistProfile**: experienceLevel is "MIDDLE" or "SENIOR"
+- **Gig**: budget > 0, serviceFee = budget * 0.10, totalAmount = budget + serviceFee
+- **Application**: approach 100-2000 chars, questions 50-1000 chars
+- **Message**: content non-empty, max 2000 chars
+
+### Composability
+
+Factories are designed to compose easily:
+
+```typescript
+// Pattern 1: Create related entities in sequence
+const client = await createTestUser(tx, { role: 'CLIENT' })
+const gig = await createTestGig(tx, { clientId: client.id })
+const app = await createTestApplication(tx, { gigId: gig.id })
+
+// Pattern 2: Let factories auto-create dependencies
+const app = await createTestApplication(tx)
+// Automatically creates gig and specialist
+
+// Pattern 3: Mix and match
+const gig = await createTestGig(tx)
+const specialist = await createTestUser(tx, { role: 'SPECIALIST' })
+const app = await createTestApplication(tx, {
+  gigId: gig.id,
+  specialistId: specialist.id
+})
+```
+
+### Examples
+
+See comprehensive examples in:
+- `__tests__/integration/factory-composability.test.ts` - Complex workflows
+- `__tests__/integration/factory-validation.test.ts` - Validation compliance
+
 ## Best Practices
 
 1. **Keep tests focused** - One assertion per test when possible
