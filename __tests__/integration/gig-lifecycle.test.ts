@@ -515,6 +515,201 @@ describe('Gig Lifecycle Tests', () => {
       await prisma.user.delete({ where: { id: specialist.id } })
     })
 
+    it('cannot mark OPEN gig as paid', async () => {
+      const prisma = getTestPrismaClient()
+
+      const client = await createTestUser(prisma, { role: 'CLIENT' })
+
+      const gig = await createTestGig(prisma, {
+        clientId: client.id,
+        status: 'OPEN'
+      })
+
+      // Attempt to mark as paid on OPEN gig
+      const formData = new FormData()
+      formData.append('gigId', gig.id)
+
+      await withAuthContext(client, async () => {
+        const result = await markAsPaid(null, formData)
+        expect(result).toHaveProperty('error')
+        expect(result.error).toContain('Only completed gigs can be marked as paid')
+      })
+
+      // Verify gig status unchanged
+      const updatedGig = await prisma.gig.findUnique({
+        where: { id: gig.id }
+      })
+      expect(updatedGig!.status).toBe('OPEN')
+
+      // Cleanup
+      await prisma.gig.delete({ where: { id: gig.id } })
+      await prisma.user.delete({ where: { id: client.id } })
+    })
+
+    it('cannot mark IN_PROGRESS gig as paid', async () => {
+      const prisma = getTestPrismaClient()
+
+      const client = await createTestUser(prisma, { role: 'CLIENT' })
+      const specialist = await createTestUser(prisma, { role: 'SPECIALIST' })
+
+      const gig = await createTestGig(prisma, {
+        clientId: client.id,
+        status: 'IN_PROGRESS',
+        assignedSpecialistId: specialist.id
+      })
+
+      // Attempt to mark as paid on IN_PROGRESS gig
+      const formData = new FormData()
+      formData.append('gigId', gig.id)
+
+      await withAuthContext(client, async () => {
+        const result = await markAsPaid(null, formData)
+        expect(result).toHaveProperty('error')
+        expect(result.error).toContain('Only completed gigs can be marked as paid')
+      })
+
+      // Verify gig status unchanged
+      const updatedGig = await prisma.gig.findUnique({
+        where: { id: gig.id }
+      })
+      expect(updatedGig!.status).toBe('IN_PROGRESS')
+
+      // Cleanup
+      await prisma.gig.delete({ where: { id: gig.id } })
+      await prisma.user.delete({ where: { id: client.id } })
+      await prisma.user.delete({ where: { id: specialist.id } })
+    })
+
+    it('cannot mark already PAID gig as paid again (idempotency)', async () => {
+      const prisma = getTestPrismaClient()
+
+      const client = await createTestUser(prisma, { role: 'CLIENT' })
+      const specialist = await createTestUser(prisma, { role: 'SPECIALIST' })
+
+      const originalPaidAt = new Date('2024-01-15T10:00:00Z')
+
+      const gig = await createTestGig(prisma, {
+        clientId: client.id,
+        status: 'PAID',
+        assignedSpecialistId: specialist.id,
+        paidAt: originalPaidAt
+      })
+
+      // Attempt to mark as paid again
+      const formData = new FormData()
+      formData.append('gigId', gig.id)
+
+      await withAuthContext(client, async () => {
+        const result = await markAsPaid(null, formData)
+        expect(result).toHaveProperty('error')
+        expect(result.error).toContain('This gig has already been marked as paid')
+      })
+
+      // Verify gig status and paidAt unchanged
+      const updatedGig = await prisma.gig.findUnique({
+        where: { id: gig.id }
+      })
+      expect(updatedGig!.status).toBe('PAID')
+      expect(updatedGig!.paidAt).toEqual(originalPaidAt)
+
+      // Cleanup
+      await prisma.gig.delete({ where: { id: gig.id } })
+      await prisma.user.delete({ where: { id: client.id } })
+      await prisma.user.delete({ where: { id: specialist.id } })
+    })
+
+    it('SPECIALIST cannot mark gig as paid', async () => {
+      const prisma = getTestPrismaClient()
+
+      const client = await createTestUser(prisma, { role: 'CLIENT' })
+      const specialist = await createTestUser(prisma, { role: 'SPECIALIST' })
+
+      const gig = await createTestGig(prisma, {
+        clientId: client.id,
+        status: 'COMPLETED',
+        assignedSpecialistId: specialist.id
+      })
+
+      // Attempt to mark as paid as SPECIALIST
+      const formData = new FormData()
+      formData.append('gigId', gig.id)
+
+      await withAuthContext(specialist, async () => {
+        const result = await markAsPaid(null, formData)
+        expect(result).toHaveProperty('error')
+        expect(result.error).toBe('Only clients can mark gigs as paid.')
+      })
+
+      // Verify gig status unchanged
+      const updatedGig = await prisma.gig.findUnique({
+        where: { id: gig.id }
+      })
+      expect(updatedGig!.status).toBe('COMPLETED')
+      expect(updatedGig!.paidAt).toBeNull()
+
+      // Cleanup
+      await prisma.gig.delete({ where: { id: gig.id } })
+      await prisma.user.delete({ where: { id: client.id } })
+      await prisma.user.delete({ where: { id: specialist.id } })
+    })
+
+    it('returns error when marking non-existent gig as paid', async () => {
+      const prisma = getTestPrismaClient()
+
+      const client = await createTestUser(prisma, { role: 'CLIENT' })
+
+      // Use non-existent gigId
+      const formData = new FormData()
+      formData.append('gigId', 'non-existent-gig-id')
+
+      await withAuthContext(client, async () => {
+        const result = await markAsPaid(null, formData)
+        expect(result).toHaveProperty('error')
+        expect(result.error).toBe('Gig not found.')
+      })
+
+      // Cleanup
+      await prisma.user.delete({ where: { id: client.id } })
+    })
+
+    it('redirects unauthenticated user to login when marking as paid', async () => {
+      const prisma = getTestPrismaClient()
+
+      const client = await createTestUser(prisma, { role: 'CLIENT' })
+      const specialist = await createTestUser(prisma, { role: 'SPECIALIST' })
+
+      const gig = await createTestGig(prisma, {
+        clientId: client.id,
+        status: 'COMPLETED',
+        assignedSpecialistId: specialist.id
+      })
+
+      // Attempt to mark as paid without authentication
+      const formData = new FormData()
+      formData.append('gigId', gig.id)
+
+      try {
+        await markAsPaid(null, formData)
+        // Should not reach here
+        expect(true).toBe(false)
+      } catch (error: any) {
+        expect(error.message).toContain('NEXT_REDIRECT')
+        expect(error.message).toContain('/login')
+      }
+
+      // Verify gig status unchanged
+      const updatedGig = await prisma.gig.findUnique({
+        where: { id: gig.id }
+      })
+      expect(updatedGig!.status).toBe('COMPLETED')
+      expect(updatedGig!.paidAt).toBeNull()
+
+      // Cleanup
+      await prisma.gig.delete({ where: { id: gig.id } })
+      await prisma.user.delete({ where: { id: client.id } })
+      await prisma.user.delete({ where: { id: specialist.id } })
+    })
+
     // Gap-fill tests: Complete state validation coverage
     it('cannot submit work on REVIEW gig', async () => {
       // Gap-fill: Spec scenario "Submit work on gig with wrong status"
