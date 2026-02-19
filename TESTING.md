@@ -339,6 +339,91 @@ test('authenticated user can access dashboard', async ({ page }) => {
 })
 ```
 
+### Comprehensive Auth Test Suite
+
+The project includes a comprehensive authentication and authorization test suite covering all security requirements:
+
+**Test Files:**
+- `__tests__/integration/registration.test.ts` - User registration with role validation (6 tests)
+- `__tests__/integration/login.test.ts` - Login credentials and suspended users (4 tests)
+- `__tests__/unit/session.test.ts` - JWT session management (6 tests)
+- `__tests__/integration/gig-authorization.test.ts` - Role-based gig operations (12 tests)
+- `__tests__/integration/admin-authorization.test.ts` - Admin-only operations (6 tests)
+- `__tests__/integration/horizontal-privilege-escalation.test.ts` - IDOR prevention (5 tests)
+- `__tests__/integration/authorization-errors.test.ts` - Error message clarity (5 tests)
+
+**Total: 44 tests covering authentication and authorization**
+
+**Security Coverage (OWASP Top 10):**
+
+1. **Mass Assignment Protection** - Tests verify that users cannot register with ADMIN role or inject privileged fields
+2. **Vertical Privilege Escalation Prevention** - Tests verify role-based access control (CLIENT, SPECIALIST, ADMIN)
+3. **Horizontal Privilege Escalation (IDOR) Prevention** - Tests verify ownership checks prevent users from accessing other users' resources
+
+**Running Auth Tests:**
+
+```bash
+# Run all auth tests
+npm run test:unit -- registration.test.ts login.test.ts session.test.ts gig-authorization.test.ts admin-authorization.test.ts horizontal-privilege-escalation.test.ts authorization-errors.test.ts
+
+# Run specific auth test suite
+npm run test:unit -- gig-authorization.test.ts
+```
+
+**Key Testing Patterns:**
+
+All auth integration tests follow this pattern:
+
+```typescript
+import { vi } from 'vitest'
+import { getTestPrismaClient } from '../helpers/db'
+import { withAuthContext, getTestSessionToken, setTestSessionToken } from '../helpers/auth'
+
+// Mock @/lib/prisma to use test database
+vi.mock('@/lib/prisma', () => ({
+  get prisma() {
+    return getTestPrismaClient()
+  }
+}))
+
+// Mock next/headers for session management
+vi.mock('next/headers', () => ({
+  cookies: vi.fn(() => ({
+    get: (name: string) => {
+      if (name === 'session') {
+        const token = getTestSessionToken()
+        return token ? { value: token } : undefined
+      }
+      return undefined
+    },
+    set: vi.fn((name: string, value: string) => {
+      if (name === 'session') {
+        setTestSessionToken(value)
+      }
+    }),
+    delete: vi.fn((name: string) => {
+      if (name === 'session') {
+        setTestSessionToken(undefined)
+      }
+    })
+  }))
+}))
+
+// Test with authenticated context
+it('CLIENT can create gigs', async () => {
+  const prisma = getTestPrismaClient()
+  const client = await prisma.user.create({ data: { ... } })
+
+  await withAuthContext(client, async () => {
+    const result = await createGig(null, formData)
+    // Assertions
+  })
+
+  // Cleanup
+  await prisma.user.delete({ where: { id: client.id } })
+})
+```
+
 ### Troubleshooting Authentication Tests
 
 #### "Session not found" errors
@@ -355,8 +440,16 @@ vi.mock('next/headers', () => ({
       }
       return undefined
     },
-    set: vi.fn(),
-    delete: vi.fn()
+    set: vi.fn((name: string, value: string) => {
+      if (name === 'session') {
+        setTestSessionToken(value)
+      }
+    }),
+    delete: vi.fn((name: string) => {
+      if (name === 'session') {
+        setTestSessionToken(undefined)
+      }
+    })
   }))
 }))
 ```
