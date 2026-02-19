@@ -67,7 +67,8 @@
       "Bash(done)",
       "Bash(/tmp/validation-report.md:*)",
       "Bash(/tmp/merge-plan.txt:*)",
-      "Bash(openspec/specs/testing/spec.md:*)"
+      "Bash(openspec/specs/testing/spec.md:*)",
+      "Bash(npm run test:coverage:*)"
     ]
   }
 }
