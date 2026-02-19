@@ -375,4 +375,257 @@ describe('Admin Authorization Tests', () => {
     await prisma.user.delete({ where: { id: targetUser.id } })
     await prisma.user.delete({ where: { id: admin.id } })
   })
+
+  it('CLIENT cannot unsuspend users', async () => {
+    const prisma = getTestPrismaClient()
+
+    // Create CLIENT and suspended user
+    const hashedPassword = await (await import('bcryptjs')).hash('password123', 10)
+    const client = await prisma.user.create({
+      data: {
+        email: `client-${Date.now()}@example.com`,
+        password: hashedPassword,
+        role: 'CLIENT'
+      }
+    })
+
+    const targetUser = await prisma.user.create({
+      data: {
+        email: `target-${Date.now()}@example.com`,
+        password: hashedPassword,
+        role: 'SPECIALIST',
+        suspended: true
+      }
+    })
+
+    const formData = new FormData()
+    formData.append('userId', targetUser.id)
+    formData.append('reason', 'Some reason')
+
+    await withAuthContext(client, async () => {
+      const result = await unsuspendUser(null, formData)
+      expect(result).toEqual({ error: 'Only admins can perform moderation actions.' })
+    })
+
+    // Verify user was NOT unsuspended
+    const unchangedUser = await prisma.user.findUnique({
+      where: { id: targetUser.id }
+    })
+    expect(unchangedUser?.suspended).toBe(true)
+
+    // Cleanup
+    await prisma.user.delete({ where: { id: targetUser.id } })
+    await prisma.user.delete({ where: { id: client.id } })
+  })
+
+  it('SPECIALIST cannot unsuspend users', async () => {
+    const prisma = getTestPrismaClient()
+
+    // Create SPECIALIST and suspended user
+    const hashedPassword = await (await import('bcryptjs')).hash('password123', 10)
+    const specialist = await prisma.user.create({
+      data: {
+        email: `specialist-${Date.now()}@example.com`,
+        password: hashedPassword,
+        role: 'SPECIALIST'
+      }
+    })
+
+    const targetUser = await prisma.user.create({
+      data: {
+        email: `target-${Date.now()}@example.com`,
+        password: hashedPassword,
+        role: 'CLIENT',
+        suspended: true
+      }
+    })
+
+    const formData = new FormData()
+    formData.append('userId', targetUser.id)
+    formData.append('reason', 'Some reason')
+
+    await withAuthContext(specialist, async () => {
+      const result = await unsuspendUser(null, formData)
+      expect(result).toEqual({ error: 'Only admins can perform moderation actions.' })
+    })
+
+    // Verify user was NOT unsuspended
+    const unchangedUser = await prisma.user.findUnique({
+      where: { id: targetUser.id }
+    })
+    expect(unchangedUser?.suspended).toBe(true)
+
+    // Cleanup
+    await prisma.user.delete({ where: { id: targetUser.id } })
+    await prisma.user.delete({ where: { id: specialist.id } })
+  })
+
+  it('unauthenticated user cannot suspend', async () => {
+    const prisma = getTestPrismaClient()
+
+    // Create target user
+    const hashedPassword = await (await import('bcryptjs')).hash('password123', 10)
+    const targetUser = await prisma.user.create({
+      data: {
+        email: `target-${Date.now()}@example.com`,
+        password: hashedPassword,
+        role: 'CLIENT'
+      }
+    })
+
+    const formData = new FormData()
+    formData.append('userId', targetUser.id)
+    formData.append('reason', 'Some reason')
+
+    // No session set - unauthenticated
+    try {
+      await suspendUser(null, formData)
+      expect.fail('Expected redirect to throw')
+    } catch (error: any) {
+      expect(error.message).toContain('NEXT_REDIRECT:/login')
+    }
+
+    // Verify user was NOT suspended
+    const unchangedUser = await prisma.user.findUnique({
+      where: { id: targetUser.id }
+    })
+    expect(unchangedUser?.suspended).toBe(false)
+
+    // Cleanup
+    await prisma.user.delete({ where: { id: targetUser.id } })
+  })
+
+  it('unauthenticated user cannot unsuspend', async () => {
+    const prisma = getTestPrismaClient()
+
+    // Create suspended user
+    const hashedPassword = await (await import('bcryptjs')).hash('password123', 10)
+    const targetUser = await prisma.user.create({
+      data: {
+        email: `target-${Date.now()}@example.com`,
+        password: hashedPassword,
+        role: 'CLIENT',
+        suspended: true
+      }
+    })
+
+    const formData = new FormData()
+    formData.append('userId', targetUser.id)
+    formData.append('reason', 'Some reason')
+
+    // No session set - unauthenticated
+    try {
+      await unsuspendUser(null, formData)
+      expect.fail('Expected redirect to throw')
+    } catch (error: any) {
+      expect(error.message).toContain('NEXT_REDIRECT:/login')
+    }
+
+    // Verify user was NOT unsuspended
+    const unchangedUser = await prisma.user.findUnique({
+      where: { id: targetUser.id }
+    })
+    expect(unchangedUser?.suspended).toBe(true)
+
+    // Cleanup
+    await prisma.user.delete({ where: { id: targetUser.id } })
+  })
+
+  it('unauthenticated user cannot close gig', async () => {
+    const prisma = getTestPrismaClient()
+
+    // Create CLIENT and gig
+    const hashedPassword = await (await import('bcryptjs')).hash('password123', 10)
+    const client = await prisma.user.create({
+      data: {
+        email: `client-${Date.now()}@example.com`,
+        password: hashedPassword,
+        role: 'CLIENT'
+      }
+    })
+
+    const gig = await prisma.gig.create({
+      data: {
+        title: 'Test Gig',
+        description: 'Description',
+        acceptanceCriteria: 'Criteria',
+        budget: 10000000,
+        serviceFee: 2000000,
+        totalAmount: 12000000,
+        tags: 'React',
+        clientId: client.id,
+        status: 'OPEN'
+      }
+    })
+
+    const formData = new FormData()
+    formData.append('gigId', gig.id)
+    formData.append('reason', 'Some reason')
+
+    // No session set - unauthenticated
+    try {
+      await closeGig(null, formData)
+      expect.fail('Expected redirect to throw')
+    } catch (error: any) {
+      expect(error.message).toContain('NEXT_REDIRECT:/login')
+    }
+
+    // Verify gig was NOT closed
+    const unchangedGig = await prisma.gig.findUnique({
+      where: { id: gig.id }
+    })
+    expect(unchangedGig?.closedByAdmin).toBe(false)
+
+    // Cleanup
+    await prisma.gig.delete({ where: { id: gig.id } })
+    await prisma.user.delete({ where: { id: client.id } })
+  })
+
+  it('gig owner cannot use admin close action', async () => {
+    const prisma = getTestPrismaClient()
+
+    // Create CLIENT and their own gig
+    const hashedPassword = await (await import('bcryptjs')).hash('password123', 10)
+    const client = await prisma.user.create({
+      data: {
+        email: `client-${Date.now()}@example.com`,
+        password: hashedPassword,
+        role: 'CLIENT'
+      }
+    })
+
+    const gig = await prisma.gig.create({
+      data: {
+        title: 'Test Gig',
+        description: 'Description',
+        acceptanceCriteria: 'Criteria',
+        budget: 10000000,
+        serviceFee: 2000000,
+        totalAmount: 12000000,
+        tags: 'React',
+        clientId: client.id,
+        status: 'OPEN'
+      }
+    })
+
+    const formData = new FormData()
+    formData.append('gigId', gig.id)
+    formData.append('reason', 'Want to close my own gig')
+
+    // CLIENT tries to close their own gig via admin action
+    await withAuthContext(client, async () => {
+      const result = await closeGig(null, formData)
+      expect(result).toEqual({ error: 'Only admins can perform moderation actions.' })
+    })
+
+    // Verify gig was NOT closed
+    const unchangedGig = await prisma.gig.findUnique({
+      where: { id: gig.id }
+    })
+    expect(unchangedGig?.closedByAdmin).toBe(false)
+
+    // Cleanup
+    await prisma.gig.delete({ where: { id: gig.id } })
+    await prisma.user.delete({ where: { id: client.id } })
+  })
 })

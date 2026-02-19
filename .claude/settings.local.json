@@ -69,7 +69,13 @@
       "Bash(/tmp/merge-plan.txt:*)",
       "Bash(openspec/specs/testing/spec.md:*)",
       "Bash(npm run test:coverage:*)",
-      "Bash(/tmp/gig-detail-summary.txt:*)"
+      "Bash(/tmp/gig-detail-summary.txt:*)",
+      "Bash(python3:*)",
+      "Bash(npm test:*)",
+      "Bash(/tmp/validation_checklist.txt:*)",
+      "Bash(/tmp/payment_test_coverage.txt:*)",
+      "Bash(__tests__/integration/messaging.test.ts:*)",
+      "Bash(/c/Users/apiso/Documents/gigly_open_ralph/__tests__/integration/messaging.test.ts:*)"
     ]
   }
 }

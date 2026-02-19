@@ -474,6 +474,265 @@ This means `SESSION_SECRET` is not loaded. Ensure `.env.test` exists and contain
 SESSION_SECRET="test-secret-key-for-jwt-signing-min-32-chars"
 ```
 
+## Testing Admin Moderation
+
+Admin moderation features require comprehensive testing to ensure suspended users cannot access the platform and closed gigs cannot receive activity.
+
+### Test Coverage
+
+The admin moderation test suite includes:
+
+- `__tests__/integration/suspended-user-login.test.ts` - Login prevention for suspended users (4 tests)
+- `__tests__/integration/closed-gig-applications.test.ts` - Application blocking for closed gigs (5 tests)
+- `__tests__/integration/closed-gig-messages.test.ts` - Message blocking for closed gigs (6 tests)
+- `__tests__/integration/moderation-logging.test.ts` - Audit log creation and querying (10 tests)
+- `__tests__/integration/moderation-edge-cases.test.ts` - Validation and error handling (12 tests)
+- `__tests__/integration/admin-authorization.test.ts` - Role-based access control (12 tests)
+- `__tests__/integration/moderation-integration.test.ts` - Integration with existing features (6 tests)
+
+**Total: 55 tests covering all admin moderation scenarios**
+
+### Testing Suspended User Login Prevention
+
+Verify that suspended users cannot create new sessions:
+
+```typescript
+import { loginUser } from '@/app/actions/auth'
+
+it('suspended user cannot login with correct credentials', async () => {
+  const prisma = getTestPrismaClient()
+
+  // Create suspended user
+  const hashedPassword = await bcrypt.hash('password123', 10)
+  const user = await prisma.user.create({
+    data: {
+      email: 'suspended@example.com',
+      password: hashedPassword,
+      role: 'CLIENT',
+      suspended: true
+    }
+  })
+
+  const formData = new FormData()
+  formData.append('email', user.email)
+  formData.append('password', 'password123')
+
+  const result = await loginUser(null, formData)
+
+  // Verify error message
+  expect(result).toEqual({
+    error: 'Your account has been suspended. Please contact support.'
+  })
+
+  // Verify no session token was created
+  const sessionToken = getTestSessionToken()
+  expect(sessionToken).toBeUndefined()
+})
+```
+
+**Key Points:**
+- Test verifies the specific error message returned
+- Test confirms no session token is created
+- Current implementation does not invalidate existing sessions (documented behavior)
+
+### Testing Closed Gig Restrictions
+
+Verify that closed gigs reject applications and messages:
+
+```typescript
+import { applyToGig } from '@/app/actions/gig'
+import { sendMessage } from '@/app/actions/gig'
+
+it('cannot apply to closed gig', async () => {
+  const prisma = getTestPrismaClient()
+
+  // Create closed gig
+  const gig = await prisma.gig.create({
+    data: {
+      title: 'Test Gig',
+      description: 'Description',
+      acceptanceCriteria: 'Criteria that meets minimum length',
+      budget: 10000000,
+      clientId: client.id,
+      status: 'OPEN',
+      closedByAdmin: true,
+      closedAt: new Date()
+    }
+  })
+
+  const formData = new FormData()
+  formData.append('gigId', gig.id)
+  formData.append('approach', 'A'.repeat(100))
+  formData.append('questions', 'B'.repeat(50))
+
+  await withAuthContext(specialist, async () => {
+    const result = await applyToGig(null, formData)
+    expect(result).toEqual({
+      error: 'This gig has been closed by administrators.'
+    })
+  })
+
+  // Verify no application was created
+  const applications = await prisma.application.findMany({
+    where: { gigId: gig.id }
+  })
+  expect(applications.length).toBe(0)
+})
+
+it('cannot send message to closed gig', async () => {
+  const prisma = getTestPrismaClient()
+
+  // Create closed gig with assigned specialist
+  const gig = await prisma.gig.create({
+    data: {
+      title: 'Test Gig',
+      description: 'Description',
+      acceptanceCriteria: 'Criteria',
+      budget: 10000000,
+      clientId: client.id,
+      status: 'IN_PROGRESS',
+      assignedSpecialistId: specialist.id,
+      closedByAdmin: true
+    }
+  })
+
+  const formData = new FormData()
+  formData.append('gigId', gig.id)
+  formData.append('content', 'Test message')
+
+  await withAuthContext(client, async () => {
+    const result = await sendMessage(null, formData)
+    expect(result).toEqual({
+      error: 'Cannot send messages to a closed gig.'
+    })
+  })
+
+  // Verify no message was created
+  const messages = await prisma.message.findMany({
+    where: { gigId: gig.id }
+  })
+  expect(messages.length).toBe(0)
+})
+```
+
+**Key Points:**
+- Test both CLIENT and SPECIALIST are blocked from messaging
+- Verify no database records are created when actions fail
+- Test covers different gig statuses (OPEN, IN_PROGRESS)
+
+### Testing Moderation Logs
+
+Verify that all moderation actions create audit logs:
+
+```typescript
+import { suspendUser, closeGig } from '@/app/actions/moderation'
+
+it('creates log when suspending user', async () => {
+  const prisma = getTestPrismaClient()
+
+  const formData = new FormData()
+  formData.append('userId', targetUser.id)
+  formData.append('reason', 'Spam activity detected')
+
+  await withAuthContext(admin, async () => {
+    try {
+      await suspendUser(null, formData)
+    } catch (error: any) {
+      expect(error.message).toContain('NEXT_REDIRECT')
+    }
+  })
+
+  // Query ModerationLog
+  const logs = await prisma.moderationLog.findMany({
+    where: {
+      action: 'SUSPEND_USER',
+      adminId: admin.id,
+      targetUserId: targetUser.id
+    }
+  })
+
+  expect(logs.length).toBe(1)
+  expect(logs[0].action).toBe('SUSPEND_USER')
+  expect(logs[0].reason).toBe('Spam activity detected')
+  expect(logs[0].adminId).toBe(admin.id)
+  expect(logs[0].targetUserId).toBe(targetUser.id)
+  expect(logs[0].createdAt).toBeInstanceOf(Date)
+})
+
+it('can query logs with relations', async () => {
+  const prisma = getTestPrismaClient()
+
+  // Query with relations
+  const logs = await prisma.moderationLog.findMany({
+    where: { adminId: admin.id },
+    include: {
+      admin: true,
+      targetUser: true,
+      targetGig: true
+    },
+    orderBy: { createdAt: 'desc' }
+  })
+
+  expect(logs[0].admin.email).toBe(admin.email)
+  expect(logs[0].targetUser?.email).toBe(targetUser.email)
+})
+```
+
+**Key Points:**
+- Verify all required fields are populated (action, reason, adminId, targetUserId/targetGigId)
+- Test that logs include relations (admin, targetUser, targetGig)
+- Verify logs are ordered by createdAt DESC (newest first)
+- Test that failed actions do not create logs
+
+### Transaction Testing Pattern
+
+Moderation actions use database transactions to ensure atomicity:
+
+```typescript
+it('uses transaction for atomicity', async () => {
+  const prisma = getTestPrismaClient()
+
+  await withAuthContext(admin, async () => {
+    try {
+      await suspendUser(null, formData)
+    } catch (error: any) {
+      expect(error.message).toContain('NEXT_REDIRECT')
+    }
+  })
+
+  // Verify both user update and log creation succeeded
+  const user = await prisma.user.findUnique({
+    where: { id: targetUser.id }
+  })
+  expect(user?.suspended).toBe(true)
+
+  const logs = await prisma.moderationLog.findMany({
+    where: { adminId: admin.id, targetUserId: targetUser.id }
+  })
+  expect(logs.length).toBe(1)
+
+  // Both operations succeed together (transaction ensures atomicity)
+})
+```
+
+**Key Points:**
+- Moderation actions use `prisma.$transaction` to wrap multiple operations
+- If any operation fails, all operations roll back
+- Tests verify both the primary action (suspend user) and secondary action (create log) succeed together
+
+### Running Moderation Tests
+
+```bash
+# Run all moderation tests
+npm run test:unit -- suspended-user-login.test.ts closed-gig-applications.test.ts closed-gig-messages.test.ts moderation-logging.test.ts moderation-edge-cases.test.ts admin-authorization.test.ts moderation-integration.test.ts
+
+# Run specific test file
+npm run test:unit -- suspended-user-login.test.ts
+
+# Run with coverage
+npm run test:coverage
+```
+
 ## Test Database
 
 ## Mock Data Factories
