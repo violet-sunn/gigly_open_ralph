@@ -423,6 +423,109 @@ describe('Gig Creation Tests', () => {
       // Cleanup
       await prisma.user.delete({ where: { id: client.id } })
     })
+
+    it('rejects whitespace-only acceptance criteria as required', async () => {
+      const prisma = getTestPrismaClient()
+
+      const hashedPassword = await (await import('bcryptjs')).hash('password123', 10)
+      const client = await prisma.user.create({
+        data: {
+          email: `client-${Date.now()}@example.com`,
+          password: hashedPassword,
+          role: 'CLIENT'
+        }
+      })
+
+      const formData = new FormData()
+      formData.append('title', 'Test Gig')
+      formData.append('description', 'Test description')
+      formData.append('acceptanceCriteria', '     ') // Only whitespace
+      formData.append('budget', '100000')
+
+      await withAuthContext(client, async () => {
+        const result = await createGig(null, formData)
+        expect(result).toEqual({ error: 'Title, description, and acceptance criteria are required.' })
+      })
+
+      // Cleanup
+      await prisma.user.delete({ where: { id: client.id } })
+    })
+
+    it('trims acceptance criteria before validation', async () => {
+      const prisma = getTestPrismaClient()
+
+      const hashedPassword = await (await import('bcryptjs')).hash('password123', 10)
+      const client = await prisma.user.create({
+        data: {
+          email: `client-${Date.now()}@example.com`,
+          password: hashedPassword,
+          role: 'CLIENT'
+        }
+      })
+
+      const formData = new FormData()
+      formData.append('title', 'Test Gig')
+      formData.append('description', 'Test description')
+      // 50 characters excluding whitespace
+      formData.append('acceptanceCriteria', '   ' + 'a'.repeat(50) + '   ')
+      formData.append('budget', '100000')
+
+      await withAuthContext(client, async () => {
+        try {
+          await createGig(null, formData)
+        } catch (error: any) {
+          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+        }
+      })
+
+      // Verify gig was created and acceptanceCriteria is trimmed
+      const gigs = await prisma.gig.findMany({ where: { clientId: client.id } })
+      expect(gigs.length).toBe(1)
+      expect(gigs[0].acceptanceCriteria).toBe('a'.repeat(50)) // No whitespace
+
+      // Cleanup
+      await prisma.gig.deleteMany({ where: { clientId: client.id } })
+      await prisma.user.delete({ where: { id: client.id } })
+    })
+
+    it('accepts long acceptance criteria (500+ characters)', async () => {
+      const prisma = getTestPrismaClient()
+
+      const hashedPassword = await (await import('bcryptjs')).hash('password123', 10)
+      const client = await prisma.user.create({
+        data: {
+          email: `client-${Date.now()}@example.com`,
+          password: hashedPassword,
+          role: 'CLIENT'
+        }
+      })
+
+      const longCriteria = 'a'.repeat(500) // 500 characters
+
+      const formData = new FormData()
+      formData.append('title', 'Test Gig')
+      formData.append('description', 'Test description')
+      formData.append('acceptanceCriteria', longCriteria)
+      formData.append('budget', '100000')
+
+      await withAuthContext(client, async () => {
+        try {
+          await createGig(null, formData)
+        } catch (error: any) {
+          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+        }
+      })
+
+      // Verify gig was created with full criteria
+      const gigs = await prisma.gig.findMany({ where: { clientId: client.id } })
+      expect(gigs.length).toBe(1)
+      expect(gigs[0].acceptanceCriteria).toBe(longCriteria)
+      expect(gigs[0].acceptanceCriteria.length).toBe(500)
+
+      // Cleanup
+      await prisma.gig.deleteMany({ where: { clientId: client.id } })
+      await prisma.user.delete({ where: { id: client.id } })
+    })
   })
 
   describe('Budget validation and conversion', () => {
