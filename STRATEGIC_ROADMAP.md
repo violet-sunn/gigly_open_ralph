@@ -1046,6 +1046,184 @@ This is ideal for AI implementation:
 
 ---
 
+#### Change MQP-1.5: test-infrastructure-maintenance
+
+**Priority:** **MEDIUM - QUALITY ASSURANCE** | **Size:** S | **Estimated Effort:** 1-2 days
+
+**AI Feasibility:** ✅ **FULLY FEASIBLE** (95% AI, 5% human review)
+
+**Strategic Context:**
+
+During the development cycle, the project accumulated legacy test scripts in `scripts/test-*.ts` (26 files) that served as build verification scripts before proper test infrastructure existed. Now that comprehensive testing infrastructure is in place (MQP-1), these legacy scripts create confusion and maintenance burden. Additionally, test database files (`memdb_*.db`) accumulate in the project root, cluttering the workspace.
+
+**Why This Change:**
+
+- **Prevent confusion:** Legacy scripts use custom test runner (pass/fail functions) vs real tests use Vitest framework
+- **Risk of AI confusion:** Future AI agents might mistake legacy scripts for real tests and skip proper test implementation
+- **Workspace pollution:** 32+ .db files accumulate in project root (3.5+ MB)
+- **Maintenance burden:** Two parallel "test" systems create confusion for developers
+- **Quality assurance:** Establish clear standards for test organization going forward
+
+**Problem Analysis:**
+
+1. **Legacy Scripts Pattern:**
+   - Located in `scripts/test-*.ts` (26 files)
+   - Use custom test runner: `function pass(name)`, `function fail(name, reason)`
+   - Directly manipulate database without proper isolation
+   - More like "smoke tests" than proper unit/integration tests
+
+2. **Real Tests Pattern:**
+   - Located in `__tests__/` directory
+   - Use Vitest framework: `describe()`, `it()`, `expect()`
+   - Proper test isolation, mocking, and fixtures
+   - 376 tests with comprehensive coverage
+
+3. **Database File Pollution:**
+   - Test workers create per-worker databases (`memdb_0.db` through `memdb_29.db`)
+   - Files persist after test runs (not cleaned up automatically)
+   - `.gitignore` correctly excludes them, but workspace remains cluttered
+
+**Scope:**
+
+1. **Archive Legacy Test Scripts** - Move `scripts/test-*.ts` to `scripts/legacy-tests/` with README explaining their historical purpose
+2. **Test Organization Guidelines** - Document clear standards for test file organization and naming
+3. **Database Cleanup Automation** - Add npm script to clean test database files
+4. **Prevention Mechanism** - Add documentation and linting rules to prevent future confusion
+5. **Test Infrastructure Documentation** - Create comprehensive guide for writing tests
+
+**AI Implementation Notes:**
+
+This is ideal for AI implementation:
+- Clear file operations (move, create documentation)
+- Well-defined acceptance criteria
+- No external dependencies
+- Easy to verify (check files moved, scripts work)
+
+**Explicitly Deferred:**
+
+- ❌ Deleting legacy scripts (preserve for historical reference)
+- ❌ Rewriting legacy scripts as proper tests (not needed - functionality already covered)
+- ❌ Changing test framework or infrastructure (already established in MQP-1)
+
+---
+
+### Implementation Iterations (Ralph Loop)
+
+**Iteration Strategy:** Group related cleanup and documentation tasks together. Each iteration produces concrete, verifiable improvements to test infrastructure organization.
+
+#### Iteration MQP-1.5.1: Archive Legacy Test Scripts
+
+**Estimated Time:** 1-2 hours
+
+**Goal:** Move legacy test scripts to archive location with clear documentation of their purpose.
+
+**Ralphy-Plan Command:**
+
+```
+/ralphy-plan archive-legacy-tests "The project has 26 legacy test scripts in scripts/test-*.ts that were created before proper test infrastructure existed. These scripts use a custom test runner (pass/fail functions) and can be confused with real tests in __tests__/. Archive these scripts to prevent confusion while preserving them for historical reference. Requirements: (1) Create scripts/legacy-tests/ directory, (2) Move all scripts/test-*.ts files to scripts/legacy-tests/, (3) Create scripts/legacy-tests/README.md explaining these are legacy build verification scripts, not real tests, (4) Document that real tests are in __tests__/ directory using Vitest, (5) Preserve scripts for historical reference (do not delete). Propose: directory structure, README content, what to document. Test: verify all test-*.ts files moved, README is clear, real tests in __tests__/ still work."
+```
+
+**Acceptance Criteria:**
+
+- All `scripts/test-*.ts` files moved to `scripts/legacy-tests/`
+- `scripts/legacy-tests/README.md` created with clear explanation
+- README explains difference between legacy scripts and real tests
+- README directs developers to `__tests__/` for real tests
+- No test-*.ts files remain in `scripts/` root
+- Real tests in `__tests__/` still run correctly
+
+**Test:** Run `ls scripts/test-*.ts`, verify no files found. Run `ls scripts/legacy-tests/`, verify 26 files present. Run `npm test`, verify real tests still work.
+
+---
+
+#### Iteration MQP-1.5.2: Add Test Database Cleanup Automation
+
+**Estimated Time:** 1 hour
+
+**Goal:** Automate cleanup of test database files that accumulate in project root.
+
+**Ralphy-Plan Command:**
+
+```
+/ralphy-plan test-db-cleanup "Test workers create per-worker database files (memdb_*.db) that persist after test runs, cluttering the project root with 30+ files. Add npm script to clean these files automatically. Requirements: (1) Add 'clean:test-db' script to package.json that removes memdb_*.db, memdb_*.db-wal, memdb_*.db-shm, and test.db files, (2) Add 'test:clean' script that runs cleanup before tests, (3) Document cleanup scripts in README or test documentation, (4) Ensure .gitignore already excludes these files (verify, don't modify). Propose: script commands, when to run cleanup, documentation approach. Test: create dummy .db files, run cleanup script, verify files removed."
+```
+
+**Acceptance Criteria:**
+
+- `clean:test-db` script added to package.json
+- Script removes all test database files (memdb_*.db, test.db, and WAL/SHM files)
+- `test:clean` script runs cleanup before tests
+- Scripts documented in appropriate location
+- `.gitignore` verified to exclude test database files
+- Scripts work on both Unix and Windows
+
+**Test:** Create dummy `memdb_test.db` file. Run `npm run clean:test-db`, verify file removed. Run `npm run test:clean`, verify tests run after cleanup.
+
+---
+
+#### Iteration MQP-1.5.3: Create Test Organization Guidelines
+
+**Estimated Time:** 2-3 hours
+
+**Goal:** Document clear standards for test organization to prevent future confusion.
+
+**Ralphy-Plan Command:**
+
+```
+/ralphy-plan test-organization-guidelines "Create comprehensive documentation for test organization standards to prevent confusion between real tests and build verification scripts. Requirements: (1) Create __tests__/README.md documenting test organization, (2) Explain directory structure (__tests__/unit/, __tests__/integration/, __tests__/e2e/), (3) Document naming conventions (*.test.ts for real tests), (4) Explain difference between real tests (Vitest framework) and build verification scripts, (5) Provide examples of proper test structure, (6) Document when to write unit vs integration vs E2E tests, (7) Reference test helpers and utilities available. Propose: documentation structure, what to include, examples to provide. Test: verify documentation is clear and comprehensive."
+```
+
+**Acceptance Criteria:**
+
+- `__tests__/README.md` created with comprehensive guidelines
+- Directory structure clearly documented
+- Naming conventions explained
+- Difference between test types explained
+- Examples of proper test structure provided
+- Guidelines for when to write each test type
+- References to test helpers and utilities
+- Clear statement that scripts/ is NOT for tests
+
+**Test:** Read documentation, verify it's clear and comprehensive. Verify examples are accurate. Verify it prevents confusion about where tests belong.
+
+---
+
+#### Iteration MQP-1.5.4: Add Test Quality Checklist
+
+**Estimated Time:** 1-2 hours
+
+**Goal:** Create checklist for reviewing test quality and preventing common issues.
+
+**Ralphy-Plan Command:**
+
+```
+/ralphy-plan test-quality-checklist "Create a test quality checklist to ensure consistent test quality and prevent common issues. Requirements: (1) Create TESTING_CHECKLIST.md in project root or docs/, (2) Include checklist items for test isolation (no shared state), (3) Include items for proper mocking and fixtures, (4) Include items for test naming and organization, (5) Include items for avoiding flaky tests, (6) Include items for test coverage expectations, (7) Include section on what NOT to do (e.g., don't create test-*.ts in scripts/), (8) Make checklist actionable and specific. Propose: checklist structure, what items to include, how to make it actionable. Test: verify checklist is comprehensive and actionable."
+```
+
+**Acceptance Criteria:**
+
+- Test quality checklist created
+- Checklist covers test isolation
+- Checklist covers mocking and fixtures
+- Checklist covers naming and organization
+- Checklist covers avoiding flaky tests
+- Checklist covers coverage expectations
+- Checklist includes "what NOT to do" section
+- Checklist is actionable and specific
+- Checklist can be used for code reviews
+
+**Test:** Review checklist against existing tests, verify it catches real issues. Verify checklist is practical and not just theoretical.
+
+---
+
+**Total for Change MQP-1.5:** 4 iterations × 1-3 hours = 5-8 hours (1-2 days)
+
+**OUTCOME:** Clear test organization standards, no confusion between legacy scripts and real tests, automated cleanup of test artifacts, comprehensive documentation for future development.
+
+---
+
+---
+
 #### Change MQP-2: spec-based-feature-tests
 
 **Priority:** **CRITICAL - VERIFICATION** | **Size:** XL | **Estimated Effort:** 3-4 weeks
@@ -1959,18 +2137,19 @@ Current implementation loads ALL gigs at once, causing performance degradation w
 
 **Phase Summary:**
 
-- **Total Changes:** 6 (MQP-1 through MQP-6)
-- **Core Changes (Required):** 5 (MQP-1 through MQP-5)
+- **Total Changes:** 7 (MQP-1 through MQP-6, including MQP-1.5)
+- **Core Changes (Required):** 6 (MQP-1, MQP-1.5, MQP-2, MQP-3, MQP-4, MQP-5)
 - **Optional Changes:** 1 (MQP-6 - Pagination)
-- **Total Estimated Effort (Core):** 85-134 hours (6-9 weeks)
-- **Total Estimated Effort (With Optional):** 89-140 hours (6-10 weeks)
-- **AI-Feasible:** 5 changes (MQP-1, MQP-2 partial, MQP-3 partial, MQP-5, MQP-6)
+- **Total Estimated Effort (Core):** 90-142 hours (6-9 weeks)
+- **Total Estimated Effort (With Optional):** 94-148 hours (6-10 weeks)
+- **AI-Feasible:** 6 changes (MQP-1, MQP-1.5, MQP-2 partial, MQP-3 partial, MQP-5, MQP-6)
 - **Human Review Required:** 3 changes (MQP-2, MQP-3, MQP-4)
 
 **Priority Order:**
 
 1. **VERIFY IT WORKS** (Weeks 1-6)
    - MQP-1: Testing Foundation Setup (3-5 days)
+   - MQP-1.5: Test Infrastructure Maintenance (1-2 days) - **Cleanup and documentation**
    - MQP-2: Spec-Based Feature Tests (3-4 weeks) - **9 iterations with specific file references**
    - MQP-3: E2E Workflow Tests (1-2 weeks)
    - MQP-5: Mock Data Environment Setup (2-3 days) - **Manual workflow verification**
@@ -1985,6 +2164,8 @@ Current implementation loads ALL gigs at once, causing performance degradation w
 
 ```
 Week 1: MQP-1 (Testing Foundation)
+  ↓
+Week 1: MQP-1.5 (Test Infrastructure Maintenance) - Cleanup legacy scripts, add automation
   ↓
 Weeks 2-5: MQP-2 (Spec-Based Tests) - Verify all 20 changes work
   ↓

@@ -76,7 +76,13 @@
       "Bash(/tmp/payment_test_coverage.txt:*)",
       "Bash(__tests__/integration/messaging.test.ts:*)",
       "Bash(/c/Users/apiso/Documents/gigly_open_ralph/__tests__/integration/messaging.test.ts:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(git mv:*)",
+      "Bash(npx rimraf:*)",
+      "Bash(npm run clean:test-db)",
+      "Bash(npm run test:clean:*)",
+      "Bash(npm run clean:test-db:*)",
+      "Bash(git reset:*)"
     ]
   }
 }

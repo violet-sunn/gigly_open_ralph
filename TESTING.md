@@ -36,6 +36,36 @@ npm run test:coverage
 ```
 Generates code coverage report. Open `coverage/index.html` to view.
 
+## Test Database Cleanup
+
+Test workers create per-worker database files (`memdb_*.db`, `memdb_*.db-wal`, `memdb_*.db-shm`) that persist after test runs. Use these scripts to clean them up:
+
+```bash
+npm run clean:test-db    # Remove memdb_*.db*, test.db (safe, cross-platform)
+npm run test:clean       # Clean DB + run unit tests
+```
+
+**When to use:**
+- `clean:test-db`: After test runs leave artifacts, before `git status`/`git add`
+- `test:clean`: Start tests with guaranteed clean DB state (useful for debugging)
+
+**Verification test:**
+```bash
+# Create test files
+touch memdb_123.db memdb_123.db-wal test.db
+
+# Verify they exist
+ls memdb_*.db* test.db  # Should show 3 files
+
+# Run cleanup
+npm run clean:test-db
+
+# Verify removal
+ls memdb_*.db* test.db  # Should show "No such file or directory"
+```
+
+**Note:** `.gitignore` already excludes these files from version control. This cleanup is for local development only.
+
 ## Writing Tests
 
 ### Unit Tests
