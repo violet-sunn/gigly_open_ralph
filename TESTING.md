@@ -274,6 +274,33 @@ npm run test:e2e -- admin-moderation.spec.ts
 ✓ Test completed successfully
 ```
 
+#### Error Scenario Testing
+
+The `error-scenarios.spec.ts` test validates error handling and edge cases across all major workflows:
+
+```bash
+npm run test:e2e -- error-scenarios.spec.ts
+```
+
+**Test Coverage:**
+1. Unauthorized access redirects (4 tests) - Unauthenticated users redirected to /login
+2. Role-based access control (3 tests) - SPECIALIST/CLIENT/non-ADMIN cannot access restricted routes
+3. Closed gig restrictions (2 tests) - Closed gigs reject applications via server-side validation
+4. Invalid state transitions (3 tests) - Non-assigned specialists cannot submit work, non-owners cannot approve
+5. Non-OPEN gig applications (3 tests) - IN_PROGRESS, COMPLETED, PAID gigs don't accept new applications
+
+**Duration:** ~37 seconds (15 tests)
+
+**Key Features:**
+- Focuses on server-side validation and business logic errors (not HTML5 form validation)
+- Verifies UI elements are hidden or error messages displayed appropriately
+- Tests authorization boundaries and ownership checks
+- Confirms database state remains unchanged when operations fail
+- Idempotent: Can run multiple times without conflicts
+- Uses unique timestamp-based identifiers to avoid conflicts
+
+**Note:** This test suite validates existing error handling behavior. HTML5 form validation (required, minLength) shows browser-native errors that are not tested here, as the focus is on server-side validation and business logic errors visible in the UI.
+
 ## Test Database
 
 Tests use isolated per-worker databases to enable fast parallel execution:

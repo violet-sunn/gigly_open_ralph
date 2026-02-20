@@ -8,7 +8,12 @@ This directory contains the test suite for the Gigly platform. Tests use Vitest 
 __tests__/
 ├── integration/  (~26 files, 95% of tests) - Server actions + database operations
 ├── unit/         (~2 files)                 - Pure functions, no external dependencies
-├── e2e/          (~2 files)                 - Browser-based end-to-end workflows
+├── e2e/          (~5 files)                 - Browser-based end-to-end workflows
+│   ├── auth-session.spec.ts       - Session management and authentication
+│   ├── client-journey.spec.ts     - Complete client journey (registration → payment)
+│   ├── specialist-journey.spec.ts - Complete specialist journey (browse → complete)
+│   ├── messaging-flow-e2e.spec.ts - Messaging flow between client and specialist
+│   └── registration.spec.ts       - Basic navigation and registration
 ├── helpers/      (4 files)                  - Test utilities and mock data factories
 │   ├── db.ts            - Database isolation (getTestPrismaClient, withTestTransaction)
 │   ├── seed.ts          - Mock data factories (createTestUser, createTestGig, etc.)
