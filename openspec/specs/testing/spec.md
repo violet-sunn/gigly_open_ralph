@@ -275,6 +275,85 @@ The platform SHALL include example tests demonstrating how to write unit, integr
 
 ---
 
+### Requirement: Test Database Cleanup Script
+
+The platform SHALL provide an npm script to remove test database files that accumulate during test execution.
+
+#### Scenario: Developer cleans test database files
+
+**Given** test database files exist in the project root (memdb_*.db, memdb_*.db-wal, memdb_*.db-shm, test.db)
+**When** the developer runs `npm run clean:test-db`
+**Then** all test database files SHALL be removed
+**And** the command SHALL complete successfully
+**And** the command SHALL NOT fail if no test files exist
+**And** the command SHALL NOT remove development or production database files
+
+**Acceptance Criteria**:
+- Script uses `rimraf memdb_*.db* test.db` for cross-platform compatibility
+- Pattern `memdb_*.db*` matches: memdb_1.db, memdb_1.db-wal, memdb_1.db-shm
+- Command works on Windows, macOS, and Linux (rimraf handles platform differences)
+- Command exits with code 0 even if no files exist (rimraf is silent on missing files)
+- Command does NOT remove: dev.db, prisma/dev.db, prisma/migrations/*.db, *.sqlite3
+- **Verification test:**
+  ```bash
+  touch memdb_123.db memdb_123.db-wal test.db
+  ls memdb_*.db* test.db  # Should show 3 files
+  npm run clean:test-db
+  ls memdb_*.db* test.db  # Should show "No such file or directory"
+  ```
+
+#### Scenario: Developer cleans before running tests
+
+**Given** the developer wants a fresh test environment
+**When** the developer runs `npm run test:clean`
+**Then** all test database files SHALL be removed first
+**And** then the test suite SHALL execute
+**And** tests SHALL run with clean database state
+
+**Acceptance Criteria**:
+- Script is: `"test:clean": "npm run clean:test-db && npm run test:unit"`
+- Cleanup runs BEFORE unit tests (uses `&&` operator)
+- Tests execute after cleanup completes successfully
+- Command exits with test suite exit code (0 if tests pass, non-zero if tests fail)
+- Scope: unit tests only (not E2E tests)
+- **Verification test:**
+  ```bash
+  touch memdb_old.db test.db
+  npm run test:clean
+  # Old files removed, unit tests run, exit code 0 if tests pass
+  ```
+
+#### Scenario: Cleanup script handles missing files gracefully
+
+**Given** no test database files exist in the project root
+**When** the developer runs `npm run clean:test-db`
+**Then** the command SHALL complete successfully
+**And** the command SHALL NOT output errors about missing files
+**And** the command SHALL exit with code 0
+
+**Acceptance Criteria**:
+- Running cleanup on clean directory succeeds
+- No "file not found" errors displayed
+- Exit code is 0
+- Test: run `npm run clean:test-db` in clean directory, verify exit code 0
+
+#### Scenario: Cleanup script is cross-platform compatible
+
+**Given** the cleanup script is defined in package.json
+**When** the script runs on Windows, macOS, or Linux
+**Then** the script SHALL execute successfully on all platforms
+**And** the script SHALL use cross-platform compatible commands
+
+**Acceptance Criteria**:
+- Script uses `rimraf` package for guaranteed cross-platform compatibility
+- `rimraf` is available as transitive dependency or installed via `npm i -D rimraf`
+- Script works on Windows (PowerShell, CMD) without modification
+- Script works on macOS/Linux (bash, zsh) without modification
+- No platform-specific syntax (no `rm -f`, `del`, or shell-specific commands)
+- Verify: `npm list rimraf` shows package in dependency tree
+
+---
+
 ### Requirement: Test Documentation
 
 The platform SHALL provide documentation for writing and running tests.
@@ -288,12 +367,22 @@ The platform SHALL provide documentation for writing and running tests.
 **And** documentation SHALL explain how to write integration tests
 **And** documentation SHALL explain how to write E2E tests
 **And** documentation SHALL explain test database setup
+**And** documentation SHALL explain test database cleanup scripts
 
 **Acceptance Criteria**:
 - `TESTING.md` or similar file exists in project root
 - Documentation covers all test types
 - Documentation includes code examples
 - Documentation explains test scripts and coverage
+- Documentation includes "Test Database Cleanup" section
+- Section explains the problem (test worker files persist)
+- Section shows both scripts with exact commands
+- Section explains when to use each:
+  - `clean:test-db`: After test runs, before git operations
+  - `test:clean`: Start tests with clean DB state (debugging)
+- Section includes verification test with exact commands
+- Section notes .gitignore already excludes these files
+- Documentation is concise (under 200 words) and actionable
 
 ---
 
@@ -1188,3 +1277,218 @@ The platform SHALL update testing documentation to reflect the archival of legac
 - Note explains these are historical artifacts, not active tests
 - Note directs developers to write new tests in `__tests__/` using Vitest
 - Note is brief (1-2 sentences) and placed in appropriate section
+# Testing Specification Delta
+
+## ADDED Requirements
+
+### Requirement: Test Organization Documentation
+
+The platform SHALL provide comprehensive documentation at `__tests__/README.md` that explains test organization standards, directory structure, naming conventions, test type selection guidelines, and AAA pattern requirements.
+
+#### Scenario: Developer reads test organization documentation
+
+**Given** a developer wants to write tests for the platform
+**When** they open `__tests__/README.md`
+**Then** the documentation SHALL explain the directory structure (`__tests__/unit/`, `__tests__/integration/`, `__tests__/e2e/`, `__tests__/helpers/`)
+**And** the documentation SHALL explain naming conventions (*.test.ts for unit/integration, *.spec.ts for E2E)
+**And** the documentation SHALL explain the difference between real tests (Vitest framework) and legacy verification scripts
+**And** the documentation SHALL provide guidelines on when to write unit vs integration vs E2E tests
+**And** the documentation SHALL mandate AAA pattern (Arrange-Act-Assert) for all tests
+**And** the documentation SHALL document available test helpers with exact function signatures
+**And** the documentation SHALL document common mocking patterns (Next.js cookies, redirect, Prisma)
+**And** the documentation SHALL include at least 3 concrete AAA-pattern code examples from actual tests
+
+**Acceptance Criteria**:
+- `__tests__/README.md` file exists
+- Documentation is comprehensive (covers all required topics)
+- Documentation is concise (150-250 lines target)
+- Documentation includes directory structure with actual file counts
+- Documentation includes naming convention rules
+- Documentation explains test type selection (unit/integration/E2E)
+- Documentation mandates AAA pattern with explanation
+- Documentation references test helpers in `__tests__/helpers/` with TypeScript signatures
+- Documentation includes at least 3 code examples from actual test files
+- All file paths and references are accurate and verified
+- Documentation is in English (technical standard)
+
+#### Scenario: Documentation explains directory structure
+
+**Given** a developer reads the directory structure section
+**When** they want to understand where to place tests
+**Then** the documentation SHALL explain that `__tests__/unit/` contains unit tests for isolated functions and utilities (~2 files)
+**And** the documentation SHALL explain that `__tests__/integration/` contains integration tests for server actions and database operations (~26 files, 95% of tests)
+**And** the documentation SHALL explain that `__tests__/e2e/` contains end-to-end tests for complete user workflows (~2 files)
+**And** the documentation SHALL explain that `__tests__/helpers/` contains test utilities (db.ts, seed.ts, auth.ts, auth-mocks.ts)
+**And** the documentation SHALL explain that `__tests__/setup.ts` contains global test setup
+**And** the documentation SHALL include actual file count statistics
+
+**Acceptance Criteria**:
+- Each directory purpose is clearly explained
+- Examples of what belongs in each directory are provided
+- File count statistics match actual codebase (verify with `ls __tests__/integration/*.test.ts | wc -l`)
+- Directory structure matches actual codebase structure
+- Explanation is clear and actionable
+
+#### Scenario: Documentation explains naming conventions
+
+**Given** a developer reads the naming conventions section
+**When** they want to name a new test file
+**Then** the documentation SHALL state that unit and integration tests use `*.test.ts` extension
+**And** the documentation SHALL state that E2E tests use `*.spec.ts` extension
+**And** the documentation SHALL explain that test files should be named after the feature or module they test
+**And** the documentation SHALL provide examples from actual codebase files
+
+**Acceptance Criteria**:
+- Naming convention rules are explicit and clear
+- Examples include actual files: `currency.test.ts`, `gig-creation.test.ts`, `registration.spec.ts`
+- Rationale for different extensions is explained (Vitest convention vs Playwright convention)
+- Rules match existing test file naming patterns in codebase
+- Verify examples exist:
+  ```bash
+  ls __tests__/unit/currency.test.ts
+  ls __tests__/integration/gig-creation.test.ts
+  ls __tests__/e2e/registration.spec.ts
+  ```
+
+#### Scenario: Documentation mandates AAA pattern
+
+**Given** a developer reads the test structure guidelines
+**When** they want to write a new test
+**Then** the documentation SHALL mandate AAA pattern (Arrange-Act-Assert) for all tests
+**And** the documentation SHALL explain each phase:
+  - Arrange: Set up test data and preconditions
+  - Act: Execute the code under test
+  - Assert: Verify the expected outcome
+**And** the documentation SHALL provide a concrete example from actual codebase
+**And** the documentation SHALL show AAA pattern with comments marking each section
+
+**Acceptance Criteria**:
+- AAA pattern is explicitly required (not optional)
+- Each phase (Arrange, Act, Assert) is explained
+- At least one complete example shows AAA pattern with inline comments
+- Example is from actual test file (e.g., `gig-creation.test.ts`)
+- Explanation is concise (under 100 words)
+- Benefits are mentioned (readability, maintainability, debugging)
+
+**Given** a developer reads the documentation
+**When** they encounter references to legacy scripts
+**Then** the documentation SHALL explain that real tests use Vitest framework with `describe()`, `it()`, `expect()` assertions
+**And** the documentation SHALL explain that legacy verification scripts in `scripts/legacy-tests/` use custom `pass()`/`fail()` functions
+**And** the documentation SHALL state that legacy scripts are archived for historical reference only
+**And** the documentation SHALL direct developers to write new tests in `__tests__/` using Vitest
+
+**Acceptance Criteria**:
+- Clear distinction between real tests and verification scripts
+- Vitest framework features are mentioned (describe, it, expect)
+- Legacy scripts are clearly marked as archived/not maintained
+- Developers are directed to use Vitest for new tests
+- Reference to `scripts/legacy-tests/README.md` for more context
+
+#### Scenario: Documentation provides test type selection guidelines
+
+**Given** a developer wants to decide which test type to write
+**When** they read the test type selection section
+**Then** the documentation SHALL provide clear criteria for choosing unit tests (testing isolated functions, no database, fast <10ms)
+**And** the documentation SHALL provide clear criteria for choosing integration tests (testing server actions, database operations, business logic, 50-200ms)
+**And** the documentation SHALL provide clear criteria for choosing E2E tests (testing complete user workflows, browser interactions, full stack, 1-5s)
+**And** the documentation SHALL include examples from actual test files for each type
+
+**Acceptance Criteria**:
+- Decision criteria are clear and actionable
+- Examples reference actual files:
+  - Unit: `__tests__/unit/currency.test.ts` - "Test formatCurrency() utility"
+  - Integration: `__tests__/integration/gig-creation.test.ts` - "Test createGig server action with database"
+  - E2E: `__tests__/e2e/registration.spec.ts` - "Test complete registration workflow in browser"
+- Performance characteristics are mentioned (speed)
+- Guidelines help developers make informed decisions
+- Trade-offs are mentioned (speed vs coverage)
+- Verify referenced files exist
+
+#### Scenario: Documentation references test helpers with exact signatures
+
+**Given** a developer wants to use test helpers
+**When** they read the test helpers section
+**Then** the documentation SHALL list all available helpers (`__tests__/helpers/db.ts`, `seed.ts`, `auth.ts`, `auth-mocks.ts`)
+**And** the documentation SHALL provide exact TypeScript function signatures for key helpers
+**And** the documentation SHALL explain the purpose of each helper module
+**And** the documentation SHALL provide usage examples for common helper functions
+**And** the documentation SHALL reference `TESTING.md` for comprehensive documentation
+
+**Acceptance Criteria**:
+- All helper modules are listed with descriptions
+- Key functions include exact TypeScript signatures:
+  - `db.ts`: `getTestPrismaClient(): PrismaClient`, `withTestTransaction<T>(callback: (tx: PrismaClient) => Promise<T>): Promise<T>`
+  - `seed.ts`: `createTestUser(tx: PrismaClient, overrides?: Partial<UserData>): Promise<User>`, `createTestGig(tx: PrismaClient, overrides?: Partial<GigData>): Promise<Gig>`
+  - `auth.ts`: `withAuthContext(user: User, callback: () => Promise<void>): Promise<void>`, `createAuthenticatedClient(tx: PrismaClient, overrides?: Partial<UserData>): Promise<{ user: User, session: string }>`
+- At least 2 code examples showing helper usage from actual tests
+- Reference to `TESTING.md` for comprehensive documentation
+- Examples are realistic and follow existing patterns
+- Verify helper files exist and functions are exported
+
+#### Scenario: Documentation includes mocking patterns
+
+**Given** a developer needs to mock Next.js APIs in tests
+**When** they read the mocking patterns section
+**Then** the documentation SHALL document the standard mocking pattern for `@/lib/prisma`
+**And** the documentation SHALL document the standard mocking pattern for `next/headers` (cookies)
+**And** the documentation SHALL document the standard mocking pattern for `next/navigation` (redirect)
+**And** the documentation SHALL provide complete code examples from actual test files
+
+**Acceptance Criteria**:
+- Mocking patterns for all three Next.js APIs are documented
+- Examples show exact mock setup from `__tests__/integration/gig-creation.test.ts`:
+  - `vi.mock('@/lib/prisma', () => ({ get prisma() { return getTestPrismaClient() } }))`
+  - `vi.mock('next/headers', () => ({ cookies: vi.fn(() => ({ get, set, delete })) }))`
+  - `vi.mock('next/navigation', () => ({ redirect: vi.fn((url) => { throw new Error(\`NEXT_REDIRECT:\${url}\`) }) }))`
+- Explanation of why each mock is needed
+- Note about mock order (mocks before imports)
+- Examples are copy-pasteable
+
+**Given** a developer reads the documentation
+**When** they want to see example test structure
+**Then** the documentation SHALL include at least 3 complete code examples
+**And** examples SHALL cover unit test structure
+**And** examples SHALL cover integration test structure with database transaction
+**And** examples SHALL cover E2E test structure with Playwright
+**And** examples SHALL be realistic and follow existing conventions
+
+**Acceptance Criteria**:
+- At least 3 complete, runnable code examples
+- Examples demonstrate:
+  1. Simple unit test with assertions
+  2. Integration test with `withTestTransaction()` and `createTestUser()`
+  3. E2E test with Playwright page navigation and assertions
+- Examples use actual helper functions from codebase
+- Examples follow existing code style and patterns
+- Examples are properly formatted with syntax highlighting
+
+#### Scenario: Documentation is accurate and up-to-date
+
+**Given** the documentation references files, directories, and helpers
+**When** a developer follows the documentation
+**Then** all file paths SHALL be correct and exist in the codebase
+**And** all helper function names and signatures SHALL be correct
+**And** all code examples SHALL be valid and follow current patterns
+**And** no broken references or outdated information SHALL exist
+**And** file count statistics SHALL match actual codebase
+
+**Acceptance Criteria**:
+- All file paths verified to exist: `__tests__/unit/`, `__tests__/integration/`, `__tests__/e2e/`, `__tests__/helpers/`
+- All helper functions verified to exist with correct signatures:
+  ```bash
+  grep "export.*getTestPrismaClient" __tests__/helpers/db.ts
+  grep "export.*withTestTransaction" __tests__/helpers/db.ts
+  grep "export.*createTestUser" __tests__/helpers/seed.ts
+  grep "export.*createTestGig" __tests__/helpers/seed.ts
+  grep "export.*withAuthContext" __tests__/helpers/auth.ts
+  grep "export.*createAuthenticatedClient" __tests__/helpers/auth.ts
+  ```
+- Code examples are syntactically valid TypeScript
+- Examples can be copy-pasted and run successfully
+- No references to deprecated or removed features
+- File count statistics verified:
+  ```bash
+  ls __tests__/integration/*.test.ts | wc -l  # Should be ~26
+  ls __tests__/unit/*.test.ts | wc -l         # Should be ~2
+  ls __tests__/e2e/*.spec.ts | wc -l          # Should be ~2
+  ```
