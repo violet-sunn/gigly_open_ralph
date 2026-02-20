@@ -13,6 +13,7 @@ This document provides a comprehensive strategic assessment of the Gigly platfor
 **Development Cycle Status:** ✅ **COMPLETE** - All 20 planned changes have been implemented via ralphy-spec methodology. The core marketplace loop is fully functional with all critical features in place.
 
 **Current Phase:** The project has reached the end of the initial development cycle and is now entering **QA & Polish Phase**, where the focus shifts from feature development to:
+
 - Security hardening
 - Infrastructure preparation
 - UI/UX refinement
@@ -160,6 +161,7 @@ This document provides a comprehensive strategic assessment of the Gigly platfor
    - **Solution:** Add validation (min 8 chars, complexity rules)
 
 **Acceptance Criteria:**
+
 - Service fee matches documentation
 - All user inputs sanitized (XSS protection)
 - Rate limiting active on all critical endpoints
@@ -194,6 +196,7 @@ This document provides a comprehensive strategic assessment of the Gigly platfor
    - Set up monitoring and logging
 
 **Acceptance Criteria:**
+
 - PostgreSQL database configured and tested
 - All data migrated successfully
 - Error tracking active and tested
@@ -211,11 +214,13 @@ This document provides a comprehensive strategic assessment of the Gigly platfor
 **Priority:** **HIGH - USER EXPERIENCE** | **Estimated Effort:** 1 week
 
 **Why Critical:**
+
 - Users miss critical updates (application accepted, work submitted, messages received)
 - Manual dashboard checking creates friction
 - Reduces engagement and retention
 
 **Scope:**
+
 - Set up email service (SendGrid, Postmark, or similar)
 - Implement notification triggers for critical events:
   - Application received (CLIENT)
@@ -228,6 +233,7 @@ This document provides a comprehensive strategic assessment of the Gigly platfor
 - Unsubscribe mechanism
 
 **Acceptance Criteria:**
+
 - Email service configured and tested
 - All critical events trigger notifications
 - Emails are delivered reliably
@@ -241,17 +247,20 @@ This document provides a comprehensive strategic assessment of the Gigly platfor
 **Priority:** **HIGH - USER EXPERIENCE** | **Estimated Effort:** 2-3 days
 
 **Why Critical:**
+
 - Users who forget passwords are permanently locked out
 - Creates support burden
 - Poor user experience
 
 **Scope:**
+
 - Generate secure reset tokens
 - Send reset email with time-limited link
 - Reset password form with validation
 - Invalidate old sessions after reset
 
 **Acceptance Criteria:**
+
 - Users can request password reset via email
 - Reset tokens are secure and time-limited
 - Password reset flow works end-to-end
@@ -264,17 +273,20 @@ This document provides a comprehensive strategic assessment of the Gigly platfor
 **Priority:** **MEDIUM - PERFORMANCE** | **Estimated Effort:** 2-3 days
 
 **Why Important:**
+
 - Current implementation loads ALL open gigs at once
 - Performance degradation with 100+ gigs
 - Poor user experience with large datasets
 
 **Scope:**
+
 - Add pagination to gig browsing (/dashboard/gigs)
 - Add pagination to admin user/gig management
 - Maintain filter/search functionality with pagination
 - Show page numbers and navigation
 
 **Acceptance Criteria:**
+
 - Gig browsing shows 20-50 gigs per page
 - Pagination controls work correctly
 - Filters and search work with pagination
@@ -291,11 +303,13 @@ This document provides a comprehensive strategic assessment of the Gigly platfor
 **Priority:** **HIGH - CODE QUALITY** | **Estimated Effort:** 2-3 weeks
 
 **Why Important:**
+
 - Zero test coverage = cannot deploy confidently
 - Regressions will go unnoticed
 - Business logic bugs undetected
 
 **Scope:**
+
 - Set up testing framework (Jest, Vitest)
 - Unit tests for critical business logic:
   - Gig lifecycle state transitions
@@ -309,6 +323,7 @@ This document provides a comprehensive strategic assessment of the Gigly platfor
 - E2E tests for critical user journeys (Playwright)
 
 **Acceptance Criteria:**
+
 - Testing framework configured
 - Critical business logic covered by unit tests
 - Critical paths covered by integration tests
@@ -322,6 +337,7 @@ This document provides a comprehensive strategic assessment of the Gigly platfor
 **Priority:** **HIGH - USER EXPERIENCE** | **Estimated Effort:** 4-6 weeks
 
 **Why Important:**
+
 - Current UI is functional but not polished
 - Designer team needs to implement proper designs
 - Professional UI critical for B2B marketplace credibility
@@ -329,6 +345,7 @@ This document provides a comprehensive strategic assessment of the Gigly platfor
 **Approach Options:**
 
 **Option A: AI-Assisted Implementation (Desktop-Only)**
+
 - Install shadcn/ui component library
 - Create design system document (colors, spacing, typography)
 - Designer exports Figma screens as PNG (1280px width)
@@ -339,12 +356,14 @@ This document provides a comprehensive strategic assessment of the Gigly platfor
 - **Cost:** $20/month for v0.dev (optional)
 
 **Option B: Hire Frontend Developer (Part-Time)**
+
 - Find frontend dev for 40-80 hours
 - They implement designer's Figma mockups
 - **Timeline:** 2-3 weeks
 - **Cost:** 50k-100k RUB one-time
 
 **Option C: Hybrid Approach**
+
 - Use shadcn/ui for component foundation
 - AI implements layout and structure
 - Frontend dev polishes and perfects
@@ -352,6 +371,7 @@ This document provides a comprehensive strategic assessment of the Gigly platfor
 - **Cost:** 30k-50k RUB
 
 **Scope:**
+
 - Implement designs for all key pages:
   - Landing page
   - Registration/login
@@ -368,6 +388,7 @@ This document provides a comprehensive strategic assessment of the Gigly platfor
 - Maintain all existing functionality
 
 **Acceptance Criteria:**
+
 - All pages match designer's mockups (80%+ accuracy)
 - Visual consistency maintained across platform
 - All existing functionality preserved
@@ -417,6 +438,7 @@ This document provides a comprehensive strategic assessment of the Gigly platfor
    - Fix critical issues discovered
 
 **Acceptance Criteria:**
+
 - Security audit passed
 - Performance meets targets (page load <2s, API response <500ms)
 - All critical paths tested end-to-end
@@ -433,6 +455,7 @@ This document provides a comprehensive strategic assessment of the Gigly platfor
 ### Changes 1-20: COMPLETE ✅
 
 All 20 changes have been successfully implemented and archived in `openspec/archive/`. Each change includes:
+
 - Proposal document (problem statement, solution approach, constraints)
 - Technical specs (database, UI, business logic)
 - Task breakdown
@@ -442,6 +465,7 @@ All 20 changes have been successfully implemented and archived in `openspec/arch
 **Key Achievements:**
 
 **Core Marketplace (Changes 1-9):**
+
 - User authentication and role-based access control
 - Gig creation with budget + service fee calculation
 - Application system with accept/reject workflow
@@ -449,12 +473,14 @@ All 20 changes have been successfully implemented and archived in `openspec/arch
 - Work submission and approval flows
 
 **User Experience (Changes 10-13):**
+
 - Role-specific profiles (client company info, specialist tech stack)
 - Gig filtering and search (text, tags, budget range, sorting)
 - Admin moderation (suspend users, close gigs, audit logs)
 - Payment tracking (logical PAID status)
 
 **Requirements Clarity System (Changes 14-20):**
+
 - Gig-scoped messaging (prevents platform leakage)
 - Structured gig requirements (acceptance criteria, goal, deliverables, constraints)
 - Structured applications (technical approach, clarifying questions, estimated effort)
@@ -859,7 +885,9 @@ Requirements clarity is a first-class differentiator. FL.ru/Habr are "post and p
 ---
 
 ## ═══════════════════════════════════════════════════════════════════════════════
+
 ## PHASE 1.5: MVP QA & POLISH (Production Readiness)
+
 ## ═══════════════════════════════════════════════════════════════════════════════
 
 **Phase Status:** 🔄 **CURRENT PHASE** - Development cycle complete, transitioning to production readiness
@@ -871,6 +899,7 @@ Requirements clarity is a first-class differentiator. FL.ru/Habr are "post and p
 **Key Principle:** FIRST verify the platform works (tests, mock data, workflow validation). THEN add security and polish features. Testing is not optional - it's the foundation that proves the MVP is functional.
 
 **Priority Order:**
+
 1. **Verify It Works** - Testing foundation, spec-based tests, E2E workflows, mock data
 2. **Make It Secure** - Security hardening, input sanitization, rate limiting
 3. **Make It Polished** - Pagination, UI/UX improvements, documentation
@@ -881,6 +910,7 @@ Requirements clarity is a first-class differentiator. FL.ru/Habr are "post and p
 ### AI Feasibility Legend
 
 Each change includes an AI feasibility assessment:
+
 - ✅ **FULLY FEASIBLE** - AI can complete with high confidence via ralphy-spec
 - ⚠️ **PARTIALLY FEASIBLE** - AI can implement, human review/setup required
 - 🔴 **HUMAN REQUIRED** - Cannot be done by AI, requires human expertise
@@ -919,6 +949,7 @@ Zero test coverage means we cannot confidently say the platform works. Before ad
 **AI Implementation Notes:**
 
 This is ideal for AI implementation:
+
 - Well-defined technical setup with clear acceptance criteria
 - No external dependencies or credentials needed
 - Each iteration produces concrete, verifiable output (tests that run)
@@ -1094,6 +1125,7 @@ During the development cycle, the project accumulated legacy test scripts in `sc
 **AI Implementation Notes:**
 
 This is ideal for AI implementation:
+
 - Clear file operations (move, create documentation)
 - Well-defined acceptance criteria
 - No external dependencies
@@ -1129,7 +1161,7 @@ This is ideal for AI implementation:
 - `scripts/legacy-tests/README.md` created with clear explanation
 - README explains difference between legacy scripts and real tests
 - README directs developers to `__tests__/` for real tests
-- No test-*.ts files remain in `scripts/` root
+- No test-\*.ts files remain in `scripts/` root
 - Real tests in `__tests__/` still run correctly
 
 **Test:** Run `ls scripts/test-*.ts`, verify no files found. Run `ls scripts/legacy-tests/`, verify 26 files present. Run `npm test`, verify real tests still work.
@@ -1151,7 +1183,7 @@ This is ideal for AI implementation:
 **Acceptance Criteria:**
 
 - `clean:test-db` script added to package.json
-- Script removes all test database files (memdb_*.db, test.db, and WAL/SHM files)
+- Script removes all test database files (memdb\_\*.db, test.db, and WAL/SHM files)
 - `test:clean` script runs cleanup before tests
 - Scripts documented in appropriate location
 - `.gitignore` verified to exclude test database files
@@ -1245,6 +1277,7 @@ The platform has 20 completed changes documented in openspec/archive/. Each chan
 **Scope:**
 
 Write comprehensive tests for all 20 completed changes:
+
 1. **Authentication & Authorization** (Changes 1-3) - Registration, login, role-based access
 2. **Gig Lifecycle** (Changes 4-7) - Creation, browsing, filtering, state transitions
 3. **Application Flow** (Changes 8-9) - Apply, accept/reject, auto-reject logic
@@ -1257,6 +1290,7 @@ Write comprehensive tests for all 20 completed changes:
 **AI Implementation Notes:**
 
 AI can write accurate tests because:
+
 - ✅ Specs provide clear requirements and scenarios
 - ✅ Each change has VALIDATION_REPORT.md showing what was tested
 - ✅ Specs use MUST/SHALL language for requirements
@@ -1264,6 +1298,7 @@ AI can write accurate tests because:
 - ⚠️ May miss edge cases not documented in specs
 
 **Test Coverage Goals:**
+
 - Unit tests: >80% coverage for business logic
 - Integration tests: All critical user journeys
 - Authorization tests: All role-based and ownership checks
@@ -1539,6 +1574,7 @@ Unit and integration tests verify individual features work, but E2E tests verify
 **Scope:**
 
 Write E2E tests for critical user journeys:
+
 1. **Client Journey** - Register → Create gig → Review applications → Accept specialist → Approve work → Mark as paid
 2. **Specialist Journey** - Register → Browse gigs → Apply to gig → Submit work → Receive payment
 3. **Messaging Flow** - Client and specialist exchange messages after assignment
@@ -1548,6 +1584,7 @@ Write E2E tests for critical user journeys:
 **AI Implementation Notes:**
 
 AI can write E2E tests but:
+
 - ⚠️ May miss important user interactions
 - ⚠️ May not test realistic scenarios
 - ⚠️ Playwright selectors may be fragile
@@ -1555,6 +1592,7 @@ AI can write E2E tests but:
 - ⚠️ Tests may be flaky and need stabilization
 
 **Test Coverage Goals:**
+
 - All critical user journeys covered
 - Happy path and error scenarios tested
 - Tests are stable and not flaky
@@ -1601,7 +1639,7 @@ AI can write E2E tests but:
 **Ralphy-Plan Command:**
 
 ```
-/ralphy-plan specialist-journey-e2e "Write E2E test for complete specialist journey using Playwright. Requirements: (1) Register as SPECIALIST, (2) Login, (3) Browse available gigs, (4) Apply to gig with approach and questions, (5) Wait for acceptance (accept application in test setup), (6) Submit work with description, (7) Wait for approval (approve work in test), (8) Verify gig status is COMPLETED. Test should simulate real user interactions. Propose: test structure, how to handle async operations, how to verify each step. Test: E2E test passes and covers complete specialist journey."
+/ralphy-plan specialist-journey-e2e "Write E2E test for complete specialist journey using Playwright. Requirements: (1) Register as SPECIALIST, (2) Login, (3) Browse available gigs, (4) Apply to gig with approach and questions, (5) Wait for acceptance (accept application in test setup), (6) Submit work with description, (7) Wait for approval (approve work in test), (8) Verify gig status is COMPLETED. Consider whether the suggestions are enough. Test should simulate real user interactions. Propose: test structure, how to handle async operations, how to verify each step. Test: E2E test passes and covers complete specialist journey."
 ```
 
 **Acceptance Criteria:**
@@ -1627,7 +1665,7 @@ AI can write E2E tests but:
 **Ralphy-Plan Command:**
 
 ```
-/ralphy-plan messaging-flow-e2e "Write E2E test for messaging flow using Playwright. Requirements: (1) Set up gig with assigned specialist (create in test setup), (2) Login as client, send message to specialist, (3) Logout, login as specialist, verify message is visible, (4) Send reply as specialist, (5) Logout, login as client, verify reply is visible, (6) Verify messages are ordered chronologically. Test should simulate real user interactions. Propose: test structure, how to switch users, how to verify messages. Test: E2E test passes and covers messaging flow."
+/ralphy-plan messaging-flow-e2e "Write E2E test for messaging flow using Playwright. Requirements: (1) Set up gig with assigned specialist (create in test setup), (2) Login as client, send message to specialist, (3) Logout, login as specialist, verify message is visible, (4) Send reply as specialist, (5) Logout, login as client, verify reply is visible, (6) Verify messages are ordered chronologically. Consider whether the suggestions are enough. Test should simulate real user interactions. Propose: test structure, how to switch users, how to verify messages. Test: E2E test passes and covers messaging flow."
 ```
 
 **Acceptance Criteria:**
@@ -1652,7 +1690,7 @@ AI can write E2E tests but:
 **Ralphy-Plan Command:**
 
 ```
-/ralphy-plan admin-moderation-e2e "Write E2E test for admin moderation using Playwright. Requirements: (1) Create test users and gigs (in test setup), (2) Login as ADMIN, (3) Suspend a user with reason, (4) Logout, try to login as suspended user, verify login fails, (5) Login as ADMIN again, (6) Close a gig with reason, (7) Verify gig shows as closed, (8) Verify moderation history is visible. Test should simulate real admin actions. Propose: test structure, how to verify moderation effects. Test: E2E test passes and covers admin moderation."
+/ralphy-plan admin-moderation-e2e "Write E2E test for admin moderation using Playwright. Requirements: (1) Create test users and gigs (in test setup), (2) Login as ADMIN, (3) Suspend a user with reason, (4) Logout, try to login as suspended user, verify login fails, (5) Login as ADMIN again, (6) Close a gig with reason, (7) Verify gig shows as closed, (8) Verify moderation history is visible. Consider whether the suggestions are enough. Test should simulate real admin actions. Propose: test structure, how to verify moderation effects. Test: E2E test passes and covers admin moderation."
 ```
 
 **Acceptance Criteria:**
@@ -1677,7 +1715,7 @@ AI can write E2E tests but:
 **Ralphy-Plan Command:**
 
 ```
-/ralphy-plan error-scenarios-e2e "Write E2E test for error scenarios and edge cases using Playwright. Requirements: (1) Test form validation errors are displayed, (2) Test unauthorized access redirects to login, (3) Test trying to apply to closed gig shows error, (4) Test trying to submit work when not assigned shows error, (5) Test invalid state transitions show errors, (6) Verify error messages are clear and helpful. Test should cover common error scenarios. Propose: test structure, what errors to test. Test: E2E test passes and covers error scenarios."
+/ralphy-plan error-scenarios-e2e "Write E2E test for error scenarios and edge cases using Playwright. Requirements: (1) Test form validation errors are displayed, (2) Test unauthorized access redirects to login, (3) Test trying to apply to closed gig shows error, (4) Test trying to submit work when not assigned shows error, (5) Test invalid state transitions show errors, (6) Verify error messages are clear and helpful. Consider whether the suggestions are enough. Test should cover common error scenarios. Propose: test structure, what errors to test. Test: E2E test passes and covers error scenarios."
 ```
 
 **Acceptance Criteria:**
@@ -1731,6 +1769,7 @@ Now that we've verified the platform works through comprehensive testing, we mus
 **AI Implementation Notes:**
 
 AI can implement all code changes, but:
+
 - ⚠️ Rate limiting thresholds require human judgment
 - 🔴 Security review by human required before production
 - ⚠️ Service fee decision requires business decision
@@ -1939,6 +1978,7 @@ Tests verify the platform works programmatically, but manual workflow verificati
 **AI Implementation Notes:**
 
 This is ideal for AI implementation:
+
 - Well-defined data structure (follows Prisma schema)
 - Can reuse test factories from MQP-1
 - Clear acceptance criteria (realistic Russian content)
@@ -2132,7 +2172,9 @@ Current implementation loads ALL gigs at once, causing performance degradation w
 ---
 
 ## ═══════════════════════════════════════════════════════════════════════════════
+
 ## END OF PHASE 1.5: MVP QA & POLISH
+
 ## ═══════════════════════════════════════════════════════════════════════════════
 
 **Phase Summary:**
@@ -2181,7 +2223,7 @@ Week 8 (Optional): MQP-6 (Pagination) - Polish feature, can be deferred
 **Key Improvements Made:**
 
 - ✅ **Split MQP-2.2** into two iterations for consistent granularity (4-5 hours each)
-- ✅ **Added specific file references** to all MQP-2 iterations (proposal.md, specs/*/spec.md, VALIDATION_REPORT.md)
+- ✅ **Added specific file references** to all MQP-2 iterations (proposal.md, specs/\*/spec.md, VALIDATION_REPORT.md)
 - ✅ **Elevated MQP-5** to HIGH priority as part of verification (manual workflow testing)
 - ✅ **Marked MQP-6** as OPTIONAL - can be deferred to post-verification phase
 
@@ -2791,6 +2833,7 @@ PostgreSQL is essential for production scale, but SQLite is fine for MVP validat
 - Verified under simulated load
 
 **Test:** Simulate concurrent requests (50+ users), verify connection pooling works correctly, monitor connection usage to ensure limits aren't exceeded and connections are reused.
+
 ```
 
 **Test:** Simulate concurrent requests, verify connection pooling works, check connection limits.
@@ -2841,7 +2884,9 @@ Legal entity verification builds trust and differentiates from consumer platform
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan verification-iteration-1 "Verified legal entities are more trustworthy than unverified ones. Build the foundation for tracking and displaying client verification status. Requirements: (1) Must track verification state through its lifecycle (unverified, pending review, verified, rejected), (2) Verification status must be visible to specialists evaluating gigs, (3) Verified status should be displayed prominently as a trust signal, (4) Status changes must be timestamped for audit trail. Propose: how to model verification states, where to display verification badges, and what visual indicators to use. Test: verify verification status can be tracked and displayed correctly across the platform."
+
 ```
 
 **Acceptance Criteria:**
@@ -2865,7 +2910,9 @@ Legal entity verification builds trust and differentiates from consumer platform
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan verification-iteration-2 "Clients need a way to request verification and provide their legal entity information. Build the client-facing verification request flow. Requirements: (1) Clients must be able to submit verification requests with required legal information, (2) Must collect INN (required for Russian legal entities), (3) Form should guide clients on what information is needed, (4) After submission, status should update to pending review, (5) Clients should be able to see their verification request status. Propose: what information to collect, form design, validation rules, and how to communicate status to clients. Test: verify clients can submit verification requests and see their pending status."
+
 ```
 
 **Acceptance Criteria:**
@@ -2890,7 +2937,9 @@ Legal entity verification builds trust and differentiates from consumer platform
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan verification-iteration-3 "Verification requests need admin review to confirm legal entity legitimacy. Build the admin workflow for processing verification requests. Requirements: (1) Admins must see all pending verification requests with relevant information, (2) Admins must be able to approve or reject requests with reasoning, (3) Approval should grant verified status with timestamp, (4) Rejection should update status and record reason for transparency, (5) All verification decisions must be logged for audit trail. Propose: admin interface design, what information to show admins for decision-making, approval/rejection workflow, and logging approach. Test: verify admins can efficiently process verification requests and clients see updated status."
+
 ```
 
 **Acceptance Criteria:**
@@ -2915,7 +2964,9 @@ Legal entity verification builds trust and differentiates from consumer platform
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan verification-iteration-4 "Manual INN verification is time-consuming and error-prone. Integrate automated INN validation to verify legal entity information against official Russian registries. Requirements: (1) Must validate INN format before submission, (2) Must check if company exists in official registry, (3) Should retrieve and store company information from registry when available, (4) Invalid or non-existent INNs should be rejected immediately with clear error, (5) Valid INNs proceed to admin review with pre-populated company data. Propose: which INN validation service to use (Russian tax service API or third-party), integration approach, what company data to retrieve, and error handling strategy. Test: verify validation works correctly for valid, invalid, and non-existent INNs."
+
 ```
 
 **Acceptance Criteria:**
@@ -2940,7 +2991,9 @@ Legal entity verification builds trust and differentiates from consumer platform
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan verification-iteration-5 "Some verification cases may require additional documentation beyond INN validation (e.g., recent registration, name changes, special cases). Add optional document upload capability to support these scenarios. Requirements: (1) Clients should be able to upload supporting documents (registration certificates, charters, etc.), (2) Documents must be stored securely and permanently, (3) Admins must be able to view uploaded documents during verification review, (4) Upload should be optional (not required for all cases), (5) Should support common document formats (PDF, images). Propose: file storage solution, what document types to accept, file size limits, and how to present documents to admins. Test: verify clients can upload documents and admins can access them during review."
+
 ```
 
 **Acceptance Criteria:**
@@ -2987,7 +3040,9 @@ Quality assurance for high-end marketplace. Specialists need reputation building
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan review-iteration-1 "Reputation and accountability are essential for marketplace trust. After gigs complete, both clients and specialists need to provide feedback about their experience. Build the data foundation for storing reviews and ratings. Requirements: (1) Must support bidirectional reviews (client reviews specialist, specialist reviews client), (2) Each review must be linked to a specific completed gig, (3) Must track both quantitative ratings and qualitative comments, (4) Must identify both reviewer and reviewee, (5) Should support future features like moderation and aggregation. Propose: database schema, rating scale, required vs optional fields, and relationships. Test: verify review data can be stored with all necessary relationships intact."
+
 ```
 
 **Acceptance Criteria:**
@@ -3011,7 +3066,9 @@ Quality assurance for high-end marketplace. Specialists need reputation building
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan review-iteration-2 "After a gig completes successfully, both parties should be able to share their experience. Build the review submission flow for completed gigs. Requirements: (1) Reviews should only be possible after gig is marked as PAID, (2) Both client and specialist should be able to review each other, (3) Users should only be able to review gigs they actually participated in, (4) Review form should collect both rating and optional detailed feedback, (5) Should prevent duplicate reviews (one review per user per gig). Propose: when to prompt for reviews, form design, validation rules, and how to prevent abuse. Test: verify both parties can submit reviews after gig completion and reviews are properly associated."
+
 ```
 
 **Acceptance Criteria:**
@@ -3036,7 +3093,9 @@ Quality assurance for high-end marketplace. Specialists need reputation building
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan review-iteration-3 "Reviews are only valuable if they're visible and help users make decisions. Display reviews and ratings on user profiles so specialists can showcase their reputation and clients can evaluate candidates. Requirements: (1) Average rating should be prominently displayed as a trust signal, (2) Individual reviews should be listed with relevant context, (3) Both client and specialist profiles should display their reviews, (4) Should handle profiles with many reviews gracefully (pagination or limiting), (5) Reviews should include enough context to be useful (rating, comment, when, from whom). Propose: profile layout design, how to calculate and display average rating, pagination approach, and what review information to show. Test: verify reviews display correctly and average ratings are calculated accurately."
+
 ```
 
 **Acceptance Criteria:**
@@ -3061,7 +3120,9 @@ Quality assurance for high-end marketplace. Specialists need reputation building
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan review-iteration-4 "Not all reviews are appropriate or constructive. Some may contain offensive content, personal attacks, or violate platform policies. Give admins the ability to moderate reviews while preserving data for audit purposes. Requirements: (1) Admins must be able to hide inappropriate reviews from public view, (2) Hidden reviews should remain in database for audit trail, (3) Hiding reviews should be logged with reason for transparency, (4) Hidden reviews should not affect average rating calculations, (5) Admins need an interface to review and moderate flagged or reported reviews. Propose: moderation workflow, how to mark reviews as hidden, logging approach, and admin interface design. Test: verify admins can hide reviews and they disappear from public view while remaining in database."
+
 ```
 
 **Acceptance Criteria:**
@@ -3102,7 +3163,9 @@ Legal protection for both parties in B2B transactions. Clear terms reduce disput
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan contract-iteration-1 "The platform needs legal protection through Terms of Service that users must accept. Implement ToS acceptance requirement during registration for legal compliance. Requirements: (1) Users must explicitly accept ToS before completing registration, (2) Acceptance must be recorded with timestamp for legal proof, (3) ToS text should be accessible for users to read before accepting, (4) Cannot bypass or skip ToS acceptance, (5) Acceptance record must be permanent for legal purposes. Propose: how to present ToS to users, acceptance mechanism (checkbox, button), where to store acceptance records, and how to make ToS text accessible. Test: verify users cannot register without accepting ToS and acceptance is properly recorded."
+
 ```
 
 **Acceptance Criteria:**
@@ -3126,7 +3189,9 @@ Legal protection for both parties in B2B transactions. Clear terms reduce disput
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan contract-iteration-2 "Standard platform ToS may not cover all gig-specific requirements. Some clients need custom terms (confidentiality, IP ownership, specific deliverables). Build the foundation for gig-specific contracts. Requirements: (1) Must support standard platform terms plus optional custom terms per gig, (2) Must track which specialist accepted which contract version, (3) Should support contract versioning if terms change, (4) Clients should be able to add custom terms during gig creation, (5) Contract terms must be immutable after specialist accepts. Propose: database schema for contracts, how to handle versioning, where clients add custom terms, and how to ensure immutability. Test: verify gig-specific contracts can be created and associated correctly."
+
 ```
 
 **Acceptance Criteria:**
@@ -3151,7 +3216,9 @@ Legal protection for both parties in B2B transactions. Clear terms reduce disput
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan contract-iteration-3 "Work should not begin until both parties agree to the terms. After a client accepts a specialist's application, the specialist must review and explicitly accept the contract before work starts. Requirements: (1) Specialist must see and review all contract terms (platform + custom), (2) Specialist must explicitly accept before gig transitions to IN_PROGRESS, (3) Contract acceptance must be recorded with timestamp, (4) Specialist should understand what they're agreeing to, (5) Cannot bypass contract acceptance. Propose: when to show contract to specialist, how to present terms clearly, acceptance mechanism, and how to enforce acceptance before work begins. Test: verify work cannot begin until specialist accepts contract and acceptance is properly recorded."
+
 ```
 
 **Acceptance Criteria:**
@@ -3176,7 +3243,9 @@ Legal protection for both parties in B2B transactions. Clear terms reduce disput
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan contract-iteration-4 "B2B transactions require formal documentation for legal and accounting purposes. When a specialist accepts a contract, generate a formal PDF document that both parties can keep for their records. Requirements: (1) PDF must contain all contract terms (platform + custom), (2) Must include all relevant gig and party details, (3) Must include acceptance timestamp and parties' information, (4) Both parties should be able to download the contract, (5) PDF should be stored permanently for audit trail, (6) Document should be professionally formatted and legally appropriate. Propose: PDF generation approach, what information to include, document format/layout, storage strategy, and how parties access their contracts. Test: verify contract PDFs are generated correctly with all required information and both parties can download them."
+
 ```
 
 **Acceptance Criteria:**
@@ -3217,7 +3286,9 @@ Current gig browsing loads all OPEN gigs - not scalable beyond ~100 gigs.
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan search-iteration-1 "Currently all open gigs load at once, which works for MVP but won't scale beyond ~100 gigs. As the platform grows, this will cause performance issues and poor user experience. Implement pagination to handle large gig volumes efficiently. Requirements: (1) Must load gigs in manageable chunks rather than all at once, (2) Users must be able to navigate between pages easily, (3) Performance should remain good even with 1000+ gigs, (4) Current page state should be clear to users, (5) Should work with existing filters and sorting. Propose: pagination approach (offset-based, cursor-based), page size, navigation UI, and how to maintain filter/sort state across pages. Test: verify pagination works correctly with large gig volumes and users can navigate efficiently."
+
 ```
 
 **Acceptance Criteria:**
@@ -3242,7 +3313,9 @@ Current gig browsing loads all OPEN gigs - not scalable beyond ~100 gigs.
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan search-iteration-2 "Specialists often look for similar types of gigs repeatedly (same tech stack, budget range, etc.). Manually setting filters each time is tedious. Allow specialists to save their filter combinations for quick reuse. Requirements: (1) Specialists should be able to save current filter state with a memorable name, (2) Saved searches should be easily accessible for quick reuse, (3) Should be able to manage (view, load, delete) saved searches, (4) Loading a saved search should apply all saved filters, (5) Should handle changes to available filters gracefully. Propose: where to store saved searches, UI for saving and managing them, how to handle filter changes over time, and where to display saved searches for easy access. Test: verify specialists can save, load, and manage their search preferences effectively."
+
 ```
 
 **Acceptance Criteria:**
@@ -3267,7 +3340,9 @@ Current gig browsing loads all OPEN gigs - not scalable beyond ~100 gigs.
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan search-iteration-3 "Specialists may miss relevant gigs if they don't search at the right time or use the right filters. Proactively recommend gigs that match their skills and experience to increase engagement and application quality. Requirements: (1) Recommendations should be based on specialist's profile (tech stack, experience level, past applications), (2) Recommended gigs should be genuinely relevant (not random), (3) Should be displayed prominently but not intrusively, (4) Algorithm should be simple and maintainable (not over-engineered), (5) Should improve over time as more data is available. Propose: recommendation algorithm approach, what profile data to use, where to display recommendations, and how to measure relevance. Test: verify recommendations are relevant to specialist profiles and improve gig discovery."
+
 ```
 
 **Acceptance Criteria:**
@@ -3292,7 +3367,9 @@ Current gig browsing loads all OPEN gigs - not scalable beyond ~100 gigs.
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan search-iteration-4 "As the platform grows, specialists need more ways to find exactly what they're looking for. Current filters (budget, tags) are basic. Add more filter options to help specialists find relevant gigs efficiently. Requirements: (1) Additional filters should address real user needs (not just feature bloat), (2) Should include full-text search for finding specific keywords, (3) Filters should be intuitive and not overwhelming, (4) Should work efficiently even with large gig volumes, (5) May require additional gig fields to support new filters. Propose: which additional filters to add based on user needs, UI design to avoid overwhelming users, database schema changes if needed, and how to implement full-text search. Test: verify new filters help specialists find relevant gigs more efficiently."
+
 ```
 
 **Acceptance Criteria:**
@@ -3333,7 +3410,9 @@ Clients need flexibility to manage their gigs.
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan gig-mgmt-iteration-1 "Clients sometimes realize they need to clarify or correct gig details after posting. Enable gig editing while protecting specialists from bait-and-switch tactics. Requirements: (1) Clients should be able to edit gig details when no applications exist yet, (2) Once specialists have applied, editing should be blocked to prevent changing terms after commitment, (3) All gig fields should be editable (title, description, budget, tags, requirements), (4) Changes should be saved atomically, (5) Should provide clear feedback about why editing is blocked if applications exist. Propose: which fields to allow editing, when to block editing, UI design, and how to communicate restrictions. Test: verify clients can edit gigs appropriately and editing is blocked when it should be."
+
 ```
 
 **Acceptance Criteria:**
@@ -3357,7 +3436,9 @@ Clients need flexibility to manage their gigs.
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan gig-mgmt-iteration-2 "Sometimes clients need to cancel gigs (budget cuts, priorities change, found someone elsewhere). Enable client-initiated gig cancellation while handling pending applications fairly. Requirements: (1) Clients should be able to cancel OPEN gigs they no longer need, (2) All pending applications should be automatically rejected with notification, (3) Should require confirmation to prevent accidental cancellation, (4) Cancellation should be clearly distinguished from admin closure, (5) Cancelled gigs should remain visible for audit but marked as cancelled. Propose: cancellation workflow, how to handle pending applications, confirmation mechanism, and how to display cancelled gigs. Test: verify clients can cancel gigs and pending applications are handled appropriately."
+
 ```
 
 **Acceptance Criteria:**
@@ -3382,7 +3463,9 @@ Clients need flexibility to manage their gigs.
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan gig-mgmt-iteration-3 "Clients who regularly post similar types of gigs waste time re-entering the same information. Enable gig templates so they can reuse common patterns. Requirements: (1) Clients should be able to save any gig as a reusable template, (2) Templates should store all gig details for quick reuse, (3) Clients should be able to manage their templates (view, edit, delete), (4) Creating a gig from a template should pre-fill all fields but allow modification, (5) Templates are personal to each client (not shared). Propose: what to store in templates, template management UI, how to create gigs from templates, and where to access templates. Test: verify clients can create, use, and manage templates effectively."
+
 ```
 
 **Acceptance Criteria:**
@@ -3407,7 +3490,9 @@ Clients need flexibility to manage their gigs.
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan gig-mgmt-iteration-4 "Sometimes clients want to post a gig very similar to an existing one (same project, different phase; similar requirements, different budget). Enable quick duplication without the overhead of template management. Requirements: (1) Clients should be able to duplicate any of their existing gigs with one action, (2) Duplication should create a new independent gig with all details copied, (3) New gig should start in OPEN status regardless of original status, (4) Clients should be able to modify the duplicated gig before or after posting, (5) Duplication should be quick and obvious from gig detail page. Propose: where to place duplication action, what to copy, what to reset, and user flow. Test: verify duplication creates correct independent gigs."
+
 ```
 
 **Acceptance Criteria:**
@@ -3448,7 +3533,9 @@ Clients need flexibility to manage their gigs.
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan portfolio-iteration-1 "Text-based profiles are limited for showcasing technical work. Specialists need to demonstrate their capabilities through concrete examples of past projects. Build the foundation for portfolio items that specialists can use to showcase their work. Requirements: (1) Specialists should be able to add multiple portfolio items representing different projects, (2) Each item should capture key project information (what it was, technologies used, their role), (3) Should support linking to live projects or repositories, (4) Specialists should be able to manage their portfolio items (create, edit, delete), (5) Portfolio should be visible to clients evaluating specialists. Propose: what information to capture per portfolio item, data structure, management interface, and where to display portfolio. Test: verify specialists can build and manage their portfolio effectively."
+
 ```
 
 **Acceptance Criteria:**
@@ -3473,7 +3560,9 @@ Clients need flexibility to manage their gigs.
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan portfolio-iteration-2 "Text descriptions alone don't convey the quality and polish of technical work. Specialists need to show, not just tell. Add image upload capability so specialists can showcase their work visually. Requirements: (1) Specialists should be able to upload screenshots or images of their projects, (2) Should support multiple images per portfolio item, (3) Images must be stored securely and reliably, (4) Should support common image formats (JPG, PNG), (5) File size limits should be reasonable, (6) Images should display attractively on portfolio. Propose: file storage solution, upload mechanism, image display approach, and file size/format restrictions. Test: verify specialists can upload and display project images effectively."
+
 ```
 
 **Acceptance Criteria:**
@@ -3498,7 +3587,9 @@ Clients need flexibility to manage their gigs.
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan portfolio-iteration-3 "Specialists want to share their portfolio with potential clients outside the platform (LinkedIn, personal networks, etc.). Create public portfolio pages that showcase specialist capabilities without requiring login. Requirements: (1) Each specialist should have a unique shareable URL, (2) Page should be accessible without authentication, (3) Should display all portfolio items, profile information, and skills attractively, (4) Should be optimized for sharing (good preview images, meta tags), (5) Should encourage visitors to engage through the platform. Propose: URL structure, what information to display, page design, and how to drive platform engagement. Test: verify public portfolio pages are accessible and showcase specialists effectively."
+
 ```
 
 **Acceptance Criteria:**
@@ -3523,7 +3614,9 @@ Clients need flexibility to manage their gigs.
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan portfolio-iteration-4 "Professional certifications signal expertise and commitment to continuous learning. Enable specialists to showcase their formal qualifications. Requirements: (1) Specialists should be able to add certifications with relevant details (name, issuer, date), (2) Should support uploading certification documents or linking to verification URLs, (3) Certifications should be displayed on portfolio, (4) Admins should be able to verify certifications for added trust, (5) Verified certifications should have visual indicator. Propose: what certification information to capture, how to handle documents/links, verification workflow, and display approach. Test: verify specialists can add certifications and admins can verify them."
+
 ```
 
 **Acceptance Criteria:**
@@ -3548,7 +3641,9 @@ Clients need flexibility to manage their gigs.
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan portfolio-iteration-5 "Self-reported skills lack credibility. Enable users who've worked with specialists to endorse their skills, creating social proof. Requirements: (1) Users should be able to endorse skills listed on specialist profiles, (2) Each user can endorse each skill only once per specialist (prevent spam), (3) Endorsement counts should be visible next to each skill, (4) Should be simple and low-friction (one-click endorsement), (5) Endorsements should come from real users (not anonymous). Propose: endorsement mechanism, how to prevent abuse, where to display endorsement counts, and who can endorse. Test: verify endorsement system builds credible social proof without being gameable."
+
 ```
 
 **Acceptance Criteria:**
@@ -3587,7 +3682,9 @@ Clients need flexibility to manage their gigs.
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan analytics-iteration-1 "Clients need visibility into their platform usage to justify continued investment and make informed decisions. Build analytics dashboard that helps clients understand their spending and activity patterns. Requirements: (1) Should show key metrics that matter to clients (spending, gig volume, completion rates), (2) Metrics should be accurate and trustworthy, (3) Should support time-based filtering to see trends, (4) Should be performant even with large data volumes, (5) Should help clients see value they're getting from platform. Propose: which metrics to track, how to calculate them efficiently, dashboard design, and filtering capabilities. Test: verify analytics provide useful insights and calculations are accurate."
+
 ```
 
 **Acceptance Criteria:**
@@ -3612,7 +3709,9 @@ Clients need flexibility to manage their gigs.
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan analytics-iteration-2 "Specialists need to understand their performance to optimize their strategy (which gigs to apply for, pricing, etc.). Build analytics dashboard that helps specialists track earnings and success patterns. Requirements: (1) Should show metrics that help specialists improve (earnings, application success rate, etc.), (2) Should help specialists understand what's working and what's not, (3) Should support time-based analysis to see trends, (4) Should be accurate and trustworthy, (5) Should motivate continued platform engagement. Propose: which metrics matter most to specialists, how to calculate them, dashboard design, and insights to surface. Test: verify analytics help specialists understand and improve their performance."
+
 ```
 
 **Acceptance Criteria:**
@@ -3637,7 +3736,9 @@ Clients need flexibility to manage their gigs.
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan analytics-iteration-3 "Admins need comprehensive platform health metrics to make informed decisions about growth, moderation, and resource allocation. Build admin analytics dashboard that provides visibility into platform performance. Requirements: (1) Should show key platform health indicators (revenue, user growth, engagement), (2) Should help identify problems early (declining metrics, abuse patterns), (3) Should support strategic decision-making with trend data, (4) Should include visual charts for easy pattern recognition, (5) Should be comprehensive but not overwhelming. Propose: which metrics are most important for platform health, how to visualize trends effectively, dashboard organization, and what alerts or thresholds to surface. Test: verify admin analytics provide actionable insights for platform management."
+
 ```
 
 **Acceptance Criteria:**
@@ -3662,7 +3763,9 @@ Clients need flexibility to manage their gigs.
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan analytics-iteration-4 "Users need to export analytics data for external analysis, accounting, or compliance purposes. Enable report export functionality across all analytics dashboards. Requirements: (1) Users should be able to export currently displayed data, (2) Export format should be standard and widely compatible (CSV), (3) Exported data should match what's displayed on dashboard, (4) Should respect current filters and date ranges, (5) Export should be fast and reliable even with large datasets. Propose: export format, what data to include, how to handle large exports, and where to place export functionality. Test: verify exports are accurate and usable for external analysis."
+
 ```
 
 **Acceptance Criteria:**
@@ -3703,7 +3806,9 @@ Clients need flexibility to manage their gigs.
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan milestone-iteration-1 "Large projects (500k+ RUB) are risky to handle as single all-or-nothing deliverables. Enable breaking them into milestones for incremental progress and payment. Build the data foundation for milestone-based gigs. Requirements: (1) Must support multiple milestones per gig, each representing a distinct deliverable, (2) Each milestone needs its own budget, description, due date, and status, (3) Milestones must maintain order (phase 1, phase 2, etc.), (4) Must distinguish milestone-based gigs from simple gigs, (5) Should support future features like partial payments and independent approval. Propose: database schema for milestones, how to link to gigs, status tracking approach, and ordering mechanism. Test: verify milestone data can be stored with proper relationships and ordering."
+
 ```
 
 **Acceptance Criteria:**
@@ -3728,7 +3833,9 @@ Clients need flexibility to manage their gigs.
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan milestone-iteration-2 "Clients creating large projects need to break them into manageable phases upfront. Enable milestone definition during gig creation. Requirements: (1) Clients should be able to optionally create milestone-based gigs, (2) Should support adding/removing milestones dynamically in the form, (3) Each milestone needs title, description, budget, and due date, (4) Total milestone budgets must equal total gig budget (validation), (5) Should be intuitive and not overwhelming for clients who want simple gigs. Propose: UI design for milestone creation, validation approach, how to make it optional vs required, and user experience flow. Test: verify clients can create milestone-based gigs with proper validation."
+
 ```
 
 **Acceptance Criteria:**
@@ -3753,7 +3860,9 @@ Clients need flexibility to manage their gigs.
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan milestone-iteration-3 "Large projects need incremental progress validation, not all-or-nothing delivery. Implement independent workflow for each milestone so work can be reviewed and approved incrementally. Requirements: (1) Specialists should be able to submit individual milestones for review, (2) Clients should be able to approve or request changes per milestone, (3) Milestones should be completed in order (can't skip ahead), (4) Gig is only fully complete when all milestones are approved, (5) Both parties should have clear visibility into which milestones are pending/complete. Propose: milestone workflow states, submission/approval mechanism, ordering enforcement, and how to track overall gig progress. Test: verify milestone workflow enables incremental progress and approval."
+
 ```
 
 **Acceptance Criteria:**
@@ -3778,7 +3887,9 @@ Clients need flexibility to manage their gigs.
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan milestone-iteration-4 "Large projects with single payment at the end create cash flow problems for specialists and risk for clients. Integrate milestone workflow with payment system to enable incremental payment releases. Requirements: (1) When a milestone is approved, its portion of escrowed funds should be released, (2) Payment system must track which milestones have been paid, (3) Gig is only fully paid when all milestones are completed and paid, (4) Partial payments should be reflected in specialist earnings, (5) Must work with existing escrow and payment release mechanisms. Propose: how to calculate and release partial payments, payment tracking approach, integration with existing payment system, and how to handle payment failures. Test: verify partial payments are released correctly as milestones complete."
+
 ```
 
 **Acceptance Criteria:**
@@ -3803,7 +3914,9 @@ Clients need flexibility to manage their gigs.
 **Ralphy-Plan Command:**
 
 ```
+
 /ralphy-plan milestone-iteration-5 "Multi-milestone projects need clear progress visualization so both parties understand where they are and what's next. Build timeline visualization that shows milestone progress at a glance. Requirements: (1) Should display all milestones with their status and due dates visually, (2) Should show overall project completion percentage, (3) Should make it easy to see what's done, what's in progress, and what's upcoming, (4) Should be visible to both client and specialist on gig detail page, (5) Should update in real-time as milestones progress. Propose: visualization approach (timeline, progress bar, checklist), what information to display, how to calculate completion percentage, and where to place it. Test: verify timeline provides clear understanding of project progress."
+
 ```
 
 **Acceptance Criteria:**
@@ -3994,3 +4107,4 @@ With 20 completed changes, functional core loop, and solid architecture, Gigly h
 **Document Status:** Updated February 18, 2026 to reflect completion of development cycle and transition to QA & Polish phase.
 
 _For questions or clarifications on any recommended change, refer to the ralphy-plan commands provided. All downgraded features remain strategic post-MVP goals and are NOT abandoned._
+```

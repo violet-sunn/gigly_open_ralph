@@ -82,7 +82,24 @@
       "Bash(npm run clean:test-db)",
       "Bash(npm run test:clean:*)",
       "Bash(npm run clean:test-db:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(/tmp/e2e_changes_summary.txt:*)",
+      "Bash(for:*)",
+      "Bash(do echo \"=== Run $i ===\")",
+      "Bash(tee /tmp/test-output.txt)",
+      "Bash(do echo \"Run $i:\")",
+      "Bash(exit:*)",
+      "Bash(ARCHIVE_SUMMARY.md:*)",
+      "Bash(TEST_PLAN.md:*)",
+      "Bash(/tmp/validate_messaging_test.sh:*)",
+      "Bash(/tmp/validate_messaging_test.sh)",
+      "Bash(/tmp/validate_performance.sh:*)",
+      "Bash(/tmp/validate_idempotency.sh:*)",
+      "Bash(/tmp/validate_idempotency.sh)",
+      "Bash(/tmp/validate_remaining.sh:*)",
+      "Bash(/tmp/final_validation_report.sh:*)",
+      "Bash(/tmp/archive_summary.sh:*)",
+      "Bash(do npm run test:e2e -- admin-moderation.spec.ts)"
     ]
   }
 }
