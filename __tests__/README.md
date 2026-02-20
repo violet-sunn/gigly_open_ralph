@@ -39,6 +39,7 @@ __tests__/
 - Complete user workflows in browser
 - Slower (1-5s per test)
 - Example: `registration.spec.ts` - Test full registration flow
+- **IMPORTANT:** Uses different database architecture - see `__tests__/e2e/README.md`
 
 ## AAA Pattern (Mandatory)
 
@@ -101,6 +102,7 @@ createAuthenticatedSpecialist(tx: PrismaClient, overrides?): Promise<{ user: Use
 
 setE2ESession(page: Page, user: User): Promise<void>
 // Set authenticated session in Playwright E2E test
+// NOTE: E2E tests use shared test.db - see __tests__/e2e/README.md
 ```
 
 See `TESTING.md` for comprehensive documentation.
@@ -215,10 +217,35 @@ describe('Gig Creation', () => {
 
 ### E2E Test Example
 
+**NOTE:** E2E tests require special setup. See `__tests__/e2e/README.md` for complete guide.
+
 ```typescript
 import { test, expect } from '@playwright/test'
+import { PrismaClient } from '@prisma/client'
+import { PrismaLibSql } from '@prisma/adapter-libsql'
+import { setE2ESession } from '../helpers/auth'
+import { createTestUser } from '../helpers/seed'
 
-test('user can register as CLIENT', async ({ page }) => {
+// E2E tests use libSQL adapter (same as production)
+const adapter = new PrismaLibSql({
+  url: process.env.DATABASE_URL || 'file:./test.db'
+})
+
+const prisma = new PrismaClient({
+  adapter: adapter as any
+})
+
+test.describe('Registration', () => {
+  // CRITICAL: Clean up after each test
+  test.afterEach(async () => {
+    await prisma.user.deleteMany({})
+  })
+
+  test.afterAll(async () => {
+    await prisma.$disconnect()
+  })
+
+  test('user can register as CLIENT', async ({ page }) => {
   // Arrange
   await page.goto('/register')
 

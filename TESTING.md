@@ -124,16 +124,105 @@ describe('Feature', () => {
 
 Location: `__tests__/e2e/`
 
+**IMPORTANT:** E2E tests use a **different database architecture** than unit/integration tests. See [E2E Testing Guide](./__tests__/e2e/README.md) for comprehensive documentation.
+
+**Key Differences:**
+- **Database:** Single shared `test.db` (not per-worker isolation)
+- **Execution:** Sequential (`workers: 1` in playwright.config.ts)
+- **Setup:** Uses `global-setup.ts` to initialize database and load `.env.test`
+- **Cleanup:** Requires `afterEach` or `afterAll` hooks to prevent data pollution
+- **PrismaClient:** Must use libSQL adapter (same as production)
+
 Example:
 ```typescript
 import { test, expect } from '@playwright/test'
+import { PrismaClient } from '@prisma/client'
+import { PrismaLibSql } from '@prisma/adapter-libsql'
+import { setE2ESession } from '../helpers/auth'
+import { createTestUser } from '../helpers/seed'
 
-test('user can complete workflow', async ({ page }) => {
-  await page.goto('/page')
-  await page.fill('input[name="field"]', 'value')
-  await page.click('button[type="submit"]')
-  await expect(page.locator('text=Success')).toBeVisible()
+// Initialize PrismaClient with libSQL adapter
+const adapter = new PrismaLibSql({
+  url: process.env.DATABASE_URL || 'file:./test.db'
 })
+
+const prisma = new PrismaClient({
+  adapter: adapter as any
+})
+
+test.describe('My Feature', () => {
+  // CRITICAL: Clean up test data after each test
+  test.afterEach(async () => {
+    await prisma.user.deleteMany({})
+  })
+
+  test.afterAll(async () => {
+    await prisma.$disconnect()
+  })
+
+  test('user can complete workflow', async ({ page }) => {
+    // Create test user in database
+    const user = await createTestUser(prisma, { role: 'CLIENT' })
+
+    // Set authenticated session
+    await setE2ESession(page, user)
+
+    // Test workflow
+    await page.goto('/dashboard')
+    await expect(page).toHaveURL(/\/dashboard/)
+  })
+})
+```
+
+**Why E2E uses shared database:**
+- Dev server and browser must see the same data
+- Dev server is a separate process that cannot access per-worker databases
+- Playwright automatically starts dev server with shared `test.db`
+
+**See [__tests__/e2e/README.md](./__tests__/e2e/README.md) for:**
+- Complete architecture explanation
+- Database setup and cleanup patterns
+- Common pitfalls and troubleshooting
+- Best practices for E2E tests
+
+#### Complete Client Journey Test
+
+The `client-journey.spec.ts` test validates the entire client workflow from registration through payment:
+
+```bash
+npm run test:e2e -- client-journey.spec.ts
+```
+
+**Test Coverage:**
+1. Client registration and authentication
+2. Gig creation via UI with Russian data
+3. Specialist application (programmatic)
+4. Application acceptance via UI
+5. Work submission (programmatic)
+6. Work approval via UI
+7. Payment marking via UI
+8. Final state verification
+
+**Duration:** ~18-20 seconds
+
+**Key Features:**
+- Hybrid approach: Client actions via Playwright UI, specialist actions programmatically
+- Uses realistic Russian company names, gig titles, and descriptions
+- Verifies complete gig lifecycle: OPEN → IN_PROGRESS → REVIEW → COMPLETED → PAID
+- Idempotent: Can run multiple times without conflicts
+- Comprehensive state verification at each step
+
+**Example output:**
+```
+✓ Created CLIENT user: cmlv6m2gh0000ykbi0rltvnah (client-1771609597788-dennou@test.com)
+✓ After gig creation, redirected to: http://localhost:3000/dashboard
+✓ Found created gig: cmlv6m5q40000usbishxsckbl
+✓ Gig status after accept: IN_PROGRESS
+✓ Assigned specialist: cmlv6m6cc0001ykbizcq7cxv0
+✓ Specialist submitted work, gig status: REVIEW
+✓ Gig status after approve: COMPLETED
+✓ Gig status after mark as paid: PAID
+✅ Complete client journey test passed!
 ```
 
 ## Test Database
