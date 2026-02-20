@@ -47,6 +47,9 @@ test.db
 test.db-journal
 
 /app/generated/prisma
+
+# test databases
+__tests__/.tmp/
 memdb_*.db
 memdb_*.db-wal
 memdb_*.db-shm

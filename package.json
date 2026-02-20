@@ -11,7 +11,7 @@
     "test:unit": "vitest run",
     "test:e2e": "playwright test",
     "test:coverage": "vitest run --coverage",
-    "clean:test-db": "rimraf memdb_*.db* test.db",
+    "clean:test-db": "rimraf __tests__/.tmp memdb_*.db* test.db",
     "test:clean": "npm run clean:test-db && npm run test:unit"
   },
   "prisma": {

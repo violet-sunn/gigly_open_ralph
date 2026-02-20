@@ -7,6 +7,9 @@ import path from 'path'
 // Cache for per-worker Prisma clients
 const clientCache = new Map<string, PrismaClient>()
 
+// Directory for test database files (relative to project root)
+const TEST_DB_DIR = path.join(process.cwd(), '__tests__', '.tmp')
+
 /**
  * Get unique worker identifier for database isolation
  */
@@ -22,9 +25,15 @@ function getWorkerId(): string {
 export async function setupTestDatabase(): Promise<PrismaClient> {
   const workerId = getWorkerId()
 
+  // Ensure test database directory exists
+  if (!fs.existsSync(TEST_DB_DIR)) {
+    fs.mkdirSync(TEST_DB_DIR, { recursive: true })
+  }
+
   // Generate unique database URL for this worker
   // LibSQL doesn't support SQLite query parameters, so use simple file path
-  const databaseUrl = `file:memdb_${workerId}.db`
+  const dbPath = path.join(TEST_DB_DIR, `memdb_${workerId}.db`)
+  const databaseUrl = `file:${dbPath}`
 
   console.log(`[Worker ${workerId}] Setting up test database: ${databaseUrl}`)
 
@@ -78,7 +87,7 @@ export async function cleanupTestDatabase(client: PrismaClient | undefined): Pro
     // Try to remove database files (may fail on Windows due to file locks)
     // This is not critical - files will be overwritten on next run
     try {
-      const dbPath = path.join(process.cwd(), `memdb_${workerId}.db`)
+      const dbPath = path.join(TEST_DB_DIR, `memdb_${workerId}.db`)
       if (fs.existsSync(dbPath)) {
         fs.unlinkSync(dbPath)
       }
