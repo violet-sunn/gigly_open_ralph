@@ -225,6 +225,55 @@ npm run test:e2e -- client-journey.spec.ts
 ✅ Complete client journey test passed!
 ```
 
+#### Admin Moderation Test
+
+The `admin-moderation.spec.ts` test validates the complete admin moderation workflow:
+
+```bash
+npm run test:e2e -- admin-moderation.spec.ts
+```
+
+**Test Coverage:**
+1. Setup: Create test users (CLIENT, SPECIALIST, ADMIN) and gig programmatically
+2. Admin authentication (programmatic)
+3. User suspension via UI with Russian reason
+4. Suspended user login verification (login blocked)
+5. Admin re-authentication
+6. Gig closure via UI with Russian reason
+7. Moderation history verification (database)
+8. Final state verification
+
+**Duration:** ~19 seconds
+
+**Key Features:**
+- Hybrid approach: Admin actions via Playwright UI, setup programmatically
+- Tests critical safety features: user suspension and gig closure
+- Verifies suspended users cannot login
+- Verifies ModerationLog entries are created with correct data
+- Uses realistic Russian moderation reasons
+- Idempotent: Can run multiple times without conflicts
+- Comprehensive database verification at each step
+
+**Example output:**
+```
+✓ Created CLIENT user: cmlvchroj00004gbimzfr9wz5 (client-1771619474890-akugq@test.com)
+✓ Created SPECIALIST user: cmlvchrqr00014gbibx36v2pm (specialist-1771619474890-akugq@test.com)
+✓ Created ADMIN user: cmlvchrsp00024gbixz372moq (admin-1771619474890-akugq@test.com)
+✓ Created OPEN gig: cmlvchrt200034gbi64jlfvyz
+✓ Admin authenticated successfully
+✓ Suspend action completed, checking database...
+✓ User suspended successfully
+✓ ModerationLog entry created for SUSPEND_USER
+✓ Suspended user login blocked successfully
+✓ Admin re-authenticated successfully
+✓ Close gig action completed, checking database...
+✓ Gig closed successfully
+✓ ModerationLog entry created for CLOSE_GIG
+✓ Moderation history verified: 2 log entries
+✓ Final state verification passed
+✓ Test completed successfully
+```
+
 ## Test Database
 
 Tests use isolated per-worker databases to enable fast parallel execution:
