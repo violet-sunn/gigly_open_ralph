@@ -10,6 +10,18 @@ Gigly uses a comprehensive testing framework with three layers:
 
 **All supported and maintained tests live under `__tests__/`** using Vitest and Playwright. Legacy custom-runner scripts have been archived to `scripts/legacy-tests/` for historical reference only and are not run in CI.
 
+## Quick Reference
+
+Before committing tests, use the [Test Quality Checklist](./TESTING_CHECKLIST.md) to self-review for common issues:
+- Test isolation and parallel execution
+- Proper mocking of Next.js APIs
+- Naming conventions and organization
+- Flakiness prevention
+- Coverage expectations
+- Anti-patterns to avoid
+
+The checklist provides a quick yes/no review. For comprehensive guidance, continue reading this document.
+
 ## Running Tests
 
 ### All Tests (Watch Mode)
