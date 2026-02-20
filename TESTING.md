@@ -8,6 +8,8 @@ Gigly uses a comprehensive testing framework with three layers:
 2. **Integration Tests** (Vitest) - Test server actions and database operations
 3. **E2E Tests** (Playwright) - Test complete user workflows in browser
 
+**All supported and maintained tests live under `__tests__/`** using Vitest and Playwright. Legacy custom-runner scripts have been archived to `scripts/legacy-tests/` for historical reference only and are not run in CI.
+
 ## Running Tests
 
 ### All Tests (Watch Mode)
