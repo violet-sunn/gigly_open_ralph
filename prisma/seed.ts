@@ -30,7 +30,7 @@ async function main() {
 
   // Example Gig 1: Backend API Development
   const gig1Budget = 18000000; // 180,000 RUB
-  const gig1ServiceFee = Math.floor(gig1Budget * 0.20);
+  const gig1ServiceFee = Math.floor(gig1Budget * 0.10);
   const gig1Total = gig1Budget + gig1ServiceFee;
 
   await prisma.gig.upsert({
@@ -58,7 +58,7 @@ async function main() {
 
   // Example Gig 2: Frontend Component
   const gig2Budget = 15000000; // 150,000 RUB
-  const gig2ServiceFee = Math.floor(gig2Budget * 0.20);
+  const gig2ServiceFee = Math.floor(gig2Budget * 0.10);
   const gig2Total = gig2Budget + gig2ServiceFee;
 
   await prisma.gig.upsert({
@@ -86,7 +86,7 @@ async function main() {
 
   // Example Gig 3: DevOps Automation
   const gig3Budget = 17000000; // 170,000 RUB
-  const gig3ServiceFee = Math.floor(gig3Budget * 0.20);
+  const gig3ServiceFee = Math.floor(gig3Budget * 0.10);
   const gig3Total = gig3Budget + gig3ServiceFee;
 
   await prisma.gig.upsert({
@@ -114,7 +114,7 @@ async function main() {
 
   // Example Gig 4: Database Optimization
   const gig4Budget = 16000000; // 160,000 RUB
-  const gig4ServiceFee = Math.floor(gig4Budget * 0.20);
+  const gig4ServiceFee = Math.floor(gig4Budget * 0.10);
   const gig4Total = gig4Budget + gig4ServiceFee;
 
   await prisma.gig.upsert({
@@ -142,7 +142,7 @@ async function main() {
 
   // Example Gig 5: Testing Infrastructure
   const gig5Budget = 19000000; // 190,000 RUB
-  const gig5ServiceFee = Math.floor(gig5Budget * 0.20);
+  const gig5ServiceFee = Math.floor(gig5Budget * 0.10);
   const gig5Total = gig5Budget + gig5ServiceFee;
 
   await prisma.gig.upsert({

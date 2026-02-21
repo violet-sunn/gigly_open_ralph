@@ -136,8 +136,8 @@ test.describe('Complete Client Journey E2E', () => {
     expect(gig).toBeTruthy()
     expect(gig?.status).toBe('OPEN')
     expect(gig?.budget).toBe(150000) // 1500 roubles = 150000 kopecks
-    expect(gig?.serviceFee).toBe(30000) // 20% of budget
-    expect(gig?.totalAmount).toBe(180000) // budget + serviceFee
+    expect(gig?.serviceFee).toBe(15000) // 10% of budget
+    expect(gig?.totalAmount).toBe(165000) // budget + serviceFee
 
     // ========================================================================
     // STEP 3: Specialist applies to gig (programmatic)
@@ -331,8 +331,8 @@ test.describe('Complete Client Journey E2E', () => {
 
     // Verify budget calculations
     expect(finalGig?.budget).toBe(150000)
-    expect(finalGig?.serviceFee).toBe(30000)
-    expect(finalGig?.totalAmount).toBe(180000)
+    expect(finalGig?.serviceFee).toBe(15000)
+    expect(finalGig?.totalAmount).toBe(165000)
 
     console.log('✅ Complete client journey test passed!')
     console.log(`   Gig ID: ${gigId}`)

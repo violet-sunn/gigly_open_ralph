@@ -215,7 +215,7 @@ describe('Gig Creation', () => {
 
     // Assert
     const gig = await prisma.gig.findFirst({ where: { title: 'Test Gig' } })
-    expect(gig?.serviceFee).toBe(20000) // 20% of 100000
+    expect(gig?.serviceFee).toBe(10000) // 10% of 100000
   })
 })
 ```

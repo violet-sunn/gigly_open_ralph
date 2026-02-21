@@ -10,7 +10,7 @@ The system MUST provide a `createGig` server action that creates a gig for the a
 - WHEN `createGig` is called with valid title, description, acceptanceCriteria, budget (in roubles), tags, AND optional goal, deliverables, constraints
 - THEN a Gig record MUST be created with:
   - `budget` = input budget converted to kopecks (× 100)
-  - `serviceFee` = budget × 0.20
+  - `serviceFee` = budget × 0.10
   - `totalAmount` = budget + serviceFee
   - `status` = "OPEN"
   - `clientId` = session userId
@@ -70,29 +70,29 @@ The system MUST provide a `createGig` server action that creates a gig for the a
 - Empty or missing optional fields default to empty string ""
 - No validation errors for short or empty optional fields
 - Budget input is in roubles (user-facing), stored in kopecks (DB)
-- Service fee is 20% of budget
+- Service fee is 10% of budget
 - On success: redirects to `/dashboard`
 - On failure: returns `{ error: string }`
 
 ---
 
 ### Requirement: Fee Calculation
-The system MUST calculate service fee as 20% of the budget.
+The system MUST calculate service fee as 10% of the budget.
 
 #### Scenario: Fee calculation for 100,000 ₽ budget
 - GIVEN a budget of 100000 (roubles)
 - WHEN fee is calculated
-- THEN serviceFee MUST be 2000000 kopecks (20,000 ₽ × 100)
-- AND totalAmount MUST be 12000000 kopecks (120,000 ₽ × 100)
+- THEN serviceFee MUST be 1000000 kopecks (10,000 ₽ × 100)
+- AND totalAmount MUST be 11000000 kopecks (110,000 ₽ × 100)
 
 #### Scenario: Fee calculation rounds down for fractional kopecks
 - GIVEN a budget of 333 roubles
 - WHEN fee is calculated
-- THEN serviceFee MUST be Math.floor(33300 × 0.20) = 6660 kopecks
-- AND totalAmount MUST be 33300 + 6660 = 39960 kopecks
+- THEN serviceFee MUST be Math.floor(33300 × 0.10) = 3330 kopecks
+- AND totalAmount MUST be 33300 + 3330 = 36630 kopecks
 
 **Acceptance Criteria:**
-- `serviceFee = Math.floor(budgetKopecks * 0.20)`
+- `serviceFee = Math.floor(budgetKopecks * 0.10)`
 - `totalAmount = budgetKopecks + serviceFee`
 - All monetary values stored as integers (kopecks)
 

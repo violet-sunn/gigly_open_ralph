@@ -36,7 +36,7 @@ export function GigForm() {
 
   const budgetNum = Number(budget)
   const showPreview = budgetNum > 0 && Number.isFinite(budgetNum)
-  const fee = showPreview ? Math.floor(budgetNum * 0.20) : 0
+  const fee = showPreview ? Math.floor(budgetNum * 0.10) : 0
   const total = showPreview ? budgetNum + fee : 0
 
   return (
@@ -244,7 +244,7 @@ export function GigForm() {
                 <span className="font-medium">{formatRoubles(budgetNum)} ₽</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Service fee (20%):</span>
+                <span className="text-gray-600">Service fee (10%):</span>
                 <span className="font-medium">{formatRoubles(fee)} ₽</span>
               </div>
               <div className="flex justify-between border-t border-gray-200 pt-1">
