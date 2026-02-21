@@ -273,7 +273,7 @@ export async function createTestUser(
 ) {
   const role = overrides?.role || 'CLIENT'
   const email = overrides?.email || generateUniqueEmail()
-  const password = overrides?.password || 'password123'
+  const password = overrides?.password || 'TestPass123'
   const hashedPassword = await bcrypt.hash(password, 10)
 
   // Build user data

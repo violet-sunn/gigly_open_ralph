@@ -186,4 +186,36 @@ describe('Login and Session Tests', () => {
     const sessionToken = getTestSessionToken()
     expect(sessionToken).toBeUndefined()
   })
+
+  it('allows existing users with weak passwords to login', async () => {
+    const email = `olduser-${Date.now()}-${Math.random()}@example.com`
+    testEmails.push(email)
+
+    // Create user with weak password directly in database (simulating old user)
+    const prisma = getTestPrismaClient()
+    const hashedPassword = await bcrypt.hash('weak', 10)
+    await prisma.user.create({
+      data: {
+        email,
+        password: hashedPassword,
+        role: 'CLIENT'
+      }
+    })
+
+    // Attempt login with weak password
+    const formData = new FormData()
+    formData.append('email', email)
+    formData.append('password', 'weak')
+
+    try {
+      await loginUser(null, formData)
+      throw new Error('Expected redirect but got none')
+    } catch (error: any) {
+      expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+    }
+
+    // Verify session was created
+    const sessionToken = getTestSessionToken()
+    expect(sessionToken).toBeDefined()
+  })
 })

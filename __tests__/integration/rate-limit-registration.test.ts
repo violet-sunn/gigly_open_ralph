@@ -61,7 +61,7 @@ describe('Registration Rate Limiting', () => {
 
     const formData = new FormData()
     formData.append('email', `newuser-${Date.now()}@example.com`)
-    formData.append('password', 'password123')
+    formData.append('password', 'TestPass123')
     formData.append('role', 'CLIENT')
 
     try {
@@ -93,7 +93,7 @@ describe('Registration Rate Limiting', () => {
 
     const formData = new FormData()
     formData.append('email', 'test@example.com')
-    formData.append('password', 'password123')
+    formData.append('password', 'TestPass123')
     formData.append('role', 'SPECIALIST')
 
     const result = await registerUser(null, formData)
@@ -115,7 +115,7 @@ describe('Registration Rate Limiting', () => {
 
     const formData = new FormData()
     formData.append('email', 'test@example.com')
-    formData.append('password', 'password123')
+    formData.append('password', 'TestPass123')
     formData.append('role', 'CLIENT')
 
     const result = await registerUser(null, formData)

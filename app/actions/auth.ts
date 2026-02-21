@@ -6,13 +6,14 @@ import { headers } from 'next/headers'
 import { prisma } from '@/lib/prisma'
 import { createSession, destroySession } from '@/lib/session'
 import { loginRateLimiter, registerRateLimiter, getRateLimitError } from '@/lib/ratelimit'
+import { validatePassword } from '@/lib/password'
 
 export async function registerUser(
   prevState: { error?: string } | null,
   formData: FormData
 ) {
   // Get IP address for rate limiting
-  const headersList = headers()
+  const headersList = await headers()
   const ipAddress = headersList.get('x-forwarded-for') ||
                     headersList.get('x-real-ip') ||
                     'unknown'
@@ -26,6 +27,12 @@ export async function registerUser(
   const email = formData.get('email') as string
   const password = formData.get('password') as string
   const role = formData.get('role') as string
+
+  // Validate password strength BEFORE hashing
+  const passwordValidation = validatePassword(password)
+  if (!passwordValidation.valid) {
+    return { error: passwordValidation.error }
+  }
 
   if (!role || !['CLIENT', 'SPECIALIST'].includes(role)) {
     return { error: 'Please select a role.' }
@@ -54,7 +61,7 @@ export async function loginUser(
   formData: FormData
 ) {
   // Get IP address for rate limiting
-  const headersList = headers()
+  const headersList = await headers()
   const ipAddress = headersList.get('x-forwarded-for') ||
                     headersList.get('x-real-ip') ||
                     'unknown'

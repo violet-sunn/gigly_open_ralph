@@ -234,3 +234,155 @@ describe('User Registration Tests', () => {
     expect(user?.suspended).toBe(false) // Default value, not from payload
   })
 })
+
+describe('Password Strength Requirements', () => {
+  const testEmails: string[] = []
+
+  beforeEach(() => {
+    setTestSessionToken(undefined)
+  })
+
+  afterEach(async () => {
+    const prisma = getTestPrismaClient()
+    for (const email of testEmails) {
+      try {
+        await prisma.user.delete({ where: { email } })
+      } catch (error) {
+        // User might not exist, ignore
+      }
+    }
+    testEmails.length = 0
+  })
+
+  it('allows registration with strong password', async () => {
+    const email = `user-${Date.now()}-${Math.random()}@example.com`
+    testEmails.push(email)
+
+    const formData = new FormData()
+    formData.append('email', email)
+    formData.append('password', 'SecurePass123')
+    formData.append('role', 'CLIENT')
+
+    try {
+      await registerUser(null, formData)
+      throw new Error('Expected redirect but got none')
+    } catch (error: any) {
+      expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+    }
+
+    // Verify user was created
+    const prisma = getTestPrismaClient()
+    const user = await prisma.user.findUnique({ where: { email } })
+    expect(user).toBeDefined()
+  })
+
+  it('rejects registration with invalid characters (Cyrillic)', async () => {
+    const email = `user-${Date.now()}-${Math.random()}@example.com`
+    testEmails.push(email)
+
+    const formData = new FormData()
+    formData.append('email', email)
+    formData.append('password', 'Пароль123') // Cyrillic characters
+    formData.append('role', 'CLIENT')
+
+    const result = await registerUser(null, formData)
+
+    expect(result).toEqual({ error: 'Password can only contain Latin letters, numbers, and special characters.' })
+
+    // Verify no user was created
+    const prisma = getTestPrismaClient()
+    const user = await prisma.user.findUnique({ where: { email } })
+    expect(user).toBeNull()
+  })
+
+  it('rejects registration with too-short password', async () => {
+    const email = `user-${Date.now()}-${Math.random()}@example.com`
+    testEmails.push(email)
+
+    const formData = new FormData()
+    formData.append('email', email)
+    formData.append('password', 'Abc1')
+    formData.append('role', 'CLIENT')
+
+    const result = await registerUser(null, formData)
+
+    expect(result).toEqual({ error: 'Password must be at least 8 characters long.' })
+
+    // Verify no user was created
+    const prisma = getTestPrismaClient()
+    const user = await prisma.user.findUnique({ where: { email } })
+    expect(user).toBeNull()
+  })
+
+  it('rejects registration with too-long password', async () => {
+    const email = `user-${Date.now()}-${Math.random()}@example.com`
+    testEmails.push(email)
+
+    const formData = new FormData()
+    formData.append('email', email)
+    formData.append('password', 'A' + 'a'.repeat(71) + '1') // 73 chars
+    formData.append('role', 'CLIENT')
+
+    const result = await registerUser(null, formData)
+
+    expect(result).toEqual({ error: 'Password must not exceed 72 characters.' })
+
+    const prisma = getTestPrismaClient()
+    const user = await prisma.user.findUnique({ where: { email } })
+    expect(user).toBeNull()
+  })
+
+  it('rejects registration with missing uppercase', async () => {
+    const email = `user-${Date.now()}-${Math.random()}@example.com`
+    testEmails.push(email)
+
+    const formData = new FormData()
+    formData.append('email', email)
+    formData.append('password', 'lowercase123')
+    formData.append('role', 'CLIENT')
+
+    const result = await registerUser(null, formData)
+
+    expect(result).toEqual({ error: 'Password must contain at least one uppercase letter.' })
+
+    const prisma = getTestPrismaClient()
+    const user = await prisma.user.findUnique({ where: { email } })
+    expect(user).toBeNull()
+  })
+
+  it('rejects registration with missing lowercase', async () => {
+    const email = `user-${Date.now()}-${Math.random()}@example.com`
+    testEmails.push(email)
+
+    const formData = new FormData()
+    formData.append('email', email)
+    formData.append('password', 'UPPERCASE123')
+    formData.append('role', 'CLIENT')
+
+    const result = await registerUser(null, formData)
+
+    expect(result).toEqual({ error: 'Password must contain at least one lowercase letter.' })
+
+    const prisma = getTestPrismaClient()
+    const user = await prisma.user.findUnique({ where: { email } })
+    expect(user).toBeNull()
+  })
+
+  it('rejects registration with missing number', async () => {
+    const email = `user-${Date.now()}-${Math.random()}@example.com`
+    testEmails.push(email)
+
+    const formData = new FormData()
+    formData.append('email', email)
+    formData.append('password', 'NoNumbers')
+    formData.append('role', 'CLIENT')
+
+    const result = await registerUser(null, formData)
+
+    expect(result).toEqual({ error: 'Password must contain at least one number.' })
+
+    const prisma = getTestPrismaClient()
+    const user = await prisma.user.findUnique({ where: { email } })
+    expect(user).toBeNull()
+  })
+})
