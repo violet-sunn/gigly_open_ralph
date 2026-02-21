@@ -1,6 +1,9 @@
 import { PrismaClient } from '@prisma/client';
 import { PrismaLibSql } from '@prisma/adapter-libsql';
-import bcrypt from 'bcryptjs';
+
+// Pre-computed bcrypt hash for "TestPass123" (rounds: 10)
+// Generated with: await bcrypt.hash('TestPass123', 10)
+const DEFAULT_PASSWORD_HASH = '$2b$10$NitKVLl3OVhiFXU0UGhMWuU0ruyHM0PwObvjqEwZblQ4/TftsOAgm';
 
 const adapter = new PrismaLibSql({
   url: process.env.DATABASE_URL || 'file:./prisma/dev.db',
@@ -11,31 +14,244 @@ const prisma = new PrismaClient({
 });
 
 async function main() {
-  console.log('Starting seed...');
+  console.log('Starting seed...\n');
 
-  // Create seed CLIENT user
-  const hashedPassword = await bcrypt.hash('example-password-123', 10);
+  // ========================================
+  // Foundation CLIENT Users
+  // ========================================
 
-  const seedUser = await prisma.user.upsert({
-    where: { email: 'example-client@gigly.ru' },
-    update: {},
+  const client1 = await prisma.user.upsert({
+    where: { email: 'ivan.petrov@techcorp.ru' },
+    update: {
+      clientProfile: {
+        upsert: {
+          create: {
+            companyName: 'ТехКорп',
+            inn: '7701234567',
+            kpp: '770101001',
+            contactPerson: 'Иван Петров',
+            phoneNumber: '+7 (495) 123-45-67',
+          },
+          update: {
+            companyName: 'ТехКорп',
+            inn: '7701234567',
+            kpp: '770101001',
+            contactPerson: 'Иван Петров',
+            phoneNumber: '+7 (495) 123-45-67',
+          },
+        },
+      },
+    },
     create: {
-      email: 'example-client@gigly.ru',
-      password: hashedPassword,
+      email: 'ivan.petrov@techcorp.ru',
+      password: DEFAULT_PASSWORD_HASH,
       role: 'CLIENT',
+      clientProfile: {
+        create: {
+          companyName: 'ТехКорп',
+          inn: '7701234567',
+          kpp: '770101001',
+          contactPerson: 'Иван Петров',
+          phoneNumber: '+7 (495) 123-45-67',
+        },
+      },
     },
   });
+  console.log('Created CLIENT user: ivan.petrov@techcorp.ru');
 
-  console.log(`Seed user created/found: ${seedUser.email}`);
+  const client2 = await prisma.user.upsert({
+    where: { email: 'maria.sokolova@digitalpro.ru' },
+    update: {
+      clientProfile: {
+        upsert: {
+          create: {
+            companyName: 'ДиджиталПро',
+            inn: '7702345678',
+            kpp: '770201001',
+            contactPerson: 'Мария Соколова',
+            phoneNumber: '+7 (495) 234-56-78',
+          },
+          update: {
+            companyName: 'ДиджиталПро',
+            inn: '7702345678',
+            kpp: '770201001',
+            contactPerson: 'Мария Соколова',
+            phoneNumber: '+7 (495) 234-56-78',
+          },
+        },
+      },
+    },
+    create: {
+      email: 'maria.sokolova@digitalpro.ru',
+      password: DEFAULT_PASSWORD_HASH,
+      role: 'CLIENT',
+      clientProfile: {
+        create: {
+          companyName: 'ДиджиталПро',
+          inn: '7702345678',
+          kpp: '770201001',
+          contactPerson: 'Мария Соколова',
+          phoneNumber: '+7 (495) 234-56-78',
+        },
+      },
+    },
+  });
+  console.log('Created CLIENT user: maria.sokolova@digitalpro.ru');
 
-  // Example Gig 1: Backend API Development
+  // ========================================
+  // Foundation SPECIALIST Users
+  // ========================================
+
+  await prisma.user.upsert({
+    where: { email: 'alexey.ivanov@mail.ru' },
+    update: {
+      specialistProfile: {
+        upsert: {
+          create: {
+            displayName: 'Алексей Иванов',
+            techStack: 'React, TypeScript, Next.js, Tailwind CSS',
+            experienceLevel: 'SENIOR',
+            bio: 'Senior фронтенд-разработчик с 8 годами опыта. Специализируюсь на React и TypeScript.',
+            hourlyRate: 600000,
+          },
+          update: {
+            displayName: 'Алексей Иванов',
+            techStack: 'React, TypeScript, Next.js, Tailwind CSS',
+            experienceLevel: 'SENIOR',
+            bio: 'Senior фронтенд-разработчик с 8 годами опыта. Специализируюсь на React и TypeScript.',
+            hourlyRate: 600000,
+          },
+        },
+      },
+    },
+    create: {
+      email: 'alexey.ivanov@mail.ru',
+      password: DEFAULT_PASSWORD_HASH,
+      role: 'SPECIALIST',
+      specialistProfile: {
+        create: {
+          displayName: 'Алексей Иванов',
+          techStack: 'React, TypeScript, Next.js, Tailwind CSS',
+          experienceLevel: 'SENIOR',
+          bio: 'Senior фронтенд-разработчик с 8 годами опыта. Специализируюсь на React и TypeScript.',
+          hourlyRate: 600000,
+        },
+      },
+    },
+  });
+  console.log('Created SPECIALIST user: alexey.ivanov@mail.ru');
+
+  await prisma.user.upsert({
+    where: { email: 'dmitry.volkov@yandex.ru' },
+    update: {
+      specialistProfile: {
+        upsert: {
+          create: {
+            displayName: 'Дмитрий Волков',
+            techStack: 'Python, Django, PostgreSQL, Redis',
+            experienceLevel: 'MIDDLE',
+            bio: 'Middle бэкенд-разработчик. Работаю с Python и Django более 5 лет.',
+            hourlyRate: 450000,
+          },
+          update: {
+            displayName: 'Дмитрий Волков',
+            techStack: 'Python, Django, PostgreSQL, Redis',
+            experienceLevel: 'MIDDLE',
+            bio: 'Middle бэкенд-разработчик. Работаю с Python и Django более 5 лет.',
+            hourlyRate: 450000,
+          },
+        },
+      },
+    },
+    create: {
+      email: 'dmitry.volkov@yandex.ru',
+      password: DEFAULT_PASSWORD_HASH,
+      role: 'SPECIALIST',
+      specialistProfile: {
+        create: {
+          displayName: 'Дмитрий Волков',
+          techStack: 'Python, Django, PostgreSQL, Redis',
+          experienceLevel: 'MIDDLE',
+          bio: 'Middle бэкенд-разработчик. Работаю с Python и Django более 5 лет.',
+          hourlyRate: 450000,
+        },
+      },
+    },
+  });
+  console.log('Created SPECIALIST user: dmitry.volkov@yandex.ru');
+
+  await prisma.user.upsert({
+    where: { email: 'sergey.morozov@gmail.com' },
+    update: {
+      specialistProfile: {
+        upsert: {
+          create: {
+            displayName: 'Сергей Морозов',
+            techStack: 'Go, Docker, Kubernetes, CI/CD, AWS',
+            experienceLevel: 'SENIOR',
+            bio: 'Senior DevOps инженер. Специализируюсь на контейнеризации и автоматизации.',
+            hourlyRate: 700000,
+          },
+          update: {
+            displayName: 'Сергей Морозов',
+            techStack: 'Go, Docker, Kubernetes, CI/CD, AWS',
+            experienceLevel: 'SENIOR',
+            bio: 'Senior DevOps инженер. Специализируюсь на контейнеризации и автоматизации.',
+            hourlyRate: 700000,
+          },
+        },
+      },
+    },
+    create: {
+      email: 'sergey.morozov@gmail.com',
+      password: DEFAULT_PASSWORD_HASH,
+      role: 'SPECIALIST',
+      specialistProfile: {
+        create: {
+          displayName: 'Сергей Морозов',
+          techStack: 'Go, Docker, Kubernetes, CI/CD, AWS',
+          experienceLevel: 'SENIOR',
+          bio: 'Senior DevOps инженер. Специализируюсь на контейнеризации и автоматизации.',
+          hourlyRate: 700000,
+        },
+      },
+    },
+  });
+  console.log('Created SPECIALIST user: sergey.morozov@gmail.com');
+
+  // ========================================
+  // Foundation ADMIN User
+  // ========================================
+
+  await prisma.user.upsert({
+    where: { email: 'admin@gigly.ru' },
+    update: {},
+    create: {
+      email: 'admin@gigly.ru',
+      password: DEFAULT_PASSWORD_HASH,
+      role: 'ADMIN',
+    },
+  });
+  console.log('Created ADMIN user: admin@gigly.ru');
+
+  console.log('');
+
+  // ========================================
+  // Example Gigs
+  // ========================================
+
+  // Example Gig 1: Backend API Development (Client 1)
   const gig1Budget = 18000000; // 180,000 RUB
   const gig1ServiceFee = Math.floor(gig1Budget * 0.10);
   const gig1Total = gig1Budget + gig1ServiceFee;
 
   await prisma.gig.upsert({
     where: { id: 'example-gig-backend-api' },
-    update: {},
+    update: {
+      clientId: client1.id,
+      serviceFee: gig1ServiceFee,
+      totalAmount: gig1Total,
+    },
     create: {
       id: 'example-gig-backend-api',
       title: 'REST API для системы управления пользователями',
@@ -50,20 +266,23 @@ async function main() {
       tags: 'Node.js,TypeScript,PostgreSQL,REST API,JWT',
       status: 'OPEN',
       isExample: true,
-      clientId: seedUser.id,
+      clientId: client1.id,
     },
   });
+  console.log('Created/updated example gig: Backend API');
 
-  console.log('Example gig 1 created: Backend API');
-
-  // Example Gig 2: Frontend Component
+  // Example Gig 2: Frontend Component (Client 1)
   const gig2Budget = 15000000; // 150,000 RUB
   const gig2ServiceFee = Math.floor(gig2Budget * 0.10);
   const gig2Total = gig2Budget + gig2ServiceFee;
 
   await prisma.gig.upsert({
     where: { id: 'example-gig-frontend-dashboard' },
-    update: {},
+    update: {
+      clientId: client1.id,
+      serviceFee: gig2ServiceFee,
+      totalAmount: gig2Total,
+    },
     create: {
       id: 'example-gig-frontend-dashboard',
       title: 'React дашборд с визуализацией данных',
@@ -78,20 +297,23 @@ async function main() {
       tags: 'React,TypeScript,Tailwind CSS,Data Visualization',
       status: 'OPEN',
       isExample: true,
-      clientId: seedUser.id,
+      clientId: client1.id,
     },
   });
+  console.log('Created/updated example gig: Frontend Dashboard');
 
-  console.log('Example gig 2 created: Frontend Dashboard');
-
-  // Example Gig 3: DevOps Automation
+  // Example Gig 3: DevOps Automation (Client 1)
   const gig3Budget = 17000000; // 170,000 RUB
   const gig3ServiceFee = Math.floor(gig3Budget * 0.10);
   const gig3Total = gig3Budget + gig3ServiceFee;
 
   await prisma.gig.upsert({
     where: { id: 'example-gig-devops-cicd' },
-    update: {},
+    update: {
+      clientId: client1.id,
+      serviceFee: gig3ServiceFee,
+      totalAmount: gig3Total,
+    },
     create: {
       id: 'example-gig-devops-cicd',
       title: 'CI/CD pipeline для Node.js приложения',
@@ -106,20 +328,23 @@ async function main() {
       tags: 'DevOps,CI/CD,Docker,GitHub Actions,Node.js',
       status: 'OPEN',
       isExample: true,
-      clientId: seedUser.id,
+      clientId: client1.id,
     },
   });
+  console.log('Created/updated example gig: DevOps CI/CD');
 
-  console.log('Example gig 3 created: DevOps CI/CD');
-
-  // Example Gig 4: Database Optimization
+  // Example Gig 4: Database Optimization (Client 2)
   const gig4Budget = 16000000; // 160,000 RUB
   const gig4ServiceFee = Math.floor(gig4Budget * 0.10);
   const gig4Total = gig4Budget + gig4ServiceFee;
 
   await prisma.gig.upsert({
     where: { id: 'example-gig-db-optimization' },
-    update: {},
+    update: {
+      clientId: client2.id,
+      serviceFee: gig4ServiceFee,
+      totalAmount: gig4Total,
+    },
     create: {
       id: 'example-gig-db-optimization',
       title: 'Оптимизация производительности PostgreSQL',
@@ -134,20 +359,23 @@ async function main() {
       tags: 'PostgreSQL,Database,Performance,SQL,Optimization',
       status: 'OPEN',
       isExample: true,
-      clientId: seedUser.id,
+      clientId: client2.id,
     },
   });
+  console.log('Created/updated example gig: Database Optimization');
 
-  console.log('Example gig 4 created: Database Optimization');
-
-  // Example Gig 5: Testing Infrastructure
+  // Example Gig 5: Testing Infrastructure (Client 2)
   const gig5Budget = 19000000; // 190,000 RUB
   const gig5ServiceFee = Math.floor(gig5Budget * 0.10);
   const gig5Total = gig5Budget + gig5ServiceFee;
 
   await prisma.gig.upsert({
     where: { id: 'example-gig-e2e-testing' },
-    update: {},
+    update: {
+      clientId: client2.id,
+      serviceFee: gig5ServiceFee,
+      totalAmount: gig5Total,
+    },
     create: {
       id: 'example-gig-e2e-testing',
       title: 'E2E тесты с Playwright для веб-приложения',
@@ -162,13 +390,34 @@ async function main() {
       tags: 'Playwright,E2E Testing,TypeScript,QA,Automation',
       status: 'OPEN',
       isExample: true,
-      clientId: seedUser.id,
+      clientId: client2.id,
     },
   });
+  console.log('Created/updated example gig: E2E Testing');
 
-  console.log('Example gig 5 created: E2E Testing');
+  // ========================================
+  // Summary
+  // ========================================
 
-  console.log('Seed completed successfully!');
+  console.log('\n=== SEED COMPLETED ===\n');
+  console.log('Foundation Users Created:');
+  console.log('');
+  console.log('CLIENTs:');
+  console.log('  • ivan.petrov@techcorp.ru (ТехКорп)');
+  console.log('  • maria.sokolova@digitalpro.ru (ДиджиталПро)');
+  console.log('');
+  console.log('SPECIALISTs:');
+  console.log('  • alexey.ivanov@mail.ru (Frontend/React)');
+  console.log('  • dmitry.volkov@yandex.ru (Backend/Python)');
+  console.log('  • sergey.morozov@gmail.com (DevOps/Go)');
+  console.log('');
+  console.log('ADMIN:');
+  console.log('  • admin@gigly.ru');
+  console.log('');
+  console.log('Password for all users: TestPass123');
+  console.log('');
+  console.log('Login at http://localhost:3000/login');
+  console.log('');
 }
 
 main()
