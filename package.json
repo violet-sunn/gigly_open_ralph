@@ -21,6 +21,8 @@
     "@libsql/client": "^0.17.0",
     "@prisma/adapter-libsql": "^7.4.0",
     "@prisma/client": "^7.4.0",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.36.2",
     "bcryptjs": "^3.0.3",
     "isomorphic-dompurify": "^3.0.0",
     "jose": "^6.1.3",

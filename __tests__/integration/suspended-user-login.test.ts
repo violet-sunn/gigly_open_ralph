@@ -11,6 +11,13 @@ vi.mock('@/lib/prisma', () => ({
 
 // Mock next/headers for session cookie management
 vi.mock('next/headers', () => ({
+  headers: vi.fn(() => ({
+    get: (name: string) => {
+      if (name === 'x-forwarded-for') return '127.0.0.1'
+      if (name === 'x-real-ip') return '127.0.0.1'
+      return null
+    }
+  })),
   cookies: vi.fn(() => ({
     get: (name: string) => {
       if (name === 'session') {

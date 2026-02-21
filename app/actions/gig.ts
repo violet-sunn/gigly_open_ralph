@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/session'
 import { sanitizeInput } from '@/lib/sanitize'
+import { applicationRateLimiter, messageRateLimiter, getRateLimitError } from '@/lib/ratelimit'
 
 export async function createGig(
   prevState: { error?: string } | null,
@@ -75,6 +76,12 @@ export async function applyToGig(
 
   if (session.role !== 'SPECIALIST') {
     return { error: 'Only specialists can apply to gigs.' }
+  }
+
+  // Check rate limit AFTER auth, BEFORE validation
+  const { success, reset } = await applicationRateLimiter.limit(session.userId)
+  if (!success) {
+    return { error: getRateLimitError(reset, 'applications') }
   }
 
   const gigId = formData.get('gigId') as string
@@ -364,6 +371,12 @@ export async function sendMessage(
 ) {
   const session = await getSession()
   if (!session) redirect('/login')
+
+  // Check rate limit AFTER auth, BEFORE validation
+  const { success, reset } = await messageRateLimiter.limit(session.userId)
+  if (!success) {
+    return { error: getRateLimitError(reset, 'messages') }
+  }
 
   const gigId = formData.get('gigId') as string
   const contentRaw = (formData.get('content') as string) || ''

@@ -2,13 +2,27 @@
 
 import bcrypt from 'bcryptjs'
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import { prisma } from '@/lib/prisma'
 import { createSession, destroySession } from '@/lib/session'
+import { loginRateLimiter, registerRateLimiter, getRateLimitError } from '@/lib/ratelimit'
 
 export async function registerUser(
   prevState: { error?: string } | null,
   formData: FormData
 ) {
+  // Get IP address for rate limiting
+  const headersList = headers()
+  const ipAddress = headersList.get('x-forwarded-for') ||
+                    headersList.get('x-real-ip') ||
+                    'unknown'
+
+  // Check rate limit BEFORE validation
+  const { success, reset } = await registerRateLimiter.limit(ipAddress)
+  if (!success) {
+    return { error: getRateLimitError(reset, 'registration attempts') }
+  }
+
   const email = formData.get('email') as string
   const password = formData.get('password') as string
   const role = formData.get('role') as string
@@ -39,6 +53,18 @@ export async function loginUser(
   prevState: { error?: string } | null,
   formData: FormData
 ) {
+  // Get IP address for rate limiting
+  const headersList = headers()
+  const ipAddress = headersList.get('x-forwarded-for') ||
+                    headersList.get('x-real-ip') ||
+                    'unknown'
+
+  // Check rate limit BEFORE password validation
+  const { success, reset } = await loginRateLimiter.limit(ipAddress)
+  if (!success) {
+    return { error: getRateLimitError(reset, 'login attempts') }
+  }
+
   const email = formData.get('email') as string
   const password = formData.get('password') as string
 
