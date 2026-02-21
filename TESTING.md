@@ -1305,3 +1305,214 @@ To run tests in CI pipeline:
 ```
 
 Ensure `test.db` is created in CI environment before running tests.
+
+## CSRF Protection Testing
+
+### Overview
+
+Next.js 15 provides built-in CSRF (Cross-Site Request Forgery) protection for Server Actions via **Origin header matching**. Next.js compares the `Origin` header to the `Host` header and rejects mismatches with 403 Forbidden. No CSRF tokens are used.
+
+### Test Files
+
+- **E2E Tests**: `__tests__/e2e/csrf-protection.spec.ts` - Tests cross-origin request rejection
+- **Config Tests**: `__tests__/unit/config-validation.test.ts` - Verifies safe configuration
+
+### Running CSRF Tests
+
+```bash
+# Run CSRF E2E tests
+npm run test:e2e -- csrf-protection
+
+# Run config validation tests
+npm test -- config-validation
+
+# Run all tests (includes CSRF tests)
+npm test
+```
+
+### Writing CSRF Tests for New Server Actions
+
+When adding new Server Actions, add CSRF tests to verify Origin-based protection:
+
+#### Pattern 1: Route Interception (Recommended)
+
+This approach intercepts legitimate form submissions and modifies the Origin header to simulate a CSRF attack:
+
+```typescript
+import { test, expect } from '@playwright/test'
+import { PrismaClient } from '@prisma/client'
+import { setE2ESession } from '../helpers/auth'
+import { createTestUser } from '../helpers/seed'
+
+test('Server Action rejects cross-origin requests', async ({ page }) => {
+  // Setup: Create authenticated user
+  const user = await createTestUser(prisma, { role: 'CLIENT' })
+  await setE2ESession(page, user)
+
+  await page.goto('http://localhost:3000/your-page')
+
+  // Intercept Server Action requests and modify Origin header
+  await page.route('**/*', async (route) => {
+    const request = route.request()
+    if (request.method() === 'POST' && request.headers()['next-action']) {
+      // Simulate CSRF attack by spoofing Origin header
+      await route.continue({
+        headers: {
+          ...request.headers(),
+          'origin': 'https://malicious-site.com'
+        }
+      })
+    } else {
+      await route.continue()
+    }
+  })
+
+  // Fill and submit form (will be intercepted with spoofed Origin)
+  await page.fill('input[name="field"]', 'value')
+  await page.click('button[type="submit"]')
+
+  // Wait for response
+  await page.waitForTimeout(1000)
+
+  // Assert: Action should NOT succeed
+  // Verify data was NOT created in database
+  const records = await prisma.yourModel.findMany({
+    where: { /* your criteria */ }
+  })
+  expect(records.length).toBe(0)
+})
+```
+
+#### Pattern 2: Same-Origin Test (Verify Legitimate Requests Work)
+
+Always pair cross-origin rejection tests with same-origin acceptance tests:
+
+```typescript
+test('Server Action accepts same-origin requests', async ({ page }) => {
+  // Setup: Create authenticated user
+  const user = await createTestUser(prisma, { role: 'CLIENT' })
+  await setE2ESession(page, user)
+
+  await page.goto('http://localhost:3000/your-page')
+
+  // Fill and submit form (no Origin manipulation - legitimate request)
+  await page.fill('input[name="field"]', 'value')
+  await page.click('button[type="submit"]')
+
+  // Wait for completion
+  await page.waitForTimeout(2000)
+
+  // Assert: Action should succeed
+  const records = await prisma.yourModel.findMany({
+    where: { /* your criteria */ }
+  })
+  expect(records.length).toBe(1)
+})
+```
+
+### Key Testing Principles
+
+1. **Dynamic Action IDs**: Next.js generates action IDs dynamically per build. Never hardcode action IDs in tests.
+
+2. **Route Interception**: Use `page.route()` to intercept requests and modify headers. This accurately simulates real CSRF attacks.
+
+3. **Test Both Cases**: Always test both rejection (cross-origin) and acceptance (same-origin) for each Server Action.
+
+4. **Database Verification**: Verify that cross-origin requests do NOT create/modify data in the database.
+
+5. **Cleanup**: Use `afterEach` hooks to clean up test data.
+
+### Example: Complete CSRF Test Suite
+
+```typescript
+import { test, expect } from '@playwright/test'
+import { PrismaClient } from '@prisma/client'
+import { PrismaLibSql } from '@prisma/adapter-libsql'
+import { setE2ESession } from '../helpers/auth'
+import { createTestUser } from '../helpers/seed'
+
+const adapter = new PrismaLibSql({
+  url: process.env.DATABASE_URL || 'file:./prisma/dev.db'
+})
+
+const prisma = new PrismaClient({
+  adapter: adapter as any
+})
+
+test.describe('CSRF Protection - Your Feature', () => {
+  test.afterEach(async () => {
+    // Clean up test data
+    await prisma.yourModel.deleteMany({})
+    await prisma.user.deleteMany({})
+  })
+
+  test.afterAll(async () => {
+    await prisma.$disconnect()
+  })
+
+  test('rejects cross-origin requests', async ({ page }) => {
+    // Test implementation (see Pattern 1 above)
+  })
+
+  test('accepts same-origin requests', async ({ page }) => {
+    // Test implementation (see Pattern 2 above)
+  })
+})
+```
+
+### Configuration Validation
+
+Always verify that `next.config.ts` doesn't weaken CSRF protection:
+
+```typescript
+import { describe, it, expect } from 'vitest'
+import fs from 'fs'
+import path from 'path'
+
+describe('CSRF Configuration', () => {
+  it('should not have dangerous allowedOrigins', () => {
+    const configPath = path.join(process.cwd(), 'next.config.ts')
+    const configContent = fs.readFileSync(configPath, 'utf-8')
+
+    // Check for wildcards
+    const hasWildcard = /allowedOrigins\s*:\s*\[.*['"`]\*['"`].*\]/.test(configContent)
+    expect(hasWildcard).toBe(false)
+  })
+})
+```
+
+### Troubleshooting CSRF Tests
+
+**Test fails with "Route interception not working":**
+- Ensure you're using `page.route()` before navigating to the page
+- Check that the route pattern matches your Server Action requests
+
+**Test passes but CSRF protection seems broken:**
+- Verify you're actually modifying the Origin header (check network logs)
+- Ensure the Server Action is being called (not just form validation failing)
+- Check that you're testing the right endpoint
+
+**Database verification fails:**
+- Ensure proper cleanup in `afterEach` hooks
+- Use unique identifiers to avoid conflicts with other tests
+- Verify database connection is using test database
+
+### CI/CD Integration
+
+CSRF tests run automatically as part of the E2E test suite:
+
+```bash
+# In CI pipeline
+npm run test:e2e  # Includes csrf-protection.spec.ts
+```
+
+The tests are included in the standard E2E test run, so no special CI configuration is needed.
+
+### Security Notes
+
+- **Origin-based protection**: Next.js uses Origin header matching, NOT CSRF tokens
+- **No custom implementation needed**: Protection is built into Next.js 15
+- **Configuration risk**: `serverActions.allowedOrigins` can weaken protection - avoid it
+- **All Server Actions protected**: Every Server Action automatically gets CSRF protection
+
+For more details, see `SECURITY.md` (CSRF Protection section).

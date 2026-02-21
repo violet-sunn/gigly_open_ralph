@@ -452,6 +452,7 @@ Constraints: One application per specialist per gig. Only SPECIALIST role can ap
 - Role included in JWT session payload (userId, email, role)
 - Role is immutable after registration; ADMIN only assignable via DB
 - Admin routes protected by middleware (requires ADMIN role)
+- **CSRF Protection**: Next.js 15 provides built-in CSRF protection for Server Actions via Origin header matching. Next.js compares the `Origin` header to the `Host` header on all Server Action requests and rejects mismatches with 403 Forbidden. No CSRF tokens are used (Origin-based protection only). No custom implementation needed. Protection is enabled by default. Configuration risk: `serverActions.allowedOrigins` in `next.config.ts` should be avoided unless absolutely necessary (wildcards and untrusted domains weaken protection). Verification: E2E tests in `__tests__/e2e/csrf-protection.spec.ts` verify CSRF protection remains active.
 
 ## Completed Changes
 
