@@ -553,7 +553,8 @@ describe('Structured Fields Tests', () => {
       })
       expect(gigs[0].goal).toBe('Goal with special chars: @#$%^&*()')
       expect(gigs[0].deliverables).toBe('Deliverables with punctuation: "quotes", commas, periods.')
-      expect(gigs[0].constraints).toBe('Constraints with symbols: <html>, {json}, [array]')
+      // Note: <html> is sanitized out as it looks like an HTML tag (XSS protection)
+      expect(gigs[0].constraints).toBe('Constraints with symbols: , {json}, [array]')
 
       // Cleanup
       await prisma.gig.deleteMany({ where: { clientId: client.id } })

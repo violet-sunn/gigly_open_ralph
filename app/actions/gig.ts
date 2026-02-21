@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/session'
+import { sanitizeInput } from '@/lib/sanitize'
 
 export async function createGig(
   prevState: { error?: string } | null,
@@ -15,17 +16,19 @@ export async function createGig(
     return { error: 'Only clients can create gigs.' }
   }
 
-  const title = (formData.get('title') as string)?.trim()
-  const description = (formData.get('description') as string)?.trim()
+  // Sanitize all text fields before validation
+  const title = sanitizeInput(formData.get('title') as string).trim()
+  const description = sanitizeInput(formData.get('description') as string).trim()
   const acceptanceCriteriaRaw = (formData.get('acceptanceCriteria') as string) || ''
-  const acceptanceCriteria = acceptanceCriteriaRaw.trim()
+  const acceptanceCriteria = sanitizeInput(acceptanceCriteriaRaw).trim()
   const budgetRaw = formData.get('budget') as string
-  const tags = ((formData.get('tags') as string) || '').trim()
+  const tagsRaw = (formData.get('tags') as string) || ''
+  const tags = sanitizeInput(tagsRaw).trim()
 
   // Optional structured requirement fields
-  const goal = ((formData.get('goal') as string) || '').trim()
-  const deliverables = ((formData.get('deliverables') as string) || '').trim()
-  const constraints = ((formData.get('constraints') as string) || '').trim()
+  const goal = sanitizeInput((formData.get('goal') as string) || '').trim()
+  const deliverables = sanitizeInput((formData.get('deliverables') as string) || '').trim()
+  const constraints = sanitizeInput((formData.get('constraints') as string) || '').trim()
 
   if (!title || !description || !acceptanceCriteria) {
     return { error: 'Title, description, and acceptance criteria are required.' }
@@ -41,7 +44,7 @@ export async function createGig(
   }
 
   const budgetKopecks = Math.round(budgetRoubles * 100)
-  const serviceFee = Math.floor(budgetKopecks * 0.20)
+  const serviceFee = Math.floor(budgetKopecks * 0.10)
   const totalAmount = budgetKopecks + serviceFee
 
   await prisma.gig.create({
@@ -75,9 +78,11 @@ export async function applyToGig(
   }
 
   const gigId = formData.get('gigId') as string
-  const approach = ((formData.get('approach') as string) || '').trim()
-  const questions = ((formData.get('questions') as string) || '').trim()
-  const estimatedEffort = ((formData.get('estimatedEffort') as string) || '').trim()
+
+  // Sanitize all text fields before validation
+  const approach = sanitizeInput((formData.get('approach') as string) || '').trim()
+  const questions = sanitizeInput((formData.get('questions') as string) || '').trim()
+  const estimatedEffort = sanitizeInput((formData.get('estimatedEffort') as string) || '').trim()
 
   // Validate required fields
   if (!approach) {
@@ -363,12 +368,15 @@ export async function sendMessage(
   const gigId = formData.get('gigId') as string
   const contentRaw = (formData.get('content') as string) || ''
 
-  // Validate length before trimming
-  if (contentRaw.length > 2000) {
+  // Sanitize content before validation
+  const contentSanitized = sanitizeInput(contentRaw)
+
+  // Validate length before trimming (check sanitized content)
+  if (contentSanitized.length > 2000) {
     return { error: 'Message is too long. Maximum 2000 characters allowed.' }
   }
 
-  const content = contentRaw.trim()
+  const content = contentSanitized.trim()
 
   if (!content) {
     return { error: 'Message content is required.' }

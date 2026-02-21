@@ -715,11 +715,10 @@ describe('Gig Creation Tests', () => {
   })
 
   describe('Service fee calculation', () => {
-    // NOTE: Current implementation uses 20% service fee (app/actions/gig.ts line 44),
-    // which contradicts the documented 10% standard in project.md.
-    // These tests validate the ACTUAL implementation (20%).
+    // Service fee is 10% of budget as documented in project.md
+    // Implementation in app/actions/gig.ts uses 0.10 multiplier
 
-    it('calculates 20% service fee correctly (current implementation)', async () => {
+    it('calculates 10% service fee correctly', async () => {
       const prisma = getTestPrismaClient()
 
       const hashedPassword = await (await import('bcryptjs')).hash('password123', 10)
@@ -749,8 +748,8 @@ describe('Gig Creation Tests', () => {
       const gigs = await prisma.gig.findMany({ where: { clientId: client.id } })
       expect(gigs.length).toBeGreaterThan(0)
       expect(gigs[0].budget).toBe(10000000) // 100,000 * 100
-      expect(gigs[0].serviceFee).toBe(2000000) // 20% of 10,000,000 = 2,000,000
-      expect(gigs[0].totalAmount).toBe(12000000) // 10,000,000 + 2,000,000
+      expect(gigs[0].serviceFee).toBe(1000000) // 10% of 10,000,000 = 1,000,000
+      expect(gigs[0].totalAmount).toBe(11000000) // 10,000,000 + 1,000,000
 
       // Cleanup
       await prisma.gig.deleteMany({ where: { clientId: client.id } })
@@ -787,7 +786,7 @@ describe('Gig Creation Tests', () => {
       const gigs = await prisma.gig.findMany({ where: { clientId: client.id } })
       expect(gigs.length).toBeGreaterThan(0)
       const budget = Math.round(333.33 * 100) // 33333 kopecks
-      const expectedServiceFee = Math.floor(budget * 0.20) // Floor of 6666.6 = 6666
+      const expectedServiceFee = Math.floor(budget * 0.10) // Floor of 3333.3 = 3333
       expect(gigs[0].serviceFee).toBe(expectedServiceFee)
 
       // Cleanup
@@ -827,8 +826,8 @@ describe('Gig Creation Tests', () => {
 
       const gig = gigs[0]
       expect(gig.budget).toBe(5000000) // 50,000 * 100
-      expect(gig.serviceFee).toBe(1000000) // 20% of 5,000,000
-      expect(gig.totalAmount).toBe(6000000) // 5,000,000 + 1,000,000
+      expect(gig.serviceFee).toBe(500000) // 10% of 5,000,000
+      expect(gig.totalAmount).toBe(5500000) // 5,000,000 + 500,000
       expect(gig.totalAmount).toBe(gig.budget + gig.serviceFee) // Verify relationship
 
       // Cleanup
@@ -1556,6 +1555,243 @@ describe('Gig Creation Tests', () => {
       expect(gigs[0].goal).toBe('Achieve business outcome')
       expect(gigs[0].deliverables).toBe('Code and docs')
       expect(gigs[0].constraints).toBe('TypeScript required')
+
+      // Cleanup
+      await prisma.gig.deleteMany({ where: { clientId: client.id } })
+      await prisma.user.delete({ where: { id: client.id } })
+    })
+  })
+
+  describe('XSS Sanitization', () => {
+    it('sanitizes script tags in title', async () => {
+      const prisma = getTestPrismaClient()
+
+      const hashedPassword = await (await import('bcryptjs')).hash('password123', 10)
+      const client = await prisma.user.create({
+        data: {
+          email: `client-${Date.now()}@example.com`,
+          password: hashedPassword,
+          role: 'CLIENT'
+        }
+      })
+
+      const formData = new FormData()
+      formData.append('title', '<script>alert("XSS")</script>Test Gig')
+      formData.append('description', 'Test description for XSS test')
+      formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('budget', '100000')
+
+      await withAuthContext(client, async () => {
+        try {
+          await createGig(null, formData)
+        } catch (error: any) {
+          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+        }
+      })
+
+      // Verify script tags removed
+      const gigs = await prisma.gig.findMany({ where: { clientId: client.id } })
+      expect(gigs.length).toBeGreaterThan(0)
+      expect(gigs[0].title).toBe('Test Gig')
+      expect(gigs[0].title).not.toContain('<script>')
+      expect(gigs[0].title).not.toContain('alert')
+
+      // Cleanup
+      await prisma.gig.deleteMany({ where: { clientId: client.id } })
+      await prisma.user.delete({ where: { id: client.id } })
+    })
+
+    it('sanitizes img tags with onerror in description', async () => {
+      const prisma = getTestPrismaClient()
+
+      const hashedPassword = await (await import('bcryptjs')).hash('password123', 10)
+      const client = await prisma.user.create({
+        data: {
+          email: `client-${Date.now()}@example.com`,
+          password: hashedPassword,
+          role: 'CLIENT'
+        }
+      })
+
+      const formData = new FormData()
+      formData.append('title', 'Test Gig')
+      formData.append('description', 'Description with <img src=x onerror="alert(\'XSS\')"> malicious content')
+      formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('budget', '100000')
+
+      await withAuthContext(client, async () => {
+        try {
+          await createGig(null, formData)
+        } catch (error: any) {
+          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+        }
+      })
+
+      // Verify img tags removed
+      const gigs = await prisma.gig.findMany({ where: { clientId: client.id } })
+      expect(gigs.length).toBeGreaterThan(0)
+      expect(gigs[0].description).toBe('Description with  malicious content')
+      expect(gigs[0].description).not.toContain('<img')
+      expect(gigs[0].description).not.toContain('onerror')
+
+      // Cleanup
+      await prisma.gig.deleteMany({ where: { clientId: client.id } })
+      await prisma.user.delete({ where: { id: client.id } })
+    })
+
+    it('sanitizes XSS in acceptanceCriteria', async () => {
+      const prisma = getTestPrismaClient()
+
+      const hashedPassword = await (await import('bcryptjs')).hash('password123', 10)
+      const client = await prisma.user.create({
+        data: {
+          email: `client-${Date.now()}@example.com`,
+          password: hashedPassword,
+          role: 'CLIENT'
+        }
+      })
+
+      const formData = new FormData()
+      formData.append('title', 'Test Gig')
+      formData.append('description', 'Test description')
+      formData.append('acceptanceCriteria', '<svg onload="alert(\'XSS\')">This is a detailed acceptance criteria with more than 50 characters</svg>')
+      formData.append('budget', '100000')
+
+      let result
+      await withAuthContext(client, async () => {
+        try {
+          result = await createGig(null, formData)
+        } catch (error: any) {
+          // Redirect is expected on success
+          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+        }
+      })
+
+      // If there was an error result, the gig wasn't created
+      if (result && 'error' in result) {
+        console.log('Gig creation error:', result.error)
+      }
+
+      // Verify svg tags removed but text preserved
+      const gigs = await prisma.gig.findMany({ where: { clientId: client.id } })
+      expect(gigs.length).toBeGreaterThan(0)
+      expect(gigs[0].acceptanceCriteria).toBe('This is a detailed acceptance criteria with more than 50 characters')
+      expect(gigs[0].acceptanceCriteria).not.toContain('<svg')
+      expect(gigs[0].acceptanceCriteria).not.toContain('onload')
+
+      // Cleanup
+      await prisma.gig.deleteMany({ where: { clientId: client.id } })
+      await prisma.user.delete({ where: { id: client.id } })
+    })
+
+    it('sanitizes XSS in optional fields', async () => {
+      const prisma = getTestPrismaClient()
+
+      const hashedPassword = await (await import('bcryptjs')).hash('password123', 10)
+      const client = await prisma.user.create({
+        data: {
+          email: `client-${Date.now()}@example.com`,
+          password: hashedPassword,
+          role: 'CLIENT'
+        }
+      })
+
+      const formData = new FormData()
+      formData.append('title', 'Test Gig')
+      formData.append('description', 'Test description')
+      formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('budget', '100000')
+      formData.append('goal', '<script>alert("XSS")</script>Achieve business outcome')
+      formData.append('deliverables', '<iframe src="javascript:alert(\'XSS\')"></iframe>Code and docs')
+      formData.append('constraints', '<a href="javascript:alert(\'XSS\')">TypeScript required</a>')
+
+      await withAuthContext(client, async () => {
+        try {
+          await createGig(null, formData)
+        } catch (error: any) {
+          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+        }
+      })
+
+      // Verify all optional fields sanitized
+      const gigs = await prisma.gig.findMany({ where: { clientId: client.id } })
+      expect(gigs.length).toBeGreaterThan(0)
+      expect(gigs[0].goal).toBe('Achieve business outcome')
+      expect(gigs[0].goal).not.toContain('<script>')
+      expect(gigs[0].deliverables).toBe('Code and docs')
+      expect(gigs[0].deliverables).not.toContain('<iframe')
+      expect(gigs[0].constraints).toBe('TypeScript required')
+      expect(gigs[0].constraints).not.toContain('<a')
+
+      // Cleanup
+      await prisma.gig.deleteMany({ where: { clientId: client.id } })
+      await prisma.user.delete({ where: { id: client.id } })
+    })
+
+    it('rejects gig when title is only XSS payload (empty after sanitization)', async () => {
+      const prisma = getTestPrismaClient()
+
+      const hashedPassword = await (await import('bcryptjs')).hash('password123', 10)
+      const client = await prisma.user.create({
+        data: {
+          email: `client-${Date.now()}@example.com`,
+          password: hashedPassword,
+          role: 'CLIENT'
+        }
+      })
+
+      const formData = new FormData()
+      formData.append('title', '<script></script>')
+      formData.append('description', 'Test description')
+      formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('budget', '100000')
+
+      const result = await withAuthContext(client, async () => {
+        return await createGig(null, formData)
+      })
+
+      expect(result).toEqual({ error: 'Title, description, and acceptance criteria are required.' })
+
+      // Verify no gig created
+      const gigs = await prisma.gig.findMany({ where: { clientId: client.id } })
+      expect(gigs.length).toBe(0)
+
+      // Cleanup
+      await prisma.user.delete({ where: { id: client.id } })
+    })
+
+    it('preserves line breaks in sanitized content', async () => {
+      const prisma = getTestPrismaClient()
+
+      const hashedPassword = await (await import('bcryptjs')).hash('password123', 10)
+      const client = await prisma.user.create({
+        data: {
+          email: `client-${Date.now()}@example.com`,
+          password: hashedPassword,
+          role: 'CLIENT'
+        }
+      })
+
+      const formData = new FormData()
+      formData.append('title', 'Test Gig')
+      formData.append('description', 'Line 1\nLine 2\nLine 3')
+      formData.append('acceptanceCriteria', 'Criteria line 1\nCriteria line 2\nThis has more than 50 characters total')
+      formData.append('budget', '100000')
+
+      await withAuthContext(client, async () => {
+        try {
+          await createGig(null, formData)
+        } catch (error: any) {
+          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+        }
+      })
+
+      // Verify line breaks preserved
+      const gigs = await prisma.gig.findMany({ where: { clientId: client.id } })
+      expect(gigs.length).toBeGreaterThan(0)
+      expect(gigs[0].description).toContain('\n')
+      expect(gigs[0].description).toBe('Line 1\nLine 2\nLine 3')
+      expect(gigs[0].acceptanceCriteria).toContain('\n')
 
       // Cleanup
       await prisma.gig.deleteMany({ where: { clientId: client.id } })
