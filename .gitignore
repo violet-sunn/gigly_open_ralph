@@ -53,3 +53,10 @@ __tests__/.tmp/
 memdb_*.db
 memdb_*.db-wal
 memdb_*.db-shm
+
+# Database files in root (added by cleanup)
+/*.db
+/*.sqlite
+
+# TypeScript build cache (added by cleanup)
+tsconfig.tsbuildinfo
