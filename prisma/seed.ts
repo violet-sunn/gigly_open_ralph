@@ -102,7 +102,7 @@ async function main() {
   // Foundation SPECIALIST Users
   // ========================================
 
-  await prisma.user.upsert({
+  const alexey = await prisma.user.upsert({
     where: { email: 'alexey.ivanov@mail.ru' },
     update: {
       specialistProfile: {
@@ -141,7 +141,7 @@ async function main() {
   });
   console.log('Created SPECIALIST user: alexey.ivanov@mail.ru');
 
-  await prisma.user.upsert({
+  const dmitry = await prisma.user.upsert({
     where: { email: 'dmitry.volkov@yandex.ru' },
     update: {
       specialistProfile: {
@@ -180,7 +180,7 @@ async function main() {
   });
   console.log('Created SPECIALIST user: dmitry.volkov@yandex.ru');
 
-  await prisma.user.upsert({
+  const sergey = await prisma.user.upsert({
     where: { email: 'sergey.morozov@gmail.com' },
     update: {
       specialistProfile: {
@@ -396,6 +396,471 @@ async function main() {
   console.log('Created/updated example gig: E2E Testing');
 
   // ========================================
+  // Workflow Gigs (Demonstrating Full Lifecycle)
+  // ========================================
+
+  console.log('');
+
+  // Workflow Gig 1: Mobile App UI/UX Design (IN_PROGRESS)
+  const mobileUiBudget = 12000000; // 120,000 RUB
+  const mobileUiServiceFee = Math.floor(mobileUiBudget * 0.10);
+  const mobileUiTotal = mobileUiBudget + mobileUiServiceFee;
+
+  const mobileUiGig = await prisma.gig.upsert({
+    where: { id: 'workflow-gig-mobile-ui' },
+    update: {
+      clientId: client1.id,
+      assignedSpecialistId: alexey.id,
+      serviceFee: mobileUiServiceFee,
+      totalAmount: mobileUiTotal,
+    },
+    create: {
+      id: 'workflow-gig-mobile-ui',
+      title: 'Дизайн мобильного приложения UI/UX',
+      description: 'Требуется разработать современный и интуитивный дизайн для мобильного приложения iOS/Android. Приложение предназначено для управления задачами и проектами. Необходимо создать полный UI kit с компонентами, экранами основных сценариев (онбординг, авторизация, главный экран, список задач, детали задачи, профиль пользователя). Дизайн должен следовать современным трендам, быть адаптивным для разных размеров экранов, учитывать guidelines iOS и Android. Ожидается работа в Figma с передачей исходников и экспорта ассетов для разработки.',
+      goal: 'Создать привлекательный и функциональный дизайн мобильного приложения, который повысит вовлеченность пользователей и упростит работу с задачами.',
+      deliverables: '1. UI Kit с переиспользуемыми компонентами\n2. Дизайн 8-10 ключевых экранов в Figma\n3. Интерактивный прототип с переходами\n4. Экспорт ассетов для iOS и Android\n5. Design System документация\n6. Адаптация под светлую и темную темы',
+      constraints: 'Инструмент: Figma. Стиль: современный, минималистичный. Цветовая схема: корпоративные цвета (будут предоставлены). Срок: 2 недели. Соответствие iOS Human Interface Guidelines и Material Design.',
+      acceptanceCriteria: 'Все экраны отрисованы в Figma с pixel-perfect качеством. UI Kit содержит все необходимые компоненты (кнопки, поля ввода, карточки, иконки). Прототип демонстрирует основные пользовательские сценарии. Дизайн адаптирован под iPhone (375px, 414px) и Android (360px, 412px). Темная тема реализована корректно. Все ассеты экспортированы в нужных разрешениях (@1x, @2x, @3x).',
+      budget: mobileUiBudget,
+      serviceFee: mobileUiServiceFee,
+      totalAmount: mobileUiTotal,
+      tags: 'React,TypeScript,UI/UX,Figma',
+      status: 'IN_PROGRESS',
+      assignedSpecialistId: alexey.id,
+      clientId: client1.id,
+      createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
+    },
+  });
+
+  // Create applications for Mobile UI gig
+  const mobileUiAppAccepted = await prisma.application.findFirst({
+    where: { gigId: mobileUiGig.id, specialistId: alexey.id },
+  });
+  if (!mobileUiAppAccepted) {
+    await prisma.application.create({
+      data: {
+        gigId: mobileUiGig.id,
+        specialistId: alexey.id,
+        approach: 'Начну с анализа целевой аудитории и конкурентов, затем создам wireframes для основных сценариев. После согласования перейду к детальной отрисовке UI с фокусом на удобство использования. Использую атомарный дизайн для создания масштабируемого UI Kit. Все компоненты будут переиспользуемыми и документированными. Прототип создам в Figma с реалистичными переходами и анимациями.',
+        questions: 'Есть ли у вас брендбук или корпоративные цвета? Какие конкуренты вам нравятся по дизайну? Планируется ли поддержка планшетов? Нужна ли анимация и микроинтеракции?',
+        estimatedEffort: '2 недели (80 часов)',
+        status: 'ACCEPTED',
+        createdAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000), // 6 days ago
+      },
+    });
+  }
+
+  // Create rejected application for Mobile UI gig
+  const mobileUiAppRejected = await prisma.application.findFirst({
+    where: { gigId: mobileUiGig.id, specialistId: dmitry.id },
+  });
+  if (!mobileUiAppRejected) {
+    await prisma.application.create({
+      data: {
+        gigId: mobileUiGig.id,
+        specialistId: dmitry.id,
+        approach: 'Могу помочь с дизайном, хотя моя основная специализация - backend разработка. Имею опыт работы с Figma и понимание UX принципов.',
+        questions: 'Какие технические требования к экспорту? Нужна ли интеграция с API?',
+        estimatedEffort: '3 недели',
+        status: 'REJECTED',
+        createdAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000), // 6 days ago
+      },
+    });
+  }
+
+  // Create messages for Mobile UI gig
+  await prisma.message.upsert({
+    where: { id: 'msg-mobile-ui-1' },
+    update: {},
+    create: {
+      id: 'msg-mobile-ui-1',
+      gigId: mobileUiGig.id,
+      senderId: alexey.id,
+      content: 'Здравствуйте! Начал работу над дизайном. Изучил ваши требования и подготовил несколько вопросов по брендингу. Можем созвониться для уточнения деталей?',
+      createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
+    },
+  });
+
+  await prisma.message.upsert({
+    where: { id: 'msg-mobile-ui-2' },
+    update: {},
+    create: {
+      id: 'msg-mobile-ui-2',
+      gigId: mobileUiGig.id,
+      senderId: client1.id,
+      content: 'Отлично! Да, давайте созвонимся завтра. Отправлю вам брендбук и примеры дизайнов, которые нам нравятся.',
+      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+    },
+  });
+
+  console.log('Created/updated workflow gig: Дизайн мобильного приложения UI/UX (IN_PROGRESS)');
+
+  // Workflow Gig 2: Microservices Migration (IN_PROGRESS)
+  const microservicesBudget = 25000000; // 250,000 RUB
+  const microservicesServiceFee = Math.floor(microservicesBudget * 0.10);
+  const microservicesTotal = microservicesBudget + microservicesServiceFee;
+
+  const microservicesGig = await prisma.gig.upsert({
+    where: { id: 'workflow-gig-microservices' },
+    update: {
+      clientId: client2.id,
+      assignedSpecialistId: dmitry.id,
+      serviceFee: microservicesServiceFee,
+      totalAmount: microservicesTotal,
+    },
+    create: {
+      id: 'workflow-gig-microservices',
+      title: 'Миграция монолита на микросервисную архитектуру',
+      description: 'Требуется провести миграцию существующего монолитного Django приложения на микросервисную архитектуру. Текущее приложение включает модули: аутентификация, управление пользователями, обработка заказов, платежи, уведомления. Необходимо выделить эти модули в отдельные сервисы, настроить межсервисное взаимодействие через REST API и message queue, организовать централизованное логирование и мониторинг. Важно обеспечить плавную миграцию без downtime для пользователей. Каждый сервис должен иметь свою базу данных и быть независимо деплоимым.',
+      goal: 'Разделить монолитное приложение на независимые микросервисы для улучшения масштабируемости, упрощения разработки и деплоя отдельных компонентов.',
+      deliverables: '1. Архитектурная схема микросервисов\n2. 4-5 независимых сервисов на Python/FastAPI\n3. API Gateway для маршрутизации запросов\n4. Message broker (RabbitMQ/Kafka) для асинхронной коммуникации\n5. Docker-compose для локальной разработки\n6. Документация по деплою и мониторингу\n7. Миграционный план с rollback стратегией',
+      constraints: 'Стек: Python, FastAPI/Django, PostgreSQL, Redis, Docker. Message broker: RabbitMQ или Kafka. Срок: 4-5 недель. Миграция должна быть поэтапной с возможностью отката. Существующий API должен остаться совместимым.',
+      acceptanceCriteria: 'Все модули выделены в отдельные сервисы с независимыми базами данных. API Gateway корректно маршрутизирует запросы. Асинхронная коммуникация через message broker работает стабильно. Каждый сервис имеет health check эндпоинт. Централизованное логирование настроено (ELK или аналог). Docker-compose позволяет запустить всю систему локально. Документация содержит инструкции по деплою каждого сервиса. Миграция протестирована на staging без потери данных.',
+      budget: microservicesBudget,
+      serviceFee: microservicesServiceFee,
+      totalAmount: microservicesTotal,
+      tags: 'Python,Docker,Microservices,PostgreSQL',
+      status: 'IN_PROGRESS',
+      assignedSpecialistId: dmitry.id,
+      clientId: client2.id,
+      createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000), // 8 days ago
+    },
+  });
+
+  // Create applications for Microservices gig
+  const microservicesAppAccepted = await prisma.application.findFirst({
+    where: { gigId: microservicesGig.id, specialistId: dmitry.id },
+  });
+  if (!microservicesAppAccepted) {
+    await prisma.application.create({
+      data: {
+        gigId: microservicesGig.id,
+        specialistId: dmitry.id,
+        approach: 'Предлагаю поэтапную миграцию по принципу Strangler Fig Pattern. Начнем с выделения наименее связанных модулей (уведомления, затем платежи). Для каждого сервиса создам отдельный репозиторий с FastAPI, своей БД и CI/CD pipeline. Использую RabbitMQ для event-driven коммуникации между сервисами. API Gateway на Kong или Traefik для единой точки входа. Каждый этап будет тестироваться на staging перед продакшеном.',
+        questions: 'Какой текущий RPS у приложения? Есть ли критичные модули, которые нельзя трогать в первую очередь? Какая инфраструктура используется для деплоя (Kubernetes, Docker Swarm, просто Docker)? Есть ли требования к backward compatibility API?',
+        estimatedEffort: '4-5 недель (160-200 часов)',
+        status: 'ACCEPTED',
+        createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
+      },
+    });
+  }
+
+  // Create rejected application for Microservices gig
+  const microservicesAppRejected = await prisma.application.findFirst({
+    where: { gigId: microservicesGig.id, specialistId: sergey.id },
+  });
+  if (!microservicesAppRejected) {
+    await prisma.application.create({
+      data: {
+        gigId: microservicesGig.id,
+        specialistId: sergey.id,
+        approach: 'Могу помочь с контейнеризацией и оркестрацией сервисов, настройкой CI/CD. Моя специализация - DevOps, но с архитектурой микросервисов на Python опыта меньше.',
+        questions: 'Планируется ли использование Kubernetes? Нужна ли помощь с инфраструктурой?',
+        estimatedEffort: '5-6 недель',
+        status: 'REJECTED',
+        createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
+      },
+    });
+  }
+
+  // Create messages for Microservices gig
+  await prisma.message.upsert({
+    where: { id: 'msg-microservices-1' },
+    update: {},
+    create: {
+      id: 'msg-microservices-1',
+      gigId: microservicesGig.id,
+      senderId: dmitry.id,
+      content: 'Добрый день! Начал работу над миграцией. Изучил текущую кодовую базу и подготовил архитектурную схему. Предлагаю начать с модуля уведомлений - он наименее связан с остальными. Отправлю схему на согласование.',
+      createdAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000), // 6 days ago
+    },
+  });
+
+  await prisma.message.upsert({
+    where: { id: 'msg-microservices-2' },
+    update: {},
+    create: {
+      id: 'msg-microservices-2',
+      gigId: microservicesGig.id,
+      senderId: client2.id,
+      content: 'Схема выглядит хорошо! Согласен начать с уведомлений. Когда планируете первый деплой на staging?',
+      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+    },
+  });
+
+  console.log('Created/updated workflow gig: Миграция монолита на микросервисную архитектуру (IN_PROGRESS)');
+
+  // Workflow Gig 3: Kubernetes Cluster Setup (REVIEW)
+  const k8sBudget = 20000000; // 200,000 RUB
+  const k8sServiceFee = Math.floor(k8sBudget * 0.10);
+  const k8sTotal = k8sBudget + k8sServiceFee;
+
+  const k8sGig = await prisma.gig.upsert({
+    where: { id: 'workflow-gig-k8s-setup' },
+    update: {
+      clientId: client1.id,
+      assignedSpecialistId: sergey.id,
+      serviceFee: k8sServiceFee,
+      totalAmount: k8sTotal,
+    },
+    create: {
+      id: 'workflow-gig-k8s-setup',
+      title: 'Настройка Kubernetes кластера для production',
+      description: 'Требуется настроить production-ready Kubernetes кластер для деплоя микросервисов. Кластер должен включать: автоматическое масштабирование (HPA), мониторинг (Prometheus + Grafana), централизованное логирование (ELK stack), ingress controller для маршрутизации трафика, cert-manager для автоматического управления SSL сертификатами. Необходимо настроить CI/CD pipeline для автоматического деплоя через GitLab CI или GitHub Actions. Важна высокая доступность и отказоустойчивость. Кластер будет размещен на облачной инфраструктуре (AWS, GCP или Yandex Cloud).',
+      goal: 'Создать надежный и масштабируемый Kubernetes кластер для production окружения с полным набором инструментов для мониторинга и управления.',
+      deliverables: '1. Настроенный K8s кластер (3+ ноды)\n2. Helm charts для всех компонентов\n3. Prometheus + Grafana для мониторинга\n4. ELK stack для логирования\n5. Ingress controller с SSL\n6. CI/CD pipeline для автодеплоя\n7. Документация по управлению кластером\n8. Runbook для типичных проблем',
+      constraints: 'Платформа: Kubernetes 1.28+. Облако: Yandex Cloud или AWS. Инструменты: Helm, Prometheus, Grafana, ELK. Срок: 3 недели. Кластер должен поддерживать минимум 20 микросервисов. Требуется настройка backup и disaster recovery.',
+      acceptanceCriteria: 'Кластер развернут и работает стабильно. HPA автоматически масштабирует поды при нагрузке. Prometheus собирает метрики со всех сервисов. Grafana содержит дашборды для мониторинга. Логи централизованно собираются в Elasticsearch. Ingress корректно маршрутизирует трафик с SSL. CI/CD pipeline деплоит приложения автоматически при push в main. Документация содержит инструкции по добавлению новых сервисов. Backup настроен и протестирован.',
+      budget: k8sBudget,
+      serviceFee: k8sServiceFee,
+      totalAmount: k8sTotal,
+      tags: 'Kubernetes,Docker,DevOps,CI/CD',
+      status: 'REVIEW',
+      assignedSpecialistId: sergey.id,
+      clientId: client1.id,
+      createdAt: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000), // 9 days ago
+    },
+  });
+
+  // Create application for K8s gig
+  const k8sApp = await prisma.application.findFirst({
+    where: { gigId: k8sGig.id, specialistId: sergey.id },
+  });
+  if (!k8sApp) {
+    await prisma.application.create({
+      data: {
+        gigId: k8sGig.id,
+        specialistId: sergey.id,
+        approach: 'Использую Infrastructure as Code подход с Terraform для создания кластера и Helm для управления приложениями. Начну с базовой настройки кластера на 3 нодах с автоскейлингом. Затем установлю monitoring stack (Prometheus Operator + Grafana). Для логирования использую Fluent Bit + Elasticsearch + Kibana. Ingress на базе Nginx с автоматическим получением Let\'s Encrypt сертификатов через cert-manager. CI/CD настрою через GitLab CI с использованием Helm для деплоя.',
+        questions: 'Какой облачный провайдер предпочитаете? Какой бюджет на инфраструктуру в месяц? Есть ли требования к географии размещения? Нужна ли multi-region настройка?',
+        estimatedEffort: '3 недели (120 часов)',
+        status: 'ACCEPTED',
+        createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000), // 8 days ago
+      },
+    });
+  }
+
+  // Create messages for K8s gig
+  await prisma.message.upsert({
+    where: { id: 'msg-k8s-1' },
+    update: {},
+    create: {
+      id: 'msg-k8s-1',
+      gigId: k8sGig.id,
+      senderId: sergey.id,
+      content: 'Здравствуйте! Кластер настроен и работает. Все компоненты развернуты: мониторинг, логирование, ingress. CI/CD pipeline протестирован на тестовом приложении. Отправил документацию и доступы к Grafana.',
+      createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
+    },
+  });
+
+  await prisma.message.upsert({
+    where: { id: 'msg-k8s-2' },
+    update: {},
+    create: {
+      id: 'msg-k8s-2',
+      gigId: k8sGig.id,
+      senderId: client1.id,
+      content: 'Спасибо! Изучаю документацию. Grafana дашборды выглядят отлично. Есть пара вопросов по backup стратегии.',
+      createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000), // 4 days ago
+    },
+  });
+
+  await prisma.message.upsert({
+    where: { id: 'msg-k8s-3' },
+    update: {},
+    create: {
+      id: 'msg-k8s-3',
+      gigId: k8sGig.id,
+      senderId: sergey.id,
+      content: 'Работа завершена, отправил на проверку. Все требования выполнены. Backup настроен через Velero с ежедневным расписанием. Добавил раздел в документацию по восстановлению из backup.',
+      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+    },
+  });
+
+  console.log('Created/updated workflow gig: Настройка Kubernetes кластера для production (REVIEW)');
+
+  // Workflow Gig 4: API Documentation with Swagger (COMPLETED)
+  const apiDocsBudget = 8000000; // 80,000 RUB
+  const apiDocsServiceFee = Math.floor(apiDocsBudget * 0.10);
+  const apiDocsTotal = apiDocsBudget + apiDocsServiceFee;
+
+  const apiDocsGig = await prisma.gig.upsert({
+    where: { id: 'workflow-gig-api-docs' },
+    update: {
+      clientId: client2.id,
+      assignedSpecialistId: alexey.id,
+      serviceFee: apiDocsServiceFee,
+      totalAmount: apiDocsTotal,
+    },
+    create: {
+      id: 'workflow-gig-api-docs',
+      title: 'Документация API с использованием Swagger/OpenAPI',
+      description: 'Требуется создать полную документацию для существующего REST API с использованием OpenAPI 3.0 спецификации. API включает около 30 эндпоинтов для работы с пользователями, заказами, продуктами и платежами. Необходимо описать все эндпоинты с примерами запросов и ответов, схемами данных, кодами ошибок. Документация должна быть интерактивной (Swagger UI) и позволять тестировать API прямо из браузера. Важно добавить описание аутентификации (JWT), rate limiting, и общие концепции API. Документация должна быть понятна как разработчикам, так и не-техническим специалистам.',
+      goal: 'Создать исчерпывающую и удобную документацию API, которая ускорит интеграцию для внешних разработчиков и снизит количество вопросов в поддержку.',
+      deliverables: '1. OpenAPI 3.0 спецификация (YAML/JSON)\n2. Swagger UI для интерактивного просмотра\n3. Описание всех 30+ эндпоинтов\n4. Примеры запросов и ответов\n5. Схемы данных для всех моделей\n6. Описание аутентификации и авторизации\n7. Postman коллекция для тестирования',
+      constraints: 'Формат: OpenAPI 3.0. Инструменты: Swagger UI, Redoc (опционально). Язык: английский для технических терминов, русский для описаний. Срок: 1.5 недели. Документация должна автоматически обновляться при изменении API.',
+      acceptanceCriteria: 'Все эндпоинты задокументированы с полным описанием параметров, тел запросов и ответов. Swagger UI доступен по /api-docs и корректно отображает всю документацию. Примеры запросов можно выполнить прямо из Swagger UI. Все модели данных описаны с типами полей и валидацией. Коды ошибок (400, 401, 403, 404, 500) документированы для каждого эндпоинта. Описание аутентификации содержит примеры получения и использования JWT токенов. Postman коллекция импортируется без ошибок.',
+      budget: apiDocsBudget,
+      serviceFee: apiDocsServiceFee,
+      totalAmount: apiDocsTotal,
+      tags: 'REST API,Swagger,Documentation,OpenAPI',
+      status: 'COMPLETED',
+      assignedSpecialistId: alexey.id,
+      clientId: client2.id,
+      createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10 days ago
+    },
+  });
+
+  // Create application for API Docs gig
+  const apiDocsApp = await prisma.application.findFirst({
+    where: { gigId: apiDocsGig.id, specialistId: alexey.id },
+  });
+  if (!apiDocsApp) {
+    await prisma.application.create({
+      data: {
+        gigId: apiDocsGig.id,
+        specialistId: alexey.id,
+        approach: 'Начну с анализа существующего API кода для автоматической генерации базовой OpenAPI спецификации. Затем вручную дополню описания, примеры и edge cases. Использую Swagger Editor для валидации спецификации. Swagger UI настрою с кастомным брендингом. Для каждого эндпоинта добавлю реалистичные примеры запросов/ответов. Создам Postman коллекцию с pre-request скриптами для аутентификации. Документацию интегрирую в CI/CD для автоматической публикации.',
+        questions: 'Есть ли у API версионирование? Какие эндпоинты наиболее критичны для документирования в первую очередь? Нужна ли документация на английском языке? Есть ли существующая документация, которую можно использовать как основу?',
+        estimatedEffort: '1.5 недели (60 часов)',
+        status: 'ACCEPTED',
+        createdAt: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000), // 9 days ago
+      },
+    });
+  }
+
+  // Create messages for API Docs gig
+  await prisma.message.upsert({
+    where: { id: 'msg-api-docs-1' },
+    update: {},
+    create: {
+      id: 'msg-api-docs-1',
+      gigId: apiDocsGig.id,
+      senderId: alexey.id,
+      content: 'Добрый день! Завершил документирование всех эндпоинтов. Swagger UI доступен по адресу, который отправил в личку. Postman коллекция также готова. Прошу проверить.',
+      createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000), // 8 days ago
+    },
+  });
+
+  await prisma.message.upsert({
+    where: { id: 'msg-api-docs-2' },
+    update: {},
+    create: {
+      id: 'msg-api-docs-2',
+      gigId: apiDocsGig.id,
+      senderId: client2.id,
+      content: 'Проверили документацию с командой. Выглядит отлично! Есть пара мелких правок по описаниям эндпоинтов платежей.',
+      createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
+    },
+  });
+
+  await prisma.message.upsert({
+    where: { id: 'msg-api-docs-3' },
+    update: {},
+    create: {
+      id: 'msg-api-docs-3',
+      gigId: apiDocsGig.id,
+      senderId: client2.id,
+      content: 'Отлично, работа принята! Документация полностью соответствует требованиям. Спасибо за качественную работу!',
+      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+    },
+  });
+
+  console.log('Created/updated workflow gig: Документация API с использованием Swagger/OpenAPI (COMPLETED)');
+
+  // Workflow Gig 5: Redis Caching Implementation (PAID)
+  const redisBudget = 11000000; // 110,000 RUB
+  const redisServiceFee = Math.floor(redisBudget * 0.10);
+  const redisTotal = redisBudget + redisServiceFee;
+
+  const redisGig = await prisma.gig.upsert({
+    where: { id: 'workflow-gig-redis-caching' },
+    update: {
+      clientId: client1.id,
+      assignedSpecialistId: dmitry.id,
+      serviceFee: redisServiceFee,
+      totalAmount: redisTotal,
+      paidAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+    },
+    create: {
+      id: 'workflow-gig-redis-caching',
+      title: 'Внедрение Redis кэширования для оптимизации производительности',
+      description: 'Требуется внедрить Redis кэширование в существующее Node.js приложение для улучшения производительности и снижения нагрузки на базу данных. Приложение испытывает проблемы с производительностью при высоких нагрузках - некоторые запросы выполняются более 2 секунд. Необходимо проанализировать узкие места, внедрить многоуровневое кэширование (in-memory + Redis), настроить стратегии инвалидации кэша, добавить мониторинг hit rate. Важно не сломать существующую функциональность и обеспечить консистентность данных. Кэш должен автоматически инвалидироваться при изменении данных.',
+      goal: 'Ускорить работу приложения минимум в 3 раза для часто запрашиваемых данных и снизить нагрузку на PostgreSQL на 50%.',
+      deliverables: '1. Redis интеграция с Node.js приложением\n2. Кэширование для 10+ критичных эндпоинтов\n3. Стратегии инвалидации кэша (TTL, event-based)\n4. Мониторинг hit rate и performance метрик\n5. Graceful degradation при недоступности Redis\n6. Документация по работе с кэшем\n7. Load testing результаты до/после',
+      constraints: 'Стек: Node.js, Redis 7+, ioredis клиент. Срок: 2 недели. Нельзя менять существующие API контракты. Кэш должен быть прозрачным для клиентов. Требуется поддержка Redis Cluster для production.',
+      acceptanceCriteria: 'Redis успешно интегрирован и работает стабильно. Критичные эндпоинты ускорены минимум в 3 раза (подтверждено load testing). Hit rate кэша составляет 70%+. Инвалидация работает корректно - нет stale данных. При падении Redis приложение продолжает работать (fallback на БД). Мониторинг показывает метрики кэша в реальном времени. Документация содержит примеры использования и troubleshooting. Load testing показывает снижение нагрузки на БД на 50%+.',
+      budget: redisBudget,
+      serviceFee: redisServiceFee,
+      totalAmount: redisTotal,
+      tags: 'Redis,Node.js,Caching,Performance',
+      status: 'PAID',
+      assignedSpecialistId: dmitry.id,
+      clientId: client1.id,
+      paidAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+      createdAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000), // 12 days ago
+    },
+  });
+
+  // Create application for Redis gig
+  const redisApp = await prisma.application.findFirst({
+    where: { gigId: redisGig.id, specialistId: dmitry.id },
+  });
+  if (!redisApp) {
+    await prisma.application.create({
+      data: {
+        gigId: redisGig.id,
+        specialistId: dmitry.id,
+        approach: 'Начну с профилирования приложения для выявления самых медленных запросов. Внедрю Redis через ioredis с connection pooling. Использую многоуровневую стратегию: L1 кэш (in-memory LRU) для горячих данных, L2 кэш (Redis) для остальных. Для инвалидации применю комбинацию TTL и event-driven подхода через Redis Pub/Sub. Добавлю middleware для автоматического кэширования GET запросов. Настрою мониторинг через Prometheus метрики. Проведу load testing с помощью k6 для замера улучшений.',
+        questions: 'Какой текущий RPS у приложения? Есть ли уже развернутый Redis или нужно настроить с нуля? Какие данные наиболее критичны для кэширования? Есть ли требования к консистентности (eventual vs strong)?',
+        estimatedEffort: '2 недели (80 часов)',
+        status: 'ACCEPTED',
+        createdAt: new Date(Date.now() - 11 * 24 * 60 * 60 * 1000), // 11 days ago
+      },
+    });
+  }
+
+  // Create messages for Redis gig
+  await prisma.message.upsert({
+    where: { id: 'msg-redis-1' },
+    update: {},
+    create: {
+      id: 'msg-redis-1',
+      gigId: redisGig.id,
+      senderId: dmitry.id,
+      content: 'Здравствуйте! Начал работу над кэшированием. Провел профилирование и выявил 12 самых медленных эндпоинтов. Redis настроен и интегрирован. Начинаю внедрение кэширования.',
+      createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10 days ago
+    },
+  });
+
+  await prisma.message.upsert({
+    where: { id: 'msg-redis-2' },
+    update: {},
+    create: {
+      id: 'msg-redis-2',
+      gigId: redisGig.id,
+      senderId: client1.id,
+      content: 'Отлично! Уже заметили улучшение производительности на staging. Продолжайте в том же духе.',
+      createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
+    },
+  });
+
+  await prisma.message.upsert({
+    where: { id: 'msg-redis-3' },
+    update: {},
+    create: {
+      id: 'msg-redis-3',
+      gigId: redisGig.id,
+      senderId: dmitry.id,
+      content: 'Работа завершена! Load testing показывает ускорение в 4 раза для кэшируемых запросов. Hit rate 75%. Нагрузка на БД снизилась на 60%. Отправил отчет и документацию.',
+      createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000), // 4 days ago
+    },
+  });
+
+  console.log('Created/updated workflow gig: Внедрение Redis кэширования для оптимизации производительности (PAID)');
+
+  // ========================================
   // Summary
   // ========================================
 
@@ -413,6 +878,15 @@ async function main() {
   console.log('');
   console.log('ADMIN:');
   console.log('  • admin@gigly.ru');
+  console.log('');
+  console.log('Example Gigs (OPEN): 5 gigs');
+  console.log('Workflow Gigs:');
+  console.log('  • IN_PROGRESS: 2 gigs');
+  console.log('  • REVIEW: 1 gig');
+  console.log('  • COMPLETED: 1 gig');
+  console.log('  • PAID: 1 gig');
+  console.log('');
+  console.log('Total Gigs: 10');
   console.log('');
   console.log('Password for all users: TestPass123');
   console.log('');

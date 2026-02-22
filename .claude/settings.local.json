@@ -99,7 +99,20 @@
       "Bash(/tmp/validate_remaining.sh:*)",
       "Bash(/tmp/final_validation_report.sh:*)",
       "Bash(/tmp/archive_summary.sh:*)",
-      "Bash(do npm run test:e2e -- admin-moderation.spec.ts)"
+      "Bash(do npm run test:e2e -- admin-moderation.spec.ts)",
+      "Bash(wc -l app/**/*.{ts,tsx} lib/**/*.{ts,tsx} middleware.ts)",
+      "Bash(openspec:*)",
+      "Bash(/tmp/test-env-syntax.env:*)",
+      "Bash(/tmp/test-env-minimal.env:*)",
+      "Bash(/tmp/test-env-no-database.env:*)",
+      "Bash(/tmp/test-env-full.env:*)",
+      "Bash(openssl rand:*)",
+      "Bash(wc -l openspec/changes/csrf-verification/*.md openspec/changes/csrf-verification/specs/security/*.md)",
+      "WebSearch",
+      "Bash(npx prisma db seed)",
+      "Bash(/tmp/seed-verification-summary.txt:*)",
+      "Bash(openspec/archive/seed-script-foundation/ARCHIVE_SUMMARY.md:*)",
+      "Bash(npm run seed)"
     ]
   }
 }
