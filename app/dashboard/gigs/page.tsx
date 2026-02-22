@@ -2,7 +2,11 @@ import { getSession } from '@/lib/session'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { Suspense } from 'react'
 import GigFilters from './components/GigFilters'
+import PaginationControls from '@/app/components/PaginationControls'
+
+const PAGE_SIZE = 25
 
 function formatRoubles(kopecks: number): string {
   return new Intl.NumberFormat('ru-RU').format(kopecks / 100)
@@ -27,6 +31,23 @@ export default async function GigBrowsePage({
   const maxBudgetParam = typeof params.maxBudget === 'string' ? params.maxBudget : undefined
   const maxBudget = maxBudgetParam ? parseInt(maxBudgetParam, 10) : undefined
   const sort = typeof params.sort === 'string' ? params.sort : 'newest'
+
+  // Extract and validate page parameter
+  const pageParam = typeof params.page === 'string' ? params.page : '1'
+  const parsedPage = parseInt(pageParam, 10)
+  const page = Math.max(1, parsedPage || 1)
+
+  // Redirect if page parameter is invalid (< 1)
+  if (parsedPage < 1 || isNaN(parsedPage)) {
+    const redirectParams = new URLSearchParams()
+    if (search) redirectParams.set('search', search)
+    if (tagsParam) redirectParams.set('tags', tagsParam)
+    if (minBudgetParam) redirectParams.set('minBudget', minBudgetParam)
+    if (maxBudgetParam) redirectParams.set('maxBudget', maxBudgetParam)
+    if (sort !== 'newest') redirectParams.set('sort', sort)
+    const query = redirectParams.toString()
+    redirect(`/dashboard/gigs${query ? `?${query}` : ''}`)
+  }
 
   // Build dynamic Prisma where clause with nested AND/OR
   const andConditions: any[] = [{ status: 'OPEN' }]
@@ -67,11 +88,33 @@ export default async function GigBrowsePage({
   if (sort === 'budget-desc') orderBy = { budget: 'desc' }
   if (sort === 'budget-asc') orderBy = { budget: 'asc' }
 
-  const gigs = await prisma.gig.findMany({
-    where,
-    orderBy,
-    include: { client: { select: { email: true } } },
-  })
+  // Execute queries in parallel: fetch paginated gigs and total count
+  const [gigs, totalCount] = await Promise.all([
+    prisma.gig.findMany({
+      where,
+      orderBy,
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+      include: { client: { select: { email: true } } },
+    }),
+    prisma.gig.count({ where })
+  ])
+
+  // Calculate total pages
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE)
+
+  // Redirect if page exceeds total pages
+  if (page > totalPages && totalPages > 0) {
+    const redirectParams = new URLSearchParams()
+    if (search) redirectParams.set('search', search)
+    if (tagsParam) redirectParams.set('tags', tagsParam)
+    if (minBudgetParam) redirectParams.set('minBudget', minBudgetParam)
+    if (maxBudgetParam) redirectParams.set('maxBudget', maxBudgetParam)
+    if (sort !== 'newest') redirectParams.set('sort', sort)
+    redirectParams.set('page', totalPages.toString())
+    const query = redirectParams.toString()
+    redirect(`/dashboard/gigs${query ? `?${query}` : ''}`)
+  }
 
   // Check if any filters are active
   const hasActiveFilters = search || tags.length > 0 || minBudget || maxBudget
@@ -88,6 +131,13 @@ export default async function GigBrowsePage({
 
         {/* Filter Panel */}
         <GigFilters />
+
+        {/* Results Count */}
+        {totalCount > 0 && (
+          <p className="text-sm text-gray-600 mb-4">
+            Showing {(page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, totalCount)} of {totalCount} gigs
+          </p>
+        )}
 
         {/* Gig List */}
         {gigs.length === 0 ? (
@@ -132,6 +182,19 @@ export default async function GigBrowsePage({
               </li>
             ))}
           </ul>
+        )}
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="mt-6">
+            <Suspense fallback={<div className="h-10" />}>
+              <PaginationControls
+                currentPage={page}
+                totalPages={totalPages}
+                totalCount={totalCount}
+              />
+            </Suspense>
+          </div>
         )}
       </div>
     </div>
