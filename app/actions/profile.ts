@@ -21,21 +21,10 @@ export async function updateProfile(
       const techStack = sanitizeInput((formData.get('techStack') as string) || '').trim()
       const experienceLevel = (formData.get('experienceLevel') as string) || ''
       const bio = sanitizeInput((formData.get('bio') as string) || '').trim()
-      const hourlyRateStr = formData.get('hourlyRate') as string
 
       // Validate experienceLevel
       if (experienceLevel && !['MIDDLE', 'SENIOR'].includes(experienceLevel)) {
         return { error: 'Experience level must be MIDDLE or SENIOR.' }
-      }
-
-      // Validate and convert hourlyRate
-      let hourlyRate = 0
-      if (hourlyRateStr) {
-        const rate = parseFloat(hourlyRateStr)
-        if (isNaN(rate) || rate < 0) {
-          return { error: 'Hourly rate must be a positive number.' }
-        }
-        hourlyRate = Math.floor(rate * 100) // Convert roubles to kopecks
       }
 
       // Upsert SpecialistProfile
@@ -47,14 +36,12 @@ export async function updateProfile(
           techStack,
           experienceLevel,
           bio,
-          hourlyRate,
         },
         update: {
           displayName,
           techStack,
           experienceLevel,
           bio,
-          hourlyRate,
         },
       })
     } else if (session.role === 'CLIENT') {

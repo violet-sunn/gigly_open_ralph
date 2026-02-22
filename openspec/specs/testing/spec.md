@@ -964,7 +964,6 @@ The platform SHALL enhance `createTestUser()` to use realistic Russian data by d
 **Acceptance Criteria:**
 - experienceLevel defaults to "SENIOR" (valid value)
 - techStack defaults to realistic Russian-context stack
-- hourlyRate is in kopecks (e.g., 500000 for 5000 RUB)
 - No validation errors when saving to database
 
 #### Scenario: Create user with unique email

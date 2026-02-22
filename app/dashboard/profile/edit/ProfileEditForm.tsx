@@ -27,8 +27,6 @@ export default function ProfileEditForm({ role, profile }: ProfileEditFormProps)
   const [state, formAction] = useActionState(updateProfile, null)
 
   if (role === 'SPECIALIST') {
-    const hourlyRateRoubles = profile?.hourlyRate ? profile.hourlyRate / 100 : ''
-
     return (
       <div className="max-w-2xl mx-auto p-6">
         <h1 className="text-2xl font-bold mb-6">Edit Profile</h1>
@@ -91,21 +89,6 @@ export default function ProfileEditForm({ role, profile }: ProfileEditFormProps)
               name="bio"
               rows={4}
               defaultValue={profile?.bio || ''}
-              className="mt-1 block w-full rounded border-gray-300 border p-2"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="hourlyRate" className="block text-sm font-medium text-gray-700">
-              Hourly Rate (₽)
-            </label>
-            <input
-              type="number"
-              id="hourlyRate"
-              name="hourlyRate"
-              min="0"
-              step="1"
-              defaultValue={hourlyRateRoubles}
               className="mt-1 block w-full rounded border-gray-300 border p-2"
             />
           </div>

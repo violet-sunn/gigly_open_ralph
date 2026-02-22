@@ -10,7 +10,6 @@ The system MUST provide an `updateProfile` server action that creates or updates
 - AND the user has no SpecialistProfile record yet
 - WHEN `updateProfile` is called with valid profile data
 - THEN a SpecialistProfile record MUST be created with `userId` as primary key
-- AND hourlyRate MUST be converted from roubles to kopecks (× 100)
 - AND the action MUST redirect to `/dashboard/profile`
 
 #### Scenario: CLIENT creates profile for first time
@@ -33,12 +32,6 @@ The system MUST provide an `updateProfile` server action that creates or updates
 - THEN it MUST return `{ error: 'Experience level must be MIDDLE or SENIOR.' }`
 - AND no records MUST be modified
 
-#### Scenario: Invalid hourly rate
-- GIVEN a SPECIALIST user submits hourlyRate with a negative value
-- WHEN `updateProfile` is called
-- THEN it MUST return `{ error: 'Hourly rate must be a positive number.' }`
-- AND no records MUST be modified
-
 #### Scenario: Upsert operation
 - GIVEN a user submits the profile form
 - WHEN `updateProfile` is called
@@ -49,7 +42,7 @@ The system MUST provide an `updateProfile` server action that creates or updates
 - `updateProfile` is exported from `app/actions/profile.ts` with `'use server'`
 - Signature is `(prevState: { error?: string } | null, formData: FormData)`
 - Uses role-based logic to determine which profile table to upsert
-- For SPECIALIST: validates experienceLevel and hourlyRate
+- For SPECIALIST: validates experienceLevel
 - For CLIENT: validates companyName and inn are non-empty
 - Uses Prisma `upsert` to handle both create and update cases
 - On success: redirects to `/dashboard/profile`

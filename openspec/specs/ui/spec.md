@@ -674,7 +674,7 @@ The system MUST provide a profile edit page at `/dashboard/profile/edit` with a 
 - GIVEN an authenticated user
 - WHEN they navigate to `/dashboard/profile/edit`
 - THEN the form MUST show fields appropriate for their role
-- AND SPECIALIST sees: displayName, techStack, experienceLevel, bio, hourlyRate
+- AND SPECIALIST sees: displayName, techStack, experienceLevel, bio
 - AND CLIENT sees: companyName, inn, kpp, contactPerson, phoneNumber
 
 #### Scenario: Form pre-fills existing data

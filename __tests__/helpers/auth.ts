@@ -142,7 +142,6 @@ export async function createAuthenticatedSpecialist(
     techStack?: string
     experienceLevel?: string
     bio?: string
-    hourlyRate?: number
   }
 ) {
   const user = await createTestUser(tx, {

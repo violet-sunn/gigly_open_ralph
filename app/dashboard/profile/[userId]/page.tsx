@@ -45,7 +45,6 @@ export default async function PublicProfilePage({
   // Display SPECIALIST profile
   if (user.specialistProfile) {
     const profile = user.specialistProfile
-    const hourlyRateRoubles = profile.hourlyRate > 0 ? profile.hourlyRate / 100 : 0
 
     return (
       <div className="max-w-2xl mx-auto p-6">
@@ -66,12 +65,6 @@ export default async function PublicProfilePage({
           <div>
             <label className="block text-sm font-medium text-gray-700">Bio</label>
             <p className="mt-1 whitespace-pre-wrap">{profile.bio || 'Not specified'}</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Hourly Rate</label>
-            <p className="mt-1">
-              {hourlyRateRoubles > 0 ? `${hourlyRateRoubles.toLocaleString()} ₽` : 'Not specified'}
-            </p>
           </div>
         </div>
         <div className="mt-6">

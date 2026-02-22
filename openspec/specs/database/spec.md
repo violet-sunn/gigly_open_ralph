@@ -209,7 +209,6 @@ The system MUST define a SpecialistProfile model with a 1:1 relation to User for
   - `techStack` field as String with @default("")
   - `experienceLevel` field as String with @default("")
   - `bio` field as String with @default("")
-  - `hourlyRate` field as Int with @default(0) (stored in kopecks)
   - `createdAt` field as DateTime with @default(now())
   - `updatedAt` field as DateTime with @updatedAt
 
@@ -218,11 +217,6 @@ The system MUST define a SpecialistProfile model with a 1:1 relation to User for
 - WHEN the user record is queried
 - THEN `specialistProfile` MUST be null
 - AND the user MUST still be able to use the platform
-
-#### Scenario: Hourly rate stored in kopecks
-- GIVEN a SPECIALIST user sets hourly rate to 5000 roubles
-- WHEN the profile is saved
-- THEN hourlyRate MUST be stored as 500000 kopecks (5000 × 100)
 
 **Acceptance Criteria:**
 - SpecialistProfile model uses `userId String @id` (not auto-generated id)

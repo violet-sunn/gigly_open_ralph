@@ -1023,7 +1023,6 @@ await withTestTransaction(async (tx) => {
 | displayName | N/A | Random Russian name |
 | techStack | N/A | "React, TypeScript" |
 | experienceLevel | N/A | "SENIOR" |
-| hourlyRate | N/A | 5000 (kopecks) |
 
 #### `createTestGig(tx, overrides?)`
 

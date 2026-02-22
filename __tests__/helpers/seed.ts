@@ -268,7 +268,6 @@ export async function createTestUser(
     techStack?: string
     experienceLevel?: string
     bio?: string
-    hourlyRate?: number
   }
 ) {
   const role = overrides?.role || 'CLIENT'
@@ -301,8 +300,7 @@ export async function createTestUser(
         displayName: overrides?.displayName || generateRussianName(),
         techStack: overrides?.techStack || 'React, TypeScript',
         experienceLevel: overrides?.experienceLevel || 'SENIOR',
-        bio: overrides?.bio || '',
-        hourlyRate: overrides?.hourlyRate || 5000
+        bio: overrides?.bio || ''
       }
     }
   }

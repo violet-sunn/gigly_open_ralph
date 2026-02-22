@@ -173,17 +173,11 @@ Gigly — это платформа для размещения и выполн�
 | **techStack** | text | Нет | — | `app/dashboard/profile/edit/ProfileEditForm.tsx:55-66` |
 | **experienceLevel** | select | Нет | Только MIDDLE или SENIOR | `app/dashboard/profile/edit/ProfileEditForm.tsx:69-83` |
 | **bio** | textarea | Нет | — | `app/dashboard/profile/edit/ProfileEditForm.tsx:85-96` |
-| **hourlyRate** | number | Нет | Положительное число, конвертируется в копейки | `app/dashboard/profile/edit/ProfileEditForm.tsx:98-111` |
 
 **Опции experienceLevel:**
 - "" (не указано)
 - "MIDDLE"
 - "SENIOR"
-
-**Конвертация hourlyRate:**
-- Пользователь вводит рубли (например, 5000)
-- Сохраняется в копейках: `Math.floor(rate * 100)` → 500000
-- При отображении конвертируется обратно: `hourlyRate / 100`
 
 **Источник:** `app/actions/profile.ts:18-59`
 
@@ -865,7 +859,6 @@ PENDING
 | techStack | Нет | — |
 | experienceLevel | Нет | MIDDLE или SENIOR |
 | bio | Нет | — |
-| hourlyRate | Нет | Положительное число, конвертируется в копейки |
 
 #### Создание задания
 
@@ -939,14 +932,6 @@ PENDING
 **Формула:** `totalAmount = budgetKopecks + serviceFee`
 
 **Источник:** `app/actions/gig.ts:49`
-
-#### Почасовая ставка специалиста
-
-**Ввод пользователя:** Рубли (например, 5000)
-**Хранение в БД:** Копейки (500000)
-**Формула:** `hourlyRate = Math.floor(rate * 100)`
-
-**Источник:** `app/actions/profile.ts:38`
 
 #### Отображение
 

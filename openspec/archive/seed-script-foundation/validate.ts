@@ -157,16 +157,6 @@ async function validateFoundationUsers() {
     validExperienceLevels ? 'All experience levels are MIDDLE or SENIOR' : 'Some invalid experience levels'
   );
 
-  // Check hourly rates in kopecks
-  const validHourlyRates = specialistUsers.every(u =>
-    u.specialistProfile && u.specialistProfile.hourlyRate >= 100000
-  );
-  validate(
-    'SPECIALIST profiles have hourly rates in kopecks',
-    validHourlyRates,
-    validHourlyRates ? 'All hourly rates are in kopecks (>= 100000)' : 'Some hourly rates seem incorrect'
-  );
-
   // Check ADMIN has no profile
   const adminUser = foundationUsers.find(u => u.role === 'ADMIN');
   const adminHasNoProfile = adminUser && !adminUser.clientProfile && !adminUser.specialistProfile;
