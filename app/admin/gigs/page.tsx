@@ -2,8 +2,12 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
+import { Suspense } from 'react'
 import { CloseGigForm } from './CloseGigForm'
 import { GigFilters } from './GigFilters'
+import PaginationControls from '@/app/components/PaginationControls'
+
+const PAGE_SIZE = 30
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
 
@@ -17,6 +21,20 @@ export default async function AdminGigsPage(props: { searchParams: SearchParams 
   const statusFilter = searchParams.status as string | undefined
   const closedFilter = searchParams.closed as string | undefined
 
+  // Extract and validate page parameter
+  const pageParam = typeof searchParams.page === 'string' ? searchParams.page : '1'
+  const parsedPage = parseInt(pageParam, 10)
+  const page = Math.max(1, parsedPage || 1)
+
+  // Redirect if page parameter is invalid (< 1)
+  if (parsedPage < 1 || isNaN(parsedPage)) {
+    const redirectParams = new URLSearchParams()
+    if (statusFilter) redirectParams.set('status', statusFilter)
+    if (closedFilter) redirectParams.set('closed', closedFilter)
+    const query = redirectParams.toString()
+    redirect(`/admin/gigs${query ? `?${query}` : ''}`)
+  }
+
   const where: any = {}
   if (statusFilter && ['OPEN', 'IN_PROGRESS', 'REVIEW', 'COMPLETED', 'PAID'].includes(statusFilter)) {
     where.status = statusFilter
@@ -27,17 +45,36 @@ export default async function AdminGigsPage(props: { searchParams: SearchParams 
     where.closedByAdmin = false
   }
 
-  const gigs = await prisma.gig.findMany({
-    where,
-    include: {
-      client: {
-        include: {
-          clientProfile: true
+  // Execute queries in parallel: fetch paginated gigs and total count
+  const [gigs, totalCount] = await Promise.all([
+    prisma.gig.findMany({
+      where,
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+      include: {
+        client: {
+          include: {
+            clientProfile: true
+          }
         }
-      }
-    },
-    orderBy: { createdAt: 'desc' }
-  })
+      },
+      orderBy: { createdAt: 'desc' }
+    }),
+    prisma.gig.count({ where })
+  ])
+
+  // Calculate total pages
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE)
+
+  // Redirect if page exceeds total pages
+  if (page > totalPages && totalPages > 0) {
+    const redirectParams = new URLSearchParams()
+    if (statusFilter) redirectParams.set('status', statusFilter)
+    if (closedFilter) redirectParams.set('closed', closedFilter)
+    redirectParams.set('page', totalPages.toString())
+    const query = redirectParams.toString()
+    redirect(`/admin/gigs${query ? `?${query}` : ''}`)
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -50,6 +87,12 @@ export default async function AdminGigsPage(props: { searchParams: SearchParams 
         <div className="bg-white rounded-lg shadow mb-6 p-4">
           <GigFilters />
         </div>
+
+        {totalCount > 0 && (
+          <p className="text-sm text-gray-600 mb-4">
+            Showing {(page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, totalCount)} of {totalCount} gigs
+          </p>
+        )}
 
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200">
@@ -119,6 +162,18 @@ export default async function AdminGigsPage(props: { searchParams: SearchParams 
             </div>
           )}
         </div>
+
+        {totalPages > 1 && (
+          <div className="mt-6">
+            <Suspense fallback={<div className="h-10" />}>
+              <PaginationControls
+                currentPage={page}
+                totalPages={totalPages}
+                totalCount={totalCount}
+              />
+            </Suspense>
+          </div>
+        )}
 
         <div className="mt-8">
           <Link href="/admin" className="text-blue-600 hover:text-blue-800">

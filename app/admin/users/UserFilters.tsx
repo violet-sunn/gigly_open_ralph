@@ -15,6 +15,8 @@ export function UserFilters() {
     } else {
       params.delete(key)
     }
+    // Reset pagination when filters change
+    params.delete('page')
     router.push(`/admin/users?${params.toString()}`)
   }
 

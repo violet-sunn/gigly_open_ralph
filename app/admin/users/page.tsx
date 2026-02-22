@@ -2,9 +2,13 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
+import { Suspense } from 'react'
 import { SuspendUserForm } from './SuspendUserForm'
 import { UnsuspendUserForm } from './UnsuspendUserForm'
 import { UserFilters } from './UserFilters'
+import PaginationControls from '@/app/components/PaginationControls'
+
+const PAGE_SIZE = 30
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
 
@@ -18,6 +22,20 @@ export default async function AdminUsersPage(props: { searchParams: SearchParams
   const roleFilter = searchParams.role as string | undefined
   const statusFilter = searchParams.status as string | undefined
 
+  // Extract and validate page parameter
+  const pageParam = typeof searchParams.page === 'string' ? searchParams.page : '1'
+  const parsedPage = parseInt(pageParam, 10)
+  const page = Math.max(1, parsedPage || 1)
+
+  // Redirect if page parameter is invalid (< 1)
+  if (parsedPage < 1 || isNaN(parsedPage)) {
+    const redirectParams = new URLSearchParams()
+    if (roleFilter) redirectParams.set('role', roleFilter)
+    if (statusFilter) redirectParams.set('status', statusFilter)
+    const query = redirectParams.toString()
+    redirect(`/admin/users${query ? `?${query}` : ''}`)
+  }
+
   const where: any = {}
   if (roleFilter && ['CLIENT', 'SPECIALIST', 'ADMIN'].includes(roleFilter)) {
     where.role = roleFilter
@@ -28,14 +46,33 @@ export default async function AdminUsersPage(props: { searchParams: SearchParams
     where.suspended = false
   }
 
-  const users = await prisma.user.findMany({
-    where,
-    include: {
-      clientProfile: true,
-      specialistProfile: true
-    },
-    orderBy: { createdAt: 'desc' }
-  })
+  // Execute queries in parallel: fetch paginated users and total count
+  const [users, totalCount] = await Promise.all([
+    prisma.user.findMany({
+      where,
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+      include: {
+        clientProfile: true,
+        specialistProfile: true
+      },
+      orderBy: { createdAt: 'desc' }
+    }),
+    prisma.user.count({ where })
+  ])
+
+  // Calculate total pages
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE)
+
+  // Redirect if page exceeds total pages
+  if (page > totalPages && totalPages > 0) {
+    const redirectParams = new URLSearchParams()
+    if (roleFilter) redirectParams.set('role', roleFilter)
+    if (statusFilter) redirectParams.set('status', statusFilter)
+    redirectParams.set('page', totalPages.toString())
+    const query = redirectParams.toString()
+    redirect(`/admin/users${query ? `?${query}` : ''}`)
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -48,6 +85,12 @@ export default async function AdminUsersPage(props: { searchParams: SearchParams
         <div className="bg-white rounded-lg shadow mb-6 p-4">
           <UserFilters />
         </div>
+
+        {totalCount > 0 && (
+          <p className="text-sm text-gray-600 mb-4">
+            Showing {(page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, totalCount)} of {totalCount} users
+          </p>
+        )}
 
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200">
@@ -113,6 +156,18 @@ export default async function AdminUsersPage(props: { searchParams: SearchParams
             </div>
           )}
         </div>
+
+        {totalPages > 1 && (
+          <div className="mt-6">
+            <Suspense fallback={<div className="h-10" />}>
+              <PaginationControls
+                currentPage={page}
+                totalPages={totalPages}
+                totalCount={totalCount}
+              />
+            </Suspense>
+          </div>
+        )}
 
         <div className="mt-8">
           <Link href="/admin" className="text-blue-600 hover:text-blue-800">
