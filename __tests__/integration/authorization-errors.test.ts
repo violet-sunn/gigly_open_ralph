@@ -39,6 +39,10 @@ vi.mock('next/navigation', () => ({
   })
 }))
 
+vi.mock('next/cache', () => ({
+  revalidatePath: vi.fn()
+}))
+
 // Import after mocks
 import { createGig, applyToGig } from '@/app/actions/gig'
 import { suspendUser } from '@/app/actions/moderation'

@@ -1,6 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/session'
 
@@ -52,6 +53,8 @@ export async function suspendUser(
     return { error: 'Failed to suspend user.' }
   }
 
+  revalidatePath('/admin/users')
+  revalidatePath('/admin')
   redirect('/admin/users')
 }
 
@@ -103,6 +106,8 @@ export async function unsuspendUser(
     return { error: 'Failed to unsuspend user.' }
   }
 
+  revalidatePath('/admin/users')
+  revalidatePath('/admin')
   redirect('/admin/users')
 }
 
@@ -157,5 +162,7 @@ export async function closeGig(
     return { error: 'Failed to close gig.' }
   }
 
+  revalidatePath('/admin/gigs')
+  revalidatePath('/admin')
   redirect('/admin/gigs')
 }

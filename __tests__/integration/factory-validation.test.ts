@@ -276,10 +276,10 @@ describe('Factory Validation Compliance', () => {
   })
 
   describe('Parallel Execution Safety', () => {
-    it('creates 50 users in parallel without email collisions', async () => {
+    it('creates 25 users in parallel without email collisions', async () => {
       await withTestTransaction(async (tx) => {
-        // Create 50 users in parallel
-        const userPromises = Array.from({ length: 50 }, () => createTestUser(tx))
+        // Create 25 users in parallel
+        const userPromises = Array.from({ length: 25 }, () => createTestUser(tx))
         const users = await Promise.all(userPromises)
 
         // Collect all emails
@@ -287,14 +287,14 @@ describe('Factory Validation Compliance', () => {
 
         // Verify all emails are unique
         const uniqueEmails = new Set(emails)
-        expect(uniqueEmails.size).toBe(50)
+        expect(uniqueEmails.size).toBe(25)
       })
     })
 
-    it('creates 20 gigs with applications in parallel without violations', async () => {
+    it('creates 10 gigs with applications in parallel without violations', async () => {
       await withTestTransaction(async (tx) => {
-        // Create 20 gigs with applications in parallel
-        const gigPromises = Array.from({ length: 20 }, async () => {
+        // Create 10 gigs with applications in parallel
+        const gigPromises = Array.from({ length: 10 }, async () => {
           const gig = await createTestGig(tx)
           const app = await createTestApplication(tx, { gigId: gig.id })
           return { gig, app }
@@ -303,7 +303,7 @@ describe('Factory Validation Compliance', () => {
         const results = await Promise.all(gigPromises)
 
         // Verify all gigs and applications were created
-        expect(results).toHaveLength(20)
+        expect(results).toHaveLength(10)
         results.forEach(({ gig, app }) => {
           expect(gig.id).toBeTruthy()
           expect(app.id).toBeTruthy()

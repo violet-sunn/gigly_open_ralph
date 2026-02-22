@@ -95,7 +95,14 @@ export default async function GigBrowsePage({
       orderBy,
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
-      include: { client: { select: { email: true } } },
+      include: {
+        client: {
+          select: {
+            email: true,
+            clientProfile: true
+          }
+        }
+      },
     }),
     prisma.gig.count({ where })
   ])
