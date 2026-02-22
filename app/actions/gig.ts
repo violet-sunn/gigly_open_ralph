@@ -79,9 +79,9 @@ export async function applyToGig(
   }
 
   // Check rate limit AFTER auth, BEFORE validation
-  const { success, reset } = await applicationRateLimiter.limit(session.userId)
-  if (!success) {
-    return { error: getRateLimitError(reset, 'applications') }
+  const rateLimitResult = await applicationRateLimiter.limit(session.userId)
+  if (!rateLimitResult.success) {
+    return { error: getRateLimitError(rateLimitResult.reset, 'applications') }
   }
 
   const gigId = formData.get('gigId') as string
@@ -373,9 +373,9 @@ export async function sendMessage(
   if (!session) redirect('/login')
 
   // Check rate limit AFTER auth, BEFORE validation
-  const { success, reset } = await messageRateLimiter.limit(session.userId)
-  if (!success) {
-    return { error: getRateLimitError(reset, 'messages') }
+  const rateLimitResult = await messageRateLimiter.limit(session.userId)
+  if (!rateLimitResult.success) {
+    return { error: getRateLimitError(rateLimitResult.reset, 'messages') }
   }
 
   const gigId = formData.get('gigId') as string

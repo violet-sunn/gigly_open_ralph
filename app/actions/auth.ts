@@ -19,9 +19,9 @@ export async function registerUser(
                     'unknown'
 
   // Check rate limit BEFORE validation
-  const { success, reset } = await registerRateLimiter.limit(ipAddress)
-  if (!success) {
-    return { error: getRateLimitError(reset, 'registration attempts') }
+  const rateLimitResult = await registerRateLimiter.limit(ipAddress)
+  if (!rateLimitResult.success) {
+    return { error: getRateLimitError(rateLimitResult.reset, 'registration attempts') }
   }
 
   const email = formData.get('email') as string
@@ -67,9 +67,9 @@ export async function loginUser(
                     'unknown'
 
   // Check rate limit BEFORE password validation
-  const { success, reset } = await loginRateLimiter.limit(ipAddress)
-  if (!success) {
-    return { error: getRateLimitError(reset, 'login attempts') }
+  const rateLimitResult = await loginRateLimiter.limit(ipAddress)
+  if (!rateLimitResult.success) {
+    return { error: getRateLimitError(rateLimitResult.reset, 'login attempts') }
   }
 
   const email = formData.get('email') as string

@@ -250,13 +250,15 @@ The system MUST provide a rate limiting utility that enforces request limits per
 
 **Acceptance Criteria:**
 - Rate limiting utility exported from `lib/ratelimit.ts`
-- Uses `@upstash/ratelimit` library with `@upstash/redis` for persistent storage
-- Upstash Redis client configured via environment variables (UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN)
-- Sliding window algorithm for accurate rate limiting
-- Returns `{ success: boolean, reset?: number }` structure
+- Uses in-memory Map data structure for storage (Map<string, number[]>)
+- No external dependencies or environment variables required
+- Sliding window algorithm for accurate rate limiting (timestamp array filtering)
+- Returns `{ success: boolean, reset?: number }` structure (discriminated union)
 - Supports both IP-based and user-based identifiers
-- Configuration via constants for easy adjustment
-- Serverless-compatible (no state loss between function invocations)
+- Configuration via constructor parameters (limit: number, window: milliseconds)
+- Automatic cleanup mechanism runs every 5 minutes to prevent memory leaks
+- Cleanup removes entries with no activity in the last 2 hours
+- Single-instance compatible (state is lost on server restart - acceptable for MVP)
 
 ---
 
