@@ -396,6 +396,312 @@ async function main() {
   console.log('Created/updated example gig: E2E Testing');
 
   // ========================================
+  // Applications for OPEN Example Gigs
+  // ========================================
+
+  console.log('');
+
+  // Applications for Backend API Gig
+  await prisma.application.upsert({
+    where: {
+      gigId_specialistId: {
+        gigId: 'example-gig-backend-api',
+        specialistId: dmitry.id,
+      },
+    },
+    update: {},
+    create: {
+      gigId: 'example-gig-backend-api',
+      specialistId: dmitry.id,
+      approach: 'Предлагаю следующий подход: использую Fastify для высокой производительности, Prisma ORM для типобезопасной работы с PostgreSQL. JWT реализую через библиотеку jsonwebtoken с refresh token rotation для безопасности. Для ролевой модели создам middleware с декораторами @RequireRole() для проверки прав доступа. Архитектура: слой контроллеров → сервисы → репозитории для разделения ответственности. Тесты: Jest для unit тестов, Supertest для integration тестов критических путей. Swagger генерирую автоматически из TypeScript типов через tsoa или swagger-jsdoc. Обработка ошибок через централизованный error handler с логированием через Winston.',
+      questions: 'Какие конкретно роли и разрешения нужны в системе? Есть ли требования к rate limiting для API? Нужна ли поддержка OAuth провайдеров (Google, GitHub)? Какая стратегия для refresh токенов (rotation или fixed expiry)? Есть ли существующая база пользователей для миграции?',
+      estimatedEffort: '2-3 недели (80-120 часов)',
+      status: 'PENDING',
+      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+    },
+  });
+
+  await prisma.application.upsert({
+    where: {
+      gigId_specialistId: {
+        gigId: 'example-gig-backend-api',
+        specialistId: sergey.id,
+      },
+    },
+    update: {},
+    create: {
+      gigId: 'example-gig-backend-api',
+      specialistId: sergey.id,
+      approach: 'Имею опыт разработки REST API, хотя моя основная специализация - DevOps. Могу реализовать базовую структуру с Express и JWT аутентификацией. Знаком с Docker и CI/CD, что поможет с деплоем.',
+      questions: 'Какой стек предпочитаете? Нужна ли помощь с настройкой инфраструктуры и деплоем?',
+      estimatedEffort: '3-4 недели',
+      status: 'PENDING',
+      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+    },
+  });
+
+  await prisma.application.upsert({
+    where: {
+      gigId_specialistId: {
+        gigId: 'example-gig-backend-api',
+        specialistId: alexey.id,
+      },
+    },
+    update: {},
+    create: {
+      gigId: 'example-gig-backend-api',
+      specialistId: alexey.id,
+      approach: 'Хотя моя основная специализация - frontend разработка, имею опыт работы с Node.js и TypeScript. Могу реализовать API используя Express, добавить JWT аутентификацию и базовую ролевую модель. Понимаю принципы REST и могу написать качественный TypeScript код с типизацией.',
+      questions: 'Будет ли frontend команда, с которой нужно координировать API контракты? Какие требования к документации API?',
+      estimatedEffort: '3 недели',
+      status: 'PENDING',
+      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+    },
+  });
+
+  console.log('Created applications for Backend API gig');
+
+  // Applications for Frontend Dashboard Gig
+  await prisma.application.upsert({
+    where: {
+      gigId_specialistId: {
+        gigId: 'example-gig-frontend-dashboard',
+        specialistId: alexey.id,
+      },
+    },
+    update: {},
+    create: {
+      gigId: 'example-gig-frontend-dashboard',
+      specialistId: alexey.id,
+      approach: 'Использую React 18 с TypeScript и Recharts для визуализации данных. Архитектура: компонентный подход с переиспользуемыми chart компонентами, custom hooks для работы с данными, React Query для кэширования API запросов. Для производительности применю виртуализацию больших списков через react-window, мемоизацию через useMemo/useCallback. Адаптивная верстка на Tailwind CSS с breakpoints для desktop/tablet. Storybook для документации компонентов. Тесты: React Testing Library для компонентов, Vitest для бизнес-логики.',
+      questions: 'Какие конкретно метрики нужно визуализировать? Есть ли дизайн-макеты или нужно предложить свой вариант? Какая частота обновления данных (real-time или по запросу)? Нужна ли поддержка экспорта графиков в PDF/PNG? Есть ли требования к accessibility (WCAG)?',
+      estimatedEffort: '2 недели (80 часов)',
+      status: 'PENDING',
+      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  await prisma.application.upsert({
+    where: {
+      gigId_specialistId: {
+        gigId: 'example-gig-frontend-dashboard',
+        specialistId: dmitry.id,
+      },
+    },
+    update: {},
+    create: {
+      gigId: 'example-gig-frontend-dashboard',
+      specialistId: dmitry.id,
+      approach: 'Моя основная специализация - backend, но имею базовые знания React. Могу реализовать простой дашборд с использованием готовых библиотек для графиков. Понимаю основы компонентного подхода.',
+      questions: 'Есть ли готовый API для данных? Какие библиотеки предпочитаете для графиков?',
+      estimatedEffort: '3 недели',
+      status: 'PENDING',
+      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  await prisma.application.upsert({
+    where: {
+      gigId_specialistId: {
+        gigId: 'example-gig-frontend-dashboard',
+        specialistId: sergey.id,
+      },
+    },
+    update: {},
+    create: {
+      gigId: 'example-gig-frontend-dashboard',
+      specialistId: sergey.id,
+      approach: 'Имею опыт с frontend разработкой в рамках DevOps задач. Могу настроить React проект с Docker для разработки, помочь с CI/CD. По самой разработке компонентов опыт ограничен, но могу реализовать базовую функциональность.',
+      questions: 'Нужна ли помощь с настройкой dev окружения и деплоем? Какие требования к производительности?',
+      estimatedEffort: '2-3 недели',
+      status: 'PENDING',
+      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  console.log('Created applications for Frontend Dashboard gig');
+
+  // Applications for DevOps CI/CD Gig
+  await prisma.application.upsert({
+    where: {
+      gigId_specialistId: {
+        gigId: 'example-gig-devops-cicd',
+        specialistId: sergey.id,
+      },
+    },
+    update: {},
+    create: {
+      gigId: 'example-gig-devops-cicd',
+      specialistId: sergey.id,
+      approach: 'Настрою GitHub Actions с тремя workflow: CI (lint + test), Build (Docker image), Deploy (staging/prod). Использую multi-stage Dockerfile для оптимизации размера образа (builder stage + production stage). Secrets через GitHub Secrets + HashiCorp Vault для production credentials. Деплой на VPS через SSH с использованием docker-compose, zero-downtime deployment через blue-green strategy. Rollback через тегирование образов (git SHA + semantic version) и быстрый откат на предыдущую версию. Мониторинг деплоев через Sentry для ошибок + уведомления в Telegram через webhook. Документация в README с диаграммами pipeline и runbook для типичных проблем.',
+      questions: 'Какой текущий процесс деплоя? Есть ли staging окружение? Какие требования к rollback времени? Используется ли container registry (Docker Hub, GitHub Registry)? Нужна ли интеграция с Slack/Telegram для уведомлений?',
+      estimatedEffort: '1.5-2 недели (60-80 часов)',
+      status: 'PENDING',
+      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  await prisma.application.upsert({
+    where: {
+      gigId_specialistId: {
+        gigId: 'example-gig-devops-cicd',
+        specialistId: dmitry.id,
+      },
+    },
+    update: {},
+    create: {
+      gigId: 'example-gig-devops-cicd',
+      specialistId: dmitry.id,
+      approach: 'Имею опыт настройки CI/CD для Python проектов. Могу настроить GitHub Actions для Node.js приложения, добавить тесты и линтеры. С Docker работал, могу создать Dockerfile и настроить базовый деплой.',
+      questions: 'Какие тесты уже есть в проекте? Нужна ли помощь с написанием тестов? Какой хостинг используется?',
+      estimatedEffort: '2-3 недели',
+      status: 'PENDING',
+      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  await prisma.application.upsert({
+    where: {
+      gigId_specialistId: {
+        gigId: 'example-gig-devops-cicd',
+        specialistId: alexey.id,
+      },
+    },
+    update: {},
+    create: {
+      gigId: 'example-gig-devops-cicd',
+      specialistId: alexey.id,
+      approach: 'Как frontend разработчик, имею базовый опыт с GitHub Actions для деплоя статических сайтов. Могу настроить простой CI pipeline с тестами и линтерами, но с Docker и серверным деплоем опыт ограничен.',
+      questions: 'Есть ли DevOps команда для консультаций? Какие требования к мониторингу?',
+      estimatedEffort: '3 недели',
+      status: 'PENDING',
+      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  console.log('Created applications for DevOps CI/CD gig');
+
+  // Applications for Database Optimization Gig
+  await prisma.application.upsert({
+    where: {
+      gigId_specialistId: {
+        gigId: 'example-gig-db-optimization',
+        specialistId: dmitry.id,
+      },
+    },
+    update: {},
+    create: {
+      gigId: 'example-gig-db-optimization',
+      specialistId: dmitry.id,
+      approach: 'Начну с полного аудита: EXPLAIN ANALYZE для всех медленных запросов, анализ текущих индексов через pg_stat_user_indexes, проверка table bloat. Оптимизация запросов: переписывание N+1 queries, использование JOIN вместо подзапросов где возможно, добавление covering indexes. Стратегия индексов: B-tree для equality/range queries, GiST для геоданных, GIN для full-text search и JSONB. Проверю необходимость партиционирования больших таблиц. Настройка PostgreSQL: shared_buffers, work_mem, effective_cache_size под нагрузку. Connection pooling через PgBouncer если еще не используется. Отчет с метриками до/после, EXPLAIN ANALYZE планы, рекомендации по мониторингу.',
+      questions: 'Какой текущий размер базы и темп роста? Есть ли проблемы с конкретными таблицами или запросами? Используется ли connection pooling (PgBouncer)? Какие индексы уже существуют? Можно ли получить доступ к staging БД для анализа? Есть ли ограничения на downtime для применения миграций?',
+      estimatedEffort: '1-2 недели (40-80 часов)',
+      status: 'PENDING',
+      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  await prisma.application.upsert({
+    where: {
+      gigId_specialistId: {
+        gigId: 'example-gig-db-optimization',
+        specialistId: sergey.id,
+      },
+    },
+    update: {},
+    create: {
+      gigId: 'example-gig-db-optimization',
+      specialistId: sergey.id,
+      approach: 'С точки зрения DevOps могу помочь с инфраструктурной оптимизацией: настройка connection pooling, мониторинг через Prometheus + Grafana, настройка репликации для read queries. По SQL оптимизации опыт есть, но не на уровне DBA.',
+      questions: 'Какая текущая инфраструктура БД? Используется ли репликация? Нужна ли помощь с мониторингом?',
+      estimatedEffort: '2 недели',
+      status: 'PENDING',
+      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  await prisma.application.upsert({
+    where: {
+      gigId_specialistId: {
+        gigId: 'example-gig-db-optimization',
+        specialistId: alexey.id,
+      },
+    },
+    update: {},
+    create: {
+      gigId: 'example-gig-db-optimization',
+      specialistId: alexey.id,
+      approach: 'Имею базовые знания SQL и PostgreSQL из frontend разработки. Могу помочь с оптимизацией запросов на уровне приложения, но глубокая оптимизация БД не моя специализация.',
+      questions: 'Есть ли проблемы на уровне приложения (N+1 queries)? Нужна ли помощь с frontend оптимизацией?',
+      estimatedEffort: '2-3 недели',
+      status: 'PENDING',
+      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  console.log('Created applications for Database Optimization gig');
+
+  // Applications for E2E Testing Gig
+  await prisma.application.upsert({
+    where: {
+      gigId_specialistId: {
+        gigId: 'example-gig-e2e-testing',
+        specialistId: alexey.id,
+      },
+    },
+    update: {},
+    create: {
+      gigId: 'example-gig-e2e-testing',
+      specialistId: alexey.id,
+      approach: 'Использую Playwright с TypeScript и Page Object Model для переиспользования кода. Структура проекта: tests/ (тестовые сценарии), pages/ (POM классы), fixtures/ (тестовые данные и setup). Для стабильности тестов: auto-waiting механизмы Playwright, retry logic для flaky элементов, изоляция тестов через beforeEach hooks с очисткой состояния. Настрою параллельный запуск в 3 браузерах (Chromium, Firefox, WebKit). CI интеграция через GitHub Actions с артефактами: screenshots при падении, videos для failed tests, HTML report с трендами. Добавлю visual regression testing через Playwright screenshots с pixel-perfect сравнением. Документация: contributing guide для написания новых тестов, troubleshooting guide для flaky tests, best practices.',
+      questions: 'Какие критичные user flows нужно покрыть в первую очередь? Есть ли staging окружение для тестов? Нужна ли интеграция с test management системой? Какие браузеры приоритетны? Есть ли требования к accessibility testing?',
+      estimatedEffort: '2-3 недели (80-120 часов)',
+      status: 'PENDING',
+      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  await prisma.application.upsert({
+    where: {
+      gigId_specialistId: {
+        gigId: 'example-gig-e2e-testing',
+        specialistId: sergey.id,
+      },
+    },
+    update: {},
+    create: {
+      gigId: 'example-gig-e2e-testing',
+      specialistId: sergey.id,
+      approach: 'Могу помочь с DevOps частью: настройка Playwright в CI/CD, параллельный запуск тестов, хранение артефактов, интеграция с уведомлениями. По написанию самих тестов опыт есть, но не на уровне QA специалиста.',
+      questions: 'Нужна ли помощь с инфраструктурой для тестов? Какие требования к скорости выполнения тестов?',
+      estimatedEffort: '2-3 недели',
+      status: 'PENDING',
+      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  await prisma.application.upsert({
+    where: {
+      gigId_specialistId: {
+        gigId: 'example-gig-e2e-testing',
+        specialistId: dmitry.id,
+      },
+    },
+    update: {},
+    create: {
+      gigId: 'example-gig-e2e-testing',
+      specialistId: dmitry.id,
+      approach: 'Имею опыт с pytest для backend тестирования. Playwright изучаю, понимаю концепции E2E тестирования. Могу написать базовые тесты для критичных сценариев, но Page Object Model и продвинутые паттерны требуют времени на изучение.',
+      questions: 'Есть ли существующие тесты для reference? Какой уровень покрытия ожидается? Нужны ли API тесты помимо E2E?',
+      estimatedEffort: '3 недели',
+      status: 'PENDING',
+      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  console.log('Created applications for E2E Testing gig');
+
+  // ========================================
   // Workflow Gigs (Demonstrating Full Lifecycle)
   // ========================================
 
@@ -494,6 +800,42 @@ async function main() {
     },
   });
 
+  await prisma.message.upsert({
+    where: { id: 'msg-mobile-ui-3' },
+    update: {},
+    create: {
+      id: 'msg-mobile-ui-3',
+      gigId: mobileUiGig.id,
+      senderId: alexey.id,
+      content: 'Подготовил первые wireframes в Figma. Проработал основные экраны: онбординг, авторизация, главный экран с задачами, детали задачи. Использовал ваши корпоративные цвета из брендбука. Прошу посмотреть и дать обратную связь по структуре и навигации. После согласования перейду к детальной отрисовке UI компонентов и темной теме.',
+      createdAt: new Date(Date.now() - 1.5 * 24 * 60 * 60 * 1000), // 1.5 days ago
+    },
+  });
+
+  await prisma.message.upsert({
+    where: { id: 'msg-mobile-ui-4' },
+    update: {},
+    create: {
+      id: 'msg-mobile-ui-4',
+      gigId: mobileUiGig.id,
+      senderId: client1.id,
+      content: 'Wireframes выглядят отлично! Структура понятная, навигация логичная. Есть пара правок: на главном экране хотелось бы видеть фильтры задач более заметными, и добавить быстрое действие для создания задачи. В остальном всё супер, можете переходить к детальной отрисовке.',
+      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+    },
+  });
+
+  await prisma.message.upsert({
+    where: { id: 'msg-mobile-ui-5' },
+    update: {},
+    create: {
+      id: 'msg-mobile-ui-5',
+      gigId: mobileUiGig.id,
+      senderId: alexey.id,
+      content: 'Отлично, учту правки! Фильтры сделаю более заметными, добавлю FAB кнопку для быстрого создания задачи. Начинаю детальную отрисовку, планирую закончить светлую тему к концу недели, затем адаптирую под темную. Экспорт ассетов и финальный прототип будут готовы через 3-4 дня.',
+      createdAt: new Date(Date.now() - 0.5 * 24 * 60 * 60 * 1000), // 12 hours ago
+    },
+  });
+
   console.log('Created/updated workflow gig: Дизайн мобильного приложения UI/UX (IN_PROGRESS)');
 
   // Workflow Gig 2: Microservices Migration (IN_PROGRESS)
@@ -586,6 +928,42 @@ async function main() {
       senderId: client2.id,
       content: 'Схема выглядит хорошо! Согласен начать с уведомлений. Когда планируете первый деплой на staging?',
       createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+    },
+  });
+
+  await prisma.message.upsert({
+    where: { id: 'msg-microservices-3' },
+    update: {},
+    create: {
+      id: 'msg-microservices-3',
+      gigId: microservicesGig.id,
+      senderId: dmitry.id,
+      content: 'Сервис уведомлений готов и задеплоен на staging. Настроил RabbitMQ для event-driven коммуникации, добавил health checks и базовый мониторинг. Провел нагрузочное тестирование - сервис обрабатывает 1000 RPS без проблем. Следующий шаг - модуль платежей. Планирую закончить его к концу следующей недели.',
+      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+    },
+  });
+
+  await prisma.message.upsert({
+    where: { id: 'msg-microservices-4' },
+    update: {},
+    create: {
+      id: 'msg-microservices-4',
+      gigId: microservicesGig.id,
+      senderId: client2.id,
+      content: 'Отлично! Протестировали сервис уведомлений на staging - работает стабильно. Есть вопрос по модулю платежей: как будете обеспечивать транзакционность при работе с внешним payment gateway?',
+      createdAt: new Date(Date.now() - 1.5 * 24 * 60 * 60 * 1000), // 1.5 days ago
+    },
+  });
+
+  await prisma.message.upsert({
+    where: { id: 'msg-microservices-5' },
+    update: {},
+    create: {
+      id: 'msg-microservices-5',
+      gigId: microservicesGig.id,
+      senderId: dmitry.id,
+      content: 'Для транзакционности использую Saga pattern с компенсирующими транзакциями. Если payment gateway вернет ошибку, сервис автоматически откатит изменения в БД и отправит событие об ошибке. Также добавлю idempotency keys для защиты от дублирующих запросов. Детальную схему отправлю в документации.',
+      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
     },
   });
 
@@ -855,6 +1233,30 @@ async function main() {
       senderId: dmitry.id,
       content: 'Работа завершена! Load testing показывает ускорение в 4 раза для кэшируемых запросов. Hit rate 75%. Нагрузка на БД снизилась на 60%. Отправил отчет и документацию.',
       createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000), // 4 days ago
+    },
+  });
+
+  await prisma.message.upsert({
+    where: { id: 'msg-redis-4' },
+    update: {},
+    create: {
+      id: 'msg-redis-4',
+      gigId: redisGig.id,
+      senderId: client1.id,
+      content: 'Отличная работа! Результаты впечатляют. Протестировали на production - всё работает стабильно. Работа принята, оплату обработаем сегодня. Спасибо за качественное выполнение!',
+      createdAt: new Date(Date.now() - 2.5 * 24 * 60 * 60 * 1000), // 2.5 days ago
+    },
+  });
+
+  await prisma.message.upsert({
+    where: { id: 'msg-redis-5' },
+    update: {},
+    create: {
+      id: 'msg-redis-5',
+      gigId: redisGig.id,
+      senderId: dmitry.id,
+      content: 'Благодарю за сотрудничество! Было приятно работать над проектом. Если возникнут вопросы по кэшированию или понадобится помощь с дальнейшей оптимизацией - обращайтесь. Всегда готов помочь!',
+      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago (aligns with paidAt)
     },
   });
 
