@@ -46,7 +46,7 @@ export default function ProfileEditForm({ role, profile }: ProfileEditFormProps)
               id="displayName"
               name="displayName"
               defaultValue={profile?.displayName || ''}
-              className="mt-1 block w-full rounded border-gray-300 border p-2"
+              className="mt-1 block w-full rounded border-gray-300 border p-2 text-gray-900 bg-white"
             />
           </div>
 
@@ -60,7 +60,7 @@ export default function ProfileEditForm({ role, profile }: ProfileEditFormProps)
               name="techStack"
               placeholder="React, TypeScript, Node.js"
               defaultValue={profile?.techStack || ''}
-              className="mt-1 block w-full rounded border-gray-300 border p-2"
+              className="mt-1 block w-full rounded border-gray-300 border p-2 text-gray-900 bg-white"
             />
           </div>
 
@@ -72,7 +72,7 @@ export default function ProfileEditForm({ role, profile }: ProfileEditFormProps)
               id="experienceLevel"
               name="experienceLevel"
               defaultValue={profile?.experienceLevel || ''}
-              className="mt-1 block w-full rounded border-gray-300 border p-2"
+              className="mt-1 block w-full rounded border-gray-300 border p-2 text-gray-900 bg-white"
             >
               <option value="">Not specified</option>
               <option value="MIDDLE">Middle</option>
@@ -89,7 +89,7 @@ export default function ProfileEditForm({ role, profile }: ProfileEditFormProps)
               name="bio"
               rows={4}
               defaultValue={profile?.bio || ''}
-              className="mt-1 block w-full rounded border-gray-300 border p-2"
+              className="mt-1 block w-full rounded border-gray-300 border p-2 text-gray-900 bg-white"
             />
           </div>
 
@@ -126,7 +126,7 @@ export default function ProfileEditForm({ role, profile }: ProfileEditFormProps)
               name="companyName"
               required
               defaultValue={profile?.companyName || ''}
-              className="mt-1 block w-full rounded border-gray-300 border p-2"
+              className="mt-1 block w-full rounded border-gray-300 border p-2 text-gray-900 bg-white"
             />
           </div>
 
@@ -140,7 +140,7 @@ export default function ProfileEditForm({ role, profile }: ProfileEditFormProps)
               name="inn"
               required
               defaultValue={profile?.inn || ''}
-              className="mt-1 block w-full rounded border-gray-300 border p-2"
+              className="mt-1 block w-full rounded border-gray-300 border p-2 text-gray-900 bg-white"
             />
           </div>
 
@@ -153,7 +153,7 @@ export default function ProfileEditForm({ role, profile }: ProfileEditFormProps)
               id="kpp"
               name="kpp"
               defaultValue={profile?.kpp || ''}
-              className="mt-1 block w-full rounded border-gray-300 border p-2"
+              className="mt-1 block w-full rounded border-gray-300 border p-2 text-gray-900 bg-white"
             />
           </div>
 
@@ -166,7 +166,7 @@ export default function ProfileEditForm({ role, profile }: ProfileEditFormProps)
               id="contactPerson"
               name="contactPerson"
               defaultValue={profile?.contactPerson || ''}
-              className="mt-1 block w-full rounded border-gray-300 border p-2"
+              className="mt-1 block w-full rounded border-gray-300 border p-2 text-gray-900 bg-white"
             />
           </div>
 
@@ -179,7 +179,7 @@ export default function ProfileEditForm({ role, profile }: ProfileEditFormProps)
               id="phoneNumber"
               name="phoneNumber"
               defaultValue={profile?.phoneNumber || ''}
-              className="mt-1 block w-full rounded border-gray-300 border p-2"
+              className="mt-1 block w-full rounded border-gray-300 border p-2 text-gray-900 bg-white"
             />
           </div>
 

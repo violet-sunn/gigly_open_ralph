@@ -41,7 +41,7 @@ export function MessageForm({ gigId }: MessageFormProps) {
         maxLength={2000}
         rows={3}
         placeholder="Type your message..."
-        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+        className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
       />
 
       <SubmitButton />
