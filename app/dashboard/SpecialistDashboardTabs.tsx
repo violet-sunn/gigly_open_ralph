@@ -23,6 +23,7 @@ interface Application {
   gigId: string
   status: string
   createdAt: Date
+  updatedAt: Date
   gig: {
     title: string
     status: string
@@ -46,7 +47,9 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
   const activeWorkGigs = activeGigs.filter(gig => gig.status !== 'PAID')
   const pendingApplications = applications.filter(app => app.status === 'PENDING')
   const paidGigs = activeGigs.filter(gig => gig.status === 'PAID')
-  const rejectedApplications = applications.filter(app => app.status === 'REJECTED')
+  const archivedApplications = applications.filter(app =>
+    app.status === 'REJECTED' || app.status === 'WITHDRAWN'
+  ).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
 
   return (
     <div className="space-y-4">
@@ -172,7 +175,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
         {activeTab === 'archive' && (
           <div className="border border-gray-200 rounded-md p-4">
             <p className="text-sm text-gray-500 text-center mb-3">Archive</p>
-            {paidGigs.length === 0 && rejectedApplications.length === 0 ? (
+            {paidGigs.length === 0 && archivedApplications.length === 0 ? (
               <p className="text-xs text-gray-400 text-center">No archived items.</p>
             ) : (
               <div className="space-y-4">
@@ -213,12 +216,12 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
                   </div>
                 )}
 
-                {/* Rejected Applications Section */}
-                {rejectedApplications.length > 0 && (
+                {/* Rejected/Withdrawn Applications Section */}
+                {archivedApplications.length > 0 && (
                   <div>
-                    <h4 className="text-xs font-semibold text-gray-700 mb-2">Rejected Applications</h4>
+                    <h4 className="text-xs font-semibold text-gray-700 mb-2">Rejected & Withdrawn Applications</h4>
                     <ul className="space-y-3">
-                      {rejectedApplications.map((app) => (
+                      {archivedApplications.map((app) => (
                         <li key={app.id}>
                           <Link
                             href={`/dashboard/gigs/${app.gigId}`}
@@ -226,12 +229,21 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
                           >
                             <div className="flex justify-between items-start">
                               <span className="text-sm font-medium text-gray-900">{app.gig.title}</span>
-                              <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700">
+                              <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                app.status === 'WITHDRAWN'
+                                  ? 'bg-gray-100 text-gray-700'
+                                  : 'bg-red-100 text-red-700'
+                              }`}>
                                 {app.status}
                               </span>
                             </div>
                             <div className="mt-1">
-                              <span className="text-xs text-gray-400">{app.createdAt.toLocaleDateString('ru-RU')}</span>
+                              <span className="text-xs text-gray-400">
+                                {app.status === 'WITHDRAWN'
+                                  ? `Withdrawn on ${new Date(app.updatedAt).toLocaleDateString('ru-RU')}`
+                                  : `Applied on ${app.createdAt.toLocaleDateString('ru-RU')}`
+                                }
+                              </span>
                             </div>
                           </Link>
                         </li>

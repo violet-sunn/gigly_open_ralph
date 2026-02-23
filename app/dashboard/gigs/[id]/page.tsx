@@ -9,6 +9,7 @@ import { ApproveWorkForm } from './approve-work-form'
 import { MarkAsPaidButton } from '@/app/components/MarkAsPaidButton'
 import { MessageList } from './message-list'
 import { MessageForm } from './message-form'
+import { WithdrawApplicationButton } from './withdraw-application-button'
 
 function formatRoubles(kopecks: number): string {
   return new Intl.NumberFormat('ru-RU').format(kopecks / 100)
@@ -67,6 +68,9 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
 
   const hasApplied = session.role === 'SPECIALIST' &&
     gig.applications.some((app) => app.specialistId === session.userId)
+  const myApplication = session.role === 'SPECIALIST'
+    ? gig.applications.find(app => app.specialistId === session.userId)
+    : null
   const isOwner = session.role === 'CLIENT' && gig.clientId === session.userId
   const isAssignedSpecialist = session.role === 'SPECIALIST' && gig.assignedSpecialistId === session.userId
   const canViewMessages = (isOwner || isAssignedSpecialist) && gig.assignedSpecialistId !== null
@@ -199,6 +203,30 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
                   Use this example to understand what clear requirements look like when posting your own gigs.
                 </p>
               </div>
+            ) : myApplication && myApplication.status === 'PENDING' ? (
+              <>
+                <div className="text-center mb-4">
+                  <p className="text-sm text-green-700 font-medium">You have already applied to this gig.</p>
+                </div>
+                <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded">
+                  <p className="text-sm text-yellow-800 mb-3">
+                    Changed your mind? You can withdraw your application.
+                  </p>
+                  <WithdrawApplicationButton applicationId={myApplication.id} />
+                </div>
+              </>
+            ) : myApplication && myApplication.status === 'WITHDRAWN' ? (
+              <div className="p-4 bg-gray-50 border border-gray-200 rounded">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-700">Your Application Status:</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
+                    WITHDRAWN
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Withdrawn on {myApplication.updatedAt.toLocaleDateString('ru-RU')}
+                </p>
+              </div>
             ) : hasApplied ? (
               <div className="text-center">
                 <p className="text-sm text-green-700 font-medium">You have already applied to this gig.</p>
@@ -291,6 +319,8 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
                         <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">Accepted</span>
                       ) : app.status === 'REJECTED' ? (
                         <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700">Rejected</span>
+                      ) : app.status === 'WITHDRAWN' ? (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">WITHDRAWN</span>
                       ) : (
                         <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">Pending</span>
                       )}
@@ -331,7 +361,12 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
                         </div>
                       )
                     )}
-                    <p className="mt-1 text-xs text-gray-400">{app.createdAt.toLocaleDateString('ru-RU')}</p>
+                    <p className="mt-1 text-xs text-gray-400">
+                      {app.status === 'WITHDRAWN'
+                        ? `Withdrawn on ${app.updatedAt.toLocaleDateString('ru-RU')}`
+                        : app.createdAt.toLocaleDateString('ru-RU')
+                      }
+                    </p>
                     {app.status === 'PENDING' && gig.status === 'OPEN' && (
                       <ApplicationActions applicationId={app.id} />
                     )}

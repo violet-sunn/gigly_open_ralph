@@ -365,6 +365,60 @@ export async function markAsPaid(
   redirect(`/dashboard/gigs/${gigId}`)
 }
 
+export async function withdrawApplication(
+  prevState: { error?: string } | null,
+  formData: FormData
+) {
+  const session = await getSession()
+  if (!session) redirect('/login')
+
+  if (session.role !== 'SPECIALIST') {
+    return { error: 'Only specialists can withdraw applications.' }
+  }
+
+  const applicationId = formData.get('applicationId') as string
+
+  const application = await prisma.application.findUnique({
+    where: { id: applicationId },
+    include: { gig: true },
+  })
+
+  if (!application) {
+    return { error: 'Application not found.' }
+  }
+
+  if (!application.gig) {
+    return { error: 'Gig not found.' }
+  }
+
+  if (application.specialistId !== session.userId) {
+    return { error: 'You can only withdraw your own applications.' }
+  }
+
+  if (application.status === 'WITHDRAWN') {
+    return { error: 'This application has already been withdrawn.' }
+  }
+
+  if (application.status !== 'PENDING') {
+    return { error: 'Only pending applications can be withdrawn.' }
+  }
+
+  if (application.gig.closedByAdmin) {
+    return { error: 'Cannot withdraw applications from closed gigs.' }
+  }
+
+  if (application.gig.isExample) {
+    return { error: 'Cannot withdraw applications from example gigs.' }
+  }
+
+  await prisma.application.update({
+    where: { id: applicationId },
+    data: { status: 'WITHDRAWN' },
+  })
+
+  redirect(`/dashboard/gigs/${application.gigId}`)
+}
+
 export async function sendMessage(
   prevState: { error?: string } | null,
   formData: FormData
