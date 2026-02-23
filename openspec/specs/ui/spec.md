@@ -133,9 +133,72 @@ The dashboard MUST render different content based on the user's role.
 - WHEN they visit `/dashboard`
 - THEN the page MUST display "Specialist Dashboard" heading
 - AND it MUST show a "Browse Gigs" link to `/dashboard/gigs`
-- AND it MUST show a "My Applications" section listing applications with gig title, status, and date
-- AND if no applications exist, it MUST show "No applications yet."
+- AND it MUST show a "My Profile" link to `/dashboard/profile`
+- AND it MUST display three tabs: "Active Work", "Pending Applications", "Archive"
+- AND the "Active Work" tab MUST be selected by default
 - AND it MUST display a "Sign out" button
+
+#### Scenario: Active Work tab displays in-progress gigs
+- GIVEN a SPECIALIST user is on `/dashboard`
+- AND the "Active Work" tab is selected
+- WHEN the tab content renders
+- THEN the tab MUST display gigs where:
+  - The specialist is assigned (assignedSpecialistId matches user ID)
+  - Status is IN_PROGRESS, REVIEW, or COMPLETED (excludes PAID)
+- AND each gig MUST be wrapped in a `<Link href="/dashboard/gigs/{gig.id}">`
+- AND each gig MUST show: title, status, budget (₽), and date
+- AND each gig MUST have hover affordance (e.g., bg-gray-50 on hover)
+- AND if no active gigs exist, it MUST show "No active work."
+- AND PAID gigs MUST NOT appear in this tab
+
+#### Scenario: Pending Applications tab displays pending applications
+- GIVEN a SPECIALIST user is on `/dashboard`
+- AND the "Pending Applications" tab is selected
+- WHEN the tab content renders
+- THEN the tab MUST display applications where:
+  - Status is PENDING (awaiting client decision)
+  - The specialist is the applicant
+- AND each application MUST be wrapped in a `<Link href="/dashboard/gigs/{app.gigId}">`
+- AND each application MUST show: gig title, status, and date
+- AND each application MUST have hover affordance (e.g., bg-gray-50 on hover)
+- AND if no pending applications exist, it MUST show "No pending applications."
+- AND ACCEPTED applications MUST NOT appear in this tab (they appear in Active Work)
+- AND REJECTED applications MUST NOT appear in this tab (they appear in Archive)
+
+#### Scenario: Archive tab displays completed and rejected items
+- GIVEN a SPECIALIST user is on `/dashboard`
+- AND the "Archive" tab is selected
+- WHEN the tab content renders
+- THEN the tab MUST display two sections:
+  - "Completed Gigs" section showing gigs with status PAID
+  - "Rejected Applications" section showing applications with status REJECTED
+- AND each item MUST be wrapped in a `<Link href="/dashboard/gigs/{id}">`
+- AND each item MUST show: title, status, and date
+- AND each item MUST have hover affordance (e.g., bg-gray-50 on hover)
+- AND if no archived items exist, it MUST show "No archived items."
+- AND IN_PROGRESS, REVIEW, COMPLETED gigs MUST NOT appear in this tab
+
+#### Scenario: Tab switching is instant
+- GIVEN a SPECIALIST user is on `/dashboard`
+- WHEN they click on a different tab
+- THEN the tab content MUST update immediately (client-side state change)
+- AND no network request MUST be made
+- AND no loading spinner MUST be displayed
+- AND the active tab MUST be visually distinguished (e.g., blue border or background)
+- AND the previous tab content MUST be hidden
+- AND the new tab content MUST be displayed
+
+#### Scenario: No gig appears in multiple tabs
+- GIVEN a SPECIALIST user has multiple gigs and applications
+- WHEN they view the dashboard and switch between tabs
+- THEN each gig MUST appear in exactly one tab:
+  - If application is ACCEPTED and gig is IN_PROGRESS/REVIEW/COMPLETED → appears in "Active Work" only
+  - If application is PENDING → appears in "Pending Applications" only
+  - If application is REJECTED → appears in "Archive" only
+  - If gig is PAID → appears in "Archive" only
+- AND no gig MUST appear in both "Active Work" and "Pending Applications"
+- AND no gig MUST appear in both "Active Work" and "Archive"
+- AND no application MUST appear in both "Pending Applications" and "Archive"
 
 #### Scenario: Unknown role visits dashboard
 - GIVEN a user with an unrecognized role is logged in
@@ -151,8 +214,23 @@ The dashboard MUST render different content based on the user's role.
 - CLIENT view queries gigs via Prisma and lists them with application count
 - "Post a Gig" is a `<Link>` to `/dashboard/gigs/new`
 - Each gig in "My Gigs" MUST be wrapped in a `<Link href="/dashboard/gigs/{gig.id}">` with `block` class and `hover:bg-gray-50` for visual feedback
-- SPECIALIST view queries applications via Prisma and lists them
+- SPECIALIST view uses `SpecialistDashboardTabs` client component
+- `SpecialistDashboardTabs` component:
+  - Marked with `'use client'` directive
+  - Accepts props: `activeGigs: Gig[]`, `applications: Application[]`
+  - Manages tab state with `useState<'active' | 'pending' | 'archive'>('active')`
+  - Renders three tabs: "Active Work", "Pending Applications", "Archive"
+  - Active Work tab: filters `activeGigs.filter(gig => gig.status !== 'PAID')`
+  - Pending Applications tab: filters `applications.filter(app => app.status === 'PENDING')`
+  - Archive tab: shows PAID gigs and REJECTED applications in two sections
+  - All gig/application cards wrapped in Link components
+  - Hover states on all cards (hover:bg-gray-50)
+  - Empty state messages for each tab
+  - Active tab visually distinguished (border-blue-600)
+  - Tab switching is client-side only (no network requests)
 - "Browse Gigs" is a `<Link>` to `/dashboard/gigs`
+- Profile completion hints remain visible above tabs
+- "My Profile" link remains accessible
 
 ---
 

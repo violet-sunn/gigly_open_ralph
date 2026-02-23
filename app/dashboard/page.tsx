@@ -3,6 +3,7 @@ import { logoutUser } from '@/app/actions/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { SpecialistDashboardTabs } from './SpecialistDashboardTabs'
 
 function formatRoubles(kopecks: number): string {
   return new Intl.NumberFormat('ru-RU').format(kopecks / 100)
@@ -37,6 +38,24 @@ export default async function DashboardPage() {
           _count: { select: { applications: true } },
           assignedSpecialist: { select: { email: true } },
         },
+      })
+    : []
+
+  const activeGigs = session.role === 'SPECIALIST'
+    ? await prisma.gig.findMany({
+        where: {
+          assignedSpecialistId: session.userId,
+          status: { in: ['IN_PROGRESS', 'REVIEW', 'COMPLETED', 'PAID'] }
+        },
+        include: {
+          client: {
+            select: {
+              email: true,
+              clientProfile: true
+            }
+          }
+        },
+        orderBy: { updatedAt: 'desc' }
       })
     : []
 
@@ -162,42 +181,8 @@ export default async function DashboardPage() {
               >
                 Browse Gigs
               </Link>
-              <div className="border border-gray-200 rounded-md p-4">
-                <p className="text-sm text-gray-500 text-center mb-3">My Applications</p>
-                {applications.length === 0 ? (
-                  <p className="text-xs text-gray-400 text-center">No applications yet.</p>
-                ) : (
-                  <ul className="space-y-3">
-                    {applications.map((app) => (
-                      <li key={app.id} className="border-b border-gray-100 pb-2 last:border-0 last:pb-0">
-                        <div className="flex justify-between items-start">
-                          <span className="text-sm font-medium text-gray-900">{app.gig.title}</span>
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${
-                            app.status === 'ACCEPTED' ? 'bg-green-100 text-green-700' :
-                            app.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
-                            'bg-yellow-100 text-yellow-700'
-                          }`}>{app.status}</span>
-                        </div>
-                        <div className="mt-1 space-y-1">
-                          <span className="text-xs text-gray-400">{app.createdAt.toLocaleDateString('ru-RU')}</span>
-                          {app.gig.status === 'PAID' && app.gig.paidAt && (
-                            <p className="text-xs text-green-600">Paid on {app.gig.paidAt.toLocaleDateString('ru-RU')}</p>
-                          )}
-                          {app.gig.status === 'COMPLETED' && (
-                            <p className="text-xs text-yellow-600">Completed - Awaiting Payment</p>
-                          )}
-                          {app.gig.status === 'REVIEW' && (
-                            <p className="text-xs text-blue-600">Under Review</p>
-                          )}
-                          {app.gig.status === 'IN_PROGRESS' && app.status === 'ACCEPTED' && (
-                            <p className="text-xs text-blue-600">In Progress</p>
-                          )}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
+
+              <SpecialistDashboardTabs activeGigs={activeGigs} applications={applications} />
             </div>
           </>
         ) : (
