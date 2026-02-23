@@ -402,6 +402,7 @@ export async function sendMessage(
       clientId: true,
       assignedSpecialistId: true,
       closedByAdmin: true,
+      status: true,
     },
   })
 
@@ -411,6 +412,10 @@ export async function sendMessage(
 
   if (gig.closedByAdmin) {
     return { error: 'Cannot send messages to a closed gig.' }
+  }
+
+  if (gig.status === 'PAID') {
+    return { error: 'Cannot send messages to a paid gig.' }
   }
 
   if (!gig.assignedSpecialistId) {

@@ -637,7 +637,38 @@ describe('Messaging System Tests', () => {
       await prisma.user.delete({ where: { id: specialist.id } })
     })
 
-    it('Can send messages in PAID status', async () => {
+    it('Cannot send messages in PAID status (client)', async () => {
+      const prisma = getTestPrismaClient()
+
+      const client = await createTestUser(prisma, { role: 'CLIENT' })
+      const specialist = await createTestUser(prisma, { role: 'SPECIALIST' })
+
+      const gig = await createTestGig(prisma, {
+        clientId: client.id,
+        status: 'PAID',
+        assignedSpecialistId: specialist.id,
+        paidAt: new Date()
+      })
+
+      const formData = new FormData()
+      formData.append('gigId', gig.id)
+      formData.append('content', 'Message in PAID')
+
+      await withAuthContext(client, async () => {
+        const result = await sendMessage(null, formData)
+        expect(result).toHaveProperty('error')
+        expect(result.error).toBe('Cannot send messages to a paid gig.')
+      })
+
+      const messages = await prisma.message.findMany({ where: { gigId: gig.id } })
+      expect(messages).toHaveLength(0)
+
+      await prisma.gig.delete({ where: { id: gig.id } })
+      await prisma.user.delete({ where: { id: client.id } })
+      await prisma.user.delete({ where: { id: specialist.id } })
+    })
+
+    it('Cannot send messages in PAID status (specialist)', async () => {
       const prisma = getTestPrismaClient()
 
       const client = await createTestUser(prisma, { role: 'CLIENT' })
@@ -655,17 +686,14 @@ describe('Messaging System Tests', () => {
       formData.append('content', 'Message in PAID')
 
       await withAuthContext(specialist, async () => {
-        try {
-          await sendMessage(null, formData)
-        } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT')
-        }
+        const result = await sendMessage(null, formData)
+        expect(result).toHaveProperty('error')
+        expect(result.error).toBe('Cannot send messages to a paid gig.')
       })
 
       const messages = await prisma.message.findMany({ where: { gigId: gig.id } })
-      expect(messages).toHaveLength(1)
+      expect(messages).toHaveLength(0)
 
-      await prisma.message.deleteMany({ where: { gigId: gig.id } })
       await prisma.gig.delete({ where: { id: gig.id } })
       await prisma.user.delete({ where: { id: client.id } })
       await prisma.user.delete({ where: { id: specialist.id } })

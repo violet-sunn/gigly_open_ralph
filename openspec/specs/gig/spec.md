@@ -515,6 +515,12 @@ The system MUST provide a `sendMessage` server action that creates a message wit
 - THEN it MUST return `{ error: 'Cannot send messages to a closed gig.' }`
 - AND no Message record MUST be created
 
+#### Scenario: Send message to PAID gig
+- GIVEN a gig with status "PAID"
+- WHEN `sendMessage` is called by an authorized user (gig owner or assigned specialist)
+- THEN it MUST return `{ error: 'Cannot send messages to a paid gig.' }`
+- AND no Message record MUST be created
+
 **Acceptance Criteria:**
 - `sendMessage` is exported from `app/actions/gig.ts` with `'use server'`
 - Signature is `(prevState: { error?: string } | null, formData: FormData)` (useActionState-compatible)
@@ -523,7 +529,8 @@ The system MUST provide a `sendMessage` server action that creates a message wit
   - Non-empty after trimming
   - Maximum 2000 characters (before trimming)
 - Access control checks: user is gig owner OR assigned specialist
-- Gig state checks: has assigned specialist, not closed by admin
+- Gig state checks: has assigned specialist, not closed by admin, not PAID status
+- Validation order: auth → rate limit → content validation → gig state (assigned specialist, not closed, not paid)
 - On success: calls `redirect(\`/dashboard/gigs/${gigId}\`)` (NOT revalidatePath)
 - On failure: returns `{ error: string }`
 - Content is trimmed before storage

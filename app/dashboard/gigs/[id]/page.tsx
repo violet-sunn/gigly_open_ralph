@@ -354,7 +354,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
             ) : (
               <>
                 <MessageList messages={gig.messages} currentUserId={session.userId} gigClientId={gig.clientId} />
-                {!gig.closedByAdmin && (
+                {!gig.closedByAdmin && gig.status !== 'PAID' && (
                   <div className="mt-4 pt-4 border-t border-gray-200">
                     <MessageForm gigId={gig.id} />
                   </div>
@@ -363,6 +363,13 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
                   <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-md">
                     <p className="text-sm text-gray-600">
                       This gig has been closed by administrators. Messaging is no longer available.
+                    </p>
+                  </div>
+                )}
+                {gig.status === 'PAID' && (
+                  <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-md">
+                    <p className="text-sm text-gray-600">
+                      This gig has been marked as paid. Messaging is no longer available.
                     </p>
                   </div>
                 )}
