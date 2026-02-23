@@ -9,18 +9,22 @@ Currently, the dashboard lacks persistent navigation infrastructure. Each page i
 - **Broken spatial context**: A user who navigates Dashboard → Gig Detail has a "Back to Gigs" link that takes them to Browse Gigs instead of Dashboard
 - **Increased cognitive load**: Users must remember where they came from and manually navigate back through multiple pages
 - **Missing role-aware navigation**: No visual indication of available actions for each role (CLIENT can post gigs, ADMIN can access moderation)
+- **Redundant navigation buttons**: Dashboard page renders large action buttons ("My Profile", "Post Gig", "Browse Gigs", "Sign Out") that will duplicate the global navigation, creating visual clutter and confusion
+- **Admin navigation trap**: Without proper layout architecture, ADMIN users will lose navigation when clicking "Moderation" link (navigating from `/dashboard` to `/admin` leaves the dashboard segment in Next.js App Router)
 
 This creates a disjointed experience where users feel lost in the application and cannot efficiently navigate between core workflows.
 
 ## Solution Approach
 
-Implement a persistent, role-aware navigation bar in `app/dashboard/layout.tsx` that wraps all dashboard routes. The navigation will:
+Implement a persistent, role-aware navigation bar that wraps all dashboard and admin routes. The navigation will:
 
 1. **Provide consistent access to core areas**: Always visible navigation with role-specific links
 2. **Highlight active route**: Visual indication of current location using `usePathname()` hook
 3. **Eliminate fragile back links**: Remove standalone "Back" links from pages now that global navigation exists
-4. **Use sticky positioning**: Navigation remains visible during scroll for persistent access
-5. **Adapt to user role**: Show only relevant links for CLIENT, SPECIALIST, or ADMIN roles
+4. **Remove redundant navigation buttons**: Remove large action buttons from dashboard page that duplicate global navigation
+5. **Use sticky positioning**: Navigation remains visible during scroll for persistent access
+6. **Adapt to user role**: Show only relevant links for CLIENT, SPECIALIST, or ADMIN roles
+7. **Solve admin navigation trap**: Create dual layouts (`app/dashboard/layout.tsx` and `app/admin/layout.tsx`) to ensure navigation persists when admins navigate between dashboard and admin routes
 
 ### Technical Architecture
 
@@ -30,12 +34,26 @@ Implement a persistent, role-aware navigation bar in `app/dashboard/layout.tsx` 
 - Passes session data to client navigation component
 - Renders children with navigation wrapper
 
+**Admin Layout (Server Component)**
+- `app/admin/layout.tsx` wraps all `/admin/*` routes
+- Identical structure to dashboard layout
+- Uses the same `DashboardNav` component
+- **Critical for ADMIN users**: Prevents navigation from disappearing when they click "Moderation" link and leave the `/dashboard` segment
+
+**Why Two Layouts?**
+In Next.js App Router, layouts only apply to their segment and nested segments:
+- `app/dashboard/layout.tsx` applies to `/dashboard/*` only
+- When an ADMIN user navigates to `/admin`, they leave the `/dashboard` segment
+- Without `app/admin/layout.tsx`, the navigation bar would disappear
+- Creating both layouts ensures navigation persists across all protected routes
+
 **Navigation Component (Client Component)**
 - `app/components/DashboardNav.tsx` marked with `'use client'`
 - Accepts props: `userEmail: string`, `userRole: 'CLIENT' | 'SPECIALIST' | 'ADMIN'`
 - Uses `usePathname()` hook to detect active route
 - Renders role-specific navigation links with active state highlighting
 - Includes sign out button/form
+- Shared by both dashboard and admin layouts (code reuse)
 
 **Active Route Detection**
 - Compare `pathname` from `usePathname()` with link `href`
@@ -77,9 +95,11 @@ Implement a persistent, role-aware navigation bar in `app/dashboard/layout.tsx` 
 
 ### In Scope
 - Create `app/dashboard/layout.tsx` wrapping all dashboard routes
+- Create `app/admin/layout.tsx` wrapping all admin routes (prevents navigation disappearing when admins visit `/admin`)
 - Create `app/components/DashboardNav.tsx` client component
 - Implement role-aware navigation with active route highlighting
 - Remove standalone "Back" links from dashboard pages
+- Remove redundant navigation buttons from dashboard page ("My Profile", "Post Gig", "Browse Gigs", "Sign Out")
 - Sticky positioning for persistent visibility
 - Responsive design for mobile devices
 
@@ -104,13 +124,17 @@ Implement a persistent, role-aware navigation bar in `app/dashboard/layout.tsx` 
 ## Success Criteria
 
 1. Navigation appears on all dashboard pages (`/dashboard`, `/dashboard/gigs`, `/dashboard/profile`, etc.)
-2. Correct links displayed for each role (CLIENT, SPECIALIST, ADMIN)
-3. Active route is visually highlighted
-4. Navigation remains visible during scroll (sticky positioning)
-5. All standalone "Back" links removed from dashboard pages
-6. No broken links or navigation errors
-7. Responsive design works on mobile devices
-8. Accessibility: keyboard navigation and screen reader support
+2. Navigation appears on all admin pages (`/admin`, `/admin/users`, `/admin/gigs`)
+3. Navigation persists when ADMIN users navigate from `/dashboard` to `/admin` (no disappearing navigation)
+4. Correct links displayed for each role (CLIENT, SPECIALIST, ADMIN)
+5. Active route is visually highlighted
+6. Navigation remains visible during scroll (sticky positioning)
+7. All standalone "Back" links removed from dashboard pages
+8. All redundant navigation buttons removed from dashboard page (no "My Profile", "Post Gig", "Browse Gigs", "Sign Out" buttons)
+9. Dashboard page focuses on core content (profile hints, gig lists, tabs)
+10. No broken links or navigation errors
+11. Responsive design works on mobile devices
+12. Accessibility: keyboard navigation and screen reader support
 
 ## Non-Goals
 

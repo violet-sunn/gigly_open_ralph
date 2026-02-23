@@ -116,7 +116,65 @@ The dashboard MUST display a persistent, role-aware navigation bar with active r
 
 ---
 
+### Requirement: Admin Layout with Persistent Navigation
+
+The admin routes MUST provide the same persistent navigation layout to prevent navigation disappearing when admins leave the `/dashboard` segment.
+
+#### Scenario: Admin layout wraps all admin routes
+- GIVEN an authenticated ADMIN user visits any admin route (`/admin`, `/admin/users`, `/admin/gigs`)
+- WHEN the page loads
+- THEN the page MUST be wrapped in a persistent layout component
+- AND the layout MUST include the same navigation bar as dashboard routes
+- AND the layout MUST render the page content below the navigation
+- AND the navigation MUST remain visible across all admin pages
+
+#### Scenario: Admin layout reads user session
+- GIVEN an authenticated ADMIN user visits an admin route
+- WHEN the layout component renders
+- THEN it MUST call `getSession()` to retrieve user session
+- AND it MUST pass user email and role to the navigation component
+- AND if no session exists, it MUST redirect to `/login` (handled by middleware)
+
+**Rationale:** In Next.js App Router, `app/dashboard/layout.tsx` only applies to `/dashboard/*` routes. When an ADMIN user clicks "Moderation" (`/admin`), they leave the `/dashboard` segment and the navigation would disappear. Creating `app/admin/layout.tsx` ensures navigation persists across admin routes.
+
+**Acceptance Criteria:**
+- `app/admin/layout.tsx` exists as a server component
+- Imports and uses the same `DashboardNav` component
+- Calls `getSession()` to read session data
+- Passes `userEmail` and `userRole` props to `DashboardNav` component
+- Wraps `{children}` to render nested routes
+- Identical structure to `app/dashboard/layout.tsx` (code reuse)
+
+---
+
 ## MODIFIED Requirements
+
+### Requirement: Dashboard Page
+
+**REMOVED:** Redundant navigation buttons that duplicate global navigation
+
+#### MODIFIED Scenario: Dashboard page renders without redundant navigation buttons
+- GIVEN an authenticated user visits `/dashboard`
+- WHEN the page loads
+- THEN it MUST NOT display standalone navigation buttons ("My Profile", "Post a Gig", "Browse Gigs")
+- AND it MUST NOT display standalone "Sign out" button
+- AND navigation MUST be handled exclusively by the persistent navigation bar
+- AND all other dashboard functionality MUST remain unchanged (profile completion hints, gig lists, tabs)
+
+**Rationale:** The persistent navigation bar now provides all navigation actions. Keeping the large buttons on the dashboard page creates redundancy, visual clutter, and confusion about which navigation method to use.
+
+**Acceptance Criteria:**
+- Remove "My Profile" button from CLIENT dashboard (line 98-103 in `app/dashboard/page.tsx`)
+- Remove "Post a Gig" button from CLIENT dashboard (line 104-109)
+- Remove "My Profile" button from SPECIALIST dashboard (line 172-177)
+- Remove "Browse Gigs" button from SPECIALIST dashboard (line 178-183)
+- Remove "Sign out" button from bottom of page (line 195-202)
+- Keep profile completion hints (they provide contextual value)
+- Keep "My Gigs" section for CLIENT (core dashboard content)
+- Keep `SpecialistDashboardTabs` component for SPECIALIST (core dashboard content)
+- Dashboard heading, email display, and content sections remain unchanged
+
+---
 
 ### Requirement: Gig Detail Page
 
@@ -167,6 +225,57 @@ The dashboard MUST display a persistent, role-aware navigation bar with active r
 ---
 
 ## Implementation Notes
+
+### Next.js App Router Layout Architecture
+
+**Critical:** Next.js App Router layouts only apply to their segment and nested segments. This creates an architectural challenge for admin routes:
+
+- `app/dashboard/layout.tsx` applies to `/dashboard/*` routes only
+- When an ADMIN user navigates to `/admin`, they leave the `/dashboard` segment
+- Without `app/admin/layout.tsx`, the navigation bar would disappear on admin pages
+
+**Solution:** Create two layout files that both use the same `DashboardNav` component:
+- `app/dashboard/layout.tsx` - wraps `/dashboard/*` routes
+- `app/admin/layout.tsx` - wraps `/admin/*` routes
+
+Both layouts have identical structure:
+```typescript
+import { getSession } from '@/lib/session'
+import { redirect } from 'next/navigation'
+import { DashboardNav } from '@/app/components/DashboardNav'
+
+export default async function Layout({ children }: { children: React.ReactNode }) {
+  const session = await getSession()
+  if (!session) redirect('/login')
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <DashboardNav userEmail={session.email} userRole={session.role} />
+      {children}
+    </div>
+  )
+}
+```
+
+This ensures navigation persists across all protected routes without restructuring the entire app directory into route groups.
+
+### Dashboard Page Simplification
+
+The dashboard page currently renders large navigation buttons that duplicate the global navigation:
+- CLIENT: "My Profile", "Post a Gig" buttons
+- SPECIALIST: "My Profile", "Browse Gigs" buttons
+- Both: "Sign out" button at bottom
+
+These MUST be removed because:
+1. **Redundancy**: Global nav already provides these actions
+2. **Visual clutter**: Two navigation systems confuse users
+3. **Inconsistent UX**: Other pages don't have these buttons, only dashboard does
+4. **Spatial confusion**: Users don't know whether to use top nav or page buttons
+
+After removal, dashboard page focuses on its core purpose:
+- Profile completion hints (contextual, actionable)
+- CLIENT: "My Gigs" list (primary dashboard content)
+- SPECIALIST: Dashboard tabs with active work, pending applications, archive (primary dashboard content)
 
 ### Session Reading Strategy
 - Layout reads session once via `getSession()`

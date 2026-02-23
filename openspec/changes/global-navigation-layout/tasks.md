@@ -174,7 +174,145 @@ export function DashboardNav({ userEmail, userRole }: DashboardNavProps) {
 
 ---
 
-### 3. Remove Back Links from Gig Detail Page
+### 3. Create Admin Layout Component
+
+**File:** `app/admin/layout.tsx`
+
+**Implementation:**
+- Create server component that wraps all admin routes (`/admin`, `/admin/users`, `/admin/gigs`)
+- Import `getSession` from `@/lib/session`
+- Import `redirect` from `next/navigation`
+- Import `DashboardNav` component (same component used in dashboard layout)
+- Call `getSession()` to read user session
+- If no session, redirect to `/login` (defensive check, middleware should handle this)
+- Pass `session.email` and `session.role` as props to `DashboardNav`
+- Render `DashboardNav` above `{children}`
+- Use identical structure to `app/dashboard/layout.tsx`
+
+**Code Structure:**
+```typescript
+import { getSession } from '@/lib/session'
+import { redirect } from 'next/navigation'
+import { DashboardNav } from '@/app/components/DashboardNav'
+
+export default async function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  const session = await getSession()
+  if (!session) redirect('/login')
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <DashboardNav userEmail={session.email} userRole={session.role} />
+      {children}
+    </div>
+  )
+}
+```
+
+**Rationale:** In Next.js App Router, `app/dashboard/layout.tsx` only applies to `/dashboard/*` routes. When an ADMIN user clicks "Moderation" (`/admin`), they leave the `/dashboard` segment and the navigation would disappear without this layout. This ensures navigation persists across all admin routes.
+
+**Test Plan:**
+- Login as ADMIN user
+- Visit `/dashboard` and verify navigation appears
+- Click "Moderation" link in navigation
+- Verify navigation remains visible on `/admin` page
+- Click "Users" and "Gigs" links
+- Verify navigation remains visible on `/admin/users` and `/admin/gigs`
+- Verify active route highlighting works for admin routes
+
+---
+
+### 4. Remove Redundant Navigation Buttons from Dashboard Page
+
+**File:** `app/dashboard/page.tsx`
+
+**Implementation:**
+- Remove "My Profile" button from CLIENT dashboard (lines 98-103)
+- Remove "Post a Gig" button from CLIENT dashboard (lines 104-109)
+- Remove "My Profile" button from SPECIALIST dashboard (lines 172-177)
+- Remove "Browse Gigs" button from SPECIALIST dashboard (lines 178-183)
+- Remove "Sign out" button from bottom of page (lines 195-202)
+- Keep profile completion hints (they provide contextual value)
+- Keep "My Gigs" section for CLIENT (core dashboard content)
+- Keep `SpecialistDashboardTabs` component for SPECIALIST (core dashboard content)
+- Adjust spacing/layout after removing buttons
+
+**Before (CLIENT dashboard):**
+```typescript
+<div className="space-y-4">
+  <Link href="/dashboard/profile" className="...">
+    My Profile
+  </Link>
+  <Link href="/dashboard/gigs/new" className="...">
+    Post a Gig
+  </Link>
+  <div className="border border-gray-200 rounded-md p-4">
+    {/* My Gigs section */}
+  </div>
+</div>
+```
+
+**After (CLIENT dashboard):**
+```typescript
+<div className="space-y-4">
+  <div className="border border-gray-200 rounded-md p-4">
+    {/* My Gigs section */}
+  </div>
+</div>
+```
+
+**Before (SPECIALIST dashboard):**
+```typescript
+<div className="space-y-4">
+  <Link href="/dashboard/profile" className="...">
+    My Profile
+  </Link>
+  <Link href="/dashboard/gigs" className="...">
+    Browse Gigs
+  </Link>
+  <SpecialistDashboardTabs activeGigs={activeGigs} applications={applications} />
+</div>
+```
+
+**After (SPECIALIST dashboard):**
+```typescript
+<div className="space-y-4">
+  <SpecialistDashboardTabs activeGigs={activeGigs} applications={applications} />
+</div>
+```
+
+**Before (bottom of page):**
+```typescript
+<form action={logoutUser}>
+  <button type="submit" className="...">
+    Sign out
+  </button>
+</form>
+```
+
+**After:** Remove entire form element.
+
+**Rationale:** The persistent navigation bar now provides all navigation actions. Keeping these large buttons creates redundancy, visual clutter, and confusion about which navigation method to use.
+
+**Test Plan:**
+- Login as CLIENT user
+- Visit `/dashboard` and verify no "My Profile" or "Post a Gig" buttons appear
+- Verify "My Gigs" section still displays
+- Verify profile completion hint still displays (if profile incomplete)
+- Verify no "Sign out" button at bottom
+- Verify navigation bar provides all navigation actions
+- Login as SPECIALIST user
+- Visit `/dashboard` and verify no "My Profile" or "Browse Gigs" buttons appear
+- Verify `SpecialistDashboardTabs` component still displays
+- Verify profile completion hint still displays (if profile incomplete)
+- Verify no "Sign out" button at bottom
+
+---
+
+### 5. Remove Back Links from Gig Detail Page
 
 **File:** `app/dashboard/gigs/[id]/page.tsx`
 
@@ -208,7 +346,7 @@ export function DashboardNav({ userEmail, userRole }: DashboardNavProps) {
 
 ---
 
-### 4. Remove Back Links from Other Pages (if present)
+### 6. Remove Back Links from Other Pages (if present)
 
 **Files to check:**
 - `app/dashboard/gigs/page.tsx`
@@ -229,7 +367,7 @@ export function DashboardNav({ userEmail, userRole }: DashboardNavProps) {
 
 ---
 
-### 5. Update Admin Pages (if needed)
+### 7. Update Admin Pages (if needed)
 
 **Files:**
 - `app/admin/page.tsx`
@@ -256,7 +394,7 @@ export function DashboardNav({ userEmail, userRole }: DashboardNavProps) {
 
 ---
 
-### 6. Integration Testing
+### 8. Integration Testing
 
 **Test Plan:**
 
@@ -319,7 +457,7 @@ export function DashboardNav({ userEmail, userRole }: DashboardNavProps) {
 
 ---
 
-### 7. Manual Testing Steps
+### 9. Manual Testing Steps
 
 1. **Setup:**
    - Create test users: CLIENT, SPECIALIST, ADMIN
