@@ -129,11 +129,8 @@ export default async function GigBrowsePage({
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-2xl mx-auto px-4">
-        <div className="flex items-center justify-between mb-6">
+        <div className="mb-6">
           <h2 className="text-2xl font-bold text-gray-900">Open Gigs</h2>
-          <Link href="/dashboard" className="text-sm text-blue-600 hover:text-blue-700">
-            ← Back to Dashboard
-          </Link>
         </div>
 
         {/* Filter Panel */}

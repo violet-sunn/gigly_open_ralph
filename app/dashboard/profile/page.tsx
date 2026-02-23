@@ -32,9 +32,6 @@ export default async function ProfilePage() {
               Set up your profile
             </Link>
           </div>
-          <Link href="/dashboard" className="text-blue-600 hover:underline">
-            ← Back to Dashboard
-          </Link>
         </div>
       )
     }
@@ -66,15 +63,12 @@ export default async function ProfilePage() {
             <p className="mt-1 whitespace-pre-wrap">{profile.bio || 'Not set'}</p>
           </div>
         </div>
-        <div className="mt-6 flex gap-4">
+        <div className="mt-6">
           <Link
             href="/dashboard/profile/edit"
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
           >
             Edit Profile
-          </Link>
-          <Link href="/dashboard" className="text-blue-600 hover:underline">
-            ← Back to Dashboard
           </Link>
         </div>
       </div>
@@ -102,9 +96,6 @@ export default async function ProfilePage() {
               Set up your profile
             </Link>
           </div>
-          <Link href="/dashboard" className="text-blue-600 hover:underline">
-            ← Back to Dashboard
-          </Link>
         </div>
       )
     }
@@ -140,15 +131,12 @@ export default async function ProfilePage() {
             <p className="mt-1">{profile.phoneNumber || 'Not set'}</p>
           </div>
         </div>
-        <div className="mt-6 flex gap-4">
+        <div className="mt-6">
           <Link
             href="/dashboard/profile/edit"
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
           >
             Edit Profile
-          </Link>
-          <Link href="/dashboard" className="text-blue-600 hover:underline">
-            ← Back to Dashboard
           </Link>
         </div>
       </div>
@@ -158,9 +146,6 @@ export default async function ProfilePage() {
   return (
     <div className="max-w-2xl mx-auto p-6">
       <p>Unknown role</p>
-      <Link href="/dashboard" className="text-blue-600 hover:underline">
-        ← Back to Dashboard
-      </Link>
     </div>
   )
 }

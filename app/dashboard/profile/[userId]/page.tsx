@@ -35,9 +35,6 @@ export default async function PublicProfilePage({
         <div className="bg-red-50 border border-red-200 text-red-800 rounded p-4 mb-6">
           User not found
         </div>
-        <Link href="/dashboard" className="text-blue-600 hover:underline">
-          ← Back to Dashboard
-        </Link>
       </div>
     )
   }
@@ -67,11 +64,6 @@ export default async function PublicProfilePage({
             <p className="mt-1 whitespace-pre-wrap">{profile.bio || 'Not specified'}</p>
           </div>
         </div>
-        <div className="mt-6">
-          <Link href="/dashboard" className="text-blue-600 hover:underline">
-            ← Back
-          </Link>
-        </div>
       </div>
     )
   }
@@ -93,11 +85,6 @@ export default async function PublicProfilePage({
             <p className="mt-1">{profile.contactPerson || 'Not specified'}</p>
           </div>
         </div>
-        <div className="mt-6">
-          <Link href="/dashboard" className="text-blue-600 hover:underline">
-            ← Back
-          </Link>
-        </div>
       </div>
     )
   }
@@ -109,9 +96,6 @@ export default async function PublicProfilePage({
       <div className="bg-gray-50 border border-gray-200 rounded p-4 mb-6">
         <p className="text-gray-700">Profile not available</p>
       </div>
-      <Link href="/dashboard" className="text-blue-600 hover:underline">
-        ← Back
-      </Link>
     </div>
   )
 }

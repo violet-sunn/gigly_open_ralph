@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs'
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { prisma } from '@/lib/prisma'
-import { createSession, destroySession } from '@/lib/session'
+import { createSession, destroySession, type UserRole } from '@/lib/session'
 import { loginRateLimiter, registerRateLimiter, getRateLimitError } from '@/lib/ratelimit'
 import { validatePassword } from '@/lib/password'
 
@@ -48,7 +48,7 @@ export async function registerUser(
     const user = await prisma.user.create({
       data: { email, password: hashedPassword, role }
     })
-    await createSession(user.id, user.email, user.role)
+    await createSession(user.id, user.email, user.role as UserRole)
   } catch (error) {
     return { error: 'An account with this email already exists.' }
   }
@@ -89,7 +89,7 @@ export async function loginUser(
     return { error: 'Your account has been suspended. Please contact support.' }
   }
 
-  await createSession(user.id, user.email, user.role)
+  await createSession(user.id, user.email, user.role as UserRole)
   redirect('/dashboard')
 }
 

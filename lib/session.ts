@@ -4,7 +4,9 @@ import { cookies } from 'next/headers'
 const secret = new TextEncoder().encode(process.env.SESSION_SECRET)
 const COOKIE_NAME = 'session'
 
-export async function createSession(userId: string, email: string, role: string) {
+export type UserRole = 'CLIENT' | 'SPECIALIST' | 'ADMIN'
+
+export async function createSession(userId: string, email: string, role: UserRole) {
   const token = await new SignJWT({ userId, email, role })
     .setProtectedHeader({ alg: 'HS256' })
     .setExpirationTime('7d')
@@ -28,7 +30,7 @@ export async function getSession() {
 
   try {
     const { payload } = await jwtVerify(token, secret)
-    return payload as { userId: string; email: string; role: string }
+    return payload as { userId: string; email: string; role: UserRole }
   } catch {
     return null
   }

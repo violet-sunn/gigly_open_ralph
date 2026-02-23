@@ -60,9 +60,6 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900">Gig not found</h2>
-          <Link href="/dashboard" className="mt-4 inline-block text-sm text-blue-600 hover:text-blue-700">
-            ← Back to Dashboard
-          </Link>
         </div>
       </div>
     )
@@ -77,11 +74,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-2xl mx-auto px-4">
-        <Link href="/dashboard/gigs" className="text-sm text-blue-600 hover:text-blue-700">
-          ← Back to Gigs
-        </Link>
-
-        <div className="mt-4 bg-white rounded-lg shadow-md p-6 space-y-4">
+        <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
           <div className="flex justify-between items-start">
             <h2 className="text-2xl font-bold text-gray-900">{gig.title}</h2>
             <span className={`text-xs px-2 py-0.5 rounded-full ${

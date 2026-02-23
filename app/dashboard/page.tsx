@@ -1,5 +1,4 @@
 import { getSession } from '@/lib/session'
-import { logoutUser } from '@/app/actions/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
@@ -95,18 +94,6 @@ export default async function DashboardPage() {
               </div>
             )}
             <div className="space-y-4">
-              <Link
-                href="/dashboard/profile"
-                className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-              >
-                My Profile
-              </Link>
-              <Link
-                href="/dashboard/gigs/new"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
-              >
-                Post a Gig
-              </Link>
               <div className="border border-gray-200 rounded-md p-4">
                 <p className="text-sm text-gray-500 text-center mb-3">My Gigs</p>
                 {gigs.length === 0 ? (
@@ -169,19 +156,6 @@ export default async function DashboardPage() {
               </div>
             )}
             <div className="space-y-4">
-              <Link
-                href="/dashboard/profile"
-                className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-              >
-                My Profile
-              </Link>
-              <Link
-                href="/dashboard/gigs"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700"
-              >
-                Browse Gigs
-              </Link>
-
               <SpecialistDashboardTabs activeGigs={activeGigs} applications={applications} />
             </div>
           </>
@@ -192,14 +166,6 @@ export default async function DashboardPage() {
             <p className="mt-4 text-sm text-yellow-600">Your account role is not recognized. Please contact support.</p>
           </div>
         )}
-        <form action={logoutUser}>
-          <button
-            type="submit"
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-          >
-            Sign out
-          </button>
-        </form>
       </div>
     </div>
   )
