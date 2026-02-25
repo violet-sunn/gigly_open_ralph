@@ -2,6 +2,7 @@ import { getSession } from '@/lib/session'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { Suspense } from 'react'
 import { SpecialistDashboardTabs } from './SpecialistDashboardTabs'
 
 function formatRoubles(kopecks: number): string {
@@ -102,7 +103,7 @@ export default async function DashboardPage() {
                   <ul className="space-y-3">
                     {gigs.map((gig) => (
                       <li key={gig.id} className="border-b border-gray-100 pb-2 last:border-0 last:pb-0">
-                        <Link href={`/dashboard/gigs/${gig.id}`} className="block rounded hover:bg-gray-50 transition-colors">
+                        <Link href={`/dashboard/gigs/${gig.id}?from=dashboard`} className="block rounded hover:bg-gray-50 transition-colors">
                           <div className="flex justify-between items-start">
                             <span className="text-sm font-medium text-gray-900">{gig.title}</span>
                             <span className={`text-xs px-2 py-0.5 rounded-full ${
@@ -156,7 +157,9 @@ export default async function DashboardPage() {
               </div>
             )}
             <div className="space-y-4">
-              <SpecialistDashboardTabs activeGigs={activeGigs} applications={applications} />
+              <Suspense fallback={<div className="h-64 animate-pulse bg-gray-100 rounded" />}>
+                <SpecialistDashboardTabs activeGigs={activeGigs} applications={applications} />
+              </Suspense>
             </div>
           </>
         ) : (

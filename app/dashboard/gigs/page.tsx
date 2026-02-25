@@ -154,10 +154,22 @@ export default async function GigBrowsePage({
           </div>
         ) : (
           <ul className="space-y-4">
-            {gigs.map((gig) => (
+            {gigs.map((gig) => {
+              // Construct URL with navigation context and preserved filters
+              const gigDetailParams = new URLSearchParams()
+              gigDetailParams.set('from', 'browse')
+              if (search) gigDetailParams.set('search', search)
+              if (tagsParam) gigDetailParams.set('tags', tagsParam)
+              if (minBudgetParam) gigDetailParams.set('minBudget', minBudgetParam)
+              if (maxBudgetParam) gigDetailParams.set('maxBudget', maxBudgetParam)
+              if (sort !== 'newest') gigDetailParams.set('sort', sort)
+              if (page > 1) gigDetailParams.set('page', page.toString())
+              const gigDetailUrl = `/dashboard/gigs/${gig.id}?${gigDetailParams.toString()}`
+
+              return (
               <li key={gig.id}>
                 <Link
-                  href={`/dashboard/gigs/${gig.id}`}
+                  href={gigDetailUrl}
                   className="block bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
                 >
                   <div className="flex justify-between items-start">
@@ -184,7 +196,8 @@ export default async function GigBrowsePage({
                   </div>
                 </Link>
               </li>
-            ))}
+              )
+            })}
           </ul>
         )}
 

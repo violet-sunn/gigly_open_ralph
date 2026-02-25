@@ -2,6 +2,7 @@ import { getSession } from '@/lib/session'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { Suspense } from 'react'
 import { ApplyForm } from './apply-form'
 import { ApplicationActions } from './application-actions'
 import { SubmitWorkForm } from './submit-work-form'
@@ -10,6 +11,7 @@ import { MarkAsPaidButton } from '@/app/components/MarkAsPaidButton'
 import { MessageList } from './message-list'
 import { MessageForm } from './message-form'
 import { WithdrawApplicationButton } from './withdraw-application-button'
+import { BackButton } from '@/app/components/BackButton'
 
 function formatRoubles(kopecks: number): string {
   return new Intl.NumberFormat('ru-RU').format(kopecks / 100)
@@ -78,6 +80,11 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-2xl mx-auto px-4">
+        <div className="mb-4">
+          <Suspense fallback={<div className="h-8" />}>
+            <BackButton />
+          </Suspense>
+        </div>
         <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
           <div className="flex justify-between items-start">
             <h2 className="text-2xl font-bold text-gray-900">{gig.title}</h2>

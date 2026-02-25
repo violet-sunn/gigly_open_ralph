@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
 interface Gig {
@@ -41,7 +42,11 @@ function formatRoubles(kopecks: number): string {
 }
 
 export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
-  const [activeTab, setActiveTab] = useState<'active' | 'pending' | 'archive'>('active')
+  const searchParams = useSearchParams()
+  const initialTab = searchParams.get('tab') as 'active' | 'pending' | 'archive' | null
+  const [activeTab, setActiveTab] = useState<'active' | 'pending' | 'archive'>(
+    initialTab && ['active', 'pending', 'archive'].includes(initialTab) ? initialTab : 'active'
+  )
 
   // Filter data for each tab
   const activeWorkGigs = activeGigs.filter(gig => gig.status !== 'PAID')
@@ -107,7 +112,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
                 {activeWorkGigs.map((gig) => (
                   <li key={gig.id}>
                     <Link
-                      href={`/dashboard/gigs/${gig.id}`}
+                      href={`/dashboard/gigs/${gig.id}?from=dashboard&tab=active`}
                       className="block border-b border-gray-100 pb-2 last:border-0 last:pb-0 rounded hover:bg-gray-50 transition-colors p-2 -m-2"
                     >
                       <div className="flex justify-between items-start">
@@ -152,7 +157,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
                 {pendingApplications.map((app) => (
                   <li key={app.id}>
                     <Link
-                      href={`/dashboard/gigs/${app.gigId}`}
+                      href={`/dashboard/gigs/${app.gigId}?from=dashboard&tab=pending`}
                       className="block border-b border-gray-100 pb-2 last:border-0 last:pb-0 rounded hover:bg-gray-50 transition-colors p-2 -m-2"
                     >
                       <div className="flex justify-between items-start">
@@ -187,7 +192,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
                       {paidGigs.map((gig) => (
                         <li key={gig.id}>
                           <Link
-                            href={`/dashboard/gigs/${gig.id}`}
+                            href={`/dashboard/gigs/${gig.id}?from=dashboard&tab=archive`}
                             className="block border-b border-gray-100 pb-2 last:border-0 last:pb-0 rounded hover:bg-gray-50 transition-colors p-2 -m-2"
                           >
                             <div className="flex justify-between items-start">
@@ -224,7 +229,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
                       {archivedApplications.map((app) => (
                         <li key={app.id}>
                           <Link
-                            href={`/dashboard/gigs/${app.gigId}`}
+                            href={`/dashboard/gigs/${app.gigId}?from=dashboard&tab=archive`}
                             className="block border-b border-gray-100 pb-2 last:border-0 last:pb-0 rounded hover:bg-gray-50 transition-colors p-2 -m-2"
                           >
                             <div className="flex justify-between items-start">

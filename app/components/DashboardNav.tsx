@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { logoutUser } from '@/app/actions/auth'
 
 interface DashboardNavProps {
@@ -11,8 +11,23 @@ interface DashboardNavProps {
 
 export function DashboardNav({ userEmail, userRole }: DashboardNavProps) {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const from = searchParams.get('from')
 
   const isActive = (path: string) => {
+    // Special handling for gig detail pages
+    if (pathname.startsWith('/dashboard/gigs/') && pathname !== '/dashboard/gigs' && pathname !== '/dashboard/gigs/new') {
+      // We're on a gig detail page
+      if (path === '/dashboard') {
+        return from === 'dashboard'
+      }
+      if (path === '/dashboard/gigs') {
+        return from === 'browse'
+      }
+      return false
+    }
+
+    // Original logic for other pages
     if (path === '/dashboard') {
       return pathname === '/dashboard'
     }
