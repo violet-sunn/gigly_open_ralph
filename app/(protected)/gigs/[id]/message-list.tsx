@@ -16,7 +16,7 @@ interface MessageListProps {
 export function MessageList({ messages, currentUserId, gigClientId }: MessageListProps) {
   if (messages.length === 0) {
     return (
-      <p className="text-sm text-muted-foreground text-center py-4">
+      <p className="text-sm text-gray-300 text-center py-4">
         No messages yet. Start the conversation below.
       </p>
     )
@@ -38,16 +38,16 @@ export function MessageList({ messages, currentUserId, gigClientId }: MessageLis
             <div className={`flex ${isClientMessage ? 'justify-start' : 'justify-end'}`}>
               <div className={`max-w-[80%] ${
                 isClientMessage
-                  ? 'border-l-4 border-primary pl-3 bg-primary/10'
+                  ? 'border-l-4 border-blue-500 pl-3 bg-blue-500/10'
                   : 'border-r-4 border-green-500 pr-3 bg-green-500/10'
               } p-3 rounded`}>
                 <div className="flex justify-between items-start mb-1 gap-3">
-                  <span className="text-sm font-medium text-foreground">{senderName}</span>
-                  <span className="text-xs text-muted-foreground whitespace-nowrap">
+                  <span className="text-sm font-medium text-white">{senderName}</span>
+                  <span className="text-xs text-gray-300 whitespace-nowrap">
                     {message.createdAt.toLocaleString('ru-RU')}
                   </span>
                 </div>
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{message.content}</p>
+                <p className="text-sm text-gray-300 whitespace-pre-wrap">{message.content}</p>
               </div>
             </div>
           </div>

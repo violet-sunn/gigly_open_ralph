@@ -59,14 +59,14 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
   return (
     <div className="space-y-6">
       {/* Tab Navigation */}
-      <div className="border-b border-border">
+      <div className="border-b border-gray-700">
         <nav className="-mb-px flex space-x-8" aria-label="Tabs">
           <button
             onClick={() => setActiveTab('active')}
             className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
               activeTab === 'active'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                ? 'border-blue-500 text-blue-500'
+                : 'border-transparent text-gray-300 hover:text-white hover:border-gray-600'
             }`}
           >
             Active Work
@@ -75,8 +75,8 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
             onClick={() => setActiveTab('pending')}
             className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
               activeTab === 'pending'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                ? 'border-blue-500 text-blue-500'
+                : 'border-transparent text-gray-300 hover:text-white hover:border-gray-600'
             }`}
           >
             Pending Applications
@@ -85,8 +85,8 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
             onClick={() => setActiveTab('archive')}
             className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
               activeTab === 'archive'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                ? 'border-blue-500 text-blue-500'
+                : 'border-transparent text-gray-300 hover:text-white hover:border-gray-600'
             }`}
           >
             Archive
@@ -97,12 +97,12 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
       {/* Tab Content */}
       <div role="tabpanel">
         {activeTab === 'active' && (
-          <div className="bg-card border border-border rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-foreground mb-4">Active Work</h3>
+          <div className="bg-navy-800 border border-gray-700 rounded-lg p-6 shadow-md">
+            <h3 className="text-lg font-semibold text-white mb-4">Active Work</h3>
             {activeWorkGigs.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">
+              <p className="text-sm text-gray-500 text-center py-8">
                 No active work.{' '}
-                <Link href="/gigs" className="text-primary hover:text-primary/90 underline">
+                <Link href="/gigs" className="text-blue-500 hover:text-blue-400 underline">
                   Browse and apply to gigs
                 </Link>{' '}
                 to get started.
@@ -113,25 +113,25 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
                   <Link
                     key={gig.id}
                     href={`/gigs/${gig.id}?from=dashboard&tab=active`}
-                    className="block bg-background border border-border rounded-lg p-4 hover:border-primary transition-colors"
+                    className="block bg-navy-900 border border-gray-700 rounded-lg p-4 hover:bg-navy-700 hover:border-gray-600 transition-colors"
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <h4 className="text-sm font-semibold text-foreground">{gig.title}</h4>
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <h4 className="text-sm font-semibold text-white">{gig.title}</h4>
+                        <p className="text-xs text-gray-500 mt-1">
                           Client: {gig.client.clientProfile?.companyName || gig.client.email}
                         </p>
-                        <p className="text-xs text-muted-foreground mt-0.5">
+                        <p className="text-xs text-gray-500 mt-0.5">
                           Updated: {new Date(gig.updatedAt).toLocaleDateString('ru-RU')}
                         </p>
                       </div>
                       <div className="text-right ml-4">
-                        <p className="text-sm font-semibold text-foreground">{formatRoubles(gig.budget)} ₽</p>
-                        <span className={`inline-block px-2 py-1 text-xs font-semibold rounded mt-1 ${
-                          gig.status === 'IN_PROGRESS' ? 'bg-blue-500/10 text-blue-400' :
-                          gig.status === 'REVIEW' ? 'bg-amber-500/10 text-amber-400' :
-                          gig.status === 'COMPLETED' ? 'bg-green-500/10 text-green-400' :
-                          'bg-muted/50 text-muted-foreground'
+                        <p className="text-sm font-semibold text-white">{formatRoubles(gig.budget)} ₽</p>
+                        <span className={`inline-block px-2 py-1 text-xs font-medium rounded-md border mt-1 ${
+                          gig.status === 'IN_PROGRESS' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
+                          gig.status === 'REVIEW' ? 'bg-warning-500/20 text-warning-400 border-warning-500/30' :
+                          gig.status === 'COMPLETED' ? 'bg-success-500/20 text-success-400 border-success-500/30' :
+                          'bg-gray-500/20 text-gray-400 border-gray-500/30'
                         }`}>
                           {gig.status === 'IN_PROGRESS' && 'In Progress'}
                           {gig.status === 'REVIEW' && 'Under Review'}
@@ -147,26 +147,26 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
         )}
 
         {activeTab === 'pending' && (
-          <div className="bg-card border border-border rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-foreground mb-4">Pending Applications</h3>
+          <div className="bg-navy-800 border border-gray-700 rounded-lg p-6 shadow-md">
+            <h3 className="text-lg font-semibold text-white mb-4">Pending Applications</h3>
             {pendingApplications.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">No pending applications.</p>
+              <p className="text-sm text-gray-500 text-center py-8">No pending applications.</p>
             ) : (
               <div className="space-y-4">
                 {pendingApplications.map((app) => (
                   <Link
                     key={app.id}
                     href={`/gigs/${app.gigId}?from=dashboard&tab=pending`}
-                    className="block bg-background border border-border rounded-lg p-4 hover:border-primary transition-colors"
+                    className="block bg-navy-900 border border-gray-700 rounded-lg p-4 hover:bg-navy-700 hover:border-gray-600 transition-colors"
                   >
                     <div className="flex justify-between items-start">
-                      <span className="text-sm font-medium text-foreground">{app.gig.title}</span>
-                      <span className="text-xs px-2 py-1 rounded-full bg-yellow-500/10 text-yellow-400">
+                      <span className="text-sm font-medium text-white">{app.gig.title}</span>
+                      <span className="text-xs px-2 py-1 rounded-md border font-medium bg-warning-500/20 text-warning-400 border-warning-500/30">
                         {app.status}
                       </span>
                     </div>
                     <div className="mt-2">
-                      <span className="text-xs text-muted-foreground">{app.createdAt.toLocaleDateString('ru-RU')}</span>
+                      <span className="text-xs text-gray-500">{app.createdAt.toLocaleDateString('ru-RU')}</span>
                     </div>
                   </Link>
                 ))}
@@ -176,38 +176,38 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
         )}
 
         {activeTab === 'archive' && (
-          <div className="bg-card border border-border rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-foreground mb-4">Archive</h3>
+          <div className="bg-navy-800 border border-gray-700 rounded-lg p-6 shadow-md">
+            <h3 className="text-lg font-semibold text-white mb-4">Archive</h3>
             {paidGigs.length === 0 && archivedApplications.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">No archived items.</p>
+              <p className="text-sm text-gray-500 text-center py-8">No archived items.</p>
             ) : (
               <div className="space-y-6">
                 {/* Completed Gigs Section */}
                 {paidGigs.length > 0 && (
                   <div>
-                    <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Completed Gigs</h4>
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Completed Gigs</h4>
                     <div className="space-y-4">
                       {paidGigs.map((gig) => (
                         <Link
                           key={gig.id}
                           href={`/gigs/${gig.id}?from=dashboard&tab=archive`}
-                          className="block bg-background border border-border rounded-lg p-4 hover:border-primary transition-colors"
+                          className="block bg-navy-900 border border-gray-700 rounded-lg p-4 hover:bg-navy-700 hover:border-gray-600 transition-colors"
                         >
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
-                              <h5 className="text-sm font-semibold text-foreground">{gig.title}</h5>
-                              <p className="text-xs text-muted-foreground mt-1">
+                              <h5 className="text-sm font-semibold text-white">{gig.title}</h5>
+                              <p className="text-xs text-gray-500 mt-1">
                                 Client: {gig.client.clientProfile?.companyName || gig.client.email}
                               </p>
                               {gig.paidAt && (
-                                <p className="text-xs text-green-400 mt-0.5">
+                                <p className="text-xs text-success-400 mt-0.5">
                                   Paid on {new Date(gig.paidAt).toLocaleDateString('ru-RU')}
                                 </p>
                               )}
                             </div>
                             <div className="text-right ml-4">
-                              <p className="text-sm font-semibold text-foreground">{formatRoubles(gig.budget)} ₽</p>
-                              <span className="inline-block px-2 py-1 text-xs font-semibold rounded mt-1 bg-green-500/10 text-green-400">
+                              <p className="text-sm font-semibold text-white">{formatRoubles(gig.budget)} ₽</p>
+                              <span className="inline-block px-2 py-1 text-xs font-medium rounded-md border mt-1 bg-success-500/20 text-success-400 border-success-500/30">
                                 Paid
                               </span>
                             </div>
@@ -221,26 +221,26 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
                 {/* Rejected/Withdrawn Applications Section */}
                 {archivedApplications.length > 0 && (
                   <div>
-                    <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Rejected & Withdrawn Applications</h4>
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Rejected & Withdrawn Applications</h4>
                     <div className="space-y-4">
                       {archivedApplications.map((app) => (
                         <Link
                           key={app.id}
                           href={`/gigs/${app.gigId}?from=dashboard&tab=archive`}
-                          className="block bg-background border border-border rounded-lg p-4 hover:border-primary transition-colors"
+                          className="block bg-navy-900 border border-gray-700 rounded-lg p-4 hover:bg-navy-700 hover:border-gray-600 transition-colors"
                         >
                           <div className="flex justify-between items-start">
-                            <span className="text-sm font-medium text-foreground">{app.gig.title}</span>
-                            <span className={`text-xs px-2 py-1 rounded-full ${
+                            <span className="text-sm font-medium text-white">{app.gig.title}</span>
+                            <span className={`text-xs px-2 py-1 rounded-md border font-medium ${
                               app.status === 'WITHDRAWN'
-                                ? 'bg-muted/50 text-muted-foreground'
-                                : 'bg-red-500/10 text-red-400'
+                                ? 'bg-gray-500/20 text-gray-400 border-gray-500/30'
+                                : 'bg-error-500/20 text-error-400 border-error-500/30'
                             }`}>
                               {app.status}
                             </span>
                           </div>
                           <div className="mt-2">
-                            <span className="text-xs text-muted-foreground">
+                            <span className="text-xs text-gray-500">
                               {app.status === 'WITHDRAWN'
                                 ? `Withdrawn on ${new Date(app.updatedAt).toLocaleDateString('ru-RU')}`
                                 : `Applied on ${app.createdAt.toLocaleDateString('ru-RU')}`

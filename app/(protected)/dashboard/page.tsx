@@ -93,25 +93,25 @@ export default async function DashboardPage({
     : []
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-navy-900">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {session.role === 'CLIENT' ? (
           <div className="space-y-6">
-            <div className="bg-card border border-border rounded-lg p-8">
-              <h2 className="text-3xl font-bold text-foreground leading-tight">Welcome back, {user?.clientProfile?.companyName || session.email}</h2>
-              <p className="mt-2 text-sm text-muted-foreground">Client Dashboard</p>
+            <div className="bg-navy-800 border border-gray-700 rounded-lg p-8 shadow-md">
+              <h2 className="text-3xl font-bold text-white leading-tight">Welcome back, {user?.clientProfile?.companyName || session.email}</h2>
+              <p className="mt-2 text-sm text-gray-300">Client Dashboard</p>
               <div className="mt-4">
-                <Link href="/profile" className="text-sm text-primary hover:text-primary/90 font-medium">
+                <Link href="/profile" className="text-sm text-blue-500 hover:text-blue-400 font-medium">
                   View Profile →
                 </Link>
               </div>
             </div>
 
             {profileIncomplete && (
-              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
-                <p className="text-sm text-yellow-200">
+              <div className="bg-warning-500/10 border border-warning-500/20 rounded-lg p-4">
+                <p className="text-sm text-warning-400">
                   Complete your profile to build trust with specialists.{' '}
-                  <Link href="/profile/edit" className="underline font-medium text-yellow-100">
+                  <Link href="/profile/edit" className="underline font-medium text-warning-300">
                     Complete profile
                   </Link>
                 </p>
@@ -119,40 +119,40 @@ export default async function DashboardPage({
             )}
 
             {errorMessage && (
-              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
-                <p className="text-sm text-yellow-200">{errorMessage}</p>
+              <div className="bg-warning-500/10 border border-warning-500/20 rounded-lg p-4">
+                <p className="text-sm text-warning-400">{errorMessage}</p>
               </div>
             )}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">
-                <div className="bg-card border border-border rounded-lg p-8">
+                <div className="bg-navy-800 border border-gray-700 rounded-lg p-8 shadow-md">
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xl font-semibold text-foreground">My Gigs</h3>
+                    <h3 className="text-xl font-semibold text-white">My Gigs</h3>
                     <Link
                       href="/gigs/new"
-                      className="px-6 py-3 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors duration-200"
+                      className="px-6 py-3 bg-blue-500 text-white rounded-md text-sm font-medium hover:bg-blue-600 transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-navy-900"
                     >
                       Post New Gig
                     </Link>
                   </div>
                   {gigs.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-8">No gigs posted yet.</p>
+                    <p className="text-sm text-gray-500 text-center py-8">No gigs posted yet.</p>
                   ) : (
                     <div className="space-y-6">
                       {gigs.map((gig) => (
                         <Link
                           key={gig.id}
                           href={`/gigs/${gig.id}?from=dashboard`}
-                          className="block bg-background border border-border rounded-lg p-6 hover:border-primary transition-colors duration-200"
+                          className="block bg-navy-900 border border-gray-700 rounded-lg p-6 hover:bg-navy-700 hover:border-gray-600 transition-colors duration-200"
                         >
                           <div className="flex justify-between items-start mb-2">
-                            <h4 className="text-sm font-medium text-foreground">{gig.title}</h4>
-                            <span className={`text-xs px-2 py-1 rounded-full ${
-                              gig.status === 'PAID' ? 'bg-green-500/10 text-green-400' :
-                              gig.status === 'COMPLETED' ? 'bg-yellow-500/10 text-yellow-400' :
-                              gig.status === 'IN_PROGRESS' ? 'bg-blue-500/10 text-blue-400' :
-                              'bg-muted/50 text-muted-foreground'
+                            <h4 className="text-sm font-medium text-white">{gig.title}</h4>
+                            <span className={`text-xs px-2 py-1 rounded-md border font-medium ${
+                              gig.status === 'PAID' ? 'bg-success-500/20 text-success-400 border-success-500/30' :
+                              gig.status === 'COMPLETED' ? 'bg-warning-500/20 text-warning-400 border-warning-500/30' :
+                              gig.status === 'IN_PROGRESS' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
+                              'bg-gray-500/20 text-gray-400 border-gray-500/30'
                             }`}>
                               {gig.status === 'PAID' ? 'Paid' :
                                gig.status === 'COMPLETED' ? 'Completed' :
@@ -160,19 +160,19 @@ export default async function DashboardPage({
                             </span>
                           </div>
                           <div className="flex justify-between items-center text-sm">
-                            <span className="text-foreground font-semibold">{formatRoubles(gig.budget)} ₽</span>
-                            <span className="text-muted-foreground text-xs">
+                            <span className="text-white font-semibold">{formatRoubles(gig.budget)} ₽</span>
+                            <span className="text-gray-500 text-xs">
                               {gig._count.applications} app{gig._count.applications !== 1 ? 's' : ''} · {gig.createdAt.toLocaleDateString('ru-RU')}
                             </span>
                           </div>
                           {gig.status === 'PAID' && gig.paidAt && (
-                            <p className="mt-2 text-xs text-green-400">Paid on {gig.paidAt.toLocaleDateString('ru-RU')}</p>
+                            <p className="mt-2 text-xs text-success-400">Paid on {gig.paidAt.toLocaleDateString('ru-RU')}</p>
                           )}
                           {gig.status === 'COMPLETED' && (
-                            <p className="mt-2 text-xs text-yellow-400">Awaiting Payment</p>
+                            <p className="mt-2 text-xs text-warning-400">Awaiting Payment</p>
                           )}
                           {gig.assignedSpecialist && (
-                            <p className="mt-2 text-xs text-primary">Specialist: {gig.assignedSpecialist.email}</p>
+                            <p className="mt-2 text-xs text-blue-500">Specialist: {gig.assignedSpecialist.email}</p>
                           )}
                         </Link>
                       ))}
@@ -182,22 +182,22 @@ export default async function DashboardPage({
               </div>
 
               <div className="space-y-6">
-                <div className="bg-card border border-border rounded-lg p-8">
-                  <h3 className="text-xl font-semibold text-foreground mb-4">Quick Actions</h3>
+                <div className="bg-navy-800 border border-gray-700 rounded-lg p-8 shadow-md">
+                  <h3 className="text-xl font-semibold text-white mb-4">Quick Actions</h3>
                   <div className="space-y-3">
                     <Link
                       href="/gigs/new"
-                      className="block p-4 bg-primary/10 border border-primary/20 rounded-lg hover:bg-primary/20 transition-colors"
+                      className="block p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg hover:bg-blue-500/20 transition-colors"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
-                          <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                          <svg className="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                           </svg>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-foreground">Post a Gig</p>
-                          <p className="text-xs text-muted-foreground">Find specialists</p>
+                          <p className="text-sm font-medium text-white">Post a Gig</p>
+                          <p className="text-xs text-gray-400">Find specialists</p>
                         </div>
                       </div>
                     </Link>
@@ -208,24 +208,24 @@ export default async function DashboardPage({
           </div>
         ) : session.role === 'SPECIALIST' ? (
           <div className="space-y-6">
-            <div className="bg-card border border-border rounded-lg p-8">
-              <h2 className="text-3xl font-bold text-foreground leading-tight">Welcome back, {user?.specialistProfile?.displayName || session.email}</h2>
-              <p className="mt-2 text-sm text-muted-foreground">Specialist Dashboard</p>
+            <div className="bg-navy-800 border border-gray-700 rounded-lg p-8 shadow-md">
+              <h2 className="text-3xl font-bold text-white leading-tight">Welcome back, {user?.specialistProfile?.displayName || session.email}</h2>
+              <p className="mt-2 text-sm text-gray-300">Specialist Dashboard</p>
               <div className="mt-4 flex gap-4">
-                <Link href="/profile" className="text-sm text-primary hover:text-primary/90 font-medium">
+                <Link href="/profile" className="text-sm text-blue-500 hover:text-blue-400 font-medium">
                   View Profile →
                 </Link>
-                <Link href="/gigs" className="text-sm text-primary hover:text-primary/90 font-medium">
+                <Link href="/gigs" className="text-sm text-blue-500 hover:text-blue-400 font-medium">
                   Browse Gigs →
                 </Link>
               </div>
             </div>
 
             {profileIncomplete && (
-              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
-                <p className="text-sm text-yellow-200">
+              <div className="bg-warning-500/10 border border-warning-500/20 rounded-lg p-4">
+                <p className="text-sm text-warning-400">
                   Complete your profile to stand out when applying to gigs.{' '}
-                  <Link href="/profile/edit" className="underline font-medium text-yellow-100">
+                  <Link href="/profile/edit" className="underline font-medium text-warning-300">
                     Complete profile
                   </Link>
                 </p>
@@ -233,20 +233,20 @@ export default async function DashboardPage({
             )}
 
             {errorMessage && (
-              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
-                <p className="text-sm text-yellow-200">{errorMessage}</p>
+              <div className="bg-warning-500/10 border border-warning-500/20 rounded-lg p-4">
+                <p className="text-sm text-warning-400">{errorMessage}</p>
               </div>
             )}
 
-            <Suspense fallback={<div className="h-64 animate-pulse bg-card rounded-lg" />}>
+            <Suspense fallback={<div className="h-64 animate-pulse bg-navy-800 rounded-lg" />}>
               <SpecialistDashboardTabs activeGigs={activeGigs} applications={applications} />
             </Suspense>
           </div>
         ) : (
-          <div className="bg-card border border-border rounded-lg p-8 text-center">
-            <h2 className="text-3xl font-bold text-foreground leading-tight">Dashboard</h2>
-            <p className="mt-2 text-sm text-muted-foreground">Signed in as {session.email}</p>
-            <p className="mt-4 text-sm text-yellow-400">Your account role is not recognized. Please contact support.</p>
+          <div className="bg-navy-800 border border-gray-700 rounded-lg p-8 text-center shadow-md">
+            <h2 className="text-3xl font-bold text-white leading-tight">Dashboard</h2>
+            <p className="mt-2 text-sm text-gray-300">Signed in as {session.email}</p>
+            <p className="mt-4 text-sm text-warning-400">Your account role is not recognized. Please contact support.</p>
           </div>
         )}
       </div>

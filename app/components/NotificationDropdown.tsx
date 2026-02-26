@@ -69,28 +69,28 @@ export function NotificationDropdown({ isOpen, onClose }: NotificationDropdownPr
 
   return (
     <div
-      className="absolute right-0 mt-2 w-80 bg-card rounded-lg shadow-lg border border-border z-50"
+      className="absolute right-0 mt-2 w-80 bg-navy-800 rounded-lg shadow-lg border border-gray-700 z-50"
       role="menu"
       aria-label="Notifications menu"
     >
-      <div className="p-6 border-b border-border">
-        <h3 className="text-xl font-semibold text-foreground">Notifications</h3>
+      <div className="p-6 border-b border-gray-700">
+        <h3 className="text-xl font-semibold text-white">Notifications</h3>
       </div>
 
       <div className="max-h-96 overflow-y-auto">
         {isLoading && (
           <div className="p-8 text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            <p className="mt-2 text-sm text-muted-foreground">Loading notifications...</p>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            <p className="mt-2 text-sm text-gray-300">Loading notifications...</p>
           </div>
         )}
 
         {error && !isLoading && (
           <div className="p-8 text-center">
-            <p className="text-sm text-destructive mb-4">{error}</p>
+            <p className="text-sm text-error-500 mb-4">{error}</p>
             <button
               onClick={handleRetry}
-              className="px-6 py-3 bg-primary text-primary-foreground text-sm font-medium rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary transition-colors duration-200"
+              className="px-6 py-3 bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
             >
               Retry
             </button>
@@ -105,7 +105,7 @@ export function NotificationDropdown({ isOpen, onClose }: NotificationDropdownPr
               viewBox="0 0 24 24"
               strokeWidth={1.5}
               stroke="currentColor"
-              className="w-12 h-12 mx-auto text-muted-foreground mb-2"
+              className="w-12 h-12 mx-auto text-gray-400 mb-2"
             >
               <path
                 strokeLinecap="round"
@@ -113,35 +113,35 @@ export function NotificationDropdown({ isOpen, onClose }: NotificationDropdownPr
                 d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <p className="text-sm text-muted-foreground">No new messages</p>
+            <p className="text-sm text-gray-300">No new messages</p>
           </div>
         )}
 
         {!isLoading && !error && notifications.length > 0 && (
-          <ul className="divide-y divide-border">
+          <ul className="divide-y divide-gray-700">
             {notifications.slice(0, 10).map((notification) => (
               <li key={notification.gigId}>
                 <Link
                   href={`/gigs/${notification.gigId}`}
                   onClick={handleNotificationClick}
-                  className="block p-6 hover:bg-accent transition-colors duration-200"
+                  className="block p-6 hover:bg-navy-700 transition-colors duration-200"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">
+                      <p className="text-sm font-medium text-white truncate">
                         {notification.gigTitle.length > 50
                           ? `${notification.gigTitle.substring(0, 50)}...`
                           : notification.gigTitle}
                       </p>
-                      <p className="text-sm text-muted-foreground mt-1">
+                      <p className="text-sm text-gray-300 mt-1">
                         {notification.lastMessageSender}
                       </p>
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-xs text-gray-400 mt-1">
                         {formatRelativeTime(new Date(notification.lastMessageTime))}
                       </p>
                     </div>
                     <div className="ml-3 flex-shrink-0">
-                      <span className="inline-flex items-center justify-center w-2 h-2 bg-primary rounded-full"></span>
+                      <span className="inline-flex items-center justify-center w-2 h-2 bg-blue-500 rounded-full"></span>
                     </div>
                   </div>
                 </Link>

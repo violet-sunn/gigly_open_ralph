@@ -132,11 +132,11 @@ export default async function GigBrowsePage({
   const hasActiveFilters = search || tags.length > 0 || minBudget || maxBudget
 
   return (
-    <div className="min-h-screen bg-background py-8">
+    <div className="min-h-screen bg-navy-900 py-8">
       <div className="max-w-7xl mx-auto px-4">
         <div className="mb-8">
-          <h2 className="text-3xl font-bold text-foreground leading-tight">Open Gigs</h2>
-          <p className="text-sm text-muted-foreground mt-2">Browse and apply to available projects</p>
+          <h2 className="text-3xl font-bold text-white leading-tight">Open Gigs</h2>
+          <p className="text-sm text-gray-300 mt-2">Browse and apply to available projects</p>
         </div>
 
         {/* Filter Panel */}
@@ -144,15 +144,15 @@ export default async function GigBrowsePage({
 
         {/* Results Count */}
         {totalCount > 0 && (
-          <p className="text-sm text-muted-foreground mb-4">
+          <p className="text-sm text-gray-300 mb-4">
             Showing {(page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, totalCount)} of {totalCount} gigs
           </p>
         )}
 
         {/* Gig List */}
         {gigs.length === 0 ? (
-          <div className="bg-card border border-border rounded-lg p-8 text-center">
-            <p className="text-sm text-muted-foreground">
+          <div className="bg-navy-800 border border-gray-700 rounded-lg p-8 text-center">
+            <p className="text-sm text-gray-300">
               {hasActiveFilters
                 ? 'No gigs match your filters. Try adjusting your search criteria.'
                 : 'No open gigs available.'}
@@ -176,29 +176,29 @@ export default async function GigBrowsePage({
               <Link
                 key={gig.id}
                 href={gigDetailUrl}
-                className="block bg-card border border-border rounded-lg p-8 hover:border-primary transition-colors duration-200"
+                className="block bg-navy-800 border border-gray-700 rounded-lg p-8 hover:bg-navy-700 hover:border-gray-600 transition-colors duration-200"
               >
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-2 flex-1">
-                    <h3 className="text-lg font-semibold text-foreground line-clamp-2">{gig.title}</h3>
+                    <h3 className="text-lg font-semibold text-white line-clamp-2">{gig.title}</h3>
                     {gig.isExample && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary flex-shrink-0">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-500/10 text-blue-500 flex-shrink-0">
                         ✨ Example
                       </span>
                     )}
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground line-clamp-3 mb-4 leading-relaxed">{gig.description}</p>
+                <p className="text-sm text-gray-300 line-clamp-3 mb-4 leading-relaxed">{gig.description}</p>
                 <div className="flex flex-wrap gap-2 mb-4">
                   {gig.tags && gig.tags.split(',').map((tag) => tag.trim()).filter(Boolean).slice(0, 3).map((tag) => (
-                    <span key={tag} className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">
+                    <span key={tag} className="text-xs px-2 py-1 rounded-full bg-blue-500/10 text-blue-500">
                       {tag}
                     </span>
                   ))}
                 </div>
-                <div className="flex items-center justify-between pt-4 border-t border-border">
-                  <span className="text-lg font-bold text-foreground">{formatRoubles(gig.budget)} ₽</span>
-                  <span className="text-xs text-muted-foreground">{gig.createdAt.toLocaleDateString('ru-RU')}</span>
+                <div className="flex items-center justify-between pt-4 border-t border-gray-700">
+                  <span className="text-lg font-bold text-white">{formatRoubles(gig.budget)} ₽</span>
+                  <span className="text-xs text-gray-300">{gig.createdAt.toLocaleDateString('ru-RU')}</span>
                 </div>
               </Link>
               )

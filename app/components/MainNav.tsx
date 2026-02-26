@@ -38,16 +38,16 @@ export function MainNav({ userEmail, userRole }: MainNavProps) {
   const linkClass = (path: string) => {
     const base = 'px-4 py-4 text-sm font-medium border-b-2 transition-colors duration-200'
     return isActive(path)
-      ? `${base} border-primary text-primary`
-      : `${base} border-transparent text-muted-foreground hover:text-foreground hover:bg-accent/50`
+      ? `${base} border-blue-500 text-blue-500`
+      : `${base} border-transparent text-gray-300 hover:text-white hover:bg-navy-700`
   }
 
   return (
-    <nav className="sticky top-0 z-50 bg-card border-b border-border">
+    <nav className="sticky top-0 z-50 bg-navy-800 border-b border-gray-700">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-8">
-            <Link href="/" className="text-2xl font-bold text-foreground tracking-tight py-4">
+            <Link href="/" className="text-2xl font-bold text-white tracking-tight py-4">
               GIGLY
             </Link>
             <div className="flex space-x-4">
@@ -91,11 +91,11 @@ export function MainNav({ userEmail, userRole }: MainNavProps) {
             {(userRole === 'CLIENT' || userRole === 'SPECIALIST') && (
               <NotificationBell />
             )}
-            <span className="text-sm text-muted-foreground">{userEmail}</span>
+            <span className="text-sm text-gray-300">{userEmail}</span>
             <form action={logoutUser}>
               <button
                 type="submit"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
+                className="text-sm text-gray-300 hover:text-white transition-colors duration-200"
               >
                 Sign Out
               </button>

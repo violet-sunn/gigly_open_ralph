@@ -26,7 +26,7 @@ export function MarkAsPaidButton({ gigId }: { gigId: string }) {
         <input type="hidden" name="gigId" value={gigId} />
         <SubmitButton />
         {state?.error && (
-          <p className="text-sm text-destructive">{state.error}</p>
+          <p className="text-sm text-error-500">{state.error}</p>
         )}
       </form>
     </div>

@@ -39,7 +39,7 @@ export function ApplicationActions({ applicationId }: { applicationId: string })
   return (
     <div className="mt-2">
       {error && (
-        <p className="text-xs text-destructive mb-1">{error}</p>
+        <p className="text-xs text-red-400 mb-1">{error}</p>
       )}
       <div className="flex gap-2">
         <form action={acceptAction}>

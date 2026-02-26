@@ -12,7 +12,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="w-full flex justify-center py-3 px-6 border border-transparent rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+      className="w-full flex justify-center py-3 px-6 border border-transparent rounded-md text-sm font-medium bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-navy-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
     >
       {pending ? 'Posting...' : 'Post Gig'}
     </button>
@@ -42,21 +42,21 @@ export function GigForm() {
   return (
     <form action={formAction} className="space-y-8">
       {state?.error && (
-        <div className="rounded-md bg-destructive/10 border border-destructive/20 p-4">
-          <p className="text-sm text-destructive">{state.error}</p>
+        <div className="rounded-md bg-error-500/10 border border-error-500/20 p-4">
+          <p className="text-sm text-error-500">{state.error}</p>
         </div>
       )}
 
       {/* Section 1: Basic Information */}
-      <div className="bg-card border border-border rounded-lg p-8">
-        <h3 className="text-xl font-semibold text-foreground mb-2">Basic Information</h3>
-        <p className="text-sm text-muted-foreground mb-4">
+      <div className="bg-navy-800 border border-gray-700 rounded-lg p-8 shadow-md">
+        <h3 className="text-xl font-semibold text-white mb-2">Basic Information</h3>
+        <p className="text-sm text-gray-300 mb-4">
           Provide a clear title and overview of the work
         </p>
 
         <div className="space-y-6">
           <div>
-            <label htmlFor="title" className="block text-sm font-medium text-muted-foreground">
+            <label htmlFor="title" className="block text-sm font-medium text-white">
               Title
             </label>
             <input
@@ -64,13 +64,13 @@ export function GigForm() {
               name="title"
               type="text"
               required
-              className="mt-1 block w-full rounded-md border border-input px-4 py-3 bg-input text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring sm:text-sm"
+              className="mt-1 block w-full rounded-md border border-gray-600 px-4 py-3 bg-navy-800 text-white placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
               placeholder="e.g. Build a React dashboard"
             />
           </div>
 
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-muted-foreground">
+            <label htmlFor="description" className="block text-sm font-medium text-white">
               Description
             </label>
             <textarea
@@ -78,7 +78,7 @@ export function GigForm() {
               name="description"
               required
               rows={4}
-              className="mt-1 block w-full rounded-md border border-input px-4 py-3 bg-input text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring sm:text-sm"
+              className="mt-1 block w-full rounded-md border border-gray-600 px-4 py-3 bg-navy-800 text-white placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
               placeholder="Describe the scope of work in detail..."
             />
           </div>
@@ -86,25 +86,25 @@ export function GigForm() {
       </div>
 
       {/* Section 2: Requirements & Success Criteria */}
-      <div className="bg-card border border-border rounded-lg p-8">
+      <div className="bg-navy-800 border border-gray-700 rounded-lg p-8 shadow-md">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-xl font-semibold text-foreground">Requirements &amp; Success Criteria</h3>
+          <h3 className="text-xl font-semibold text-white">Requirements &amp; Success Criteria</h3>
           <a
             href="/gigs/examples"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm text-primary hover:text-primary/90 underline"
+            className="text-sm text-blue-500 hover:text-blue-400 underline"
           >
             💡 View example gigs for inspiration
           </a>
         </div>
-        <p className="text-sm text-muted-foreground mb-4">
+        <p className="text-sm text-gray-300 mb-4">
           Define what success looks like and help specialists understand your needs
         </p>
 
         <div className="space-y-6">
           <div>
-            <label htmlFor="acceptanceCriteria" className="block text-sm font-medium text-muted-foreground">
+            <label htmlFor="acceptanceCriteria" className="block text-sm font-medium text-white">
               Definition of Done (Acceptance Criteria) *
             </label>
             <textarea
@@ -118,7 +118,7 @@ export function GigForm() {
                   setAcHasInteracted(true)
                 }
               }}
-              className="mt-1 block w-full rounded-md border border-input px-4 py-3 bg-input text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring sm:text-sm"
+              className="mt-1 block w-full rounded-md border border-gray-600 px-4 py-3 bg-navy-800 text-white placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
               placeholder="What does 'done' look like? Be specific: deliverables, quality standards, success metrics. Example: 'API returns user data in JSON format with <200ms response time, includes unit tests with >80% coverage, deployed to staging environment.'"
             />
             <AcceptanceCriteriaQualityWarning
@@ -126,7 +126,7 @@ export function GigForm() {
               hasInteracted={acHasInteracted}
             />
             <div className="mt-1 flex justify-between items-start">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-300">
                 Minimum 50 characters. Clear criteria prevent disputes and scope creep.
               </p>
               <CharacterCounter
@@ -138,7 +138,7 @@ export function GigForm() {
           </div>
 
           <div>
-            <label htmlFor="goal" className="block text-sm font-medium text-muted-foreground">
+            <label htmlFor="goal" className="block text-sm font-medium text-white">
               Goal / Desired Outcome
             </label>
             <textarea
@@ -146,11 +146,11 @@ export function GigForm() {
               name="goal"
               rows={3}
               onChange={(e) => setGoalCount(e.target.value.length)}
-              className="mt-1 block w-full rounded-md border border-input px-4 py-3 bg-input text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring sm:text-sm"
+              className="mt-1 block w-full rounded-md border border-gray-600 px-4 py-3 bg-navy-800 text-white placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
               placeholder="Example: We need to migrate our user authentication from custom solution to OAuth 2.0 to improve security and reduce maintenance burden."
             />
             <div className="mt-1 flex justify-between items-start">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-300">
                 Optional: Describe the business or technical problem you&apos;re solving. What does success look like?
               </p>
               <CharacterCounter
@@ -162,7 +162,7 @@ export function GigForm() {
           </div>
 
           <div>
-            <label htmlFor="deliverables" className="block text-sm font-medium text-muted-foreground">
+            <label htmlFor="deliverables" className="block text-sm font-medium text-white">
               Specific Deliverables
             </label>
             <textarea
@@ -170,11 +170,11 @@ export function GigForm() {
               name="deliverables"
               rows={3}
               onChange={(e) => setDeliverablesCount(e.target.value.length)}
-              className="mt-1 block w-full rounded-md border border-input px-4 py-3 bg-input text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring sm:text-sm"
+              className="mt-1 block w-full rounded-md border border-gray-600 px-4 py-3 bg-navy-800 text-white placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
               placeholder="Example: 1. OAuth 2.0 integration with Google and GitHub&#10;2. Migration script for existing users&#10;3. Updated documentation&#10;4. Deployment to staging and production"
             />
             <div className="mt-1 flex justify-between items-start">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-300">
                 Optional: List concrete outputs you expect (features, documentation, deployments, etc.)
               </p>
               <CharacterCounter
@@ -186,7 +186,7 @@ export function GigForm() {
           </div>
 
           <div>
-            <label htmlFor="constraints" className="block text-sm font-medium text-muted-foreground">
+            <label htmlFor="constraints" className="block text-sm font-medium text-white">
               Constraints &amp; Preferences
             </label>
             <textarea
@@ -194,11 +194,11 @@ export function GigForm() {
               name="constraints"
               rows={3}
               onChange={(e) => setConstraintsCount(e.target.value.length)}
-              className="mt-1 block w-full rounded-md border border-input px-4 py-3 bg-input text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring sm:text-sm"
+              className="mt-1 block w-full rounded-md border border-gray-600 px-4 py-3 bg-navy-800 text-white placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
               placeholder="Example: Must maintain backward compatibility with existing API endpoints. Prefer using Passport.js library. Deadline: end of Q1 2026."
             />
             <div className="mt-1 flex justify-between items-start">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-300">
                 Optional: Technical preferences, timeline considerations, compatibility requirements, or other constraints.
               </p>
               <CharacterCounter
@@ -212,15 +212,15 @@ export function GigForm() {
       </div>
 
       {/* Section 3: Budget & Details */}
-      <div className="bg-card border border-border rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-foreground mb-2">Budget &amp; Details</h3>
-        <p className="text-sm text-muted-foreground mb-4">
+      <div className="bg-navy-800 border border-gray-700 rounded-lg p-6 shadow-md">
+        <h3 className="text-lg font-semibold text-white mb-2">Budget &amp; Details</h3>
+        <p className="text-sm text-gray-300 mb-4">
           Set your budget and add tags to help specialists find your gig
         </p>
 
         <div className="space-y-6">
           <div>
-            <label htmlFor="budget" className="block text-sm font-medium text-muted-foreground">
+            <label htmlFor="budget" className="block text-sm font-medium text-white">
               Budget (₽)
             </label>
             <input
@@ -232,37 +232,37 @@ export function GigForm() {
               step="1"
               value={budget}
               onChange={(e) => setBudget(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-input px-4 py-3 bg-input text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring sm:text-sm"
+              className="mt-1 block w-full rounded-md border border-gray-600 px-4 py-3 bg-navy-800 text-white placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
               placeholder="100000"
             />
           </div>
 
           {showPreview && (
-            <div className="rounded-md bg-background border border-border p-4 space-y-1 text-sm">
+            <div className="rounded-md bg-navy-900 border border-gray-700 p-4 space-y-1 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Budget:</span>
-                <span className="font-medium text-foreground">{formatRoubles(budgetNum)} ₽</span>
+                <span className="text-gray-300">Budget:</span>
+                <span className="font-medium text-white">{formatRoubles(budgetNum)} ₽</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Service fee (10%):</span>
-                <span className="font-medium text-foreground">{formatRoubles(fee)} ₽</span>
+                <span className="text-gray-300">Service fee (10%):</span>
+                <span className="font-medium text-white">{formatRoubles(fee)} ₽</span>
               </div>
-              <div className="flex justify-between border-t border-border pt-1">
-                <span className="text-foreground font-medium">Total:</span>
-                <span className="font-bold text-foreground">{formatRoubles(total)} ₽</span>
+              <div className="flex justify-between border-t border-gray-700 pt-1">
+                <span className="text-white font-medium">Total:</span>
+                <span className="font-bold text-white">{formatRoubles(total)} ₽</span>
               </div>
             </div>
           )}
 
           <div>
-            <label htmlFor="tags" className="block text-sm font-medium text-muted-foreground">
-              Tags <span className="text-muted-foreground/60">(optional, comma-separated)</span>
+            <label htmlFor="tags" className="block text-sm font-medium text-white">
+              Tags <span className="text-gray-400">(optional, comma-separated)</span>
             </label>
             <input
               id="tags"
               name="tags"
               type="text"
-              className="mt-1 block w-full rounded-md border border-input px-4 py-3 bg-input text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring sm:text-sm"
+              className="mt-1 block w-full rounded-md border border-gray-600 px-4 py-3 bg-navy-800 text-white placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
               placeholder="React, TypeScript, Node.js"
             />
           </div>

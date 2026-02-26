@@ -57,7 +57,7 @@ export function NotificationBell() {
         onClick={handleToggle}
         aria-label="Notifications"
         aria-expanded={isOpen}
-        className="relative p-2 text-muted-foreground hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary rounded-full transition-colors"
+        className="relative p-2 text-gray-300 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-full transition-colors"
       >
         {/* Bell Icon */}
         <svg
@@ -77,7 +77,7 @@ export function NotificationBell() {
 
         {/* Badge */}
         {!isLoading && unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold leading-none bg-destructive text-destructive-foreground rounded-full">
+          <span className="absolute -top-1 -right-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold leading-none bg-error-500 text-white rounded-full">
             {unreadCount}
           </span>
         )}

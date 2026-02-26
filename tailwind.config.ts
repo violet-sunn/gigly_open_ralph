@@ -10,6 +10,43 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Design system colors from mockups
+        navy: {
+          900: "#0A0E27", // Primary background
+          800: "#141937", // Card background (slightly lighter)
+          700: "#1E2447", // Hover states
+          600: "#2A3158", // Borders
+        },
+        blue: {
+          400: "#38BDF8", // Lighter accent
+          500: "#0EA5E9", // Primary accent
+          600: "#0284C7", // Hover state
+        },
+        gray: {
+          300: "#D1D5DB", // Light text
+          400: "#9CA3AF", // Placeholder text
+          500: "#6B7280", // Secondary text
+          600: "#4B5563", // Borders
+          700: "#374151", // Subtle borders
+          800: "#1F2937", // Dark elements
+        },
+        // Status colors
+        success: {
+          400: "#4ADE80",
+          500: "#22C55E",
+          600: "#16A34A",
+        },
+        warning: {
+          400: "#FBBF24",
+          500: "#F59E0B",
+          600: "#D97706",
+        },
+        error: {
+          400: "#F87171",
+          500: "#EF4444",
+          600: "#DC2626",
+        },
+        // Legacy colors (keep for backward compatibility)
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
@@ -48,6 +85,29 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      fontSize: {
+        xs: ["0.75rem", { lineHeight: "1rem" }],
+        sm: ["0.875rem", { lineHeight: "1.25rem" }],
+        base: ["1rem", { lineHeight: "1.5rem" }],
+        lg: ["1.125rem", { lineHeight: "1.75rem" }],
+        xl: ["1.25rem", { lineHeight: "1.75rem" }],
+        "2xl": ["1.5rem", { lineHeight: "2rem" }],
+        "3xl": ["1.875rem", { lineHeight: "2.25rem" }],
+        "4xl": ["2.25rem", { lineHeight: "2.5rem" }],
+      },
+      fontWeight: {
+        normal: "400",
+        medium: "500",
+        semibold: "600",
+        bold: "700",
+      },
+      boxShadow: {
+        sm: "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+        DEFAULT: "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
+        md: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+        lg: "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+        xl: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)",
       },
     },
   },
