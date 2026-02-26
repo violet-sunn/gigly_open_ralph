@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { logoutUser } from '@/app/actions/auth'
+import { NotificationBell } from './NotificationBell'
 
 interface MainNavProps {
   userEmail: string
@@ -82,6 +83,9 @@ export function MainNav({ userEmail, userRole }: MainNavProps) {
           </div>
 
           <div className="flex items-center space-x-4">
+            {(userRole === 'CLIENT' || userRole === 'SPECIALIST') && (
+              <NotificationBell />
+            )}
             <span className="text-sm text-gray-600">{userEmail}</span>
             <form action={logoutUser}>
               <button

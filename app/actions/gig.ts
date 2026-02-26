@@ -483,6 +483,7 @@ export async function sendMessage(
     return { error: 'You are not authorized to send messages on this gig.' }
   }
 
+  // Create message
   await prisma.message.create({
     data: {
       gigId,
@@ -490,6 +491,30 @@ export async function sendMessage(
       content,
     },
   })
+
+  // Determine recipient and create/update notification
+  const recipientId = isOwner ? gig.assignedSpecialistId : gig.clientId
+
+  try {
+    await prisma.notification.upsert({
+      where: {
+        userId_gigId: {
+          userId: recipientId!,
+          gigId,
+        },
+      },
+      create: {
+        userId: recipientId!,
+        gigId,
+        lastReadAt: null,
+      },
+      update: {
+        updatedAt: new Date(),
+      },
+    })
+  } catch (error) {
+    console.error('Failed to create/update notification:', error)
+  }
 
   redirect(`/gigs/${gigId}`)
 }

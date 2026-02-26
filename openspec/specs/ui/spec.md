@@ -1029,3 +1029,110 @@ The gig detail page MUST provide a form for authorized users to send messages.
 - Messages section is positioned logically (after applications section)
 - Page layout remains responsive and accessible
 
+
+---
+
+### Requirement: Notification Bell in Navigation
+The system MUST display a notification bell icon in the navigation header that shows unread message count and opens a dropdown.
+
+#### Scenario: Bell icon renders in navigation
+- GIVEN an authenticated user (CLIENT or SPECIALIST)
+- WHEN they view any page with the navigation header
+- THEN the navigation MUST display a bell icon
+- AND the bell icon MUST be positioned in the top-right area of the navigation
+- AND the bell icon MUST be clickable
+
+#### Scenario: Bell shows unread count badge
+- GIVEN an authenticated user with unread messages on 3 gigs
+- WHEN they view the navigation
+- THEN the bell icon MUST display a badge with the number "3"
+- AND the badge MUST be visually prominent (red background, white text)
+- AND the badge MUST be positioned at the top-right of the bell icon
+
+#### Scenario: Bell shows no badge when no unread messages
+- GIVEN an authenticated user with zero unread messages
+- WHEN they view the navigation
+- THEN the bell icon MUST be displayed
+- AND the bell icon MUST NOT display a badge
+
+#### Scenario: Clicking bell opens dropdown
+- GIVEN an authenticated user
+- WHEN they click the bell icon
+- THEN a dropdown menu MUST appear below the bell icon
+- AND the dropdown MUST overlay other page content
+
+#### Scenario: Clicking outside dropdown closes it
+- GIVEN the notification dropdown is open
+- WHEN the user clicks anywhere outside the dropdown
+- THEN the dropdown MUST close
+
+**Acceptance Criteria:**
+- Bell icon component is a client component (uses useState for dropdown open/close)
+- Bell icon is visible on all authenticated pages for CLIENT and SPECIALIST users
+- Badge displays unread count when > 0
+- Badge is hidden when count = 0
+- Dropdown opens/closes on bell click
+- Dropdown closes on outside click (useEffect with click listener)
+- Bell icon is accessible (keyboard navigation, ARIA labels)
+
+---
+
+### Requirement: Notification Dropdown Content
+The notification dropdown MUST display a list of gigs with unread messages and allow navigation to those gigs.
+
+#### Scenario: Dropdown shows list of gigs with unread messages
+- GIVEN an authenticated user with unread messages on 3 gigs
+- WHEN they open the notification dropdown
+- THEN the dropdown MUST display a list of 3 notification items
+- AND each item MUST show gig title, sender name, and relative time
+
+#### Scenario: Dropdown shows empty state
+- GIVEN an authenticated user with zero unread messages
+- WHEN they open the notification dropdown
+- THEN the dropdown MUST display "No new messages"
+- AND the dropdown MUST show a friendly icon
+
+#### Scenario: Clicking notification navigates to gig
+- GIVEN the notification dropdown is open
+- WHEN the user clicks on a notification item
+- THEN the browser MUST navigate to `/gigs/[gigId]`
+- AND the dropdown MUST close
+- AND the notification MUST be marked as read (handled by gig page load)
+
+#### Scenario: Dropdown shows most recent notifications first
+- GIVEN an authenticated user with unread messages on multiple gigs
+- WHEN they open the notification dropdown
+- THEN notifications MUST be sorted by most recent message first
+
+**Acceptance Criteria:**
+- Dropdown component fetches notifications via server action
+- Dropdown displays list of gigs with unread messages
+- Each notification item is clickable and navigates to gig detail page
+- Empty state displays when no unread messages
+- Notifications sorted by most recent message first
+- Loading state displays while fetching
+- Error state displays on fetch failure
+- Dropdown is accessible (keyboard navigation, ARIA roles)
+
+---
+
+### Requirement: Mark Notifications as Read on Gig Visit
+The gig detail page MUST automatically mark notifications as read when the user visits the page.
+
+#### Scenario: Visiting gig marks notification as read
+- GIVEN an authenticated user with unread messages on a gig
+- WHEN they navigate to the gig detail page
+- THEN the Notification record for this user-gig pair MUST be updated
+- AND `lastReadAt` MUST be set to the current timestamp
+- AND the unread count badge MUST decrease by 1 (on next page load)
+
+#### Scenario: Mark as read only for authorized users
+- GIVEN a user who is NOT the gig owner or assigned specialist
+- WHEN they navigate to the gig detail page
+- THEN no Notification record MUST be created or updated
+
+**Acceptance Criteria:**
+- Gig detail page calls `markNotificationAsRead` server action on page load
+- Server action only executes for authorized users (gig owner or assigned specialist)
+- Server action uses upsert operation (create if not exists, update if exists)
+- Mark as read operation is fast (< 50ms)

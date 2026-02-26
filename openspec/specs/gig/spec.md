@@ -534,3 +534,102 @@ The system MUST provide a `sendMessage` server action that creates a message wit
 - On success: calls `redirect(\`/gigs/${gigId}\`)` (NOT revalidatePath)
 - On failure: returns `{ error: string }`
 - Content is trimmed before storage
+
+---
+
+### Requirement: Create Notification on Message Send
+The `sendMessage` server action MUST create or update a notification record for the message recipient.
+
+#### Scenario: Sending message creates notification for recipient
+- GIVEN an authenticated user sends a message on a gig
+- WHEN the message is successfully created
+- THEN a Notification record MUST be created or updated for the recipient
+- AND the Notification `lastReadAt` MUST remain unchanged (or null if new record)
+
+#### Scenario: Notification is not created for sender
+- GIVEN an authenticated user sends a message
+- WHEN the message is sent
+- THEN a Notification record MUST NOT be created or updated for the sender's userId
+
+**Acceptance Criteria:**
+- `sendMessage` action creates/updates Notification record for recipient
+- Uses Prisma `upsert` operation: create if not exists, update `updatedAt` if exists
+- Does NOT modify `lastReadAt` field (only recipient can mark as read)
+- Sender's notification is not affected
+- Error handling: log notification errors but don't fail message send
+
+---
+
+### Requirement: Fetch Unread Notifications Server Action
+The system MUST provide a `getUnreadNotifications` server action that returns gigs with unread messages for the authenticated user.
+
+#### Scenario: Fetch unread notifications
+- GIVEN an authenticated user with unread messages on multiple gigs
+- WHEN `getUnreadNotifications` is called
+- THEN it MUST return an array of notification objects with gigId, gig title, last message sender, last message timestamp, and unread count
+
+#### Scenario: Unread notifications exclude closed gigs
+- GIVEN an authenticated user has unread messages on a closed gig
+- WHEN `getUnreadNotifications` is called
+- THEN it MUST NOT include the closed gig in the results
+
+#### Scenario: Notifications sorted by most recent message first
+- GIVEN an authenticated user has unread messages on multiple gigs
+- WHEN `getUnreadNotifications` is called
+- THEN the results MUST be sorted by last message timestamp (descending)
+
+**Acceptance Criteria:**
+- `getUnreadNotifications` is exported from `app/actions/notification.ts` with `'use server'`
+- Returns array of notification objects with gig details and last message info
+- Only includes gigs where user is owner OR assigned specialist
+- Only includes gigs with messages from other users (not just own messages)
+- Excludes closed gigs (closedByAdmin = true)
+- Sorted by most recent message first
+- Query is efficient (< 100ms for 1000+ messages)
+
+---
+
+### Requirement: Mark Notification as Read Server Action
+The system MUST provide a `markNotificationAsRead` server action that updates the lastReadAt timestamp for a user-gig pair.
+
+#### Scenario: Mark notification as read
+- GIVEN an authenticated user who is authorized for a gig
+- WHEN `markNotificationAsRead` is called with a gigId
+- THEN the Notification record MUST be created or updated
+- AND `lastReadAt` MUST be set to the current timestamp
+
+#### Scenario: Unauthorized user cannot mark as read
+- GIVEN an authenticated user who is NOT the gig owner or assigned specialist
+- WHEN `markNotificationAsRead` is called
+- THEN it MUST return an error
+- AND no Notification record MUST be created or updated
+
+**Acceptance Criteria:**
+- `markNotificationAsRead` is exported from `app/actions/notification.ts` with `'use server'`
+- Signature is `(gigId: string) => Promise<{ error?: string }>`
+- Uses Prisma `upsert` operation
+- Authorization check: user is gig owner OR assigned specialist
+- Sets `lastReadAt` to `new Date()`
+- Returns `{ error: string }` on failure, `{}` on success
+- Operation is fast (< 50ms)
+
+---
+
+### Requirement: Get Unread Count Server Action
+The system MUST provide a `getUnreadCount` server action that returns the total number of gigs with unread messages.
+
+#### Scenario: Get unread count
+- GIVEN an authenticated user with unread messages on multiple gigs
+- WHEN `getUnreadCount` is called
+- THEN it MUST return `{ count: number }` with the correct count
+
+#### Scenario: Unread count excludes closed gigs
+- GIVEN an authenticated user has unread messages including on closed gigs
+- WHEN `getUnreadCount` is called
+- THEN the count MUST NOT include closed gigs
+
+**Acceptance Criteria:**
+- `getUnreadCount` is exported from `app/actions/notification.ts` with `'use server'`
+- Returns `{ count: number }`
+- Count logic matches `getUnreadNotifications` (same filtering rules)
+- Query is efficient (< 50ms for 1000+ messages)

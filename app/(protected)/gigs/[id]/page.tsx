@@ -12,6 +12,7 @@ import { MessageList } from './message-list'
 import { MessageForm } from './message-form'
 import { WithdrawApplicationButton } from './withdraw-application-button'
 import { BackButton } from '@/app/components/BackButton'
+import { markNotificationAsRead } from '@/app/actions/notification'
 
 function formatRoubles(kopecks: number): string {
   return new Intl.NumberFormat('ru-RU').format(kopecks / 100)
@@ -76,6 +77,16 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
   const isOwner = session.role === 'CLIENT' && gig.clientId === session.userId
   const isAssignedSpecialist = session.role === 'SPECIALIST' && gig.assignedSpecialistId === session.userId
   const canViewMessages = (isOwner || isAssignedSpecialist) && gig.assignedSpecialistId !== null
+
+  // Mark notification as read if user is authorized
+  if (isOwner || isAssignedSpecialist) {
+    try {
+      await markNotificationAsRead(id)
+    } catch (error) {
+      // Silently fail - don't block page render
+      console.error('Failed to mark notification as read:', error)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
