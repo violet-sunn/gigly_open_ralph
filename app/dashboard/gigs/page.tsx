@@ -20,6 +20,11 @@ export default async function GigBrowsePage({
   const session = await getSession()
   if (!session) redirect('/login')
 
+  // Role-based access control: only SPECIALIST users can browse gigs
+  if (session.role === 'CLIENT') {
+    redirect('/dashboard?error=browse-gigs-specialists-only')
+  }
+
   const params = await searchParams
 
   // Extract filter parameters from searchParams

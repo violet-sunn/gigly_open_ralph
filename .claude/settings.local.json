@@ -112,7 +112,27 @@
       "Bash(npx prisma db seed)",
       "Bash(/tmp/seed-verification-summary.txt:*)",
       "Bash(openspec/archive/seed-script-foundation/ARCHIVE_SUMMARY.md:*)",
-      "Bash(npm run seed)"
+      "Bash(npm run seed)",
+      "Bash(wc -l scripts/*.ts scripts/legacy-tests/*.ts)",
+      "Bash(powershell -Command:*)",
+      "Bash(current_application_map.md:*)",
+      "Bash(/tmp/validate_spec.sh:*)",
+      "Bash(__NEW_LINE_d3186c8225b11e31__ chmod +x /tmp/validate_spec.sh)",
+      "Bash(/tmp/final_validation.md:*)",
+      "Bash(__NEW_LINE_84d12ee9f9e5f850__ cat /tmp/final_validation.md)",
+      "Bash(designer_ux_requirements.md:*)",
+      "Bash(\"C:\\\\Users\\\\apiso\\\\Documents\\\\gigly_open_ralph\\\\temp_specialist_screens.txt\":*)",
+      "Bash(\"C:\\\\Users\\\\apiso\\\\Documents\\\\gigly_open_ralph\\\\temp_admin_screens.txt\":*)",
+      "Bash(\"C:\\\\Users\\\\apiso\\\\Documents\\\\gigly_open_ralph\\\\temp_shared_components.txt\":*)",
+      "Bash(npm uninstall:*)",
+      "Bash(__tests__/integration/specialist-active-gigs.test.ts:*)",
+      "Bash(/tmp/archive-summary.md:*)",
+      "Bash(npm run test)",
+      "Bash(npx playwright test:*)",
+      "Bash(git diff app/actions/gig.ts app/dashboard/gigs/[id]/page.tsx)",
+      "Bash(/tmp/archive_summary.md:*)",
+      "Bash(npm run type-check:*)",
+      "Bash(openspec/archive/contextual-back-buttons/TEST_PLAN.md:*)"
     ]
   }
 }

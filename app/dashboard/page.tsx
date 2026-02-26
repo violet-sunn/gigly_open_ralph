@@ -9,9 +9,23 @@ function formatRoubles(kopecks: number): string {
   return new Intl.NumberFormat('ru-RU').format(kopecks / 100)
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
   const session = await getSession()
   if (!session) redirect('/login')
+
+  // Extract error parameter for displaying error messages
+  const params = await searchParams
+  const errorParam = typeof params.error === 'string' ? params.error : undefined
+
+  const errorMessages: Record<string, string> = {
+    'browse-gigs-specialists-only': 'Browse Gigs is only available for specialists. As a client, you can post gigs and manage applications. To view example gigs, visit the Examples page.',
+  }
+
+  const errorMessage = errorParam ? errorMessages[errorParam] : null
 
   // Fetch user with profile
   const user = await prisma.user.findUnique({
@@ -94,6 +108,11 @@ export default async function DashboardPage() {
                 </p>
               </div>
             )}
+            {errorMessage && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
+                <p className="text-sm text-yellow-800">{errorMessage}</p>
+              </div>
+            )}
             <div className="space-y-4">
               <div className="border border-gray-200 rounded-md p-4">
                 <p className="text-sm text-gray-500 text-center mb-3">My Gigs</p>
@@ -154,6 +173,11 @@ export default async function DashboardPage() {
                     Complete profile
                   </Link>
                 </p>
+              </div>
+            )}
+            {errorMessage && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
+                <p className="text-sm text-yellow-800">{errorMessage}</p>
               </div>
             )}
             <div className="space-y-4">
