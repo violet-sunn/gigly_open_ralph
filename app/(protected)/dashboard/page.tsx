@@ -182,25 +182,46 @@ export default async function DashboardPage({
               </div>
 
               <div className="space-y-6">
-                <div className="bg-navy-800 border border-gray-700 rounded-lg p-8 shadow-md">
-                  <h3 className="text-xl font-semibold text-white mb-4">Quick Actions</h3>
-                  <div className="space-y-3">
-                    <Link
-                      href="/gigs/new"
-                      className="block p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg hover:bg-blue-500/20 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                          <svg className="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                          </svg>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-white">Post a Gig</p>
-                          <p className="text-xs text-gray-400">Find specialists</p>
-                        </div>
-                      </div>
-                    </Link>
+                {/* Find Project Card */}
+                <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-6 shadow-md">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <svg className="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-white mb-1">Найти проект</h3>
+                      <p className="text-sm text-gray-300 mb-3">Проекты и вакансии с актуальными заказами</p>
+                      <Link
+                        href="/gigs/new"
+                        className="inline-block px-4 py-2 bg-blue-500 text-white rounded-md text-sm font-medium hover:bg-blue-600 transition-colors"
+                      >
+                        Создать заказ
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Finances Card */}
+                <div className="bg-navy-800 border border-gray-700 rounded-lg p-6 shadow-md">
+                  <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">ФИНАНСЫ</h3>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-gray-400 mb-1">Earned this month</p>
+                      <p className="text-2xl font-bold text-white">$0.00</p>
+                    </div>
+                    <svg className="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Messages Card */}
+                <div className="bg-navy-800 border border-gray-700 rounded-lg p-6 shadow-md">
+                  <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">СООБЩЕНИЯ</h3>
+                  <div className="text-center py-4">
+                    <p className="text-sm text-gray-500">No recent messages</p>
                   </div>
                 </div>
               </div>
@@ -238,9 +259,60 @@ export default async function DashboardPage({
               </div>
             )}
 
-            <Suspense fallback={<div className="h-64 animate-pulse bg-navy-800 rounded-lg" />}>
-              <SpecialistDashboardTabs activeGigs={activeGigs} applications={applications} />
-            </Suspense>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Main Content - Tabs */}
+              <div className="lg:col-span-2">
+                <Suspense fallback={<div className="h-64 animate-pulse bg-navy-800 rounded-lg" />}>
+                  <SpecialistDashboardTabs activeGigs={activeGigs} applications={applications} />
+                </Suspense>
+              </div>
+
+              {/* Sidebar */}
+              <div className="space-y-6">
+                {/* Find Project Card */}
+                <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-6 shadow-md">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <svg className="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-white mb-1">Найти проект</h3>
+                      <p className="text-sm text-gray-300 mb-3">Проекты и вакансии с актуальными заказами</p>
+                      <Link
+                        href="/gigs"
+                        className="inline-block px-4 py-2 bg-blue-500 text-white rounded-md text-sm font-medium hover:bg-blue-600 transition-colors"
+                      >
+                        Browse Gigs
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Finances Card */}
+                <div className="bg-navy-800 border border-gray-700 rounded-lg p-6 shadow-md">
+                  <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">ФИНАНСЫ</h3>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-gray-400 mb-1">Earned this month</p>
+                      <p className="text-2xl font-bold text-white">$0.00</p>
+                    </div>
+                    <svg className="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Messages Card */}
+                <div className="bg-navy-800 border border-gray-700 rounded-lg p-6 shadow-md">
+                  <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">СООБЩЕНИЯ</h3>
+                  <div className="text-center py-4">
+                    <p className="text-sm text-gray-500">No recent messages</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="bg-navy-800 border border-gray-700 rounded-lg p-8 text-center shadow-md">
