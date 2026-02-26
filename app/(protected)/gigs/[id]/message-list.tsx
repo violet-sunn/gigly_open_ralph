@@ -16,14 +16,14 @@ interface MessageListProps {
 export function MessageList({ messages, currentUserId, gigClientId }: MessageListProps) {
   if (messages.length === 0) {
     return (
-      <p className="text-sm text-gray-500 text-center py-4">
+      <p className="text-sm text-muted-foreground text-center py-4">
         No messages yet. Start the conversation below.
       </p>
     )
   }
 
   return (
-    <ul className="space-y-3">
+    <div className="space-y-3">
       {messages.map((message) => {
         const senderName =
           message.sender.specialistProfile?.displayName ||
@@ -34,25 +34,25 @@ export function MessageList({ messages, currentUserId, gigClientId }: MessageLis
         const isOwnMessage = message.senderId === currentUserId
 
         return (
-          <li key={message.id} className="pb-3 last:pb-0">
+          <div key={message.id} className="pb-3 last:pb-0">
             <div className={`flex ${isClientMessage ? 'justify-start' : 'justify-end'}`}>
               <div className={`max-w-[80%] ${
                 isClientMessage
-                  ? 'border-l-4 border-blue-500 pl-3 bg-blue-50'
-                  : 'border-r-4 border-green-500 pr-3 bg-green-50'
+                  ? 'border-l-4 border-primary pl-3 bg-primary/10'
+                  : 'border-r-4 border-green-500 pr-3 bg-green-500/10'
               } p-3 rounded`}>
                 <div className="flex justify-between items-start mb-1 gap-3">
-                  <span className="text-sm font-medium text-gray-900">{senderName}</span>
-                  <span className="text-xs text-gray-400 whitespace-nowrap">
+                  <span className="text-sm font-medium text-foreground">{senderName}</span>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">
                     {message.createdAt.toLocaleString('ru-RU')}
                   </span>
                 </div>
-                <p className="text-sm text-gray-600 whitespace-pre-wrap">{message.content}</p>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{message.content}</p>
               </div>
             </div>
-          </li>
+          </div>
         )
       })}
-    </ul>
+    </div>
   )
 }

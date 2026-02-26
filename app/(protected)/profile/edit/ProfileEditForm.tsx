@@ -11,7 +11,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
+      className="bg-primary text-primary-foreground px-6 py-3 rounded hover:bg-primary/90 disabled:opacity-50 transition-colors duration-200"
     >
       {pending ? 'Saving...' : 'Save Profile'}
     </button>
@@ -29,16 +29,16 @@ export default function ProfileEditForm({ role, profile }: ProfileEditFormProps)
   if (role === 'SPECIALIST') {
     return (
       <div className="max-w-2xl mx-auto p-6">
-        <h1 className="text-2xl font-bold mb-6">Edit Profile</h1>
-        <form action={formAction} className="space-y-4">
+        <h1 className="text-3xl font-bold text-foreground mb-8 leading-tight">Edit Profile</h1>
+        <form action={formAction} className="space-y-6">
           {state?.error && (
-            <div className="bg-red-50 border border-red-200 text-red-800 rounded p-3">
+            <div className="bg-destructive/10 border border-destructive/20 text-destructive rounded p-3">
               {state.error}
             </div>
           )}
 
           <div>
-            <label htmlFor="displayName" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="displayName" className="block text-sm font-medium text-muted-foreground">
               Display Name
             </label>
             <input
@@ -46,12 +46,12 @@ export default function ProfileEditForm({ role, profile }: ProfileEditFormProps)
               id="displayName"
               name="displayName"
               defaultValue={profile?.displayName || ''}
-              className="mt-1 block w-full rounded border-gray-300 border p-2 text-gray-900 bg-white"
+              className="mt-1 block w-full rounded border border-input px-4 py-3 bg-input text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring"
             />
           </div>
 
           <div>
-            <label htmlFor="techStack" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="techStack" className="block text-sm font-medium text-muted-foreground">
               Tech Stack
             </label>
             <input
@@ -60,19 +60,19 @@ export default function ProfileEditForm({ role, profile }: ProfileEditFormProps)
               name="techStack"
               placeholder="React, TypeScript, Node.js"
               defaultValue={profile?.techStack || ''}
-              className="mt-1 block w-full rounded border-gray-300 border p-2 text-gray-900 bg-white"
+              className="mt-1 block w-full rounded border border-input px-4 py-3 bg-input text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring"
             />
           </div>
 
           <div>
-            <label htmlFor="experienceLevel" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="experienceLevel" className="block text-sm font-medium text-muted-foreground">
               Experience Level
             </label>
             <select
               id="experienceLevel"
               name="experienceLevel"
               defaultValue={profile?.experienceLevel || ''}
-              className="mt-1 block w-full rounded border-gray-300 border p-2 text-gray-900 bg-white"
+              className="mt-1 block w-full rounded border border-input p-2 bg-input text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring"
             >
               <option value="">Not specified</option>
               <option value="MIDDLE">Middle</option>
@@ -81,7 +81,7 @@ export default function ProfileEditForm({ role, profile }: ProfileEditFormProps)
           </div>
 
           <div>
-            <label htmlFor="bio" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="bio" className="block text-sm font-medium text-muted-foreground">
               Bio
             </label>
             <textarea
@@ -89,7 +89,7 @@ export default function ProfileEditForm({ role, profile }: ProfileEditFormProps)
               name="bio"
               rows={4}
               defaultValue={profile?.bio || ''}
-              className="mt-1 block w-full rounded border-gray-300 border p-2 text-gray-900 bg-white"
+              className="mt-1 block w-full rounded border border-input px-4 py-3 bg-input text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring"
             />
           </div>
 
@@ -97,7 +97,7 @@ export default function ProfileEditForm({ role, profile }: ProfileEditFormProps)
             <SubmitButton />
             <Link
               href="/profile"
-              className="px-4 py-2 text-gray-700 hover:underline"
+              className="px-4 py-2 text-muted-foreground hover:text-foreground"
             >
               Cancel
             </Link>
@@ -108,17 +108,17 @@ export default function ProfileEditForm({ role, profile }: ProfileEditFormProps)
   } else if (role === 'CLIENT') {
     return (
       <div className="max-w-2xl mx-auto p-6">
-        <h1 className="text-2xl font-bold mb-6">Edit Profile</h1>
-        <form action={formAction} className="space-y-4">
+        <h1 className="text-3xl font-bold text-foreground mb-8 leading-tight">Edit Profile</h1>
+        <form action={formAction} className="space-y-6">
           {state?.error && (
-            <div className="bg-red-50 border border-red-200 text-red-800 rounded p-3">
+            <div className="bg-destructive/10 border border-destructive/20 text-destructive rounded p-3">
               {state.error}
             </div>
           )}
 
           <div>
-            <label htmlFor="companyName" className="block text-sm font-medium text-gray-700">
-              Company Name <span className="text-red-500">*</span>
+            <label htmlFor="companyName" className="block text-sm font-medium text-muted-foreground">
+              Company Name <span className="text-destructive">*</span>
             </label>
             <input
               type="text"
@@ -126,13 +126,13 @@ export default function ProfileEditForm({ role, profile }: ProfileEditFormProps)
               name="companyName"
               required
               defaultValue={profile?.companyName || ''}
-              className="mt-1 block w-full rounded border-gray-300 border p-2 text-gray-900 bg-white"
+              className="mt-1 block w-full rounded border border-input px-4 py-3 bg-input text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring"
             />
           </div>
 
           <div>
-            <label htmlFor="inn" className="block text-sm font-medium text-gray-700">
-              INN <span className="text-red-500">*</span>
+            <label htmlFor="inn" className="block text-sm font-medium text-muted-foreground">
+              INN <span className="text-destructive">*</span>
             </label>
             <input
               type="text"
@@ -140,12 +140,12 @@ export default function ProfileEditForm({ role, profile }: ProfileEditFormProps)
               name="inn"
               required
               defaultValue={profile?.inn || ''}
-              className="mt-1 block w-full rounded border-gray-300 border p-2 text-gray-900 bg-white"
+              className="mt-1 block w-full rounded border border-input px-4 py-3 bg-input text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring"
             />
           </div>
 
           <div>
-            <label htmlFor="kpp" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="kpp" className="block text-sm font-medium text-muted-foreground">
               KPP
             </label>
             <input
@@ -153,12 +153,12 @@ export default function ProfileEditForm({ role, profile }: ProfileEditFormProps)
               id="kpp"
               name="kpp"
               defaultValue={profile?.kpp || ''}
-              className="mt-1 block w-full rounded border-gray-300 border p-2 text-gray-900 bg-white"
+              className="mt-1 block w-full rounded border border-input px-4 py-3 bg-input text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring"
             />
           </div>
 
           <div>
-            <label htmlFor="contactPerson" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="contactPerson" className="block text-sm font-medium text-muted-foreground">
               Contact Person
             </label>
             <input
@@ -166,12 +166,12 @@ export default function ProfileEditForm({ role, profile }: ProfileEditFormProps)
               id="contactPerson"
               name="contactPerson"
               defaultValue={profile?.contactPerson || ''}
-              className="mt-1 block w-full rounded border-gray-300 border p-2 text-gray-900 bg-white"
+              className="mt-1 block w-full rounded border border-input px-4 py-3 bg-input text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring"
             />
           </div>
 
           <div>
-            <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="phoneNumber" className="block text-sm font-medium text-muted-foreground">
               Phone Number
             </label>
             <input
@@ -179,7 +179,7 @@ export default function ProfileEditForm({ role, profile }: ProfileEditFormProps)
               id="phoneNumber"
               name="phoneNumber"
               defaultValue={profile?.phoneNumber || ''}
-              className="mt-1 block w-full rounded border-gray-300 border p-2 text-gray-900 bg-white"
+              className="mt-1 block w-full rounded border border-input px-4 py-3 bg-input text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring"
             />
           </div>
 
@@ -187,7 +187,7 @@ export default function ProfileEditForm({ role, profile }: ProfileEditFormProps)
             <SubmitButton />
             <Link
               href="/profile"
-              className="px-4 py-2 text-gray-700 hover:underline"
+              className="px-4 py-2 text-muted-foreground hover:text-foreground"
             >
               Cancel
             </Link>

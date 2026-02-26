@@ -15,7 +15,7 @@ export function AcceptanceCriteriaQualityWarning({
 
   return (
     <div
-      className="bg-amber-50 border border-amber-300 text-amber-800 rounded-md p-3 mb-2 transition-opacity duration-200"
+      className="bg-yellow-500/10 border border-yellow-500/20 text-yellow-200 rounded-md p-3 mb-2 transition-opacity duration-200"
       aria-live="polite"
       role="status"
     >

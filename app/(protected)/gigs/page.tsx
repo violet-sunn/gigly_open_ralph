@@ -132,10 +132,11 @@ export default async function GigBrowsePage({
   const hasActiveFilters = search || tags.length > 0 || minBudget || maxBudget
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-2xl mx-auto px-4">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Open Gigs</h2>
+    <div className="min-h-screen bg-background py-8">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold text-foreground leading-tight">Open Gigs</h2>
+          <p className="text-sm text-muted-foreground mt-2">Browse and apply to available projects</p>
         </div>
 
         {/* Filter Panel */}
@@ -143,22 +144,22 @@ export default async function GigBrowsePage({
 
         {/* Results Count */}
         {totalCount > 0 && (
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="text-sm text-muted-foreground mb-4">
             Showing {(page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, totalCount)} of {totalCount} gigs
           </p>
         )}
 
         {/* Gig List */}
         {gigs.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-md p-8 text-center">
-            <p className="text-sm text-gray-500">
+          <div className="bg-card border border-border rounded-lg p-8 text-center">
+            <p className="text-sm text-muted-foreground">
               {hasActiveFilters
                 ? 'No gigs match your filters. Try adjusting your search criteria.'
                 : 'No open gigs available.'}
             </p>
           </div>
         ) : (
-          <ul className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {gigs.map((gig) => {
               // Construct URL with navigation context and preserved filters
               const gigDetailParams = new URLSearchParams()
@@ -172,43 +173,42 @@ export default async function GigBrowsePage({
               const gigDetailUrl = `/gigs/${gig.id}?${gigDetailParams.toString()}`
 
               return (
-              <li key={gig.id}>
-                <Link
-                  href={gigDetailUrl}
-                  className="block bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-lg font-medium text-gray-900">{gig.title}</h3>
-                      {gig.isExample && (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                          ✨ Example
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-sm font-medium text-green-700">{formatRoubles(gig.budget)} ₽</span>
+              <Link
+                key={gig.id}
+                href={gigDetailUrl}
+                className="block bg-card border border-border rounded-lg p-8 hover:border-primary transition-colors duration-200"
+              >
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex items-center gap-2 flex-1">
+                    <h3 className="text-lg font-semibold text-foreground line-clamp-2">{gig.title}</h3>
+                    {gig.isExample && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary flex-shrink-0">
+                        ✨ Example
+                      </span>
+                    )}
                   </div>
-                  <p className="mt-1 text-sm text-gray-500 line-clamp-2">{gig.description}</p>
-                  <div className="mt-3 flex items-center justify-between">
-                    <div className="flex gap-2">
-                      {gig.tags && gig.tags.split(',').map((tag) => tag.trim()).filter(Boolean).map((tag) => (
-                        <span key={tag} className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                    <span className="text-xs text-gray-400">{gig.createdAt.toLocaleDateString('ru-RU')}</span>
-                  </div>
-                </Link>
-              </li>
+                </div>
+                <p className="text-sm text-muted-foreground line-clamp-3 mb-4 leading-relaxed">{gig.description}</p>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {gig.tags && gig.tags.split(',').map((tag) => tag.trim()).filter(Boolean).slice(0, 3).map((tag) => (
+                    <span key={tag} className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+                <div className="flex items-center justify-between pt-4 border-t border-border">
+                  <span className="text-lg font-bold text-foreground">{formatRoubles(gig.budget)} ₽</span>
+                  <span className="text-xs text-muted-foreground">{gig.createdAt.toLocaleDateString('ru-RU')}</span>
+                </div>
+              </Link>
               )
             })}
-          </ul>
+          </div>
         )}
 
         {/* Pagination Controls */}
         {totalPages > 1 && (
-          <div className="mt-6">
+          <div className="mt-8">
             <Suspense fallback={<div className="h-10" />}>
               <PaginationControls
                 currentPage={page}

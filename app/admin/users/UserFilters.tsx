@@ -23,9 +23,9 @@ export function UserFilters() {
   return (
     <div className="flex flex-wrap gap-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+        <label className="block text-sm font-medium text-muted-foreground mb-1">Role</label>
         <select
-          className="border border-gray-300 rounded-md px-3 py-2"
+          className="border border-input rounded-md px-3 py-2 bg-input text-foreground"
           value={roleFilter}
           onChange={(e) => updateFilter('role', e.target.value)}
         >
@@ -37,9 +37,9 @@ export function UserFilters() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+        <label className="block text-sm font-medium text-muted-foreground mb-1">Status</label>
         <select
-          className="border border-gray-300 rounded-md px-3 py-2"
+          className="border border-input rounded-md px-3 py-2 bg-input text-foreground"
           value={statusFilter}
           onChange={(e) => updateFilter('status', e.target.value)}
         >

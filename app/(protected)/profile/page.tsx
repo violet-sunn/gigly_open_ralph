@@ -21,16 +21,18 @@ export default async function ProfilePage() {
 
     if (!user.specialistProfile) {
       return (
-        <div className="max-w-2xl mx-auto p-6">
-          <h1 className="text-2xl font-bold mb-6">My Profile</h1>
-          <div className="bg-yellow-50 border border-yellow-200 rounded p-4 mb-6">
-            <p className="text-yellow-800">Profile not set up yet</p>
-            <Link
-              href="/profile/edit"
-              className="text-blue-600 hover:underline"
-            >
-              Set up your profile
-            </Link>
+        <div className="min-h-screen bg-background py-8">
+          <div className="max-w-2xl mx-auto px-4">
+            <h1 className="text-3xl font-bold text-foreground mb-8 leading-tight">My Profile</h1>
+            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 mb-6">
+              <p className="text-yellow-200">Profile not set up yet</p>
+              <Link
+                href="/profile/edit"
+                className="text-primary hover:text-primary/90"
+              >
+                Set up your profile
+              </Link>
+            </div>
           </div>
         </div>
       )
@@ -39,37 +41,39 @@ export default async function ProfilePage() {
     const profile = user.specialistProfile
 
     return (
-      <div className="max-w-2xl mx-auto p-6">
-        <h1 className="text-2xl font-bold mb-6">My Profile</h1>
-        <div className="bg-white border rounded-lg p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <p className="mt-1">{session.email}</p>
+      <div className="min-h-screen bg-background py-8">
+        <div className="max-w-2xl mx-auto px-4">
+          <h1 className="text-2xl font-bold text-foreground mb-6">My Profile</h1>
+          <div className="bg-card border border-border rounded-lg p-8 space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-muted-foreground">Email</label>
+              <p className="mt-1 text-foreground">{session.email}</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-muted-foreground">Display Name</label>
+              <p className="mt-1 text-foreground">{profile.displayName || 'Not set'}</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-muted-foreground">Tech Stack</label>
+              <p className="mt-1 text-foreground">{profile.techStack || 'Not set'}</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-muted-foreground">Experience Level</label>
+              <p className="mt-1 text-foreground">{profile.experienceLevel || 'Not set'}</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-muted-foreground">Bio</label>
+              <p className="mt-1 text-foreground whitespace-pre-wrap">{profile.bio || 'Not set'}</p>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Display Name</label>
-            <p className="mt-1">{profile.displayName || 'Not set'}</p>
+          <div className="mt-6">
+            <Link
+              href="/profile/edit"
+              className="inline-block bg-primary text-primary-foreground px-6 py-3 rounded-md hover:bg-primary/90 transition-colors duration-200"
+            >
+              Edit Profile
+            </Link>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Tech Stack</label>
-            <p className="mt-1">{profile.techStack || 'Not set'}</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Experience Level</label>
-            <p className="mt-1">{profile.experienceLevel || 'Not set'}</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Bio</label>
-            <p className="mt-1 whitespace-pre-wrap">{profile.bio || 'Not set'}</p>
-          </div>
-        </div>
-        <div className="mt-6">
-          <Link
-            href="/profile/edit"
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Edit Profile
-          </Link>
         </div>
       </div>
     )
@@ -85,16 +89,18 @@ export default async function ProfilePage() {
 
     if (!user.clientProfile) {
       return (
-        <div className="max-w-2xl mx-auto p-6">
-          <h1 className="text-2xl font-bold mb-6">My Profile</h1>
-          <div className="bg-yellow-50 border border-yellow-200 rounded p-4 mb-6">
-            <p className="text-yellow-800">Profile not set up yet</p>
-            <Link
-              href="/profile/edit"
-              className="text-blue-600 hover:underline"
-            >
-              Set up your profile
-            </Link>
+        <div className="min-h-screen bg-background py-8">
+          <div className="max-w-2xl mx-auto px-4">
+            <h1 className="text-3xl font-bold text-foreground mb-8 leading-tight">My Profile</h1>
+            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 mb-6">
+              <p className="text-yellow-200">Profile not set up yet</p>
+              <Link
+                href="/profile/edit"
+                className="text-primary hover:text-primary/90"
+              >
+                Set up your profile
+              </Link>
+            </div>
           </div>
         </div>
       )
@@ -103,49 +109,53 @@ export default async function ProfilePage() {
     const profile = user.clientProfile
 
     return (
-      <div className="max-w-2xl mx-auto p-6">
-        <h1 className="text-2xl font-bold mb-6">My Profile</h1>
-        <div className="bg-white border rounded-lg p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <p className="mt-1">{session.email}</p>
+      <div className="min-h-screen bg-background py-8">
+        <div className="max-w-2xl mx-auto px-4">
+          <h1 className="text-2xl font-bold text-foreground mb-6">My Profile</h1>
+          <div className="bg-card border border-border rounded-lg p-8 space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-muted-foreground">Email</label>
+              <p className="mt-1 text-foreground">{session.email}</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-muted-foreground">Company Name</label>
+              <p className="mt-1 text-foreground">{profile.companyName}</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-muted-foreground">INN</label>
+              <p className="mt-1 text-foreground">{profile.inn}</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-muted-foreground">KPP</label>
+              <p className="mt-1 text-foreground">{profile.kpp || 'Not set'}</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-muted-foreground">Contact Person</label>
+              <p className="mt-1 text-foreground">{profile.contactPerson || 'Not set'}</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-muted-foreground">Phone Number</label>
+              <p className="mt-1 text-foreground">{profile.phoneNumber || 'Not set'}</p>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Company Name</label>
-            <p className="mt-1">{profile.companyName}</p>
+          <div className="mt-6">
+            <Link
+              href="/profile/edit"
+              className="inline-block bg-primary text-primary-foreground px-6 py-3 rounded-md hover:bg-primary/90 transition-colors duration-200"
+            >
+              Edit Profile
+            </Link>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">INN</label>
-            <p className="mt-1">{profile.inn}</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">KPP</label>
-            <p className="mt-1">{profile.kpp || 'Not set'}</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Contact Person</label>
-            <p className="mt-1">{profile.contactPerson || 'Not set'}</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Phone Number</label>
-            <p className="mt-1">{profile.phoneNumber || 'Not set'}</p>
-          </div>
-        </div>
-        <div className="mt-6">
-          <Link
-            href="/profile/edit"
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Edit Profile
-          </Link>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <p>Unknown role</p>
+    <div className="min-h-screen bg-background py-8">
+      <div className="max-w-2xl mx-auto px-4">
+        <p className="text-foreground">Unknown role</p>
+      </div>
     </div>
   )
 }

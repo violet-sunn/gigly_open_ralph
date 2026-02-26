@@ -31,8 +31,8 @@ export default async function PublicProfilePage({
   if (!user) {
     return (
       <div className="max-w-2xl mx-auto p-6">
-        <h1 className="text-2xl font-bold mb-6">Profile</h1>
-        <div className="bg-red-50 border border-red-200 text-red-800 rounded p-4 mb-6">
+        <h1 className="text-2xl font-bold text-foreground mb-6">Profile</h1>
+        <div className="bg-destructive/10 border border-destructive/20 text-destructive rounded p-4 mb-6">
           User not found
         </div>
       </div>
@@ -45,23 +45,23 @@ export default async function PublicProfilePage({
 
     return (
       <div className="max-w-2xl mx-auto p-6">
-        <h1 className="text-2xl font-bold mb-6">Specialist Profile</h1>
-        <div className="bg-white border rounded-lg p-6 space-y-4">
+        <h1 className="text-2xl font-bold text-foreground mb-6">Specialist Profile</h1>
+        <div className="bg-card border border-border rounded-lg p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Name</label>
-            <p className="mt-1">{profile.displayName || user.email}</p>
+            <label className="block text-sm font-medium text-muted-foreground">Name</label>
+            <p className="mt-1 text-foreground">{profile.displayName || user.email}</p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Tech Stack</label>
-            <p className="mt-1">{profile.techStack || 'Not specified'}</p>
+            <label className="block text-sm font-medium text-muted-foreground">Tech Stack</label>
+            <p className="mt-1 text-foreground">{profile.techStack || 'Not specified'}</p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Experience Level</label>
-            <p className="mt-1">{profile.experienceLevel || 'Not specified'}</p>
+            <label className="block text-sm font-medium text-muted-foreground">Experience Level</label>
+            <p className="mt-1 text-foreground">{profile.experienceLevel || 'Not specified'}</p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Bio</label>
-            <p className="mt-1 whitespace-pre-wrap">{profile.bio || 'Not specified'}</p>
+            <label className="block text-sm font-medium text-muted-foreground">Bio</label>
+            <p className="mt-1 text-foreground whitespace-pre-wrap">{profile.bio || 'Not specified'}</p>
           </div>
         </div>
       </div>
@@ -74,15 +74,15 @@ export default async function PublicProfilePage({
 
     return (
       <div className="max-w-2xl mx-auto p-6">
-        <h1 className="text-2xl font-bold mb-6">Client Profile</h1>
-        <div className="bg-white border rounded-lg p-6 space-y-4">
+        <h1 className="text-2xl font-bold text-foreground mb-6">Client Profile</h1>
+        <div className="bg-card border border-border rounded-lg p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Company Name</label>
-            <p className="mt-1">{profile.companyName}</p>
+            <label className="block text-sm font-medium text-muted-foreground">Company Name</label>
+            <p className="mt-1 text-foreground">{profile.companyName}</p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Contact Person</label>
-            <p className="mt-1">{profile.contactPerson || 'Not specified'}</p>
+            <label className="block text-sm font-medium text-muted-foreground">Contact Person</label>
+            <p className="mt-1 text-foreground">{profile.contactPerson || 'Not specified'}</p>
           </div>
         </div>
       </div>
@@ -92,9 +92,9 @@ export default async function PublicProfilePage({
   // No profile available
   return (
     <div className="max-w-2xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Profile</h1>
-      <div className="bg-gray-50 border border-gray-200 rounded p-4 mb-6">
-        <p className="text-gray-700">Profile not available</p>
+      <h1 className="text-2xl font-bold text-foreground mb-6">Profile</h1>
+      <div className="bg-card border border-border rounded p-4 mb-6">
+        <p className="text-muted-foreground">Profile not available</p>
       </div>
     </div>
   )

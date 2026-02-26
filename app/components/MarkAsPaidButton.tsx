@@ -10,7 +10,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+      className="px-6 py-3 bg-green-500 text-white text-sm font-medium rounded-md hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
     >
       {pending ? 'Marking as Paid...' : 'Mark as Paid'}
     </button>
@@ -26,7 +26,7 @@ export function MarkAsPaidButton({ gigId }: { gigId: string }) {
         <input type="hidden" name="gigId" value={gigId} />
         <SubmitButton />
         {state?.error && (
-          <p className="text-sm text-red-600">{state.error}</p>
+          <p className="text-sm text-destructive">{state.error}</p>
         )}
       </form>
     </div>

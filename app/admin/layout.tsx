@@ -11,7 +11,7 @@ export default async function AdminLayout({
   if (!session) redirect('/login')
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <MainNav userEmail={session.email} userRole={session.role} />
       {children}
     </div>

@@ -81,7 +81,7 @@ export default function PaginationControls({
           <Link
             href={buildPageUrl(currentPage - 1)}
             aria-label="Previous page"
-            className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="px-3 py-2 text-sm font-medium text-foreground bg-card border border-border rounded-md hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring"
           >
             Previous
           </Link>
@@ -89,7 +89,7 @@ export default function PaginationControls({
           <span
             aria-disabled="true"
             aria-label="Previous page"
-            className="px-3 py-2 text-sm font-medium text-gray-400 bg-gray-100 border border-gray-300 rounded-md cursor-not-allowed opacity-50 pointer-events-none"
+            className="px-3 py-2 text-sm font-medium text-muted-foreground bg-muted border border-border rounded-md cursor-not-allowed opacity-50 pointer-events-none"
           >
             Previous
           </span>
@@ -101,7 +101,7 @@ export default function PaginationControls({
             return (
               <span
                 key={`ellipsis-${index}`}
-                className="px-2 text-gray-500"
+                className="px-2 text-muted-foreground"
                 aria-hidden="true"
               >
                 ...
@@ -117,7 +117,7 @@ export default function PaginationControls({
                 key={pageNum}
                 aria-current="page"
                 aria-label={`Current page, page ${pageNum}`}
-                className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-indigo-600 rounded-md"
+                className="px-4 py-2 text-sm font-medium text-primary-foreground bg-primary border border-primary rounded-md"
               >
                 {pageNum}
               </span>
@@ -129,7 +129,7 @@ export default function PaginationControls({
               key={pageNum}
               href={buildPageUrl(pageNum)}
               aria-label={`Go to page ${pageNum}`}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="px-4 py-2 text-sm font-medium text-foreground bg-card border border-border rounded-md hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring"
             >
               {pageNum}
             </Link>
@@ -141,7 +141,7 @@ export default function PaginationControls({
           <Link
             href={buildPageUrl(currentPage + 1)}
             aria-label="Next page"
-            className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="px-3 py-2 text-sm font-medium text-foreground bg-card border border-border rounded-md hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring"
           >
             Next
           </Link>
@@ -149,7 +149,7 @@ export default function PaginationControls({
           <span
             aria-disabled="true"
             aria-label="Next page"
-            className="px-3 py-2 text-sm font-medium text-gray-400 bg-gray-100 border border-gray-300 rounded-md cursor-not-allowed opacity-50 pointer-events-none"
+            className="px-3 py-2 text-sm font-medium text-muted-foreground bg-muted border border-border rounded-md cursor-not-allowed opacity-50 pointer-events-none"
           >
             Next
           </span>

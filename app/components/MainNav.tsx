@@ -36,61 +36,66 @@ export function MainNav({ userEmail, userRole }: MainNavProps) {
   }
 
   const linkClass = (path: string) => {
-    const base = 'px-4 py-4 text-sm font-medium border-b-2 transition-colors'
+    const base = 'px-4 py-4 text-sm font-medium border-b-2 transition-colors duration-200'
     return isActive(path)
-      ? `${base} border-blue-600 text-blue-600`
-      : `${base} border-transparent text-gray-600 hover:text-gray-900`
+      ? `${base} border-primary text-primary`
+      : `${base} border-transparent text-muted-foreground hover:text-foreground hover:bg-accent/50`
   }
 
   return (
-    <nav className="sticky top-0 z-50 bg-white border-b border-gray-200">
+    <nav className="sticky top-0 z-50 bg-card border-b border-border">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between">
-          <div className="flex space-x-2">
-            <Link href="/dashboard" className={linkClass('/dashboard')}>
-              Dashboard
+          <div className="flex items-center space-x-8">
+            <Link href="/" className="text-2xl font-bold text-foreground tracking-tight py-4">
+              GIGLY
             </Link>
-
-            {userRole === 'CLIENT' && (
-              <Link href="/gigs/new" className={linkClass('/gigs/new')}>
-                Post Gig
+            <div className="flex space-x-4">
+              <Link href="/dashboard" className={linkClass('/dashboard')}>
+                Dashboard
               </Link>
-            )}
 
-            {userRole === 'SPECIALIST' && (
-              <Link href="/gigs" className={linkClass('/gigs')}>
-                Browse Gigs
+              {userRole === 'CLIENT' && (
+                <Link href="/gigs/new" className={linkClass('/gigs/new')}>
+                  Post Gig
+                </Link>
+              )}
+
+              {userRole === 'SPECIALIST' && (
+                <Link href="/gigs" className={linkClass('/gigs')}>
+                  Browse Gigs
+                </Link>
+              )}
+
+              {userRole === 'ADMIN' && (
+                <>
+                  <Link href="/admin" className={linkClass('/admin')}>
+                    Moderation
+                  </Link>
+                  <Link href="/admin/users" className={linkClass('/admin/users')}>
+                    Users
+                  </Link>
+                  <Link href="/admin/gigs" className={linkClass('/admin/gigs')}>
+                    Gigs
+                  </Link>
+                </>
+              )}
+
+              <Link href="/profile" className={linkClass('/profile')}>
+                Profile
               </Link>
-            )}
-
-            {userRole === 'ADMIN' && (
-              <>
-                <Link href="/admin" className={linkClass('/admin')}>
-                  Moderation
-                </Link>
-                <Link href="/admin/users" className={linkClass('/admin/users')}>
-                  Users
-                </Link>
-                <Link href="/admin/gigs" className={linkClass('/admin/gigs')}>
-                  Gigs
-                </Link>
-              </>
-            )}
-
-            <Link href="/profile" className={linkClass('/profile')}>
-              Profile
-            </Link>
+            </div>
           </div>
 
           <div className="flex items-center space-x-4">
             {(userRole === 'CLIENT' || userRole === 'SPECIALIST') && (
               <NotificationBell />
             )}
-            <span className="text-sm text-gray-600">{userEmail}</span>
+            <span className="text-sm text-muted-foreground">{userEmail}</span>
             <form action={logoutUser}>
               <button
                 type="submit"
-                className="text-sm text-gray-600 hover:text-gray-900"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
               >
                 Sign Out
               </button>

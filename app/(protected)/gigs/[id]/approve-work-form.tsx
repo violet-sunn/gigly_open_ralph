@@ -11,7 +11,7 @@ export function ApproveWorkForm({ gigId }: { gigId: string }) {
       <input type="hidden" name="gigId" value={gigId} />
 
       {state?.error && (
-        <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">
+        <div className="text-sm text-destructive bg-destructive/10 border border-destructive/20 p-3 rounded-md">
           {state.error}
         </div>
       )}
@@ -19,7 +19,7 @@ export function ApproveWorkForm({ gigId }: { gigId: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="w-full px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full px-6 py-3 bg-primary text-primary-foreground text-sm font-medium rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
       >
         {pending ? 'Approving...' : 'Approve Work'}
       </button>
