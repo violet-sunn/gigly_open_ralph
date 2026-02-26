@@ -159,7 +159,7 @@ export default async function GigBrowsePage({
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="space-y-4">
             {gigs.map((gig) => {
               // Construct URL with navigation context and preserved filters
               const gigDetailParams = new URLSearchParams()
@@ -176,29 +176,35 @@ export default async function GigBrowsePage({
               <Link
                 key={gig.id}
                 href={gigDetailUrl}
-                className="block bg-navy-800 border border-gray-700 rounded-lg p-8 hover:bg-navy-700 hover:border-gray-600 transition-colors duration-200"
+                className="flex justify-between items-start gap-6 bg-navy-800 border border-gray-700 rounded-lg p-6 hover:bg-navy-700 hover:border-gray-600 transition-colors duration-200"
               >
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex items-center gap-2 flex-1">
-                    <h3 className="text-lg font-semibold text-white line-clamp-2">{gig.title}</h3>
+                {/* Left side: Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="text-lg font-semibold text-white">{gig.title}</h3>
                     {gig.isExample && (
                       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-500/10 text-blue-500 flex-shrink-0">
                         ✨ Example
                       </span>
                     )}
                   </div>
+                  <p className="text-sm text-gray-300 line-clamp-2 mb-3 leading-relaxed">{gig.description}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {gig.tags && gig.tags.split(',').map((tag) => tag.trim()).filter(Boolean).slice(0, 4).map((tag) => (
+                      <span key={tag} className="text-xs px-2 py-1 rounded-full bg-blue-500/10 text-blue-500">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-400 mt-3">{gig.createdAt.toLocaleDateString('ru-RU')}</p>
                 </div>
-                <p className="text-sm text-gray-300 line-clamp-3 mb-4 leading-relaxed">{gig.description}</p>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {gig.tags && gig.tags.split(',').map((tag) => tag.trim()).filter(Boolean).slice(0, 3).map((tag) => (
-                    <span key={tag} className="text-xs px-2 py-1 rounded-full bg-blue-500/10 text-blue-500">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-                <div className="flex items-center justify-between pt-4 border-t border-gray-700">
-                  <span className="text-lg font-bold text-white">{formatRoubles(gig.budget)} ₽</span>
-                  <span className="text-xs text-gray-300">{gig.createdAt.toLocaleDateString('ru-RU')}</span>
+
+                {/* Right side: Price and Action */}
+                <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                  <span className="text-2xl font-bold text-white whitespace-nowrap">{formatRoubles(gig.budget)} ₽</span>
+                  <span className="inline-flex items-center px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-600 transition-colors">
+                    Откликнуться →
+                  </span>
                 </div>
               </Link>
               )
