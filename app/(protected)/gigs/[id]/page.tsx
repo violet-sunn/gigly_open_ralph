@@ -403,7 +403,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
         )}
 
         {(isOwner || isAssignedSpecialist) && (
-          <div className="bg-navy-800 border border-gray-700 rounded-lg p-8 shadow-md">
+          <div id="messages" className="bg-navy-800 border border-gray-700 rounded-lg p-8 shadow-md">
             <h3 className="text-xl font-medium text-white mb-6">Messages</h3>
             {gig.assignedSpecialistId === null ? (
               <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-md">

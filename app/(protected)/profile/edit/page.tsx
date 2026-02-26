@@ -19,7 +19,7 @@ export default async function ProfileEditPage() {
       redirect('/login')
     }
 
-    return <ProfileEditForm role="SPECIALIST" profile={user.specialistProfile} />
+    return <ProfileEditForm role="SPECIALIST" profile={user.specialistProfile} email={user.email} />
   } else if (session.role === 'CLIENT') {
     const user = await prisma.user.findUnique({
       where: { id: session.userId },
@@ -30,7 +30,7 @@ export default async function ProfileEditPage() {
       redirect('/login')
     }
 
-    return <ProfileEditForm role="CLIENT" profile={user.clientProfile} />
+    return <ProfileEditForm role="CLIENT" profile={user.clientProfile} email={user.email} />
   }
 
   return <div>Unknown role</div>

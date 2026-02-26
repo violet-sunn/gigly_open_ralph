@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Suspense } from 'react'
 import { SpecialistDashboardTabs } from './SpecialistDashboardTabs'
+import { getRecentMessages } from '@/app/actions/message'
+import { formatDistanceToNow } from 'date-fns'
 
 function formatRoubles(kopecks: number): string {
   return new Intl.NumberFormat('ru-RU').format(kopecks / 100)
@@ -91,6 +93,9 @@ export default async function DashboardPage({
         orderBy: { createdAt: 'desc' },
       })
     : []
+
+  // Fetch recent messages for dashboard sidebar
+  const recentMessages = await getRecentMessages()
 
   return (
     <div className="min-h-screen bg-navy-900">
@@ -220,9 +225,28 @@ export default async function DashboardPage({
                 {/* Messages Card */}
                 <div className="bg-navy-800 border border-gray-700 rounded-lg p-6 shadow-md">
                   <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">СООБЩЕНИЯ</h3>
-                  <div className="text-center py-4">
-                    <p className="text-sm text-gray-500">No recent messages</p>
-                  </div>
+                  {recentMessages.length === 0 ? (
+                    <div className="text-center py-4">
+                      <p className="text-sm text-gray-500">No recent messages</p>
+                    </div>
+                  ) : (
+                    <div className="max-h-80 overflow-y-auto space-y-3">
+                      {recentMessages.map((message) => (
+                        <Link
+                          key={message.gigId}
+                          href={`/gigs/${message.gigId}#messages`}
+                          className="block p-3 rounded-lg hover:bg-navy-700 transition-colors"
+                        >
+                          <h4 className="text-sm font-semibold text-white mb-1">{message.gigTitle}</h4>
+                          <p className="text-xs text-gray-400 mb-1">{message.senderName}</p>
+                          <p className="text-xs text-gray-300 mb-1">{message.contentPreview}</p>
+                          <p className="text-xs text-gray-500">
+                            {formatDistanceToNow(new Date(message.createdAt), { addSuffix: true })}
+                          </p>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -307,9 +331,28 @@ export default async function DashboardPage({
                 {/* Messages Card */}
                 <div className="bg-navy-800 border border-gray-700 rounded-lg p-6 shadow-md">
                   <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">СООБЩЕНИЯ</h3>
-                  <div className="text-center py-4">
-                    <p className="text-sm text-gray-500">No recent messages</p>
-                  </div>
+                  {recentMessages.length === 0 ? (
+                    <div className="text-center py-4">
+                      <p className="text-sm text-gray-500">No recent messages</p>
+                    </div>
+                  ) : (
+                    <div className="max-h-80 overflow-y-auto space-y-3">
+                      {recentMessages.map((message) => (
+                        <Link
+                          key={message.gigId}
+                          href={`/gigs/${message.gigId}#messages`}
+                          className="block p-3 rounded-lg hover:bg-navy-700 transition-colors"
+                        >
+                          <h4 className="text-sm font-semibold text-white mb-1">{message.gigTitle}</h4>
+                          <p className="text-xs text-gray-400 mb-1">{message.senderName}</p>
+                          <p className="text-xs text-gray-300 mb-1">{message.contentPreview}</p>
+                          <p className="text-xs text-gray-500">
+                            {formatDistanceToNow(new Date(message.createdAt), { addSuffix: true })}
+                          </p>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
