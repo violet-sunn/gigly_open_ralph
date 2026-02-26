@@ -125,7 +125,7 @@ test.describe('Complete Specialist Journey E2E', () => {
     // STEP 3: Browse gigs via UI
     // ========================================================================
 
-    await page.goto('http://localhost:3000/dashboard/gigs')
+    await page.goto('http://localhost:3000/gigs')
     await page.waitForLoadState('networkidle')
     await expect(page).toHaveURL(/\/dashboard\/gigs/)
 
@@ -143,7 +143,7 @@ test.describe('Complete Specialist Journey E2E', () => {
     await page.waitForLoadState('networkidle')
 
     // Verify we're on the gig detail page
-    await expect(page).toHaveURL(new RegExp(`/dashboard/gigs/${gig.id}`))
+    await expect(page).toHaveURL(new RegExp(`/gigs/${gig.id}`))
 
     // Verify gig title is visible
     await expect(page.locator(`text=${gig.title}`)).toBeVisible()

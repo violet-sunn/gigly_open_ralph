@@ -10,7 +10,7 @@ The system MUST provide an `updateProfile` server action that creates or updates
 - AND the user has no SpecialistProfile record yet
 - WHEN `updateProfile` is called with valid profile data
 - THEN a SpecialistProfile record MUST be created with `userId` as primary key
-- AND the action MUST redirect to `/dashboard/profile`
+- AND the action MUST redirect to `/profile`
 
 #### Scenario: CLIENT creates profile for first time
 - GIVEN an authenticated user with role "CLIENT"
@@ -18,7 +18,7 @@ The system MUST provide an `updateProfile` server action that creates or updates
 - WHEN `updateProfile` is called with valid profile data
 - THEN a ClientProfile record MUST be created with `userId` as primary key
 - AND companyName and inn MUST be non-empty strings
-- AND the action MUST redirect to `/dashboard/profile`
+- AND the action MUST redirect to `/profile`
 
 #### Scenario: CLIENT submits without required fields
 - GIVEN a CLIENT user submits a form with empty companyName or inn
@@ -45,5 +45,5 @@ The system MUST provide an `updateProfile` server action that creates or updates
 - For SPECIALIST: validates experienceLevel
 - For CLIENT: validates companyName and inn are non-empty
 - Uses Prisma `upsert` to handle both create and update cases
-- On success: redirects to `/dashboard/profile`
+- On success: redirects to `/profile`
 - On failure: returns `{ error: string }`

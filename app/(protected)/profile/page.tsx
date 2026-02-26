@@ -26,7 +26,7 @@ export default async function ProfilePage() {
           <div className="bg-yellow-50 border border-yellow-200 rounded p-4 mb-6">
             <p className="text-yellow-800">Profile not set up yet</p>
             <Link
-              href="/dashboard/profile/edit"
+              href="/profile/edit"
               className="text-blue-600 hover:underline"
             >
               Set up your profile
@@ -65,7 +65,7 @@ export default async function ProfilePage() {
         </div>
         <div className="mt-6">
           <Link
-            href="/dashboard/profile/edit"
+            href="/profile/edit"
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
           >
             Edit Profile
@@ -90,7 +90,7 @@ export default async function ProfilePage() {
           <div className="bg-yellow-50 border border-yellow-200 rounded p-4 mb-6">
             <p className="text-yellow-800">Profile not set up yet</p>
             <Link
-              href="/dashboard/profile/edit"
+              href="/profile/edit"
               className="text-blue-600 hover:underline"
             >
               Set up your profile
@@ -133,7 +133,7 @@ export default async function ProfilePage() {
         </div>
         <div className="mt-6">
           <Link
-            href="/dashboard/profile/edit"
+            href="/profile/edit"
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
           >
             Edit Profile

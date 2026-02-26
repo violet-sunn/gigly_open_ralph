@@ -23,6 +23,9 @@ export default async function DashboardPage({
 
   const errorMessages: Record<string, string> = {
     'browse-gigs-specialists-only': 'Browse Gigs is only available for specialists. As a client, you can post gigs and manage applications. To view example gigs, visit the Examples page.',
+    'gigs-specialists-only': 'Browse Gigs is only available for specialists.',
+    'gig-creation-clients-only': 'Creating gigs is only available for clients.',
+    'admin-access-required': 'Admin access is required for this page.',
   }
 
   const errorMessage = errorParam ? errorMessages[errorParam] : null
@@ -102,7 +105,7 @@ export default async function DashboardPage({
               <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
                 <p className="text-sm text-yellow-800">
                   Complete your profile to build trust with specialists.{' '}
-                  <Link href="/dashboard/profile/edit" className="underline font-medium">
+                  <Link href="/profile/edit" className="underline font-medium">
                     Complete profile
                   </Link>
                 </p>
@@ -122,7 +125,7 @@ export default async function DashboardPage({
                   <ul className="space-y-3">
                     {gigs.map((gig) => (
                       <li key={gig.id} className="border-b border-gray-100 pb-2 last:border-0 last:pb-0">
-                        <Link href={`/dashboard/gigs/${gig.id}?from=dashboard`} className="block rounded hover:bg-gray-50 transition-colors">
+                        <Link href={`/gigs/${gig.id}?from=dashboard`} className="block rounded hover:bg-gray-50 transition-colors">
                           <div className="flex justify-between items-start">
                             <span className="text-sm font-medium text-gray-900">{gig.title}</span>
                             <span className={`text-xs px-2 py-0.5 rounded-full ${
@@ -169,7 +172,7 @@ export default async function DashboardPage({
               <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
                 <p className="text-sm text-yellow-800">
                   Complete your profile to stand out when applying to gigs.{' '}
-                  <Link href="/dashboard/profile/edit" className="underline font-medium">
+                  <Link href="/profile/edit" className="underline font-medium">
                     Complete profile
                   </Link>
                 </p>

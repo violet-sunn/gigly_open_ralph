@@ -77,7 +77,7 @@ test.describe('E2E Authentication Session', () => {
     await expect(page).toHaveURL(/\/dashboard/)
 
     // Navigate to another protected page
-    await page.goto('http://localhost:3000/dashboard/profile')
+    await page.goto('http://localhost:3000/profile')
 
     // Should still be authenticated (not redirected to login)
     await expect(page).not.toHaveURL(/\/login/)

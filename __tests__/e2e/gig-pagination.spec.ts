@@ -83,11 +83,11 @@ test.describe('Gig Pagination E2E', () => {
 
   test('should navigate through pages using Next and Previous buttons', async ({ page }) => {
     // Navigate to gig browse page
-    await page.goto('/dashboard/gigs')
+    await page.goto('/gigs')
     await page.waitForLoadState('networkidle')
 
     // Verify we're on page 1
-    await expect(page).toHaveURL('/dashboard/gigs')
+    await expect(page).toHaveURL('/gigs')
     await expect(page.locator('text=Showing 1-25 of 60 gigs')).toBeVisible()
 
     // Verify pagination controls are visible
@@ -117,7 +117,7 @@ test.describe('Gig Pagination E2E', () => {
 
   test('should navigate directly to a specific page via URL', async ({ page }) => {
     // Navigate directly to page 2
-    await page.goto('/dashboard/gigs?page=2')
+    await page.goto('/gigs?page=2')
     await page.waitForLoadState('networkidle')
 
     // Verify we're on page 2
@@ -128,7 +128,7 @@ test.describe('Gig Pagination E2E', () => {
 
   test('should navigate using page number buttons', async ({ page }) => {
     // Navigate to gig browse page
-    await page.goto('/dashboard/gigs')
+    await page.goto('/gigs')
     await page.waitForLoadState('networkidle')
 
     // Click on page 3 button
@@ -141,7 +141,7 @@ test.describe('Gig Pagination E2E', () => {
 
   test('should redirect invalid page numbers to valid pages', async ({ page }) => {
     // Try to navigate to page 999 (exceeds total pages)
-    await page.goto('/dashboard/gigs?page=999')
+    await page.goto('/gigs?page=999')
     await page.waitForLoadState('networkidle')
 
     // Should redirect to last valid page (page 3)
@@ -149,17 +149,17 @@ test.describe('Gig Pagination E2E', () => {
     await expect(page.locator('text=Showing 51-60 of 60 gigs')).toBeVisible()
 
     // Try to navigate to page 0
-    await page.goto('/dashboard/gigs?page=0')
+    await page.goto('/gigs?page=0')
     await page.waitForLoadState('networkidle')
 
     // Should redirect to page 1
-    await expect(page).toHaveURL('/dashboard/gigs')
+    await expect(page).toHaveURL('/gigs')
     await expect(page.locator('text=Showing 1-25 of 60 gigs')).toBeVisible()
   })
 
   test('should preserve filters when paginating', async ({ page }) => {
     // Navigate to gig browse page
-    await page.goto('/dashboard/gigs')
+    await page.goto('/gigs')
     await page.waitForLoadState('networkidle')
 
     // Apply React tag filter
@@ -182,7 +182,7 @@ test.describe('Gig Pagination E2E', () => {
 
   test('should reset to page 1 when filters change', async ({ page }) => {
     // Navigate to page 2
-    await page.goto('/dashboard/gigs?page=2')
+    await page.goto('/gigs?page=2')
     await page.waitForLoadState('networkidle')
     await expect(page).toHaveURL(/page=2/)
 
@@ -198,7 +198,7 @@ test.describe('Gig Pagination E2E', () => {
 
   test('should support browser back/forward navigation', async ({ page }) => {
     // Navigate through pages: 1 → 2 → 3
-    await page.goto('/dashboard/gigs')
+    await page.goto('/gigs')
     await page.waitForLoadState('networkidle')
 
     await page.click('a[aria-label="Next page"]')
@@ -215,7 +215,7 @@ test.describe('Gig Pagination E2E', () => {
 
     await page.goBack()
     await page.waitForLoadState('networkidle')
-    await expect(page).toHaveURL('/dashboard/gigs')
+    await expect(page).toHaveURL('/gigs')
     await expect(page.locator('text=Showing 1-25 of 60 gigs')).toBeVisible()
 
     // Use browser forward button
@@ -227,7 +227,7 @@ test.describe('Gig Pagination E2E', () => {
 
   test('should disable Previous button on first page and Next button on last page', async ({ page }) => {
     // Navigate to page 1
-    await page.goto('/dashboard/gigs')
+    await page.goto('/gigs')
     await page.waitForLoadState('networkidle')
 
     // Verify Previous button is disabled
@@ -236,7 +236,7 @@ test.describe('Gig Pagination E2E', () => {
     await expect(prevButton).toHaveClass(/opacity-50/)
 
     // Navigate to last page (page 3)
-    await page.goto('/dashboard/gigs?page=3')
+    await page.goto('/gigs?page=3')
     await page.waitForLoadState('networkidle')
 
     // Verify Next button is disabled

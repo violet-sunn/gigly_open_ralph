@@ -176,7 +176,7 @@ describe('Example Gig Tests', () => {
           await applyToGig(null, formData)
         } catch (error: any) {
           // Redirect is expected on success
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard/gigs/')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/')
         }
       })
 

@@ -96,7 +96,7 @@ export default function ProfileEditForm({ role, profile }: ProfileEditFormProps)
           <div className="flex gap-4">
             <SubmitButton />
             <Link
-              href="/dashboard/profile"
+              href="/profile"
               className="px-4 py-2 text-gray-700 hover:underline"
             >
               Cancel
@@ -186,7 +186,7 @@ export default function ProfileEditForm({ role, profile }: ProfileEditFormProps)
           <div className="flex gap-4">
             <SubmitButton />
             <Link
-              href="/dashboard/profile"
+              href="/profile"
               className="px-4 py-2 text-gray-700 hover:underline"
             >
               Cancel

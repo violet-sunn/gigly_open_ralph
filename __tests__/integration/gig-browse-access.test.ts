@@ -1,7 +1,7 @@
 /**
  * Gig Browse Page Access Control Integration Tests
  *
- * This test suite validates role-based access control for /dashboard/gigs:
+ * This test suite validates role-based access control for /gigs:
  * - SPECIALIST users can access the browse page
  * - CLIENT users are redirected to dashboard with error message
  * - Unauthenticated users are redirected to login
@@ -124,7 +124,7 @@ describe('Gig Browse Page Access Control', () => {
 
         await withAuthContext(client, async () => {
           // Import the page component dynamically to test redirect
-          const { default: GigBrowsePage } = await import('@/app/dashboard/gigs/page')
+          const { default: GigBrowsePage } = await import('@/app/(protected)/gigs/page')
 
           try {
             await GigBrowsePage({ searchParams: Promise.resolve({}) })
@@ -179,7 +179,7 @@ describe('Gig Browse Page Access Control', () => {
       setTestSessionToken(undefined)
 
       // Import the page component dynamically to test redirect
-      const { default: GigBrowsePage } = await import('@/app/dashboard/gigs/page')
+      const { default: GigBrowsePage } = await import('@/app/(protected)/gigs/page')
 
       try {
         await GigBrowsePage({ searchParams: Promise.resolve({}) })
@@ -196,7 +196,7 @@ describe('Gig Browse Page Access Control', () => {
       setTestSessionToken(undefined)
 
       // Import the page component dynamically to test redirect
-      const { default: GigBrowsePage } = await import('@/app/dashboard/gigs/page')
+      const { default: GigBrowsePage } = await import('@/app/(protected)/gigs/page')
 
       try {
         await GigBrowsePage({ searchParams: Promise.resolve({}) })
@@ -214,7 +214,7 @@ describe('Gig Browse Page Access Control', () => {
 
         await withAuthContext(client, async () => {
           // Import the page component dynamically to test redirect
-          const { default: GigBrowsePage } = await import('@/app/dashboard/gigs/page')
+          const { default: GigBrowsePage } = await import('@/app/(protected)/gigs/page')
 
           try {
             await GigBrowsePage({ searchParams: Promise.resolve({}) })

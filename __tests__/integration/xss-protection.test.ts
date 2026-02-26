@@ -145,7 +145,7 @@ describe('Comprehensive XSS Protection Tests', () => {
           try {
             await applyToGig(null, formData)
           } catch (error: any) {
-            expect(error.message).toContain(`NEXT_REDIRECT:/dashboard/gigs/${gig.id}`)
+            expect(error.message).toContain(`NEXT_REDIRECT:/gigs/${gig.id}`)
           }
         })
 
@@ -214,7 +214,7 @@ describe('Comprehensive XSS Protection Tests', () => {
           try {
             await sendMessage(null, formData)
           } catch (error: any) {
-            expect(error.message).toContain(`NEXT_REDIRECT:/dashboard/gigs/${gig.id}`)
+            expect(error.message).toContain(`NEXT_REDIRECT:/gigs/${gig.id}`)
           }
         })
 
@@ -259,7 +259,7 @@ describe('Comprehensive XSS Protection Tests', () => {
           try {
             await updateProfile(null, formData)
           } catch (error: any) {
-            expect(error.message).toContain('NEXT_REDIRECT:/dashboard/profile')
+            expect(error.message).toContain('NEXT_REDIRECT:/profile')
           }
         })
 
@@ -299,7 +299,7 @@ describe('Comprehensive XSS Protection Tests', () => {
           try {
             await updateProfile(null, formData)
           } catch (error: any) {
-            expect(error.message).toContain('NEXT_REDIRECT:/dashboard/profile')
+            expect(error.message).toContain('NEXT_REDIRECT:/profile')
           }
         })
 

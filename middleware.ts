@@ -29,9 +29,24 @@ export async function middleware(request: NextRequest) {
   }
 
   // Protected routes — require auth
-  if (pathname.startsWith('/dashboard')) {
+  if (pathname.startsWith('/dashboard') || pathname.startsWith('/gigs') || pathname.startsWith('/profile')) {
     if (!session) {
       return NextResponse.redirect(new URL('/login', request.url))
+    }
+
+    // Role-based access control for specific routes
+    // Browse gigs page (exact match) - SPECIALIST only
+    if (pathname === '/gigs') {
+      if (session.role === 'CLIENT') {
+        return NextResponse.redirect(new URL('/dashboard?error=gigs-specialists-only', request.url))
+      }
+    }
+
+    // Gig creation - CLIENT only
+    if (pathname === '/gigs/new') {
+      if (session.role === 'SPECIALIST') {
+        return NextResponse.redirect(new URL('/dashboard?error=gig-creation-clients-only', request.url))
+      }
     }
   }
 
@@ -46,5 +61,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/login', '/register', '/admin/:path*'],
+  matcher: ['/dashboard/:path*', '/gigs/:path*', '/profile/:path*', '/login', '/register', '/admin/:path*'],
 }

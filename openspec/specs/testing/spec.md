@@ -794,8 +794,8 @@ The platform SHALL provide a helper function to set authenticated sessions in Pl
 **And** protected pages SHALL be accessible
 
 **Acceptance Criteria**:
-- Set CLIENT session, navigate to `/dashboard`, then `/dashboard/gigs/new`, verify both pages load
-- Set SPECIALIST session, navigate to `/dashboard`, then `/dashboard/gigs`, verify both pages load
+- Set CLIENT session, navigate to `/dashboard`, then `/gigs/new`, verify both pages load
+- Set SPECIALIST session, navigate to `/dashboard`, then `/gigs`, verify both pages load
 - Session cookie is not cleared between navigations
 
 #### Scenario: E2E session works for all roles
@@ -806,8 +806,8 @@ The platform SHALL provide a helper function to set authenticated sessions in Pl
 **And** role-specific features SHALL be accessible
 
 **Acceptance Criteria**:
-- CLIENT can access `/dashboard/gigs/new`
-- SPECIALIST can access `/dashboard/gigs` (browse)
+- CLIENT can access `/gigs/new`
+- SPECIALIST can access `/gigs` (browse)
 - ADMIN can access `/admin`
 - Test all three roles in separate E2E tests
 
@@ -1553,7 +1553,7 @@ The platform SHALL provide a comprehensive end-to-end test that validates the co
 #### Scenario: Client creates gig via UI
 
 **Given** the client is logged in and on the dashboard
-**When** the test navigates to `/dashboard/gigs/new`
+**When** the test navigates to `/gigs/new`
 **And** the test fills all required gig fields (title, description, acceptance criteria, budget, tags)
 **And** the test submits the gig creation form
 **Then** the browser SHALL redirect to the gig detail page
@@ -1561,10 +1561,10 @@ The platform SHALL provide a comprehensive end-to-end test that validates the co
 **And** the gig SHALL have correct budget, serviceFee, and totalAmount
 
 **Acceptance Criteria**:
-- Test navigates to `/dashboard/gigs/new`
+- Test navigates to `/gigs/new`
 - Test fills: title (Russian), description (Russian), acceptanceCriteria (≥50 chars), budget (e.g., 150000), tags (e.g., "React,TypeScript")
 - Test submits form
-- Test waits for navigation to `/dashboard/gigs/[id]`
+- Test waits for navigation to `/gigs/[id]`
 - Test extracts gig ID from URL
 - Database contains gig with status OPEN, correct budget calculation (serviceFee = budget * 0.2, totalAmount = budget + serviceFee)
 
@@ -1594,7 +1594,7 @@ The platform SHALL provide a comprehensive end-to-end test that validates the co
 **And** other applications (if any) SHALL be REJECTED
 
 **Acceptance Criteria**:
-- Test is on `/dashboard/gigs/[id]` page
+- Test is on `/gigs/[id]` page
 - Test locates "Accept" button for the application
 - Test clicks the button
 - Test waits for page reload or status update
@@ -1623,7 +1623,7 @@ The platform SHALL provide a comprehensive end-to-end test that validates the co
 **And** the gig SHALL have completedAt timestamp
 
 **Acceptance Criteria**:
-- Test is on `/dashboard/gigs/[id]` page
+- Test is on `/gigs/[id]` page
 - Test locates "Approve Work" button
 - Test clicks the button
 - Test waits for page reload or status update
@@ -1639,7 +1639,7 @@ The platform SHALL provide a comprehensive end-to-end test that validates the co
 **And** the gig SHALL have paidAt timestamp
 
 **Acceptance Criteria**:
-- Test is on `/dashboard/gigs/[id]` page
+- Test is on `/gigs/[id]` page
 - Test locates "Mark as Paid" button
 - Test clicks the button
 - Test waits for page reload or status update
@@ -1795,16 +1795,16 @@ The platform SHALL provide a comprehensive end-to-end test that validates the co
 #### Scenario: Specialist browses gigs via UI
 
 **Given** the specialist is authenticated
-**When** the test navigates to `/dashboard/gigs`
+**When** the test navigates to `/gigs`
 **Then** the gig browsing page SHALL load
 **And** the page SHALL display the OPEN gig created in setup
 **And** the gig title SHALL be visible
 **And** the gig budget SHALL be visible
 
 **Acceptance Criteria**:
-- Test uses `page.goto('http://localhost:3000/dashboard/gigs')`
+- Test uses `page.goto('http://localhost:3000/gigs')`
 - Test waits for page load with `page.waitForLoadState('networkidle')`
-- Test verifies URL is `/dashboard/gigs`
+- Test verifies URL is `/gigs`
 - Test locates gig title on page using `page.locator()`
 - Gig is visible and clickable
 
@@ -1812,7 +1812,7 @@ The platform SHALL provide a comprehensive end-to-end test that validates the co
 
 **Given** the specialist is on the gig browsing page
 **When** the test clicks on the gig
-**Then** the browser SHALL navigate to `/dashboard/gigs/[id]`
+**Then** the browser SHALL navigate to `/gigs/[id]`
 **And** the gig detail page SHALL load
 **And** the page SHALL display gig title, description, budget
 **And** the page SHALL display the application form
@@ -1820,7 +1820,7 @@ The platform SHALL provide a comprehensive end-to-end test that validates the co
 **Acceptance Criteria**:
 - Test clicks on gig link or card
 - Test waits for navigation to gig detail page
-- Test verifies URL matches `/dashboard/gigs/[gigId]`
+- Test verifies URL matches `/gigs/[gigId]`
 - Test verifies gig title is visible
 - Test verifies application form fields are visible (approach, questions, estimatedEffort)
 
@@ -1870,7 +1870,7 @@ The platform SHALL provide a comprehensive end-to-end test that validates the co
 **And** the page SHALL reload or redirect
 
 **Acceptance Criteria**:
-- Test navigates to `/dashboard/gigs/[gigId]`
+- Test navigates to `/gigs/[gigId]`
 - Test locates work submission form (textarea for work description)
 - Test fills work description with Russian content
 - Test clicks "Submit Work" button

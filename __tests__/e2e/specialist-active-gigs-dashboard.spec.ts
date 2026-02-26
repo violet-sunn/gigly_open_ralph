@@ -124,7 +124,7 @@ test.describe('Specialist Active Gigs Dashboard E2E', () => {
     // Verify link to browse gigs exists
     const browseLink = page.locator('a:has-text("Browse and apply to gigs")')
     await expect(browseLink).toBeVisible()
-    await expect(browseLink).toHaveAttribute('href', '/dashboard/gigs')
+    await expect(browseLink).toHaveAttribute('href', '/gigs')
   })
 
   test('displays active gig with all information', async ({ page }) => {
@@ -236,7 +236,7 @@ test.describe('Specialist Active Gigs Dashboard E2E', () => {
     await page.waitForLoadState('networkidle')
 
     // Verify navigation to gig detail page
-    await expect(page).toHaveURL(new RegExp(`/dashboard/gigs/${gig.id}`))
+    await expect(page).toHaveURL(new RegExp(`/gigs/${gig.id}`))
     await expect(page.locator('text=Build REST API')).toBeVisible()
   })
 

@@ -69,7 +69,7 @@ test.describe('Gig Browse Access Control E2E', () => {
     ])
 
     // Navigate to gig creation form
-    await page.goto('http://localhost:3000/dashboard/gigs/new')
+    await page.goto('http://localhost:3000/gigs/new')
     await expect(page).toHaveURL(/\/dashboard\/gigs\/new/)
 
     // Find and click the example gigs link
@@ -131,7 +131,7 @@ test.describe('Gig Browse Access Control E2E', () => {
     ])
 
     // Attempt to navigate to browse page directly
-    await page.goto('http://localhost:3000/dashboard/gigs')
+    await page.goto('http://localhost:3000/gigs')
 
     // Wait for redirect
     await page.waitForLoadState('networkidle')
@@ -195,7 +195,7 @@ test.describe('Gig Browse Access Control E2E', () => {
     ])
 
     // Navigate to browse page
-    await page.goto('http://localhost:3000/dashboard/gigs')
+    await page.goto('http://localhost:3000/gigs')
     await page.waitForLoadState('networkidle')
 
     // Verify page loads successfully
@@ -210,7 +210,7 @@ test.describe('Gig Browse Access Control E2E', () => {
     await expect(page.locator('text=only available for specialists')).not.toBeVisible()
 
     // Navigate to examples page
-    await page.goto('http://localhost:3000/dashboard/gigs/examples')
+    await page.goto('http://localhost:3000/gigs/examples')
     await page.waitForLoadState('networkidle')
 
     // Verify examples page loads successfully
@@ -222,7 +222,7 @@ test.describe('Gig Browse Access Control E2E', () => {
     await expect(page.locator(`text=${regularGig.title}`)).not.toBeVisible()
 
     // Navigate back to browse page
-    await page.goto('http://localhost:3000/dashboard/gigs')
+    await page.goto('http://localhost:3000/gigs')
     await page.waitForLoadState('networkidle')
 
     // Verify can navigate between both pages
@@ -232,14 +232,14 @@ test.describe('Gig Browse Access Control E2E', () => {
 
   test('Unauthenticated user redirected to login', async ({ page }) => {
     // Attempt to access browse page without authentication
-    await page.goto('http://localhost:3000/dashboard/gigs')
+    await page.goto('http://localhost:3000/gigs')
     await page.waitForLoadState('networkidle')
 
     // Verify redirect to login
     await expect(page).toHaveURL(/\/login/)
 
     // Attempt to access examples page without authentication
-    await page.goto('http://localhost:3000/dashboard/gigs/examples')
+    await page.goto('http://localhost:3000/gigs/examples')
     await page.waitForLoadState('networkidle')
 
     // Verify redirect to login

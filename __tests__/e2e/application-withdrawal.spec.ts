@@ -13,7 +13,7 @@ test.describe('Application Withdrawal', () => {
     await page.waitForURL('/dashboard')
 
     // Create a gig
-    await page.goto('/dashboard/gigs/new')
+    await page.goto('/gigs/new')
     await page.fill('input[name="title"]', 'Test Gig for Withdrawal')
     await page.fill('textarea[name="description"]', 'Test description for withdrawal flow')
     await page.fill('textarea[name="acceptanceCriteria"]', 'Test acceptance criteria that is long enough to pass validation requirements')
@@ -25,7 +25,7 @@ test.describe('Application Withdrawal', () => {
     await page.waitForURL('/dashboard')
 
     // Get the gig ID from the page
-    const gigLink = page.locator('a[href^="/dashboard/gigs/"]').first()
+    const gigLink = page.locator('a[href^="/gigs/"]').first()
     const gigHref = await gigLink.getAttribute('href')
     const gigId = gigHref?.split('/').pop()
 
@@ -45,13 +45,13 @@ test.describe('Application Withdrawal', () => {
     await page.waitForURL('/dashboard')
 
     // Navigate to the gig and apply
-    await page.goto(`/dashboard/gigs/${gigId}`)
+    await page.goto(`/gigs/${gigId}`)
     await page.fill('textarea[name="approach"]', 'This is my technical approach that is long enough to pass validation requirements for the approach field in the application form')
     await page.fill('textarea[name="questions"]', 'These are my clarifying questions that are long enough to pass validation')
     await page.click('button:has-text("Apply to Gig")')
 
     // Wait for redirect back to gig detail
-    await page.waitForURL(`/dashboard/gigs/${gigId}`)
+    await page.waitForURL(`/gigs/${gigId}`)
 
     // Verify "Withdraw Application" button appears
     await expect(page.locator('button:has-text("Withdraw Application")')).toBeVisible()
@@ -60,7 +60,7 @@ test.describe('Application Withdrawal', () => {
     await page.click('button:has-text("Withdraw Application")')
 
     // Wait for redirect
-    await page.waitForURL(`/dashboard/gigs/${gigId}`)
+    await page.waitForURL(`/gigs/${gigId}`)
 
     // Verify WITHDRAWN status badge appears
     await expect(page.locator('text=WITHDRAWN')).toBeVisible()
@@ -91,7 +91,7 @@ test.describe('Application Withdrawal', () => {
     await page.waitForURL('/dashboard')
 
     // Create a gig
-    await page.goto('/dashboard/gigs/new')
+    await page.goto('/gigs/new')
     await page.fill('input[name="title"]', 'Test Gig for Client View')
     await page.fill('textarea[name="description"]', 'Test description')
     await page.fill('textarea[name="acceptanceCriteria"]', 'Test acceptance criteria that is long enough to pass validation')
@@ -101,7 +101,7 @@ test.describe('Application Withdrawal', () => {
 
     await page.waitForURL('/dashboard')
 
-    const gigLink = page.locator('a[href^="/dashboard/gigs/"]').first()
+    const gigLink = page.locator('a[href^="/gigs/"]').first()
     const gigHref = await gigLink.getAttribute('href')
     const gigId = gigHref?.split('/').pop()
 
@@ -120,16 +120,16 @@ test.describe('Application Withdrawal', () => {
     await page.waitForURL('/dashboard')
 
     // Apply to gig
-    await page.goto(`/dashboard/gigs/${gigId}`)
+    await page.goto(`/gigs/${gigId}`)
     await page.fill('textarea[name="approach"]', 'Technical approach that is long enough to pass validation requirements for the approach field')
     await page.fill('textarea[name="questions"]', 'Clarifying questions that are long enough to pass validation')
     await page.click('button:has-text("Apply to Gig")')
 
-    await page.waitForURL(`/dashboard/gigs/${gigId}`)
+    await page.waitForURL(`/gigs/${gigId}`)
 
     // Withdraw application
     await page.click('button:has-text("Withdraw Application")')
-    await page.waitForURL(`/dashboard/gigs/${gigId}`)
+    await page.waitForURL(`/gigs/${gigId}`)
 
     // Logout
     await page.goto('/logout')
@@ -143,7 +143,7 @@ test.describe('Application Withdrawal', () => {
     await page.waitForURL('/dashboard')
 
     // View gig detail
-    await page.goto(`/dashboard/gigs/${gigId}`)
+    await page.goto(`/gigs/${gigId}`)
 
     // Verify WITHDRAWN status visible in applications list
     await expect(page.locator('text=WITHDRAWN')).toBeVisible()
@@ -165,7 +165,7 @@ test.describe('Application Withdrawal', () => {
 
     await page.waitForURL('/dashboard')
 
-    await page.goto('/dashboard/gigs/new')
+    await page.goto('/gigs/new')
     await page.fill('input[name="title"]', 'Test Gig for Button Visibility')
     await page.fill('textarea[name="description"]', 'Test description')
     await page.fill('textarea[name="acceptanceCriteria"]', 'Test acceptance criteria that is long enough to pass validation')
@@ -175,7 +175,7 @@ test.describe('Application Withdrawal', () => {
 
     await page.waitForURL('/dashboard')
 
-    const gigLink = page.locator('a[href^="/dashboard/gigs/"]').first()
+    const gigLink = page.locator('a[href^="/gigs/"]').first()
     const gigHref = await gigLink.getAttribute('href')
     const gigId = gigHref?.split('/').pop()
 
@@ -193,19 +193,19 @@ test.describe('Application Withdrawal', () => {
     await page.waitForURL('/dashboard')
 
     // Apply to gig
-    await page.goto(`/dashboard/gigs/${gigId}`)
+    await page.goto(`/gigs/${gigId}`)
     await page.fill('textarea[name="approach"]', 'Technical approach that is long enough to pass validation requirements')
     await page.fill('textarea[name="questions"]', 'Clarifying questions that are long enough to pass validation')
     await page.click('button:has-text("Apply to Gig")')
 
-    await page.waitForURL(`/dashboard/gigs/${gigId}`)
+    await page.waitForURL(`/gigs/${gigId}`)
 
     // Verify button appears for PENDING application
     await expect(page.locator('button:has-text("Withdraw Application")')).toBeVisible()
 
     // Withdraw application
     await page.click('button:has-text("Withdraw Application")')
-    await page.waitForURL(`/dashboard/gigs/${gigId}`)
+    await page.waitForURL(`/gigs/${gigId}`)
 
     // Verify button no longer appears after withdrawal
     await expect(page.locator('button:has-text("Withdraw Application")')).not.toBeVisible()

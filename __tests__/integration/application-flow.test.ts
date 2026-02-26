@@ -116,7 +116,7 @@ describe('Application Flow Tests', () => {
         try {
           await applyToGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard/gigs/')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/')
         }
       })
 

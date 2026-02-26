@@ -86,7 +86,7 @@ describe('Application Sanitization Tests', () => {
         try {
           await applyToGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain(`NEXT_REDIRECT:/dashboard/gigs/${gig.id}`)
+          expect(error.message).toContain(`NEXT_REDIRECT:/gigs/${gig.id}`)
         }
       })
 
@@ -150,7 +150,7 @@ describe('Application Sanitization Tests', () => {
         try {
           await applyToGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain(`NEXT_REDIRECT:/dashboard/gigs/${gig.id}`)
+          expect(error.message).toContain(`NEXT_REDIRECT:/gigs/${gig.id}`)
         }
       })
 
@@ -215,7 +215,7 @@ describe('Application Sanitization Tests', () => {
         try {
           await applyToGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain(`NEXT_REDIRECT:/dashboard/gigs/${gig.id}`)
+          expect(error.message).toContain(`NEXT_REDIRECT:/gigs/${gig.id}`)
         }
       })
 

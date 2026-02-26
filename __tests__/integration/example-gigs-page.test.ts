@@ -1,7 +1,7 @@
 /**
  * Example Gigs Page Integration Tests
  *
- * This test suite validates the /dashboard/gigs/examples page:
+ * This test suite validates the /gigs/examples page:
  * - CLIENT users can access the page
  * - SPECIALIST users can access the page
  * - Only example gigs (isExample: true) are displayed

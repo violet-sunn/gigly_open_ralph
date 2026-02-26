@@ -83,5 +83,5 @@ export async function updateProfile(
     return { error: 'Failed to update profile. Please try again.' }
   }
 
-  redirect('/dashboard/profile')
+  redirect('/profile')
 }

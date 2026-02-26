@@ -92,7 +92,7 @@ test.describe('Complete Client Journey E2E', () => {
     // STEP 2: Client creates gig via UI
     // ========================================================================
 
-    await page.goto('http://localhost:3000/dashboard/gigs/new')
+    await page.goto('http://localhost:3000/gigs/new')
     await expect(page).toHaveURL(/\/dashboard\/gigs\/new/)
 
     // Fill gig creation form with Russian data
@@ -114,7 +114,7 @@ test.describe('Complete Client Journey E2E', () => {
 
     // If redirected to dashboard, find the gig we just created
     let gigId: string
-    if (currentUrl.includes('/dashboard/gigs/')) {
+    if (currentUrl.includes('/gigs/')) {
       // Redirected to gig detail page
       gigId = currentUrl.split('/').pop() as string
     } else {
@@ -170,7 +170,7 @@ test.describe('Complete Client Journey E2E', () => {
     // ========================================================================
 
     // Navigate to the gig detail page to see the application
-    await page.goto(`http://localhost:3000/dashboard/gigs/${gigId}`)
+    await page.goto(`http://localhost:3000/gigs/${gigId}`)
     await page.waitForLoadState('networkidle')
 
     // Find and click the Accept button for the application
@@ -231,7 +231,7 @@ test.describe('Complete Client Journey E2E', () => {
     // ========================================================================
 
     // Navigate to the gig detail page
-    await page.goto(`http://localhost:3000/dashboard/gigs/${gigId}`)
+    await page.goto(`http://localhost:3000/gigs/${gigId}`)
     await page.waitForLoadState('networkidle')
 
     // Find and click the Approve Work button
@@ -266,7 +266,7 @@ test.describe('Complete Client Journey E2E', () => {
     // ========================================================================
 
     // Navigate to the gig detail page
-    await page.goto(`http://localhost:3000/dashboard/gigs/${gigId}`)
+    await page.goto(`http://localhost:3000/gigs/${gigId}`)
     await page.waitForLoadState('networkidle')
 
     // Find and click the Mark as Paid button

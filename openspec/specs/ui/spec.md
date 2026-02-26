@@ -109,9 +109,9 @@ The dashboard MUST render different content based on the user's role.
 - GIVEN a user with role "CLIENT" is logged in
 - WHEN they visit `/dashboard`
 - THEN the page MUST display "Client Dashboard" heading
-- AND it MUST show a "Post a Gig" link to `/dashboard/gigs/new`
+- AND it MUST show a "Post a Gig" link to `/gigs/new`
 - AND it MUST show a "My Gigs" section listing the user's gigs with title, budget (₽), status, and date
-- AND each gig in "My Gigs" MUST be a clickable link to `/dashboard/gigs/{gig.id}`
+- AND each gig in "My Gigs" MUST be a clickable link to `/gigs/{gig.id}`
 - AND IN_PROGRESS gigs MUST show the assigned specialist's email
 - AND if no gigs exist, it MUST show "No gigs posted yet."
 - AND it MUST display a "Sign out" button
@@ -120,7 +120,7 @@ The dashboard MUST render different content based on the user's role.
 - GIVEN a CLIENT user is on `/dashboard`
 - AND the "My Gigs" section lists at least one gig
 - WHEN the client clicks on a gig item
-- THEN the browser MUST navigate to `/dashboard/gigs/{gig.id}`
+- THEN the browser MUST navigate to `/gigs/{gig.id}`
 
 #### Scenario: Gig list item shows clickable affordance
 - GIVEN a CLIENT user is on `/dashboard`
@@ -132,8 +132,8 @@ The dashboard MUST render different content based on the user's role.
 - GIVEN a user with role "SPECIALIST" is logged in
 - WHEN they visit `/dashboard`
 - THEN the page MUST display "Specialist Dashboard" heading
-- AND it MUST show a "Browse Gigs" link to `/dashboard/gigs`
-- AND it MUST show a "My Profile" link to `/dashboard/profile`
+- AND it MUST show a "Browse Gigs" link to `/gigs`
+- AND it MUST show a "My Profile" link to `/profile`
 - AND it MUST display three tabs: "Active Work", "Pending Applications", "Archive"
 - AND the "Active Work" tab MUST be selected by default
 - AND it MUST display a "Sign out" button
@@ -145,7 +145,7 @@ The dashboard MUST render different content based on the user's role.
 - THEN the tab MUST display gigs where:
   - The specialist is assigned (assignedSpecialistId matches user ID)
   - Status is IN_PROGRESS, REVIEW, or COMPLETED (excludes PAID)
-- AND each gig MUST be wrapped in a `<Link href="/dashboard/gigs/{gig.id}">`
+- AND each gig MUST be wrapped in a `<Link href="/gigs/{gig.id}">`
 - AND each gig MUST show: title, status, budget (₽), and date
 - AND each gig MUST have hover affordance (e.g., bg-gray-50 on hover)
 - AND if no active gigs exist, it MUST show "No active work."
@@ -158,7 +158,7 @@ The dashboard MUST render different content based on the user's role.
 - THEN the tab MUST display applications where:
   - Status is PENDING (awaiting client decision)
   - The specialist is the applicant
-- AND each application MUST be wrapped in a `<Link href="/dashboard/gigs/{app.gigId}">`
+- AND each application MUST be wrapped in a `<Link href="/gigs/{app.gigId}">`
 - AND each application MUST show: gig title, status, and date
 - AND each application MUST have hover affordance (e.g., bg-gray-50 on hover)
 - AND if no pending applications exist, it MUST show "No pending applications."
@@ -172,7 +172,7 @@ The dashboard MUST render different content based on the user's role.
 - THEN the tab MUST display two sections:
   - "Completed Gigs" section showing gigs with status PAID
   - "Rejected Applications" section showing applications with status REJECTED
-- AND each item MUST be wrapped in a `<Link href="/dashboard/gigs/{id}">`
+- AND each item MUST be wrapped in a `<Link href="/gigs/{id}">`
 - AND each item MUST show: title, status, and date
 - AND each item MUST have hover affordance (e.g., bg-gray-50 on hover)
 - AND if no archived items exist, it MUST show "No archived items."
@@ -212,8 +212,8 @@ The dashboard MUST render different content based on the user's role.
 - Includes fallback for unknown roles
 - Both views include the sign-out form
 - CLIENT view queries gigs via Prisma and lists them with application count
-- "Post a Gig" is a `<Link>` to `/dashboard/gigs/new`
-- Each gig in "My Gigs" MUST be wrapped in a `<Link href="/dashboard/gigs/{gig.id}">` with `block` class and `hover:bg-gray-50` for visual feedback
+- "Post a Gig" is a `<Link>` to `/gigs/new`
+- Each gig in "My Gigs" MUST be wrapped in a `<Link href="/gigs/{gig.id}">` with `block` class and `hover:bg-gray-50` for visual feedback
 - SPECIALIST view uses `SpecialistDashboardTabs` client component
 - `SpecialistDashboardTabs` component:
   - Marked with `'use client'` directive
@@ -228,18 +228,18 @@ The dashboard MUST render different content based on the user's role.
   - Empty state messages for each tab
   - Active tab visually distinguished (border-blue-600)
   - Tab switching is client-side only (no network requests)
-- "Browse Gigs" is a `<Link>` to `/dashboard/gigs`
+- "Browse Gigs" is a `<Link>` to `/gigs`
 - Profile completion hints remain visible above tabs
 - "My Profile" link remains accessible
 
 ---
 
 ### Requirement: Gig Creation Form
-The system MUST provide a form at `/dashboard/gigs/new` for CLIENT users to create gigs.
+The system MUST provide a form at `/gigs/new` for CLIENT users to create gigs.
 
 #### Scenario: Form renders for CLIENT user
 - GIVEN an authenticated user with role "CLIENT"
-- WHEN they navigate to `/dashboard/gigs/new`
+- WHEN they navigate to `/gigs/new`
 - THEN the page MUST display a form with:
   - Title input (text, required)
   - Description textarea (required)
@@ -287,12 +287,12 @@ The system MUST provide a form at `/dashboard/gigs/new` for CLIENT users to crea
 
 #### Scenario: Non-CLIENT user visits gig creation page
 - GIVEN an authenticated user with role "SPECIALIST"
-- WHEN they navigate to `/dashboard/gigs/new`
+- WHEN they navigate to `/gigs/new`
 - THEN they MUST be redirected to `/dashboard`
 
 #### Scenario: Unauthenticated user visits gig creation page
 - GIVEN no valid session
-- WHEN a user navigates to `/dashboard/gigs/new`
+- WHEN a user navigates to `/gigs/new`
 - THEN they MUST be redirected to `/login` (handled by existing middleware)
 
 #### Scenario: Optional structured fields render correctly
@@ -374,7 +374,7 @@ The system MUST provide a form at `/dashboard/gigs/new` for CLIENT users to crea
 - AND the counts MUST NOT push other form elements out of alignment
 
 **Acceptance Criteria:**
-- `app/dashboard/gigs/new/page.tsx` exists
+- `app/gigs/new/page.tsx` exists
 - Uses `useActionState` with `createGig` action
 - Uses `useFormStatus` for pending state on submit button
 - Acceptance criteria field:
@@ -410,7 +410,7 @@ The system MUST provide a form at `/dashboard/gigs/new` for CLIENT users to crea
 The gig creation form MUST organize fields into three visually distinct sections with clear headings and boundaries to improve form comprehension and reduce cognitive load.
 
 #### Scenario: Form renders with three visual sections
-- GIVEN an authenticated CLIENT user navigates to `/dashboard/gigs/new`
+- GIVEN an authenticated CLIENT user navigates to `/gigs/new`
 - WHEN the page loads
 - THEN the form MUST display three visually distinct sections:
   1. "Basic Information" section
@@ -435,7 +435,7 @@ The gig creation form MUST organize fields into three visually distinct sections
 - WHEN they see the "Requirements & Success Criteria" section
 - THEN the section MUST contain:
   - Heading: "Requirements & Success Criteria" (h3 or equivalent)
-  - Link to example gigs: "💡 View example gigs for inspiration" (right-aligned in section header, opens /dashboard/gigs in new tab)
+  - Link to example gigs: "💡 View example gigs for inspiration" (right-aligned in section header, opens /gigs in new tab)
   - Description: "Define what success looks like and help specialists understand your needs"
   - Fields: acceptanceCriteria (textarea with character counter and quality warning), goal (optional textarea), deliverables (optional textarea), constraints (optional textarea)
 - AND the section header MUST use flex layout (flex items-center justify-between) with heading on left and example link on right
@@ -522,7 +522,7 @@ The gig creation form MUST organize fields into three visually distinct sections
 The gig creation form MUST display a soft validation warning when acceptance criteria is above the hard minimum but below a quality threshold, encouraging users to add more detail without blocking submission.
 
 #### Scenario: Warning appears for brief acceptance criteria
-- GIVEN a CLIENT user is on the gig creation form at `/dashboard/gigs/new`
+- GIVEN a CLIENT user is on the gig creation form at `/gigs/new`
 - AND they have typed between 50-149 characters in the acceptanceCriteria textarea
 - AND they have interacted with the field (onChange event has fired at least once)
 - WHEN the character count is calculated
@@ -541,7 +541,7 @@ The gig creation form MUST display a soft validation warning when acceptance cri
 - AND no error message MUST be displayed
 
 #### Scenario: Warning does not appear on page load
-- GIVEN a CLIENT user navigates to `/dashboard/gigs/new`
+- GIVEN a CLIENT user navigates to `/gigs/new`
 - WHEN the page loads with an empty acceptanceCriteria field
 - THEN the quality guidance warning MUST NOT be displayed
 - AND the warning MUST only appear after the user starts typing (onChange event)
@@ -585,32 +585,32 @@ The gig creation form MUST display a soft validation warning when acceptance cri
 ---
 
 ### Requirement: Gig Browse Page
-The system MUST provide a page at `/dashboard/gigs` listing all OPEN gigs for browsing.
+The system MUST provide a page at `/gigs` listing all OPEN gigs for browsing.
 
 #### Scenario: Specialist browses gigs
 - GIVEN an authenticated user with role "SPECIALIST"
-- WHEN they navigate to `/dashboard/gigs`
+- WHEN they navigate to `/gigs`
 - THEN the page MUST display a list of all gigs with status "OPEN"
 - AND each gig MUST show: title, budget (formatted in ₽), tags, and creation date
-- AND each gig MUST link to `/dashboard/gigs/[id]`
+- AND each gig MUST link to `/gigs/[id]`
 
 #### Scenario: No open gigs available
 - GIVEN no gigs with status "OPEN" exist
-- WHEN a SPECIALIST visits `/dashboard/gigs`
+- WHEN a SPECIALIST visits `/gigs`
 - THEN the page MUST display "No open gigs available."
 
 #### Scenario: CLIENT visits browse page
 - GIVEN an authenticated user with role "CLIENT"
-- WHEN they navigate to `/dashboard/gigs`
+- WHEN they navigate to `/gigs`
 - THEN the page MUST also display the gig list (read-only, no apply action)
 
 #### Scenario: Unauthenticated user visits browse page
 - GIVEN no valid session
-- WHEN a user navigates to `/dashboard/gigs`
+- WHEN a user navigates to `/gigs`
 - THEN they MUST be redirected to `/login` (handled by existing middleware)
 
 **Acceptance Criteria:**
-- `app/dashboard/gigs/page.tsx` exists as a server component
+- `app/gigs/page.tsx` exists as a server component
 - Queries `prisma.gig.findMany({ where: { status: 'OPEN' } })`
 - Each gig links to its detail page
 - Accessible to both CLIENT and SPECIALIST roles
@@ -618,11 +618,11 @@ The system MUST provide a page at `/dashboard/gigs` listing all OPEN gigs for br
 ---
 
 ### Requirement: Gig Detail Page
-The system MUST provide a page at `/dashboard/gigs/[id]` showing full gig details.
+The system MUST provide a page at `/gigs/[id]` showing full gig details.
 
 #### Scenario: Specialist views gig detail
 - GIVEN an authenticated SPECIALIST user
-- WHEN they navigate to `/dashboard/gigs/[id]` for an existing gig
+- WHEN they navigate to `/gigs/[id]` for an existing gig
 - THEN the page MUST display: title, description, acceptance criteria, budget (₽), tags, status, and client email
 - AND it MUST display an "Apply" form with a cover letter textarea and submit button
 - AND if the specialist has already applied, the form MUST be replaced with "You have already applied" message
@@ -660,7 +660,7 @@ The system MUST provide a page at `/dashboard/gigs/[id]` showing full gig detail
 
 #### Scenario: CLIENT views gig detail
 - GIVEN an authenticated CLIENT user
-- WHEN they navigate to `/dashboard/gigs/[id]`
+- WHEN they navigate to `/gigs/[id]`
 - THEN the page MUST display the gig details (including acceptance criteria)
 - AND it MUST NOT show the apply form
 - AND if the CLIENT owns the gig, it MUST show the list of applications with specialist email, cover letter, status, and date
@@ -670,7 +670,7 @@ The system MUST provide a page at `/dashboard/gigs/[id]` showing full gig detail
 
 #### Scenario: Gig not found
 - GIVEN a non-existent gig ID
-- WHEN a user navigates to `/dashboard/gigs/[id]`
+- WHEN a user navigates to `/gigs/[id]`
 - THEN the page MUST show a "Gig not found" message with a link back to `/dashboard`
 
 #### Scenario: Apply form shows loading state
@@ -685,7 +685,7 @@ The system MUST provide a page at `/dashboard/gigs/[id]` showing full gig detail
 - THEN the error message MUST be displayed inline on the form
 
 **Acceptance Criteria:**
-- `app/dashboard/gigs/[id]/page.tsx` exists as a server component
+- `app/gigs/[id]/page.tsx` exists as a server component
 - Queries gig by ID with `include: { client: true, assignedSpecialist: true, applications: true }`
 - Acceptance criteria section:
   - Heading: "Definition of Done" or "Acceptance Criteria"
@@ -721,24 +721,24 @@ The system MUST provide a page at `/dashboard/gigs/[id]` showing full gig detail
 ---
 
 ### Requirement: Profile View Page
-The system MUST provide a profile view page at `/dashboard/profile` showing the authenticated user's profile from their respective profile table.
+The system MUST provide a profile view page at `/profile` showing the authenticated user's profile from their respective profile table.
 
 #### Scenario: SPECIALIST views own profile
 - GIVEN an authenticated user with role "SPECIALIST"
-- WHEN they navigate to `/dashboard/profile`
+- WHEN they navigate to `/profile`
 - THEN the page MUST query the user with `include: { specialistProfile: true }`
 - AND if `specialistProfile` is null, display "Profile not set up yet" with a link to edit
 - AND if `specialistProfile` exists, display all profile fields
 
 #### Scenario: CLIENT views own profile
 - GIVEN an authenticated user with role "CLIENT"
-- WHEN they navigate to `/dashboard/profile`
+- WHEN they navigate to `/profile`
 - THEN the page MUST query the user with `include: { clientProfile: true }`
 - AND if `clientProfile` is null, display "Profile not set up yet" with a link to edit
 - AND if `clientProfile` exists, display all profile fields
 
 **Acceptance Criteria:**
-- `app/dashboard/profile/page.tsx` exists as a server component
+- `app/profile/page.tsx` exists as a server component
 - Handles null profile gracefully
 - Displays "Not set" for empty string fields
 - Hourly rate displayed in roubles (converted from kopecks)
@@ -746,22 +746,22 @@ The system MUST provide a profile view page at `/dashboard/profile` showing the 
 ---
 
 ### Requirement: Profile Edit Page
-The system MUST provide a profile edit page at `/dashboard/profile/edit` with a form to update profile fields.
+The system MUST provide a profile edit page at `/profile/edit` with a form to update profile fields.
 
 #### Scenario: Form shows role-specific fields
 - GIVEN an authenticated user
-- WHEN they navigate to `/dashboard/profile/edit`
+- WHEN they navigate to `/profile/edit`
 - THEN the form MUST show fields appropriate for their role
 - AND SPECIALIST sees: displayName, techStack, experienceLevel, bio
 - AND CLIENT sees: companyName, inn, kpp, contactPerson, phoneNumber
 
 #### Scenario: Form pre-fills existing data
 - GIVEN a user with existing profile data
-- WHEN they navigate to `/dashboard/profile/edit`
+- WHEN they navigate to `/profile/edit`
 - THEN all form fields MUST be pre-filled with current values
 
 **Acceptance Criteria:**
-- `app/dashboard/profile/edit/page.tsx` exists
+- `app/profile/edit/page.tsx` exists
 - Uses `useActionState` with `updateProfile` action
 - Uses `useFormStatus` for pending state
 - CLIENT form marks companyName and inn as required
@@ -769,23 +769,23 @@ The system MUST provide a profile edit page at `/dashboard/profile/edit` with a 
 ---
 
 ### Requirement: Public Profile View Page
-The system MUST provide a public profile view page at `/dashboard/profile/[userId]` showing another user's profile (read-only).
+The system MUST provide a public profile view page at `/profile/[userId]` showing another user's profile (read-only).
 
 #### Scenario: View SPECIALIST public profile
 - GIVEN an authenticated user
-- WHEN they navigate to `/dashboard/profile/[userId]` for a SPECIALIST
+- WHEN they navigate to `/profile/[userId]` for a SPECIALIST
 - THEN the page MUST display public profile information
 - AND MUST NOT show the user's email address
 
 #### Scenario: View own profile via public URL
 - GIVEN an authenticated user
-- WHEN they navigate to `/dashboard/profile/[userId]` where userId matches their own
-- THEN they MUST be redirected to `/dashboard/profile`
+- WHEN they navigate to `/profile/[userId]` where userId matches their own
+- THEN they MUST be redirected to `/profile`
 
 **Acceptance Criteria:**
-- `app/dashboard/profile/[userId]/page.tsx` exists as a server component
+- `app/profile/[userId]/page.tsx` exists as a server component
 - Hides sensitive fields (email, INN, KPP, phone for CLIENT)
-- Redirects own profile to `/dashboard/profile`
+- Redirects own profile to `/profile`
 - Handles null profiles gracefully
 
 ---
@@ -808,7 +808,7 @@ The dashboard MUST show profile completion hints and provide access to profile p
 #### Scenario: Dashboard shows profile link
 - GIVEN an authenticated user (any role)
 - WHEN they visit `/dashboard`
-- THEN the page MUST display a "My Profile" link to `/dashboard/profile`
+- THEN the page MUST display a "My Profile" link to `/profile`
 
 **Acceptance Criteria:**
 - Dashboard queries user with appropriate profile relation
@@ -823,7 +823,7 @@ The gig detail page MUST display payment status and provide payment actions for 
 #### Scenario: CLIENT owner views COMPLETED gig
 - GIVEN an authenticated CLIENT user who owns a gig
 - AND the gig status is "COMPLETED"
-- WHEN they navigate to `/dashboard/gigs/[id]`
+- WHEN they navigate to `/gigs/[id]`
 - THEN the page MUST display a "Mark as Paid" button
 - AND the button MUST be in a form that submits to `markAsPaid` action
 - AND the page MUST show status badge "Completed - Awaiting Payment"
@@ -831,7 +831,7 @@ The gig detail page MUST display payment status and provide payment actions for 
 #### Scenario: CLIENT owner views PAID gig
 - GIVEN an authenticated CLIENT user who owns a gig
 - AND the gig status is "PAID"
-- WHEN they navigate to `/dashboard/gigs/[id]`
+- WHEN they navigate to `/gigs/[id]`
 - THEN the page MUST display status badge "Paid"
 - AND the page MUST display the payment date (formatted from paidAt)
 - AND the page MUST NOT show the "Mark as Paid" button
@@ -839,14 +839,14 @@ The gig detail page MUST display payment status and provide payment actions for 
 #### Scenario: SPECIALIST views COMPLETED gig (assigned to them)
 - GIVEN an authenticated SPECIALIST user who is the assigned specialist
 - AND the gig status is "COMPLETED"
-- WHEN they navigate to `/dashboard/gigs/[id]`
+- WHEN they navigate to `/gigs/[id]`
 - THEN the page MUST display status badge "Completed - Awaiting Payment"
 - AND the page MUST NOT show the "Mark as Paid" button (not the owner)
 
 #### Scenario: SPECIALIST views PAID gig (assigned to them)
 - GIVEN an authenticated SPECIALIST user who is the assigned specialist
 - AND the gig status is "PAID"
-- WHEN they navigate to `/dashboard/gigs/[id]`
+- WHEN they navigate to `/gigs/[id]`
 - THEN the page MUST display status badge "Paid"
 - AND the page MUST display the payment date
 - AND the page MUST show a message like "Payment confirmed on [date]"
@@ -906,7 +906,7 @@ The gig detail page MUST display messages in chronological order when the user i
 - AND the user is the gig owner (userId === gig.clientId)
 - AND the gig has an assigned specialist (assignedSpecialistId is not null)
 - AND the gig has at least one message
-- WHEN they navigate to `/dashboard/gigs/[id]`
+- WHEN they navigate to `/gigs/[id]`
 - THEN the page MUST display a "Messages" section
 - AND messages MUST be displayed in chronological order (oldest first, ordered by createdAt ASC)
 - AND each message MUST show:
@@ -919,7 +919,7 @@ The gig detail page MUST display messages in chronological order when the user i
 - GIVEN an authenticated user with role "SPECIALIST"
 - AND the user is the assigned specialist (userId === gig.assignedSpecialistId)
 - AND the gig has at least one message
-- WHEN they navigate to `/dashboard/gigs/[id]`
+- WHEN they navigate to `/gigs/[id]`
 - THEN the page MUST display a "Messages" section
 - AND messages MUST be displayed in chronological order (oldest first)
 - AND each message MUST show sender name, content, and timestamp
@@ -928,7 +928,7 @@ The gig detail page MUST display messages in chronological order when the user i
 #### Scenario: Non-assigned SPECIALIST views gig
 - GIVEN an authenticated user with role "SPECIALIST"
 - AND the user is NOT the assigned specialist (applied but was rejected)
-- WHEN they navigate to `/dashboard/gigs/[id]`
+- WHEN they navigate to `/gigs/[id]`
 - THEN the page MUST NOT display the "Messages" section
 - AND the page MUST NOT display the message composition form
 

@@ -153,7 +153,7 @@ export async function applyToGig(
     },
   })
 
-  redirect(`/dashboard/gigs/${gigId}`)
+  redirect(`/gigs/${gigId}`)
 }
 
 export async function acceptApplication(
@@ -212,7 +212,7 @@ export async function acceptApplication(
     }),
   ])
 
-  redirect(`/dashboard/gigs/${application.gigId}`)
+  redirect(`/gigs/${application.gigId}`)
 }
 
 export async function rejectApplication(
@@ -250,7 +250,7 @@ export async function rejectApplication(
     data: { status: 'REJECTED' },
   })
 
-  redirect(`/dashboard/gigs/${application.gigId}`)
+  redirect(`/gigs/${application.gigId}`)
 }
 
 export async function submitWork(
@@ -285,7 +285,7 @@ export async function submitWork(
     data: { status: 'REVIEW' },
   })
 
-  redirect(`/dashboard/gigs/${gigId}`)
+  redirect(`/gigs/${gigId}`)
 }
 
 export async function approveWork(
@@ -320,7 +320,7 @@ export async function approveWork(
     data: { status: 'COMPLETED' },
   })
 
-  redirect(`/dashboard/gigs/${gigId}`)
+  redirect(`/gigs/${gigId}`)
 }
 
 export async function markAsPaid(
@@ -362,7 +362,7 @@ export async function markAsPaid(
     },
   })
 
-  redirect(`/dashboard/gigs/${gigId}`)
+  redirect(`/gigs/${gigId}`)
 }
 
 export async function withdrawApplication(
@@ -416,7 +416,7 @@ export async function withdrawApplication(
     data: { status: 'WITHDRAWN' },
   })
 
-  redirect(`/dashboard/gigs/${application.gigId}`)
+  redirect(`/gigs/${application.gigId}`)
 }
 
 export async function sendMessage(
@@ -491,5 +491,5 @@ export async function sendMessage(
     },
   })
 
-  redirect(`/dashboard/gigs/${gigId}`)
+  redirect(`/gigs/${gigId}`)
 }

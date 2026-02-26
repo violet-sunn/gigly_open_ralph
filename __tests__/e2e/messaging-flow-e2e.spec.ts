@@ -153,9 +153,9 @@ test.describe('Messaging Flow E2E', () => {
     ])
 
     // Navigate to gig detail page
-    await page.goto(`http://localhost:3000/dashboard/gigs/${gig.id}`)
+    await page.goto(`http://localhost:3000/gigs/${gig.id}`)
     await page.waitForLoadState('networkidle')
-    await expect(page).toHaveURL(new RegExp(`/dashboard/gigs/${gig.id}`))
+    await expect(page).toHaveURL(new RegExp(`/gigs/${gig.id}`))
     console.log(`✓ Client authenticated and navigated to gig detail page`)
 
     // Fill and submit message form
@@ -209,9 +209,9 @@ test.describe('Messaging Flow E2E', () => {
     ])
 
     // Navigate to gig detail page
-    await page.goto(`http://localhost:3000/dashboard/gigs/${gig.id}`)
+    await page.goto(`http://localhost:3000/gigs/${gig.id}`)
     await page.waitForLoadState('networkidle')
-    await expect(page).toHaveURL(new RegExp(`/dashboard/gigs/${gig.id}`))
+    await expect(page).toHaveURL(new RegExp(`/gigs/${gig.id}`))
     console.log(`✓ Specialist authenticated and navigated to gig detail page`)
 
     // Verify client's message is visible
@@ -275,9 +275,9 @@ test.describe('Messaging Flow E2E', () => {
     ])
 
     // Navigate to gig detail page
-    await page.goto(`http://localhost:3000/dashboard/gigs/${gig.id}`)
+    await page.goto(`http://localhost:3000/gigs/${gig.id}`)
     await page.waitForLoadState('networkidle')
-    await expect(page).toHaveURL(new RegExp(`/dashboard/gigs/${gig.id}`))
+    await expect(page).toHaveURL(new RegExp(`/gigs/${gig.id}`))
     console.log(`✓ Client re-authenticated and navigated to gig detail page`)
 
     // Verify both messages are visible

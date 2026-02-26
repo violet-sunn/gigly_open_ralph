@@ -39,7 +39,7 @@ test.describe('CSRF Protection - Configuration Verification', () => {
     // Set authenticated session
     await setE2ESession(page, client)
 
-    await page.goto('http://localhost:3000/dashboard/gigs/new')
+    await page.goto('http://localhost:3000/gigs/new')
 
     // Fill gig creation form (legitimate same-origin request)
     await page.fill('input[name="title"]', 'Test Gig for CSRF Verification')

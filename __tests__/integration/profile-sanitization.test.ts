@@ -60,7 +60,7 @@ describe('Profile Sanitization Tests', () => {
         try {
           await updateProfile(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard/profile')
+          expect(error.message).toContain('NEXT_REDIRECT:/profile')
         }
       })
 
@@ -98,7 +98,7 @@ describe('Profile Sanitization Tests', () => {
         try {
           await updateProfile(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard/profile')
+          expect(error.message).toContain('NEXT_REDIRECT:/profile')
         }
       })
 
@@ -169,7 +169,7 @@ describe('Profile Sanitization Tests', () => {
         try {
           await updateProfile(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard/profile')
+          expect(error.message).toContain('NEXT_REDIRECT:/profile')
         }
       })
 
@@ -210,7 +210,7 @@ describe('Profile Sanitization Tests', () => {
         try {
           await updateProfile(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard/profile')
+          expect(error.message).toContain('NEXT_REDIRECT:/profile')
         }
       })
 
@@ -250,7 +250,7 @@ describe('Profile Sanitization Tests', () => {
         try {
           await updateProfile(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard/profile')
+          expect(error.message).toContain('NEXT_REDIRECT:/profile')
         }
       })
 
@@ -289,7 +289,7 @@ describe('Profile Sanitization Tests', () => {
         try {
           await updateProfile(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard/profile')
+          expect(error.message).toContain('NEXT_REDIRECT:/profile')
         }
       })
 
@@ -327,7 +327,7 @@ describe('Profile Sanitization Tests', () => {
         try {
           await updateProfile(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard/profile')
+          expect(error.message).toContain('NEXT_REDIRECT:/profile')
         }
       })
 

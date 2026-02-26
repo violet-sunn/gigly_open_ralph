@@ -1,9 +1,9 @@
 import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
-import { DashboardNav } from '@/app/components/DashboardNav'
+import { MainNav } from '@/app/components/MainNav'
 import { Suspense } from 'react'
 
-export default async function DashboardLayout({
+export default async function ProtectedLayout({
   children,
 }: {
   children: React.ReactNode
@@ -14,7 +14,7 @@ export default async function DashboardLayout({
   return (
     <div className="min-h-screen bg-gray-50">
       <Suspense fallback={<div className="h-16 bg-white border-b border-gray-200" />}>
-        <DashboardNav userEmail={session.email} userRole={session.role} />
+        <MainNav userEmail={session.email} userRole={session.role} />
       </Suspense>
       {children}
     </div>

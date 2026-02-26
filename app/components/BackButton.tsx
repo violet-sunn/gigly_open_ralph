@@ -33,7 +33,7 @@ export function BackButton() {
     if (page) browseParams.set('page', page)
 
     const queryString = browseParams.toString()
-    href = queryString ? `/dashboard/gigs?${queryString}` : '/dashboard/gigs'
+    href = queryString ? `/gigs?${queryString}` : '/gigs'
     text = '← Back to Browse Gigs'
   }
 

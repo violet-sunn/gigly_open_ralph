@@ -112,7 +112,7 @@ The system MUST provide an `applyToGig` server action that creates an applicatio
   - `estimatedEffort` = provided effort estimate (trimmed) or empty string
   - `coverLetter` = empty string (legacy field, not used)
   - `status` = "PENDING"
-- AND the action MUST redirect to `/dashboard/gigs/{gigId}`
+- AND the action MUST redirect to `/gigs/{gigId}`
 
 #### Scenario: Missing required approach field
 - GIVEN a SPECIALIST submits an application with empty or whitespace-only approach
@@ -197,7 +197,7 @@ The system MUST provide an `applyToGig` server action that creates an applicatio
 - Minimum lengths: approach 100 chars, questions 50 chars
 - Maximum lengths: approach 2000 chars, questions 1000 chars, estimatedEffort 200 chars
 - Empty or missing estimatedEffort defaults to empty string ""
-- On success: redirects to `/dashboard/gigs/{gigId}`
+- On success: redirects to `/gigs/{gigId}`
 - On failure: returns `{ error: string }` with clear, actionable error messages
 - `coverLetter` field is set to empty string (not used in new applications)
 
@@ -213,7 +213,7 @@ The system MUST provide an `acceptApplication` server action that allows the gig
 - AND the Gig status MUST be updated to "IN_PROGRESS"
 - AND the Gig `assignedSpecialistId` MUST be set to the application's specialistId
 - AND all other PENDING applications for that gig MUST be updated to "REJECTED"
-- AND the action MUST redirect to `/dashboard/gigs/{gigId}`
+- AND the action MUST redirect to `/gigs/{gigId}`
 
 #### Scenario: Non-owner attempts to accept
 - GIVEN an authenticated CLIENT user who does NOT own the gig
@@ -249,7 +249,7 @@ The system MUST provide an `acceptApplication` server action that allows the gig
 **Acceptance Criteria:**
 - `acceptApplication` is exported from `app/actions/gig.ts` with `'use server'`
 - All database updates (application status, gig status, auto-reject) MUST happen in a single Prisma transaction
-- On success: redirects to `/dashboard/gigs/{gigId}`
+- On success: redirects to `/gigs/{gigId}`
 - On failure: returns `{ error: string }`
 
 ---
@@ -262,7 +262,7 @@ The system MUST provide a `rejectApplication` server action that allows the gig 
 - WHEN `rejectApplication` is called with a valid applicationId
 - THEN the Application status MUST be updated to "REJECTED"
 - AND the Gig status MUST remain "OPEN"
-- AND the action MUST redirect to `/dashboard/gigs/{gigId}`
+- AND the action MUST redirect to `/gigs/{gigId}`
 
 #### Scenario: Non-owner attempts to reject
 - GIVEN an authenticated CLIENT user who does NOT own the gig
@@ -291,7 +291,7 @@ The system MUST provide a `rejectApplication` server action that allows the gig 
 
 **Acceptance Criteria:**
 - `rejectApplication` is exported from `app/actions/gig.ts` with `'use server'`
-- On success: redirects to `/dashboard/gigs/{gigId}`
+- On success: redirects to `/gigs/{gigId}`
 - On failure: returns `{ error: string }`
 
 ---
@@ -305,7 +305,7 @@ The system MUST provide a `submitWork` server action that allows the assigned sp
 - AND the gig status is "IN_PROGRESS"
 - WHEN `submitWork` is called with a valid gigId
 - THEN the Gig status MUST be updated to "REVIEW"
-- AND the action MUST redirect to `/dashboard/gigs/{gigId}`
+- AND the action MUST redirect to `/gigs/{gigId}`
 
 #### Scenario: Non-SPECIALIST user attempts to submit work
 - GIVEN an authenticated user with role "CLIENT"
@@ -339,7 +339,7 @@ The system MUST provide a `submitWork` server action that allows the assigned sp
 - `submitWork` is exported from `app/actions/gig.ts` with `'use server'`
 - Signature is `(prevState: { error?: string } | null, formData: FormData)` (useActionState-compatible)
 - formData includes `gigId` (hidden field)
-- On success: redirects to `/dashboard/gigs/{gigId}`
+- On success: redirects to `/gigs/{gigId}`
 - On failure: returns `{ error: string }`
 - Status update must be atomic (single database operation)
 
@@ -354,7 +354,7 @@ The system MUST provide an `approveWork` server action that allows the gig owner
 - AND the gig status is "REVIEW"
 - WHEN `approveWork` is called with a valid gigId
 - THEN the Gig status MUST be updated to "COMPLETED"
-- AND the action MUST redirect to `/dashboard/gigs/{gigId}`
+- AND the action MUST redirect to `/gigs/{gigId}`
 
 #### Scenario: Non-CLIENT user attempts to approve work
 - GIVEN an authenticated user with role "SPECIALIST"
@@ -388,7 +388,7 @@ The system MUST provide an `approveWork` server action that allows the gig owner
 - `approveWork` is exported from `app/actions/gig.ts` with `'use server'`
 - Signature is `(prevState: { error?: string } | null, formData: FormData)` (useActionState-compatible)
 - formData includes `gigId` (hidden field)
-- On success: redirects to `/dashboard/gigs/{gigId}`
+- On success: redirects to `/gigs/{gigId}`
 - On failure: returns `{ error: string }`
 - Status update must be atomic (single database operation)
 
@@ -404,7 +404,7 @@ The system MUST provide a `markAsPaid` server action that allows the gig owner t
 - WHEN `markAsPaid` is called with a valid gigId
 - THEN the Gig status MUST be updated to "PAID"
 - AND the Gig `paidAt` MUST be set to the current timestamp (new Date())
-- AND the action MUST redirect to `/dashboard/gigs/{gigId}`
+- AND the action MUST redirect to `/gigs/{gigId}`
 
 #### Scenario: Non-CLIENT user attempts to mark as paid
 - GIVEN an authenticated user with role "SPECIALIST"
@@ -444,7 +444,7 @@ The system MUST provide a `markAsPaid` server action that allows the gig owner t
 - `markAsPaid` is exported from `app/actions/gig.ts` with `'use server'`
 - Signature is `(prevState: { error?: string } | null, formData: FormData)` (useActionState-compatible)
 - formData includes `gigId` (hidden field)
-- On success: redirects to `/dashboard/gigs/{gigId}`
+- On success: redirects to `/gigs/{gigId}`
 - On failure: returns `{ error: string }`
 - Status update and paidAt timestamp must be atomic (single database operation)
 - Uses `new Date()` for paidAt timestamp
@@ -464,7 +464,7 @@ The system MUST provide a `sendMessage` server action that creates a message wit
   - `senderId` = session userId
   - `content` = provided message text (trimmed)
   - `createdAt` = current timestamp (auto-generated)
-- AND the action MUST redirect to `/dashboard/gigs/{gigId}` to refresh the page
+- AND the action MUST redirect to `/gigs/{gigId}` to refresh the page
 - AND the form MUST be reset (handled by redirect)
 
 #### Scenario: Successful message send by assigned specialist
@@ -473,7 +473,7 @@ The system MUST provide a `sendMessage` server action that creates a message wit
 - AND the gig has an assigned specialist
 - WHEN `sendMessage` is called with valid gigId and content
 - THEN a Message record MUST be created
-- AND the action MUST redirect to `/dashboard/gigs/{gigId}` to refresh the page
+- AND the action MUST redirect to `/gigs/{gigId}` to refresh the page
 
 #### Scenario: Unauthenticated user attempts to send message
 - GIVEN no valid session
@@ -531,6 +531,6 @@ The system MUST provide a `sendMessage` server action that creates a message wit
 - Access control checks: user is gig owner OR assigned specialist
 - Gig state checks: has assigned specialist, not closed by admin, not PAID status
 - Validation order: auth → rate limit → content validation → gig state (assigned specialist, not closed, not paid)
-- On success: calls `redirect(\`/dashboard/gigs/${gigId}\`)` (NOT revalidatePath)
+- On success: calls `redirect(\`/gigs/${gigId}\`)` (NOT revalidatePath)
 - On failure: returns `{ error: string }`
 - Content is trimmed before storage

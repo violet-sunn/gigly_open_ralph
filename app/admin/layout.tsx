@@ -1,6 +1,6 @@
 import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
-import { DashboardNav } from '@/app/components/DashboardNav'
+import { MainNav } from '@/app/components/MainNav'
 
 export default async function AdminLayout({
   children,
@@ -12,7 +12,7 @@ export default async function AdminLayout({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardNav userEmail={session.email} userRole={session.role} />
+      <MainNav userEmail={session.email} userRole={session.role} />
       {children}
     </div>
   )

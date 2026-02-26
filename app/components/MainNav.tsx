@@ -4,24 +4,24 @@ import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { logoutUser } from '@/app/actions/auth'
 
-interface DashboardNavProps {
+interface MainNavProps {
   userEmail: string
   userRole: 'CLIENT' | 'SPECIALIST' | 'ADMIN'
 }
 
-export function DashboardNav({ userEmail, userRole }: DashboardNavProps) {
+export function MainNav({ userEmail, userRole }: MainNavProps) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const from = searchParams.get('from')
 
   const isActive = (path: string) => {
     // Special handling for gig detail pages
-    if (pathname.startsWith('/dashboard/gigs/') && pathname !== '/dashboard/gigs' && pathname !== '/dashboard/gigs/new') {
+    if (pathname.startsWith('/gigs/') && pathname !== '/gigs' && pathname !== '/gigs/new') {
       // We're on a gig detail page
       if (path === '/dashboard') {
         return from === 'dashboard'
       }
-      if (path === '/dashboard/gigs') {
+      if (path === '/gigs') {
         return from === 'browse'
       }
       return false
@@ -51,13 +51,13 @@ export function DashboardNav({ userEmail, userRole }: DashboardNavProps) {
             </Link>
 
             {userRole === 'CLIENT' && (
-              <Link href="/dashboard/gigs/new" className={linkClass('/dashboard/gigs/new')}>
+              <Link href="/gigs/new" className={linkClass('/gigs/new')}>
                 Post Gig
               </Link>
             )}
 
-            {(userRole === 'CLIENT' || userRole === 'SPECIALIST') && (
-              <Link href="/dashboard/gigs" className={linkClass('/dashboard/gigs')}>
+            {userRole === 'SPECIALIST' && (
+              <Link href="/gigs" className={linkClass('/gigs')}>
                 Browse Gigs
               </Link>
             )}
@@ -76,7 +76,7 @@ export function DashboardNav({ userEmail, userRole }: DashboardNavProps) {
               </>
             )}
 
-            <Link href="/dashboard/profile" className={linkClass('/dashboard/profile')}>
+            <Link href="/profile" className={linkClass('/profile')}>
               Profile
             </Link>
           </div>

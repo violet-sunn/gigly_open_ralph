@@ -77,7 +77,7 @@ describe('withdrawApplication action', () => {
         await withdrawApplication(null, formData)
       } catch (error: any) {
         expect(error.message).toContain('NEXT_REDIRECT')
-        expect(error.message).toContain(`/dashboard/gigs/${gig.id}`)
+        expect(error.message).toContain(`/gigs/${gig.id}`)
       }
     })
 

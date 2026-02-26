@@ -51,7 +51,7 @@ export default async function GigBrowsePage({
     if (maxBudgetParam) redirectParams.set('maxBudget', maxBudgetParam)
     if (sort !== 'newest') redirectParams.set('sort', sort)
     const query = redirectParams.toString()
-    redirect(`/dashboard/gigs${query ? `?${query}` : ''}`)
+    redirect(`/gigs${query ? `?${query}` : ''}`)
   }
 
   // Build dynamic Prisma where clause with nested AND/OR
@@ -125,7 +125,7 @@ export default async function GigBrowsePage({
     if (sort !== 'newest') redirectParams.set('sort', sort)
     redirectParams.set('page', totalPages.toString())
     const query = redirectParams.toString()
-    redirect(`/dashboard/gigs${query ? `?${query}` : ''}`)
+    redirect(`/gigs${query ? `?${query}` : ''}`)
   }
 
   // Check if any filters are active
@@ -169,7 +169,7 @@ export default async function GigBrowsePage({
               if (maxBudgetParam) gigDetailParams.set('maxBudget', maxBudgetParam)
               if (sort !== 'newest') gigDetailParams.set('sort', sort)
               if (page > 1) gigDetailParams.set('page', page.toString())
-              const gigDetailUrl = `/dashboard/gigs/${gig.id}?${gigDetailParams.toString()}`
+              const gigDetailUrl = `/gigs/${gig.id}?${gigDetailParams.toString()}`
 
               return (
               <li key={gig.id}>

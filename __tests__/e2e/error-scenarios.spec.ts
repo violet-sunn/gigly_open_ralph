@@ -55,7 +55,7 @@ test.describe('Error Scenarios E2E', () => {
     })
 
     test('unauthenticated access to gig creation redirects to login', async ({ page }) => {
-      await page.goto('http://localhost:3000/dashboard/gigs/new')
+      await page.goto('http://localhost:3000/gigs/new')
       await expect(page).toHaveURL(/\/login/, { timeout: 5000 })
     })
 
@@ -68,7 +68,7 @@ test.describe('Error Scenarios E2E', () => {
       const gig = await createTestGig(prisma, { clientId: client.id })
 
       // Try to access without authentication
-      await page.goto(`http://localhost:3000/dashboard/gigs/${gig.id}`)
+      await page.goto(`http://localhost:3000/gigs/${gig.id}`)
       await expect(page).toHaveURL(/\/login/, { timeout: 5000 })
     })
 
@@ -103,13 +103,13 @@ test.describe('Error Scenarios E2E', () => {
       ])
 
       // Try to access CLIENT-only route
-      await page.goto('http://localhost:3000/dashboard/gigs/new')
+      await page.goto('http://localhost:3000/gigs/new')
       await page.waitForLoadState('networkidle')
 
       // Verify redirected to dashboard (SPECIALIST role check in page)
       const url = page.url()
       expect(url).toContain('/dashboard')
-      expect(url).not.toContain('/dashboard/gigs/new')
+      expect(url).not.toContain('/gigs/new')
     })
 
     test('CLIENT cannot see application form on gig detail', async ({ page }) => {
@@ -139,7 +139,7 @@ test.describe('Error Scenarios E2E', () => {
         }
       ])
 
-      await page.goto(`http://localhost:3000/dashboard/gigs/${gig.id}`)
+      await page.goto(`http://localhost:3000/gigs/${gig.id}`)
       await page.waitForLoadState('networkidle')
 
       // Verify application form is not visible (SPECIALIST-only action)
@@ -217,7 +217,7 @@ test.describe('Error Scenarios E2E', () => {
         }
       ])
 
-      await page.goto(`http://localhost:3000/dashboard/gigs/${gig.id}`)
+      await page.goto(`http://localhost:3000/gigs/${gig.id}`)
       await page.waitForLoadState('networkidle')
 
       // Form may be visible in UI (status is OPEN), but server-side validation prevents submission
@@ -273,11 +273,11 @@ test.describe('Error Scenarios E2E', () => {
         }
       ])
 
-      await page.goto(`http://localhost:3000/dashboard/gigs/${gig.id}`)
+      await page.goto(`http://localhost:3000/gigs/${gig.id}`)
       await page.waitForLoadState('networkidle')
 
       // Verify page loads (no error)
-      expect(page.url()).toContain(`/dashboard/gigs/${gig.id}`)
+      expect(page.url()).toContain(`/gigs/${gig.id}`)
     })
   })
 
@@ -323,7 +323,7 @@ test.describe('Error Scenarios E2E', () => {
         }
       ])
 
-      await page.goto(`http://localhost:3000/dashboard/gigs/${gig.id}`)
+      await page.goto(`http://localhost:3000/gigs/${gig.id}`)
       await page.waitForLoadState('networkidle')
 
       // Verify work submission form is not visible (only assigned specialist can submit)
@@ -376,7 +376,7 @@ test.describe('Error Scenarios E2E', () => {
         }
       ])
 
-      await page.goto(`http://localhost:3000/dashboard/gigs/${gig.id}`)
+      await page.goto(`http://localhost:3000/gigs/${gig.id}`)
       await page.waitForLoadState('networkidle')
 
       // Verify approve button is not visible (only owner can approve)
@@ -416,7 +416,7 @@ test.describe('Error Scenarios E2E', () => {
         }
       ])
 
-      await page.goto(`http://localhost:3000/dashboard/gigs/${gig.id}`)
+      await page.goto(`http://localhost:3000/gigs/${gig.id}`)
       await page.waitForLoadState('networkidle')
 
       // Verify "Mark as Paid" button is not visible (only for COMPLETED gigs)
@@ -473,7 +473,7 @@ test.describe('Error Scenarios E2E', () => {
         }
       ])
 
-      await page.goto(`http://localhost:3000/dashboard/gigs/${gig.id}`)
+      await page.goto(`http://localhost:3000/gigs/${gig.id}`)
       await page.waitForLoadState('networkidle')
 
       // Verify application form is not visible (only OPEN gigs accept applications)
@@ -525,7 +525,7 @@ test.describe('Error Scenarios E2E', () => {
         }
       ])
 
-      await page.goto(`http://localhost:3000/dashboard/gigs/${gig.id}`)
+      await page.goto(`http://localhost:3000/gigs/${gig.id}`)
       await page.waitForLoadState('networkidle')
 
       // Verify application form is not visible
@@ -578,7 +578,7 @@ test.describe('Error Scenarios E2E', () => {
         }
       ])
 
-      await page.goto(`http://localhost:3000/dashboard/gigs/${gig.id}`)
+      await page.goto(`http://localhost:3000/gigs/${gig.id}`)
       await page.waitForLoadState('networkidle')
 
       // Verify application form is not visible

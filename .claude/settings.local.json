@@ -132,7 +132,11 @@
       "Bash(git diff app/actions/gig.ts app/dashboard/gigs/[id]/page.tsx)",
       "Bash(/tmp/archive_summary.md:*)",
       "Bash(npm run type-check:*)",
-      "Bash(openspec/archive/contextual-back-buttons/TEST_PLAN.md:*)"
+      "Bash(openspec/archive/contextual-back-buttons/TEST_PLAN.md:*)",
+      "Bash(wc -l openspec/changes/multi-page-navigation/*.md openspec/changes/multi-page-navigation/specs/*/*.md)",
+      "Bash(git restore:*)",
+      "Bash(find \"app/\\(protected\\)\" -name \"layout.tsx\" -type f)",
+      "Bash(find:*)"
     ]
   }
 }

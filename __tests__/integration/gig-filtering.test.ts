@@ -151,6 +151,7 @@ describe('Gig Filtering Tests', () => {
         const results = await prisma.gig.findMany({
           where: {
             AND: [
+              { clientId: client.id },
               { status: 'OPEN' },
               { tags: { contains: 'React' } }
             ]
@@ -191,6 +192,7 @@ describe('Gig Filtering Tests', () => {
         const results = await prisma.gig.findMany({
           where: {
             AND: [
+              { clientId: client.id },
               { status: 'OPEN' },
               {
                 OR: [
@@ -276,6 +278,7 @@ describe('Gig Filtering Tests', () => {
         const results = await prisma.gig.findMany({
           where: {
             AND: [
+              { clientId: client.id },
               { status: 'OPEN' },
               { budget: { lte: 10000000 } }
             ]
@@ -454,7 +457,10 @@ describe('Gig Filtering Tests', () => {
         })
 
         const results = await prisma.gig.findMany({
-          where: { status: 'OPEN' },
+          where: {
+            clientId: client.id,
+            status: 'OPEN'
+          },
           orderBy: { budget: 'desc' }
         })
 
@@ -488,7 +494,10 @@ describe('Gig Filtering Tests', () => {
         })
 
         const results = await prisma.gig.findMany({
-          where: { status: 'OPEN' },
+          where: {
+            clientId: client.id,
+            status: 'OPEN'
+          },
           orderBy: { budget: 'asc' }
         })
 

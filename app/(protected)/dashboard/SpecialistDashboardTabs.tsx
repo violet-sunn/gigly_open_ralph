@@ -102,7 +102,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
             {activeWorkGigs.length === 0 ? (
               <p className="text-xs text-gray-400 text-center">
                 No active work.{' '}
-                <Link href="/dashboard/gigs" className="text-indigo-600 hover:text-indigo-800 underline">
+                <Link href="/gigs" className="text-indigo-600 hover:text-indigo-800 underline">
                   Browse and apply to gigs
                 </Link>{' '}
                 to get started.
@@ -112,7 +112,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
                 {activeWorkGigs.map((gig) => (
                   <li key={gig.id}>
                     <Link
-                      href={`/dashboard/gigs/${gig.id}?from=dashboard&tab=active`}
+                      href={`/gigs/${gig.id}?from=dashboard&tab=active`}
                       className="block border-b border-gray-100 pb-2 last:border-0 last:pb-0 rounded hover:bg-gray-50 transition-colors p-2 -m-2"
                     >
                       <div className="flex justify-between items-start">
@@ -157,7 +157,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
                 {pendingApplications.map((app) => (
                   <li key={app.id}>
                     <Link
-                      href={`/dashboard/gigs/${app.gigId}?from=dashboard&tab=pending`}
+                      href={`/gigs/${app.gigId}?from=dashboard&tab=pending`}
                       className="block border-b border-gray-100 pb-2 last:border-0 last:pb-0 rounded hover:bg-gray-50 transition-colors p-2 -m-2"
                     >
                       <div className="flex justify-between items-start">
@@ -192,7 +192,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
                       {paidGigs.map((gig) => (
                         <li key={gig.id}>
                           <Link
-                            href={`/dashboard/gigs/${gig.id}?from=dashboard&tab=archive`}
+                            href={`/gigs/${gig.id}?from=dashboard&tab=archive`}
                             className="block border-b border-gray-100 pb-2 last:border-0 last:pb-0 rounded hover:bg-gray-50 transition-colors p-2 -m-2"
                           >
                             <div className="flex justify-between items-start">
@@ -229,7 +229,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
                       {archivedApplications.map((app) => (
                         <li key={app.id}>
                           <Link
-                            href={`/dashboard/gigs/${app.gigId}?from=dashboard&tab=archive`}
+                            href={`/gigs/${app.gigId}?from=dashboard&tab=archive`}
                             className="block border-b border-gray-100 pb-2 last:border-0 last:pb-0 rounded hover:bg-gray-50 transition-colors p-2 -m-2"
                           >
                             <div className="flex justify-between items-start">
