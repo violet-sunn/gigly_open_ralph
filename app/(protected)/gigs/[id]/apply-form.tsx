@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { applyToGig } from '@/app/actions/gig'
+import FirstTimeTooltip from '@/app/components/onboarding/FirstTimeTooltip'
 
 function SubmitButton() {
   const { pending } = useFormStatus()
@@ -31,6 +32,11 @@ export function ApplyForm({ gigId }: { gigId: string }) {
           <p className="text-sm text-red-400">{state.error}</p>
         </div>
       )}
+
+      <FirstTimeTooltip
+        storageKey="onboarding_application_seen"
+        message="💡 Tip: Focus on your technical approach and ask clarifying questions. Clients value substance over sales pitches!"
+      />
 
       {/* Technical Approach */}
       <div>

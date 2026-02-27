@@ -5,6 +5,7 @@ import { useFormStatus } from 'react-dom'
 import { createGig } from '@/app/actions/gig'
 import { CharacterCounter } from './character-counter'
 import { AcceptanceCriteriaQualityWarning } from '@/app/components/AcceptanceCriteriaQualityWarning'
+import FirstTimeTooltip from '@/app/components/onboarding/FirstTimeTooltip'
 
 function SubmitButton() {
   const { pending } = useFormStatus()
@@ -46,6 +47,11 @@ export function GigForm() {
           <p className="text-sm text-error-500">{state.error}</p>
         </div>
       )}
+
+      <FirstTimeTooltip
+        storageKey="onboarding_gig_creation_seen"
+        message="💡 Tip: Be specific about your requirements and Definition of Done to attract quality specialists. Check out example gigs for inspiration!"
+      />
 
       {/* Section 1: Basic Information */}
       <div className="bg-navy-800 border border-gray-700 rounded-lg p-8 shadow-md">

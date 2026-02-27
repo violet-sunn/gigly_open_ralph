@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import EmptyState from '@/app/components/onboarding/EmptyState'
 
 interface Gig {
   id: string
@@ -100,13 +101,12 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
           <div className="bg-navy-800 border border-gray-700 rounded-lg p-6 shadow-md">
             <h3 className="text-lg font-semibold text-white mb-4">Active Work</h3>
             {activeWorkGigs.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-8">
-                No active work.{' '}
-                <Link href="/gigs" className="text-blue-500 hover:text-blue-400 underline">
-                  Browse and apply to gigs
-                </Link>{' '}
-                to get started.
-              </p>
+              <EmptyState
+                icon="🔍"
+                heading="No Active Work Yet"
+                description="Browse available gigs and apply to projects that match your skills. Once accepted, your work will appear here."
+                primaryAction={{ label: "Browse Gigs", href: "/gigs" }}
+              />
             ) : (
               <div className="space-y-4">
                 {activeWorkGigs.map((gig) => (
@@ -150,7 +150,12 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
           <div className="bg-navy-800 border border-gray-700 rounded-lg p-6 shadow-md">
             <h3 className="text-lg font-semibold text-white mb-4">Pending Applications</h3>
             {pendingApplications.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-8">No pending applications.</p>
+              <EmptyState
+                icon="📝"
+                heading="No Pending Applications"
+                description="You haven't applied to any gigs yet. Browse open gigs and submit applications to get started."
+                primaryAction={{ label: "Browse Gigs", href: "/gigs" }}
+              />
             ) : (
               <div className="space-y-4">
                 {pendingApplications.map((app) => (
@@ -179,7 +184,11 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
           <div className="bg-navy-800 border border-gray-700 rounded-lg p-6 shadow-md">
             <h3 className="text-lg font-semibold text-white mb-4">Archive</h3>
             {paidGigs.length === 0 && archivedApplications.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-8">No archived items.</p>
+              <EmptyState
+                icon="📦"
+                heading="No Archived Items"
+                description="Completed gigs and rejected applications will appear here once you start working on projects."
+              />
             ) : (
               <div className="space-y-6">
                 {/* Completed Gigs Section */}

@@ -3,6 +3,7 @@
 import { useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { sendMessage } from '@/app/actions/gig'
+import FirstTimeTooltip from '@/app/components/onboarding/FirstTimeTooltip'
 
 interface MessageFormProps {
   gigId: string
@@ -34,6 +35,11 @@ export function MessageForm({ gigId }: MessageFormProps) {
           <p className="text-sm text-red-400">{state.error}</p>
         </div>
       )}
+
+      <FirstTimeTooltip
+        storageKey="onboarding_messaging_seen"
+        message="💡 Tip: Keep communication professional and on-topic. All messages are visible to both parties and may be reviewed in disputes."
+      />
 
       <textarea
         name="content"

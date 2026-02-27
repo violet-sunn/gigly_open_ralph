@@ -6,6 +6,9 @@ import { Suspense } from 'react'
 import { SpecialistDashboardTabs } from './SpecialistDashboardTabs'
 import { getRecentMessages } from '@/app/actions/message'
 import { formatDistanceToNow } from 'date-fns'
+import { DashboardOnboarding } from './DashboardOnboarding'
+import ProfileCompletionCard from '@/app/components/onboarding/ProfileCompletionCard'
+import EmptyState from '@/app/components/onboarding/EmptyState'
 
 function formatRoubles(kopecks: number): string {
   return new Intl.NumberFormat('ru-RU').format(kopecks / 100)
@@ -99,9 +102,16 @@ export default async function DashboardPage({
 
   return (
     <div className="min-h-screen bg-navy-900">
+      {(session.role === 'CLIENT' || session.role === 'SPECIALIST') && (
+        <DashboardOnboarding role={session.role} />
+      )}
       <div className="max-w-7xl mx-auto px-4 py-8">
         {session.role === 'CLIENT' ? (
           <div className="space-y-6">
+            <ProfileCompletionCard
+              role={session.role}
+              profile={user?.clientProfile || null}
+            />
             <div className="bg-navy-800 border border-gray-700 rounded-lg p-8 shadow-md">
               <h2 className="text-3xl font-bold text-white leading-tight">Welcome back, {user?.clientProfile?.companyName || session.email}</h2>
               <p className="mt-2 text-sm text-gray-300">Client Dashboard</p>
@@ -142,7 +152,13 @@ export default async function DashboardPage({
                     </Link>
                   </div>
                   {gigs.length === 0 ? (
-                    <p className="text-sm text-gray-500 text-center py-8">No gigs posted yet.</p>
+                    <EmptyState
+                      icon="📋"
+                      heading="Post Your First Gig"
+                      description="Get started by posting a gig. Describe what you need, set your budget, and receive applications from qualified specialists."
+                      primaryAction={{ label: "Create Gig", href: "/gigs/new" }}
+                      secondaryAction={{ label: "View Example Gigs", href: "/gigs/examples" }}
+                    />
                   ) : (
                     <div className="space-y-6">
                       {gigs.map((gig) => (
@@ -253,6 +269,10 @@ export default async function DashboardPage({
           </div>
         ) : session.role === 'SPECIALIST' ? (
           <div className="space-y-6">
+            <ProfileCompletionCard
+              role={session.role}
+              profile={user?.specialistProfile || null}
+            />
             <div className="bg-navy-800 border border-gray-700 rounded-lg p-8 shadow-md">
               <h2 className="text-3xl font-bold text-white leading-tight">Welcome back, {user?.specialistProfile?.displayName || session.email}</h2>
               <p className="mt-2 text-sm text-gray-300">Specialist Dashboard</p>

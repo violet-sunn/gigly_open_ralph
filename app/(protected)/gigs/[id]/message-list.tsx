@@ -1,4 +1,5 @@
 import { Message, User } from '@prisma/client'
+import EmptyState from '@/app/components/onboarding/EmptyState'
 
 type MessageWithSender = Message & {
   sender: User & {
@@ -16,9 +17,11 @@ interface MessageListProps {
 export function MessageList({ messages, currentUserId, gigClientId }: MessageListProps) {
   if (messages.length === 0) {
     return (
-      <p className="text-sm text-gray-300 text-center py-4">
-        No messages yet. Start the conversation below.
-      </p>
+      <EmptyState
+        icon="💬"
+        heading="No Messages Yet"
+        description="Start the conversation! Use messages to clarify requirements, share updates, and coordinate work."
+      />
     )
   }
 

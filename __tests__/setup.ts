@@ -4,6 +4,7 @@ import { setupRateLimitMocks } from './helpers/ratelimit-mocks'
 import { PrismaClient } from '@prisma/client'
 import { config } from 'dotenv'
 import path from 'path'
+import '@testing-library/jest-dom'
 
 // Load test environment variables
 config({ path: path.resolve(process.cwd(), '.env.test') })

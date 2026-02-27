@@ -5,7 +5,7 @@ import path from 'path'
 export default defineConfig({
   plugins: [react()],
   test: {
-    environment: 'node',
+    environment: 'jsdom',
     globals: true,
     setupFiles: ['__tests__/setup.ts'],
     fileParallelism: true, // Safe with per-worker database isolation
