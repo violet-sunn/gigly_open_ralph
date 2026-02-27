@@ -490,7 +490,7 @@ Constraints: One application per specialist per gig. Only SPECIALIST role can ap
 
 ## Current State
 
-The core marketplace loop is functional: Clients register, create gigs, review applications, accept a specialist, and approve completed work. Specialists register, browse open gigs with filtering and search capabilities, apply with structured technical proposals, and submit work for review. The full gig lifecycle (OPEN → IN_PROGRESS → REVIEW → COMPLETED → PAID) is now implemented. Users can create and manage profiles with role-specific information (company details for clients, tech stack and experience for specialists). Clients can mark completed gigs as paid to track payment status. Specialists can efficiently find relevant gigs using text search, tag filters, budget range filters, and sorting options. Specialists can withdraw PENDING applications, providing user agency and control over their application status. Admins can moderate the platform by suspending users, closing gigs, and viewing audit logs. Gig-scoped messaging is fully functional with visual distinction between client and specialist messages, edge case handling, and availability across all gig statuses where a specialist is assigned. Gig creation includes optional structured requirement fields (goal, deliverables, constraints) to help clients articulate clear requirements, with a discoverable link to example gigs in the section header for inspiration. Application submissions now use structured fields (technical approach, clarifying questions, estimated effort) that emphasize engineering competence over sales pitches, aligning with the SPECIALIST persona's preference for concrete technical discussions. Critical server actions are protected by rate limiting to prevent brute force attacks, spam applications, message flooding, and bot account creation.
+The core marketplace loop is functional: Clients register, create gigs, review applications, accept a specialist, and approve completed work. Specialists register, browse open gigs with filtering and search capabilities, apply with structured technical proposals, and submit work for review. The full gig lifecycle (OPEN → IN_PROGRESS → REVIEW → COMPLETED → PAID) is now implemented. Users can create and manage profiles with role-specific information (company details for clients, tech stack and experience for specialists). Clients can mark completed gigs as paid to track payment status. Specialists can efficiently find relevant gigs using text search, tag filters, budget range filters, and sorting options. Specialists can withdraw PENDING applications, providing user agency and control over their application status. Admins can moderate the platform by suspending users, closing gigs, and viewing audit logs. Gig-scoped messaging is fully functional with visual distinction between client and specialist messages, edge case handling, and availability across all gig statuses where a specialist is assigned. Gig creation includes optional structured requirement fields (goal, deliverables, constraints) to help clients articulate clear requirements, with a discoverable link to example gigs in the section header for inspiration. Application submissions now use structured fields (technical approach, clarifying questions, estimated effort) that emphasize engineering competence over sales pitches, aligning with the SPECIALIST persona's preference for concrete technical discussions. Critical server actions are protected by rate limiting to prevent brute force attacks, spam applications, message flooding, and bot account creation. In-app notifications keep users informed of key events: clients receive notifications when specialists apply or withdraw applications, and when work is submitted; specialists receive notifications when their applications are accepted or rejected, when work is approved, and when payment is marked. The notification system uses a badge with unread count in the header and a dropdown showing recent notifications with type-specific icons and formatted text.
 
 ### Implemented
 
@@ -520,13 +520,16 @@ The core marketplace loop is functional: Clients register, create gigs, review a
 - User and gig management pages with filtering and pagination (30 items per page)
 - Gig-scoped messaging: send/view messages between client and assigned specialist with validation
 - Enhanced messaging UX: visual distinction (client left/blue, specialist right/green), edge case handling (no specialist, closed gigs), cross-status availability
+- In-app notifications: badge with unread count, dropdown with recent notifications, type-specific icons (📝 applications, 🔄 status changes, 💬 messages)
+- Notification events: application submitted/accepted/rejected/withdrawn, work submitted/approved, payment marked
+- Notification system: extended Notification model with type/eventType/eventData fields, fire-and-forget creation pattern, bulk notification support
 - Pagination on gig browsing page (25 gigs per page, offset-based)
 
 ### Not Yet Implemented
 
 - Actual payment gateway integration (Stripe, PayPal, etc.)
 - Escrow account management
-- Specialist notifications (email, in-app)
+- Email notifications
 - Gig editing or deletion
 - Password reset / email verification
 - OAuth / social login

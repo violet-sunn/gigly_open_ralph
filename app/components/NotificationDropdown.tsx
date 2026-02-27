@@ -7,9 +7,12 @@ import { getUnreadNotifications } from '@/app/actions/notification';
 interface Notification {
   gigId: string;
   gigTitle: string;
-  lastMessageSender: string;
-  lastMessageTime: Date;
+  displayText: string;
+  icon: string;
+  timestamp: Date;
   unreadCount: number;
+  type: string;
+  eventType: string | null;
 }
 
 interface NotificationDropdownProps {
@@ -113,40 +116,61 @@ export function NotificationDropdown({ isOpen, onClose }: NotificationDropdownPr
                 d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <p className="text-sm text-gray-300">No new messages</p>
+            <p className="text-sm text-gray-300">No new notifications</p>
+            <p className="text-xs text-gray-400 mt-1">You&apos;re all caught up!</p>
           </div>
         )}
 
         {!isLoading && !error && notifications.length > 0 && (
           <ul className="divide-y divide-gray-700">
-            {notifications.slice(0, 10).map((notification) => (
-              <li key={notification.gigId}>
-                <Link
-                  href={`/gigs/${notification.gigId}`}
-                  onClick={handleNotificationClick}
-                  className="block p-6 hover:bg-navy-700 transition-colors duration-200"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white truncate">
-                        {notification.gigTitle.length > 50
-                          ? `${notification.gigTitle.substring(0, 50)}...`
-                          : notification.gigTitle}
-                      </p>
-                      <p className="text-sm text-gray-300 mt-1">
-                        {notification.lastMessageSender}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        {formatRelativeTime(new Date(notification.lastMessageTime))}
-                      </p>
+            {notifications.slice(0, 10).map((notification) => {
+              // Determine border color based on notification type
+              const borderColorClass =
+                notification.type === 'APPLICATION'
+                  ? 'border-l-blue-500'
+                  : notification.type === 'STATUS_CHANGE'
+                  ? 'border-l-green-500'
+                  : 'border-l-purple-500';
+
+              return (
+                <li key={notification.gigId}>
+                  <Link
+                    href={`/gigs/${notification.gigId}`}
+                    onClick={handleNotificationClick}
+                    className={`block p-6 hover:bg-navy-700 transition-colors duration-200 border-l-4 ${borderColorClass}`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start flex-1 min-w-0">
+                        <span className="text-2xl mr-3 flex-shrink-0" aria-hidden="true">
+                          {notification.icon}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-white truncate">
+                            {notification.gigTitle.length > 50
+                              ? `${notification.gigTitle.substring(0, 50)}...`
+                              : notification.gigTitle}
+                          </p>
+                          <p className="text-sm text-gray-300 mt-1">
+                            {notification.displayText}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            {formatRelativeTime(new Date(notification.timestamp))}
+                            {notification.unreadCount > 1 && (
+                              <span className="ml-2 text-blue-400 font-medium">
+                                ({notification.unreadCount} updates)
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="ml-3 flex-shrink-0">
+                        <span className="inline-flex items-center justify-center w-2 h-2 bg-blue-500 rounded-full"></span>
+                      </div>
                     </div>
-                    <div className="ml-3 flex-shrink-0">
-                      <span className="inline-flex items-center justify-center w-2 h-2 bg-blue-500 rounded-full"></span>
-                    </div>
-                  </div>
-                </Link>
-              </li>
-            ))}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>

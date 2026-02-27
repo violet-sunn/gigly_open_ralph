@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/session'
 import { sanitizeInput } from '@/lib/sanitize'
 import { applicationRateLimiter, messageRateLimiter, getRateLimitError } from '@/lib/ratelimit'
+import { createNotification, createNotificationsBulk } from '@/lib/notifications'
 
 export async function createGig(
   prevState: { error?: string } | null,
@@ -142,7 +143,13 @@ export async function applyToGig(
     return { error: 'You have already applied to this gig.' }
   }
 
-  await prisma.application.create({
+  // Get specialist profile for notification
+  const specialist = await prisma.user.findUnique({
+    where: { id: session.userId },
+    include: { specialistProfile: true },
+  })
+
+  const application = await prisma.application.create({
     data: {
       gigId,
       specialistId: session.userId,
@@ -152,6 +159,20 @@ export async function applyToGig(
       coverLetter: '', // Legacy field, set to empty string
     },
   })
+
+  // Create notification for gig owner (fire-and-forget)
+  const specialistName = specialist?.specialistProfile?.displayName || specialist?.email || 'A specialist'
+  createNotification(
+    gig.clientId,
+    gigId,
+    'APPLICATION',
+    'application_submitted',
+    {
+      specialistId: session.userId,
+      specialistName,
+      applicationId: application.id,
+    }
+  )
 
   redirect(`/gigs/${gigId}`)
 }
@@ -190,6 +211,15 @@ export async function acceptApplication(
     return { error: 'This application is no longer pending.' }
   }
 
+  // Get all pending applications that will be auto-rejected
+  const pendingApplications = await prisma.application.findMany({
+    where: {
+      gigId: application.gigId,
+      id: { not: applicationId },
+      status: 'PENDING',
+    },
+  })
+
   await prisma.$transaction([
     prisma.application.update({
       where: { id: applicationId },
@@ -211,6 +241,27 @@ export async function acceptApplication(
       data: { status: 'REJECTED' },
     }),
   ])
+
+  // Create notification for accepted specialist (fire-and-forget)
+  createNotification(
+    application.specialistId,
+    application.gigId,
+    'APPLICATION',
+    'application_accepted',
+    { applicationId }
+  )
+
+  // Create bulk notifications for auto-rejected specialists
+  if (pendingApplications.length > 0) {
+    const rejectedNotifications = pendingApplications.map((app) => ({
+      userId: app.specialistId,
+      gigId: application.gigId,
+      type: 'APPLICATION' as const,
+      eventType: 'application_rejected',
+      eventData: JSON.stringify({ applicationId: app.id }),
+    }))
+    createNotificationsBulk(rejectedNotifications)
+  }
 
   redirect(`/gigs/${application.gigId}`)
 }
@@ -250,6 +301,15 @@ export async function rejectApplication(
     data: { status: 'REJECTED' },
   })
 
+  // Create notification for rejected specialist (fire-and-forget)
+  createNotification(
+    application.specialistId,
+    application.gigId,
+    'APPLICATION',
+    'application_rejected',
+    { applicationId }
+  )
+
   redirect(`/gigs/${application.gigId}`)
 }
 
@@ -284,6 +344,15 @@ export async function submitWork(
     where: { id: gigId },
     data: { status: 'REVIEW' },
   })
+
+  // Create notification for gig owner (fire-and-forget)
+  createNotification(
+    gig.clientId,
+    gigId,
+    'STATUS_CHANGE',
+    'work_submitted',
+    { specialistId: session.userId }
+  )
 
   redirect(`/gigs/${gigId}`)
 }
@@ -320,6 +389,17 @@ export async function approveWork(
     data: { status: 'COMPLETED' },
   })
 
+  // Create notification for assigned specialist (fire-and-forget)
+  if (gig.assignedSpecialistId) {
+    createNotification(
+      gig.assignedSpecialistId,
+      gigId,
+      'STATUS_CHANGE',
+      'work_approved',
+      { clientId: session.userId }
+    )
+  }
+
   redirect(`/gigs/${gigId}`)
 }
 
@@ -354,13 +434,26 @@ export async function markAsPaid(
     return { error: 'Only completed gigs can be marked as paid.' }
   }
 
+  const paidAt = new Date()
+
   await prisma.gig.update({
     where: { id: gigId },
     data: {
       status: 'PAID',
-      paidAt: new Date()
+      paidAt,
     },
   })
+
+  // Create notification for assigned specialist (fire-and-forget)
+  if (gig.assignedSpecialistId) {
+    createNotification(
+      gig.assignedSpecialistId,
+      gigId,
+      'STATUS_CHANGE',
+      'payment_marked',
+      { clientId: session.userId, paidAt: paidAt.toISOString() }
+    )
+  }
 
   redirect(`/gigs/${gigId}`)
 }
@@ -411,10 +504,30 @@ export async function withdrawApplication(
     return { error: 'Cannot withdraw applications from example gigs.' }
   }
 
+  // Get specialist profile for notification
+  const specialist = await prisma.user.findUnique({
+    where: { id: session.userId },
+    include: { specialistProfile: true },
+  })
+
   await prisma.application.update({
     where: { id: applicationId },
     data: { status: 'WITHDRAWN' },
   })
+
+  // Create notification for gig owner (fire-and-forget)
+  const specialistName = specialist?.specialistProfile?.displayName || specialist?.email || 'A specialist'
+  createNotification(
+    application.gig.clientId,
+    application.gigId,
+    'APPLICATION',
+    'application_withdrawn',
+    {
+      specialistId: session.userId,
+      specialistName,
+      applicationId,
+    }
+  )
 
   redirect(`/gigs/${application.gigId}`)
 }
