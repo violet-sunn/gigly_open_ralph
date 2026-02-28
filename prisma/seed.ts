@@ -13,6 +13,296 @@ const prisma = new PrismaClient({
   adapter: adapter as any,
 });
 
+// ========================================
+// Data Generation Helpers
+// ========================================
+
+const russianFirstNames = [
+  'Алексей', 'Дмитрий', 'Сергей', 'Андрей', 'Максим', 'Иван', 'Артём', 'Михаил',
+  'Александр', 'Владимир', 'Николай', 'Павел', 'Роман', 'Евгений', 'Виктор',
+  'Анна', 'Мария', 'Елена', 'Ольга', 'Наталья', 'Татьяна', 'Ирина', 'Светлана',
+  'Екатерина', 'Юлия', 'Дарья', 'Анастасия', 'Виктория', 'Полина', 'Валерия'
+];
+
+const russianLastNames = [
+  'Иванов', 'Петров', 'Сидоров', 'Смирнов', 'Кузнецов', 'Попов', 'Волков', 'Соколов',
+  'Лебедев', 'Козлов', 'Новиков', 'Морозов', 'Петухов', 'Волошин', 'Федоров',
+  'Иванова', 'Петрова', 'Сидорова', 'Смирнова', 'Кузнецова', 'Попова', 'Волкова', 'Соколова',
+  'Лебедева', 'Козлова', 'Новикова', 'Морозова', 'Петухова', 'Волошина', 'Федорова'
+];
+
+const companyNames = [
+  'ТехСтарт', 'КодФабрика', 'ДиджиталЛаб', 'СофтПро', 'ИТ-Решения',
+  'ВебМастер', 'ДевКомпани', 'ПроектХаб', 'ИнноТех', 'СмартКод',
+  'ТехноСфера', 'КодЛаб', 'ДиджиталВорк', 'АйТиГрупп', 'СофтЛайн'
+];
+
+const techStacks = {
+  frontend: [
+    'React, TypeScript, Next.js, Tailwind CSS',
+    'Vue.js, TypeScript, Nuxt.js, Vuetify',
+    'Angular, TypeScript, RxJS, Material UI',
+    'React, JavaScript, Redux, Styled Components',
+    'Svelte, TypeScript, SvelteKit, TailwindCSS',
+    'Vue 3, TypeScript, Pinia, Element Plus'
+  ],
+  backend: [
+    'Python, Django, PostgreSQL, Redis',
+    'Python, FastAPI, PostgreSQL, Celery',
+    'Go, Gin, PostgreSQL, gRPC',
+    'Node.js, Express, MongoDB, Redis',
+    'Java, Spring Boot, PostgreSQL, Kafka',
+    'Rust, Actix, PostgreSQL, Redis',
+    'Kotlin, Ktor, PostgreSQL, RabbitMQ',
+    'PHP, Laravel, MySQL, Redis'
+  ],
+  devops: [
+    'Docker, Kubernetes, CI/CD, AWS',
+    'Docker, Kubernetes, Terraform, GCP',
+    'Docker, GitLab CI, Ansible, Azure',
+    'Kubernetes, Helm, ArgoCD, Prometheus'
+  ],
+  mobile: [
+    'iOS, Swift, SwiftUI, Combine',
+    'Android, Kotlin, Jetpack Compose',
+    'React Native, TypeScript, Redux',
+    'Flutter, Dart, BLoC'
+  ],
+  qa: [
+    'Playwright, TypeScript, CI/CD',
+    'Selenium, Python, pytest',
+    'Cypress, JavaScript, Mocha',
+    'Jest, React Testing Library'
+  ],
+  data: [
+    'PostgreSQL, Redis, Elasticsearch',
+    'MongoDB, Redis, Apache Kafka',
+    'MySQL, Redis, RabbitMQ',
+    'PostgreSQL, ClickHouse, Apache Airflow'
+  ]
+};
+
+function generateRussianName(): string {
+  const firstName = russianFirstNames[Math.floor(Math.random() * russianFirstNames.length)];
+  const lastName = russianLastNames[Math.floor(Math.random() * russianLastNames.length)];
+  return `${firstName} ${lastName}`;
+}
+
+function generateCompanyName(): string {
+  return companyNames[Math.floor(Math.random() * companyNames.length)];
+}
+
+function generateTechStack(category?: keyof typeof techStacks): string {
+  if (category && techStacks[category]) {
+    const stacks = techStacks[category];
+    return stacks[Math.floor(Math.random() * stacks.length)];
+  }
+  // Random category
+  const categories = Object.keys(techStacks) as (keyof typeof techStacks)[];
+  const randomCategory = categories[Math.floor(Math.random() * categories.length)];
+  return generateTechStack(randomCategory);
+}
+
+function generateBio(techStack: string, experienceLevel: string): string {
+  const years = experienceLevel === 'SENIOR' ? Math.floor(Math.random() * 5) + 6 : Math.floor(Math.random() * 3) + 4;
+  const mainTech = techStack.split(',')[0].trim();
+  const bios = [
+    `${experienceLevel === 'SENIOR' ? 'Senior' : 'Middle'} разработчик с ${years} годами опыта. Специализируюсь на ${mainTech}.`,
+    `Опытный ${experienceLevel === 'SENIOR' ? 'senior' : 'middle'} специалист. Работаю с ${mainTech} более ${years} лет.`,
+    `${experienceLevel === 'SENIOR' ? 'Senior' : 'Middle'} инженер. ${years}+ лет в разработке, фокус на ${mainTech}.`
+  ];
+  return bios[Math.floor(Math.random() * bios.length)];
+}
+
+function generateEmail(name: string, domain: string = 'mail.ru'): string {
+  const [firstName, lastName] = name.toLowerCase().split(' ');
+  const translitMap: { [key: string]: string } = {
+    'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'e', 'ж': 'zh',
+    'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o',
+    'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u', 'ф': 'f', 'х': 'h', 'ц': 'ts',
+    'ч': 'ch', 'ш': 'sh', 'щ': 'sch', 'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya'
+  };
+  const translit = (str: string) => str.split('').map(c => translitMap[c] || c).join('');
+  return `${translit(firstName)}.${translit(lastName)}@${domain}`;
+}
+
+function generateINN(): string {
+  return `77${Math.floor(Math.random() * 90000000) + 10000000}`;
+}
+
+function generateKPP(): string {
+  return `770${Math.floor(Math.random() * 900000) + 100000}`;
+}
+
+function generatePhone(): string {
+  const areaCode = 495;
+  const part1 = Math.floor(Math.random() * 900) + 100;
+  const part2 = Math.floor(Math.random() * 90) + 10;
+  const part3 = Math.floor(Math.random() * 90) + 10;
+  return `+7 (${areaCode}) ${part1}-${part2}-${part3}`;
+}
+
+function randomBudget(): number {
+  // Budget in kopecks: 50k-300k RUB = 5M-30M kopecks
+  // Distribution: 20% < 100k, 60% 100k-200k, 20% > 200k
+  const rand = Math.random();
+  let budgetRub;
+  if (rand < 0.2) {
+    // 50k-100k
+    budgetRub = Math.floor(Math.random() * 5) * 10000 + 50000;
+  } else if (rand < 0.8) {
+    // 100k-200k
+    budgetRub = Math.floor(Math.random() * 10) * 10000 + 100000;
+  } else {
+    // 200k-300k
+    budgetRub = Math.floor(Math.random() * 10) * 10000 + 200000;
+  }
+  return budgetRub * 100; // Convert to kopecks
+}
+
+function randomDaysAgo(min: number, max: number): Date {
+  const days = Math.floor(Math.random() * (max - min + 1)) + min;
+  return new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+}
+
+function pickRandom<T>(array: T[]): T {
+  return array[Math.floor(Math.random() * array.length)];
+}
+
+const gigTitles = [
+  'Разработка REST API для мобильного приложения',
+  'Создание админ-панели на React',
+  'Интеграция платежной системы',
+  'Оптимизация производительности базы данных',
+  'Настройка CI/CD pipeline',
+  'Разработка чат-бота для Telegram',
+  'Создание лендинга для стартапа',
+  'Рефакторинг legacy кода',
+  'Внедрение системы мониторинга',
+  'Разработка микросервиса на Go',
+  'Создание дашборда аналитики',
+  'Настройка Kubernetes кластера',
+  'Разработка мобильного приложения на Flutter',
+  'Интеграция с внешним API',
+  'Создание системы уведомлений',
+  'Оптимизация фронтенд производительности',
+  'Разработка системы авторизации',
+  'Настройка мониторинга с Prometheus',
+  'Создание API документации',
+  'Разработка админки для CMS'
+];
+
+const gigDescriptions = [
+  'Требуется разработать современное решение с использованием актуальных технологий. Проект включает проектирование архитектуры, написание чистого кода, покрытие тестами и документацию. Ожидается высокое качество кода и соблюдение best practices.',
+  'Необходимо реализовать функциональность согласно техническому заданию. Важна производительность, безопасность и масштабируемость решения. Код должен быть хорошо структурирован и задокументирован.',
+  'Проект требует опытного специалиста с глубоким пониманием технологий. Необходимо учесть все edge cases, обеспечить надежность и отказоустойчивость системы. Обязательно покрытие тестами.',
+  'Требуется разработка с нуля с учетом современных подходов и паттернов. Важна чистота кода, производительность и удобство поддержки. Ожидается полная документация и примеры использования.'
+];
+
+function generateGigTitle(techStack?: string): string {
+  return pickRandom(gigTitles);
+}
+
+function generateGigDescription(): string {
+  return pickRandom(gigDescriptions);
+}
+
+function generateAcceptanceCriteria(): string {
+  const criteria = [
+    'Код проходит все автоматические тесты. Покрытие тестами не менее 70%. Документация полная и актуальная. Соблюдены все требования ТЗ.',
+    'Решение работает стабильно без критических багов. Производительность соответствует требованиям. Код проходит code review. Документация содержит примеры использования.',
+    'Все функции реализованы согласно спецификации. Тесты покрывают основные сценарии. Код следует принятым стандартам. Развертывание задокументировано.'
+  ];
+  return pickRandom(criteria);
+}
+
+function generateGoal(): string {
+  const goals = [
+    'Создать надежное и масштабируемое решение для улучшения бизнес-процессов.',
+    'Разработать качественный продукт, который решит текущие проблемы и улучшит пользовательский опыт.',
+    'Реализовать функциональность, которая повысит эффективность работы и снизит операционные затраты.'
+  ];
+  return pickRandom(goals);
+}
+
+function generateDeliverables(): string {
+  return '1. Рабочий код с документацией\n2. Unit и integration тесты\n3. README с инструкциями\n4. Примеры использования';
+}
+
+function generateConstraints(techStack: string): string {
+  return `Стек: ${techStack}. Срок: 2-3 недели. Код должен следовать best practices и быть хорошо задокументирован.`;
+}
+
+const applicationApproaches = [
+  'Предлагаю использовать современный стек технологий и проверенные паттерны проектирования. Начну с детального анализа требований, затем спроектирую архитектуру и реализую функциональность итеративно. Обеспечу высокое качество кода через code review и автоматическое тестирование.',
+  'Буду следовать agile подходу с регулярными демо и обратной связью. Использую TDD для критичных компонентов. Архитектура будет модульной и легко расширяемой. Документация будет создаваться параллельно с разработкой.',
+  'Применю best practices индустрии и современные инструменты разработки. Код будет чистым, типизированным и покрытым тестами. Регулярно буду предоставлять обновления по прогрессу. Финальное решение будет production-ready.',
+  'Начну с MVP для быстрой валидации подхода, затем итеративно добавлю остальную функциональность. Использую CI/CD для автоматизации тестирования и деплоя. Код будет следовать SOLID принципам и быть легко поддерживаемым.'
+];
+
+const applicationQuestions = [
+  'Есть ли существующая кодовая база для интеграции? Какие требования к производительности? Нужна ли поддержка мобильных устройств?',
+  'Какой приоритет у разных частей функциональности? Есть ли дизайн-макеты? Планируется ли дальнейшее развитие проекта?',
+  'Какие технологии уже используются в проекте? Есть ли ограничения по инфраструктуре? Нужна ли помощь с деплоем?',
+  'Какой уровень покрытия тестами ожидается? Есть ли требования к документации? Планируется ли code review в процессе разработки?'
+];
+
+const effortEstimates = [
+  '2-3 недели (80-120 часов)',
+  '1.5-2 недели (60-80 часов)',
+  '3-4 недели (120-160 часов)',
+  '2 недели (80 часов)',
+  '1-2 недели (40-80 часов)'
+];
+
+function generateApplicationApproach(): string {
+  return pickRandom(applicationApproaches);
+}
+
+function generateApplicationQuestions(): string {
+  return pickRandom(applicationQuestions);
+}
+
+function generateEstimatedEffort(): string {
+  return pickRandom(effortEstimates);
+}
+
+const messageContents = {
+  IN_PROGRESS: [
+    'Здравствуйте! Начал работу над проектом. Изучил требования и подготовил план разработки. Есть несколько уточняющих вопросов.',
+    'Добрый день! Завершил первую итерацию. Основная функциональность реализована и протестирована. Отправил ссылку на demo.',
+    'Работа продвигается по плану. Реализовал большую часть функциональности. Планирую завершить оставшиеся задачи к концу недели.',
+    'Столкнулся с небольшой технической сложностью, но уже нашел решение. Общий прогресс составляет около 70%. Держу в курсе.',
+    'Отлично! Посмотрел вашу работу, выглядит хорошо. Есть пара небольших правок по UI, отправил комментарии.',
+    'Спасибо за обратную связь! Учту все замечания и внесу правки. Обновленная версия будет готова завтра.',
+    'Провел тестирование на staging окружении. Все работает стабильно. Готов к финальному review.'
+  ],
+  REVIEW: [
+    'Работа завершена! Отправил на проверку. Все требования выполнены, тесты проходят, документация готова.',
+    'Добавил финальные правки согласно вашим комментариям. Прошу проверить еще раз.',
+    'Проверили работу, в целом отлично! Есть пара мелких замечаний, отправил список.',
+    'Исправил все замечания. Код готов к приемке. Жду финального подтверждения.',
+    'Отлично, все замечания учтены! Работа принята. Спасибо за качественное выполнение!'
+  ],
+  COMPLETED: [
+    'Работа полностью завершена и принята. Спасибо за сотрудничество!',
+    'Отличный результат! Все требования выполнены на высоком уровне. Работа принята.',
+    'Благодарю за качественную работу! Результат полностью соответствует ожиданиям.',
+    'Спасибо! Было приятно работать над проектом. Если понадобится помощь в будущем - обращайтесь.'
+  ],
+  PAID: [
+    'Оплата обработана. Спасибо за отличную работу!',
+    'Платеж отправлен. Было приятно с вами работать!',
+    'Благодарю за оплату! Рад был помочь с проектом.',
+    'Спасибо! Всегда готов помочь с будущими проектами.'
+  ]
+};
+
+function generateMessageContent(gigStatus: string, isClient: boolean): string {
+  const messages = messageContents[gigStatus as keyof typeof messageContents] || messageContents.IN_PROGRESS;
+  return pickRandom(messages);
+}
+
 async function main() {
   console.log('Starting seed...\n');
 
@@ -224,6 +514,184 @@ async function main() {
     },
   });
   console.log('Created ADMIN user: admin@gigly.ru');
+
+  console.log('');
+
+  // ========================================
+  // Expanded CLIENT Users
+  // ========================================
+
+  console.log('Creating additional CLIENT users...');
+
+  const additionalClients = [];
+  const clientData = [
+    { name: 'Анна Смирнова', company: 'ТехСтарт' },
+    { name: 'Павел Новиков', company: 'КодФабрика' },
+    { name: 'Елена Морозова', company: 'СофтПро' },
+    { name: 'Михаил Федоров', company: 'ИТ-Решения' },
+    { name: 'Ольга Козлова', company: 'ВебМастер' }
+  ];
+
+  for (const data of clientData) {
+    const email = generateEmail(data.name, 'company.ru');
+    const client = await prisma.user.upsert({
+      where: { email },
+      update: {
+        clientProfile: {
+          upsert: {
+            create: {
+              companyName: data.company,
+              inn: generateINN(),
+              kpp: generateKPP(),
+              contactPerson: data.name,
+              phoneNumber: generatePhone(),
+            },
+            update: {
+              companyName: data.company,
+              inn: generateINN(),
+              kpp: generateKPP(),
+              contactPerson: data.name,
+              phoneNumber: generatePhone(),
+            },
+          },
+        },
+      },
+      create: {
+        email,
+        password: DEFAULT_PASSWORD_HASH,
+        role: 'CLIENT',
+        clientProfile: {
+          create: {
+            companyName: data.company,
+            inn: generateINN(),
+            kpp: generateKPP(),
+            contactPerson: data.name,
+            phoneNumber: generatePhone(),
+          },
+        },
+      },
+    });
+    additionalClients.push(client);
+    console.log(`  ✓ Created CLIENT: ${email} (${data.company})`);
+  }
+
+  const allClients = [client1, client2, ...additionalClients];
+  console.log(`Total CLIENTs: ${allClients.length}`);
+  console.log('');
+
+  // ========================================
+  // Expanded SPECIALIST Users
+  // ========================================
+
+  console.log('Creating additional SPECIALIST users...');
+
+  const additionalSpecialists = [];
+
+  // Frontend specialists (6)
+  const frontendSpecialists = [
+    { category: 'frontend' as const, level: 'SENIOR' },
+    { category: 'frontend' as const, level: 'SENIOR' },
+    { category: 'frontend' as const, level: 'MIDDLE' },
+    { category: 'frontend' as const, level: 'MIDDLE' },
+    { category: 'frontend' as const, level: 'MIDDLE' },
+    { category: 'frontend' as const, level: 'SENIOR' }
+  ];
+
+  // Backend specialists (8)
+  const backendSpecialists = [
+    { category: 'backend' as const, level: 'SENIOR' },
+    { category: 'backend' as const, level: 'SENIOR' },
+    { category: 'backend' as const, level: 'SENIOR' },
+    { category: 'backend' as const, level: 'MIDDLE' },
+    { category: 'backend' as const, level: 'MIDDLE' },
+    { category: 'backend' as const, level: 'MIDDLE' },
+    { category: 'backend' as const, level: 'MIDDLE' },
+    { category: 'backend' as const, level: 'SENIOR' }
+  ];
+
+  // DevOps specialists (3)
+  const devopsSpecialists = [
+    { category: 'devops' as const, level: 'SENIOR' },
+    { category: 'devops' as const, level: 'SENIOR' },
+    { category: 'devops' as const, level: 'MIDDLE' }
+  ];
+
+  // Mobile specialists (3)
+  const mobileSpecialists = [
+    { category: 'mobile' as const, level: 'SENIOR' },
+    { category: 'mobile' as const, level: 'MIDDLE' },
+    { category: 'mobile' as const, level: 'MIDDLE' }
+  ];
+
+  // QA specialists (2)
+  const qaSpecialists = [
+    { category: 'qa' as const, level: 'SENIOR' },
+    { category: 'qa' as const, level: 'MIDDLE' }
+  ];
+
+  // Data specialists (2)
+  const dataSpecialists = [
+    { category: 'data' as const, level: 'SENIOR' },
+    { category: 'data' as const, level: 'MIDDLE' }
+  ];
+
+  const allSpecialistData = [
+    ...frontendSpecialists,
+    ...backendSpecialists,
+    ...devopsSpecialists,
+    ...mobileSpecialists,
+    ...qaSpecialists,
+    ...dataSpecialists
+  ];
+
+  for (let i = 0; i < allSpecialistData.length; i++) {
+    const specData = allSpecialistData[i];
+    const name = generateRussianName();
+    const email = `specialist${i + 4}@mail.ru`; // Fixed email pattern for idempotency
+    const techStack = generateTechStack(specData.category);
+    const bio = generateBio(techStack, specData.level);
+
+    const specialist = await prisma.user.upsert({
+      where: { email },
+      update: {
+        specialistProfile: {
+          upsert: {
+            create: {
+              displayName: name,
+              techStack,
+              experienceLevel: specData.level,
+              bio,
+            },
+            update: {
+              displayName: name,
+              techStack,
+              experienceLevel: specData.level,
+              bio,
+            },
+          },
+        },
+      },
+      create: {
+        email,
+        password: DEFAULT_PASSWORD_HASH,
+        role: 'SPECIALIST',
+        specialistProfile: {
+          create: {
+            displayName: name,
+            techStack,
+            experienceLevel: specData.level,
+            bio,
+          },
+        },
+      },
+    });
+    additionalSpecialists.push(specialist);
+    console.log(`  ✓ Created SPECIALIST: ${name} (${specData.category}/${specData.level})`);
+  }
+
+  const allSpecialists = [alexey, dmitry, sergey, ...additionalSpecialists];
+  console.log(`Total SPECIALISTs: ${allSpecialists.length}`);
+  console.log('');
 
   console.log('');
 
@@ -1254,36 +1722,637 @@ async function main() {
   console.log('Created/updated workflow gig: Внедрение Redis кэширования для оптимизации производительности (PAID)');
 
   // ========================================
+  // Generated OPEN Gigs
+  // ========================================
+
+  console.log('Creating OPEN gigs...');
+
+  const openGigs = [];
+  const numOpenGigs = 18; // 15-20 range
+
+  for (let i = 1; i <= numOpenGigs; i++) {
+    const client = pickRandom(allClients);
+    const title = generateGigTitle();
+    const techStack = generateTechStack();
+    const description = generateGigDescription();
+    const budget = randomBudget();
+    const serviceFee = Math.floor(budget * 0.10);
+    const totalAmount = budget + serviceFee;
+    const tags = techStack.split(',').slice(0, 3).map(t => t.trim()).join(',');
+    const createdAt = randomDaysAgo(1, 7);
+
+    const gig = await prisma.gig.upsert({
+      where: { id: `seed-open-gig-${i}` },
+      update: {
+        clientId: client.id,
+        serviceFee,
+        totalAmount,
+      },
+      create: {
+        id: `seed-open-gig-${i}`,
+        title,
+        description,
+        acceptanceCriteria: generateAcceptanceCriteria(),
+        goal: generateGoal(),
+        deliverables: generateDeliverables(),
+        constraints: generateConstraints(techStack),
+        budget,
+        serviceFee,
+        totalAmount,
+        tags,
+        status: 'OPEN',
+        clientId: client.id,
+        createdAt,
+      },
+    });
+    openGigs.push(gig);
+  }
+
+  console.log(`  ✓ Created ${openGigs.length} OPEN gigs`);
+  console.log('');
+
+  // ========================================
+  // Generated IN_PROGRESS Gigs
+  // ========================================
+
+  console.log('Creating IN_PROGRESS gigs...');
+
+  const inProgressGigs = [];
+  const numInProgressGigs = 10; // 8-12 range
+  const specialistWorkload = new Map<string, number>();
+
+  for (let i = 1; i <= numInProgressGigs; i++) {
+    const client = pickRandom(allClients);
+
+    // Find specialist with workload < 3
+    let specialist;
+    let attempts = 0;
+    do {
+      specialist = pickRandom(allSpecialists);
+      attempts++;
+    } while ((specialistWorkload.get(specialist.id) || 0) >= 3 && attempts < 20);
+
+    specialistWorkload.set(specialist.id, (specialistWorkload.get(specialist.id) || 0) + 1);
+
+    const title = generateGigTitle();
+    const techStack = generateTechStack();
+    const description = generateGigDescription();
+    const budget = randomBudget();
+    const serviceFee = Math.floor(budget * 0.10);
+    const totalAmount = budget + serviceFee;
+    const tags = techStack.split(',').slice(0, 3).map(t => t.trim()).join(',');
+    const createdAt = randomDaysAgo(3, 10);
+
+    const gig = await prisma.gig.upsert({
+      where: { id: `seed-inprogress-gig-${i}` },
+      update: {
+        clientId: client.id,
+        assignedSpecialistId: specialist.id,
+        serviceFee,
+        totalAmount,
+      },
+      create: {
+        id: `seed-inprogress-gig-${i}`,
+        title,
+        description,
+        acceptanceCriteria: generateAcceptanceCriteria(),
+        goal: generateGoal(),
+        deliverables: generateDeliverables(),
+        constraints: generateConstraints(techStack),
+        budget,
+        serviceFee,
+        totalAmount,
+        tags,
+        status: 'IN_PROGRESS',
+        assignedSpecialistId: specialist.id,
+        clientId: client.id,
+        createdAt,
+      },
+    });
+    inProgressGigs.push(gig);
+  }
+
+  console.log(`  ✓ Created ${inProgressGigs.length} IN_PROGRESS gigs`);
+  console.log('');
+
+  // ========================================
+  // Generated REVIEW Gigs
+  // ========================================
+
+  console.log('Creating REVIEW gigs...');
+
+  const reviewGigs = [];
+  const numReviewGigs = 5; // 4-6 range
+
+  for (let i = 1; i <= numReviewGigs; i++) {
+    const client = pickRandom(allClients);
+    const specialist = pickRandom(allSpecialists);
+    const title = generateGigTitle();
+    const techStack = generateTechStack();
+    const description = generateGigDescription();
+    const budget = randomBudget();
+    const serviceFee = Math.floor(budget * 0.10);
+    const totalAmount = budget + serviceFee;
+    const tags = techStack.split(',').slice(0, 3).map(t => t.trim()).join(',');
+    const createdAt = randomDaysAgo(5, 12);
+
+    const gig = await prisma.gig.upsert({
+      where: { id: `seed-review-gig-${i}` },
+      update: {
+        clientId: client.id,
+        assignedSpecialistId: specialist.id,
+        serviceFee,
+        totalAmount,
+      },
+      create: {
+        id: `seed-review-gig-${i}`,
+        title,
+        description,
+        acceptanceCriteria: generateAcceptanceCriteria(),
+        goal: generateGoal(),
+        deliverables: generateDeliverables(),
+        constraints: generateConstraints(techStack),
+        budget,
+        serviceFee,
+        totalAmount,
+        tags,
+        status: 'REVIEW',
+        assignedSpecialistId: specialist.id,
+        clientId: client.id,
+        createdAt,
+      },
+    });
+    reviewGigs.push(gig);
+  }
+
+  console.log(`  ✓ Created ${reviewGigs.length} REVIEW gigs`);
+  console.log('');
+
+  // ========================================
+  // Generated COMPLETED Gigs
+  // ========================================
+
+  console.log('Creating COMPLETED gigs...');
+
+  const completedGigs = [];
+  const numCompletedGigs = 4; // 3-5 range
+
+  for (let i = 1; i <= numCompletedGigs; i++) {
+    const client = pickRandom(allClients);
+    const specialist = pickRandom(allSpecialists);
+    const title = generateGigTitle();
+    const techStack = generateTechStack();
+    const description = generateGigDescription();
+    const budget = randomBudget();
+    const serviceFee = Math.floor(budget * 0.10);
+    const totalAmount = budget + serviceFee;
+    const tags = techStack.split(',').slice(0, 3).map(t => t.trim()).join(',');
+    const createdAt = randomDaysAgo(7, 15);
+
+    const gig = await prisma.gig.upsert({
+      where: { id: `seed-completed-gig-${i}` },
+      update: {
+        clientId: client.id,
+        assignedSpecialistId: specialist.id,
+        serviceFee,
+        totalAmount,
+      },
+      create: {
+        id: `seed-completed-gig-${i}`,
+        title,
+        description,
+        acceptanceCriteria: generateAcceptanceCriteria(),
+        goal: generateGoal(),
+        deliverables: generateDeliverables(),
+        constraints: generateConstraints(techStack),
+        budget,
+        serviceFee,
+        totalAmount,
+        tags,
+        status: 'COMPLETED',
+        assignedSpecialistId: specialist.id,
+        clientId: client.id,
+        createdAt,
+      },
+    });
+    completedGigs.push(gig);
+  }
+
+  console.log(`  ✓ Created ${completedGigs.length} COMPLETED gigs`);
+  console.log('');
+
+  // ========================================
+  // Generated PAID Gigs
+  // ========================================
+
+  console.log('Creating PAID gigs...');
+
+  const paidGigs = [];
+  const numPaidGigs = 6; // 5-8 range
+
+  for (let i = 1; i <= numPaidGigs; i++) {
+    const client = pickRandom(allClients);
+    const specialist = pickRandom(allSpecialists);
+    const title = generateGigTitle();
+    const techStack = generateTechStack();
+    const description = generateGigDescription();
+    const budget = randomBudget();
+    const serviceFee = Math.floor(budget * 0.10);
+    const totalAmount = budget + serviceFee;
+    const tags = techStack.split(',').slice(0, 3).map(t => t.trim()).join(',');
+    const createdAt = randomDaysAgo(10, 20);
+    const paidAt = new Date(createdAt.getTime() + (Math.floor(Math.random() * 3) + 1) * 24 * 60 * 60 * 1000);
+
+    const gig = await prisma.gig.upsert({
+      where: { id: `seed-paid-gig-${i}` },
+      update: {
+        clientId: client.id,
+        assignedSpecialistId: specialist.id,
+        serviceFee,
+        totalAmount,
+        paidAt,
+      },
+      create: {
+        id: `seed-paid-gig-${i}`,
+        title,
+        description,
+        acceptanceCriteria: generateAcceptanceCriteria(),
+        goal: generateGoal(),
+        deliverables: generateDeliverables(),
+        constraints: generateConstraints(techStack),
+        budget,
+        serviceFee,
+        totalAmount,
+        tags,
+        status: 'PAID',
+        assignedSpecialistId: specialist.id,
+        clientId: client.id,
+        paidAt,
+        createdAt,
+      },
+    });
+    paidGigs.push(gig);
+  }
+
+  console.log(`  ✓ Created ${paidGigs.length} PAID gigs`);
+  console.log('');
+
+  // ========================================
+  // Applications for OPEN Gigs
+  // ========================================
+
+  console.log('Creating applications for OPEN gigs...');
+
+  const allOpenGigs = [...openGigs];
+  let totalApplications = 0;
+  const specialistApplicationCount = new Map<string, number>();
+
+  for (const gig of allOpenGigs) {
+    const numApps = Math.floor(Math.random() * 3) + 3; // 3-5 applications
+
+    for (let i = 0; i < numApps; i++) {
+      // Find specialist with < 5 applications
+      let specialist;
+      let attempts = 0;
+      do {
+        specialist = pickRandom(allSpecialists);
+        attempts++;
+      } while ((specialistApplicationCount.get(specialist.id) || 0) >= 5 && attempts < 30);
+
+      specialistApplicationCount.set(specialist.id, (specialistApplicationCount.get(specialist.id) || 0) + 1);
+
+      const appCreatedAt = new Date(gig.createdAt.getTime() + Math.random() * (Date.now() - gig.createdAt.getTime()));
+
+      const existingApp = await prisma.application.findUnique({
+        where: {
+          gigId_specialistId: {
+            gigId: gig.id,
+            specialistId: specialist.id,
+          },
+        },
+      });
+
+      if (!existingApp) {
+        await prisma.application.create({
+          data: {
+            gigId: gig.id,
+            specialistId: specialist.id,
+            approach: generateApplicationApproach(),
+            questions: generateApplicationQuestions(),
+            estimatedEffort: generateEstimatedEffort(),
+            status: 'PENDING',
+            coverLetter: '',
+            createdAt: appCreatedAt,
+          },
+        });
+        totalApplications++;
+      }
+    }
+  }
+
+  console.log(`  ✓ Created ${totalApplications} applications for OPEN gigs`);
+  console.log('');
+
+  // ========================================
+  // Applications for Non-OPEN Gigs
+  // ========================================
+
+  console.log('Creating applications for IN_PROGRESS/REVIEW/COMPLETED/PAID gigs...');
+
+  const allNonOpenGigs = [...inProgressGigs, ...reviewGigs, ...completedGigs, ...paidGigs];
+  let totalNonOpenApplications = 0;
+
+  for (const gig of allNonOpenGigs) {
+    // 1 ACCEPTED application
+    const acceptedAppCreatedAt = new Date(gig.createdAt.getTime() + (1 + Math.random()) * 24 * 60 * 60 * 1000);
+
+    const existingAccepted = await prisma.application.findUnique({
+      where: {
+        gigId_specialistId: {
+          gigId: gig.id,
+          specialistId: gig.assignedSpecialistId!,
+        },
+      },
+    });
+
+    if (!existingAccepted) {
+      await prisma.application.create({
+        data: {
+          gigId: gig.id,
+          specialistId: gig.assignedSpecialistId!,
+          approach: generateApplicationApproach(),
+          questions: generateApplicationQuestions(),
+          estimatedEffort: generateEstimatedEffort(),
+          status: 'ACCEPTED',
+          coverLetter: '',
+          createdAt: acceptedAppCreatedAt,
+        },
+      });
+      totalNonOpenApplications++;
+    }
+
+    // 2-4 REJECTED applications
+    const numRejected = Math.floor(Math.random() * 3) + 2;
+    for (let i = 0; i < numRejected; i++) {
+      let specialist;
+      let attempts = 0;
+      do {
+        specialist = pickRandom(allSpecialists);
+        attempts++;
+      } while (specialist.id === gig.assignedSpecialistId && attempts < 20);
+
+      const rejectedAppCreatedAt = new Date(gig.createdAt.getTime() + (1 + Math.random()) * 24 * 60 * 60 * 1000);
+
+      const existingRejected = await prisma.application.findUnique({
+        where: {
+          gigId_specialistId: {
+            gigId: gig.id,
+            specialistId: specialist.id,
+          },
+        },
+      });
+
+      if (!existingRejected) {
+        await prisma.application.create({
+          data: {
+            gigId: gig.id,
+            specialistId: specialist.id,
+            approach: generateApplicationApproach(),
+            questions: generateApplicationQuestions(),
+            estimatedEffort: generateEstimatedEffort(),
+            status: 'REJECTED',
+            coverLetter: '',
+            createdAt: rejectedAppCreatedAt,
+          },
+        });
+        totalNonOpenApplications++;
+      }
+    }
+  }
+
+  console.log(`  ✓ Created ${totalNonOpenApplications} applications for non-OPEN gigs`);
+  console.log('');
+
+  // ========================================
+  // Messages for Active Gigs
+  // ========================================
+
+  console.log('Creating message threads for active gigs...');
+
+  let messagesCreated = 0;
+
+  // IN_PROGRESS gigs: 2-5 messages
+  for (const gig of inProgressGigs) {
+    const numMessages = Math.floor(Math.random() * 4) + 2; // 2-5
+    const acceptedApp = await prisma.application.findFirst({
+      where: { gigId: gig.id, status: 'ACCEPTED' },
+    });
+
+    if (!acceptedApp) continue;
+
+    const startTime = acceptedApp.createdAt.getTime() + 24 * 60 * 60 * 1000;
+    const timeSpan = Date.now() - startTime;
+
+    for (let i = 0; i < numMessages; i++) {
+      const isClient = i % 2 === 0;
+      const senderId = isClient ? gig.clientId : gig.assignedSpecialistId!;
+      const messageTime = new Date(startTime + (timeSpan / numMessages) * i);
+
+      const existingMsg = await prisma.message.findUnique({
+        where: { id: `msg-${gig.id}-${i}` },
+      });
+
+      if (!existingMsg) {
+        await prisma.message.create({
+          data: {
+            id: `msg-${gig.id}-${i}`,
+            gigId: gig.id,
+            senderId,
+            content: generateMessageContent('IN_PROGRESS', isClient),
+            createdAt: messageTime,
+          },
+        });
+        messagesCreated++;
+      }
+    }
+  }
+
+  // REVIEW gigs: 3-5 messages
+  for (const gig of reviewGigs) {
+    const numMessages = Math.floor(Math.random() * 3) + 3; // 3-5
+    const acceptedApp = await prisma.application.findFirst({
+      where: { gigId: gig.id, status: 'ACCEPTED' },
+    });
+
+    if (!acceptedApp) continue;
+
+    const startTime = acceptedApp.createdAt.getTime() + 24 * 60 * 60 * 1000;
+    const timeSpan = Date.now() - startTime;
+
+    for (let i = 0; i < numMessages; i++) {
+      const isClient = i % 2 === 0;
+      const senderId = isClient ? gig.clientId : gig.assignedSpecialistId!;
+      const messageTime = new Date(startTime + (timeSpan / numMessages) * i);
+
+      const existingMsg = await prisma.message.findUnique({
+        where: { id: `msg-${gig.id}-${i}` },
+      });
+
+      if (!existingMsg) {
+        await prisma.message.create({
+          data: {
+            id: `msg-${gig.id}-${i}`,
+            gigId: gig.id,
+            senderId,
+            content: generateMessageContent('REVIEW', isClient),
+            createdAt: messageTime,
+          },
+        });
+        messagesCreated++;
+      }
+    }
+  }
+
+  // COMPLETED gigs: 2-4 messages
+  for (const gig of completedGigs) {
+    const numMessages = Math.floor(Math.random() * 3) + 2; // 2-4
+    const acceptedApp = await prisma.application.findFirst({
+      where: { gigId: gig.id, status: 'ACCEPTED' },
+    });
+
+    if (!acceptedApp) continue;
+
+    const startTime = acceptedApp.createdAt.getTime() + 24 * 60 * 60 * 1000;
+    const endTime = gig.createdAt.getTime() + 10 * 24 * 60 * 60 * 1000;
+    const timeSpan = endTime - startTime;
+
+    for (let i = 0; i < numMessages; i++) {
+      const isClient = i % 2 === 0;
+      const senderId = isClient ? gig.clientId : gig.assignedSpecialistId!;
+      const messageTime = new Date(startTime + (timeSpan / numMessages) * i);
+
+      const existingMsg = await prisma.message.findUnique({
+        where: { id: `msg-${gig.id}-${i}` },
+      });
+
+      if (!existingMsg) {
+        await prisma.message.create({
+          data: {
+            id: `msg-${gig.id}-${i}`,
+            gigId: gig.id,
+            senderId,
+            content: generateMessageContent('COMPLETED', isClient),
+            createdAt: messageTime,
+          },
+        });
+        messagesCreated++;
+      }
+    }
+  }
+
+  // PAID gigs: 2-3 messages
+  for (const gig of paidGigs) {
+    const numMessages = Math.floor(Math.random() * 2) + 2; // 2-3
+    const acceptedApp = await prisma.application.findFirst({
+      where: { gigId: gig.id, status: 'ACCEPTED' },
+    });
+
+    if (!acceptedApp) continue;
+
+    const startTime = acceptedApp.createdAt.getTime() + 24 * 60 * 60 * 1000;
+    const endTime = gig.paidAt!.getTime();
+    const timeSpan = endTime - startTime;
+
+    for (let i = 0; i < numMessages; i++) {
+      const isClient = i % 2 === 0;
+      const senderId = isClient ? gig.clientId : gig.assignedSpecialistId!;
+      const messageTime = new Date(startTime + (timeSpan / numMessages) * i);
+
+      const existingMsg = await prisma.message.findUnique({
+        where: { id: `msg-${gig.id}-${i}` },
+      });
+
+      if (!existingMsg) {
+        await prisma.message.create({
+          data: {
+            id: `msg-${gig.id}-${i}`,
+            gigId: gig.id,
+            senderId,
+            content: generateMessageContent('PAID', isClient),
+            createdAt: messageTime,
+          },
+        });
+        messagesCreated++;
+      }
+    }
+  }
+
+  console.log(`  ✓ Created ${messagesCreated} messages for active gigs`);
+  console.log('');
+
+  // ========================================
   // Summary
   // ========================================
 
+  const endTime = Date.now();
+  const startTime = endTime; // We'll track this properly
+
   console.log('\n=== SEED COMPLETED ===\n');
-  console.log('Foundation Users Created:');
+
+  // Count actual data
+  const userCounts = await prisma.user.groupBy({
+    by: ['role'],
+    _count: true,
+  });
+
+  const gigCounts = await prisma.gig.groupBy({
+    by: ['status'],
+    _count: true,
+  });
+
+  const appCounts = await prisma.application.groupBy({
+    by: ['status'],
+    _count: true,
+  });
+
+  const totalMessages = await prisma.message.count();
+
+  console.log('📊 Database Statistics:\n');
+
+  console.log('Users by Role:');
+  userCounts.forEach(({ role, _count }) => {
+    console.log(`  • ${role}: ${_count}`);
+  });
   console.log('');
-  console.log('CLIENTs:');
-  console.log('  • ivan.petrov@techcorp.ru (ТехКорп)');
-  console.log('  • maria.sokolova@digitalpro.ru (ДиджиталПро)');
+
+  console.log('Gigs by Status:');
+  gigCounts.forEach(({ status, _count }) => {
+    console.log(`  • ${status}: ${_count}`);
+  });
+  const totalGigs = gigCounts.reduce((sum, { _count }) => sum + _count, 0);
+  console.log(`  • TOTAL: ${totalGigs}`);
   console.log('');
-  console.log('SPECIALISTs:');
-  console.log('  • alexey.ivanov@mail.ru (Frontend/React)');
-  console.log('  • dmitry.volkov@yandex.ru (Backend/Python)');
-  console.log('  • sergey.morozov@gmail.com (DevOps/Go)');
+
+  console.log('Applications by Status:');
+  appCounts.forEach(({ status, _count }) => {
+    console.log(`  • ${status}: ${_count}`);
+  });
+  const totalApps = appCounts.reduce((sum, { _count }) => sum + _count, 0);
+  console.log(`  • TOTAL: ${totalApps}`);
   console.log('');
-  console.log('ADMIN:');
-  console.log('  • admin@gigly.ru');
+
+  console.log(`Messages: ${totalMessages}`);
   console.log('');
-  console.log('Example Gigs (OPEN): 5 gigs');
-  console.log('Workflow Gigs:');
-  console.log('  • IN_PROGRESS: 2 gigs');
-  console.log('  • REVIEW: 1 gig');
-  console.log('  • COMPLETED: 1 gig');
-  console.log('  • PAID: 1 gig');
+
+  console.log('🔑 Login Credentials:');
+  console.log('  Password for all users: TestPass123');
   console.log('');
-  console.log('Total Gigs: 10');
+  console.log('Example logins:');
+  console.log('  CLIENT: ivan.petrov@techcorp.ru');
+  console.log('  SPECIALIST: alexey.ivanov@mail.ru');
+  console.log('  ADMIN: admin@gigly.ru');
   console.log('');
-  console.log('Password for all users: TestPass123');
-  console.log('');
-  console.log('Login at http://localhost:3000/login');
+  console.log('🌐 Access the app at: http://localhost:3000/login');
   console.log('');
 }
 
