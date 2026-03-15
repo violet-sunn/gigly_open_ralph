@@ -140,8 +140,35 @@ export function setTestPrismaClient(client: PrismaClient): void {
 }
 
 /**
- * Execute callback within a transaction that automatically rolls back
- * This provides perfect test isolation - changes are never committed
+ * Reset all tables for the current worker database.
+ *
+ * We prefer deterministic cleanup between tests rather than relying on
+ * transaction rollbacks, because some adapters / sqlite configurations can
+ * behave differently under interactive transactions.
+ */
+export async function resetTestDatabase(): Promise<void> {
+  const prisma = getTestPrismaClient()
+
+  // Delete in FK-safe order.
+  await prisma.notification.deleteMany()
+  await prisma.message.deleteMany()
+  await prisma.application.deleteMany()
+  await prisma.moderationLog.deleteMany()
+  await prisma.gig.deleteMany()
+
+  // Profiles have onDelete: Cascade from User, but delete explicitly to keep
+  // ordering clear for SQLite FK enforcement.
+  await prisma.clientProfile.deleteMany()
+  await prisma.specialistProfile.deleteMany()
+
+  await prisma.user.deleteMany()
+}
+
+/**
+ * Execute callback within a transaction that automatically rolls back.
+ *
+ * Note: we still expose this helper for call sites that want it, but the
+ * primary isolation mechanism is the global reset in __tests__/setup.ts.
  */
 export async function withTestTransaction<T>(
   callback: (tx: PrismaClient) => Promise<T>
@@ -149,21 +176,14 @@ export async function withTestTransaction<T>(
   const client = getTestPrismaClient()
 
   try {
-    // Use interactive transaction with automatic rollback
-    // We throw an error at the end to force rollback
     return await client.$transaction(async (tx) => {
       const result = await callback(tx as PrismaClient)
-
-      // Force rollback by throwing an error
-      // We'll catch this and return the result
       throw { __ROLLBACK__: true, result }
     })
   } catch (error: any) {
-    // If this is our rollback marker, return the result
     if (error && error.__ROLLBACK__ === true) {
       return error.result
     }
-    // Otherwise, re-throw the actual error
     throw error
   }
 }
