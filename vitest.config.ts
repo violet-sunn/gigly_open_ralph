@@ -7,18 +7,34 @@ const componentTestInclude = ['__tests__/unit/components/**/*.test.ts', '__tests
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './')
+    }
+  },
+  esbuild: {
+    jsx: 'automatic'
+  },
   test: {
-    // Keep Node as the default environment for server actions, Prisma, and jose (JWT) usage.
-    // Component tests run in jsdom via a dedicated Vitest project.
     globals: true,
     hookTimeout: 60_000,
-    fileParallelism: true, // Safe with per-worker database isolation
+    fileParallelism: true,
 
-    // Workspace projects provide deterministic, directory-based jsdom opt-in.
     projects: [
       defineProject({
-        extends: true,
+        plugins: [react()],
+        resolve: {
+          alias: {
+            '@': path.resolve(__dirname, './')
+          }
+        },
+        esbuild: {
+          jsx: 'automatic'
+        },
         test: {
+          globals: true,
+          hookTimeout: 60_000,
+          fileParallelism: true,
           name: 'node',
           environment: 'node',
           setupFiles: ['__tests__/setup.ts'],
@@ -26,8 +42,19 @@ export default defineConfig({
         }
       }),
       defineProject({
-        extends: true,
+        plugins: [react()],
+        resolve: {
+          alias: {
+            '@': path.resolve(__dirname, './')
+          }
+        },
+        esbuild: {
+          jsx: 'automatic'
+        },
         test: {
+          globals: true,
+          hookTimeout: 60_000,
+          fileParallelism: true,
           name: 'dom',
           environment: 'jsdom',
           include: componentTestInclude,
@@ -47,16 +74,9 @@ export default defineConfig({
         'coverage/',
         '**/*.d.ts',
         '**/*.config.{ts,js}',
+        '**/*.types.ts',
         '**/types.ts'
       ]
     }
-  },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './')
-    }
-  },
-  esbuild: {
-    jsx: 'automatic'
   }
 })

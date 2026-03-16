@@ -6,7 +6,7 @@ test.describe('Application Withdrawal', () => {
     await page.goto('/register')
     await page.fill('input[name="email"]', `client-${Date.now()}@test.com`)
     await page.fill('input[name="password"]', 'TestPass123')
-    await page.selectOption('select[name="role"]', 'CLIENT')
+    await page.click('input[type="radio"][name="role"][value="CLIENT"]')
     await page.click('button[type="submit"]')
 
     // Wait for redirect to dashboard
@@ -38,7 +38,7 @@ test.describe('Application Withdrawal', () => {
     const specialistEmail = `specialist-${Date.now()}@test.com`
     await page.fill('input[name="email"]', specialistEmail)
     await page.fill('input[name="password"]', 'TestPass123')
-    await page.selectOption('select[name="role"]', 'SPECIALIST')
+    await page.click('input[type="radio"][name="role"][value="SPECIALIST"]')
     await page.click('button[type="submit"]')
 
     // Wait for redirect to dashboard
@@ -85,7 +85,7 @@ test.describe('Application Withdrawal', () => {
     const clientEmail = `client-${Date.now()}@test.com`
     await page.fill('input[name="email"]', clientEmail)
     await page.fill('input[name="password"]', 'TestPass123')
-    await page.selectOption('select[name="role"]', 'CLIENT')
+    await page.click('input[type="radio"][name="role"][value="CLIENT"]')
     await page.click('button[type="submit"]')
 
     await page.waitForURL('/dashboard')
@@ -114,7 +114,7 @@ test.describe('Application Withdrawal', () => {
     const specialistEmail = `specialist-${Date.now()}@test.com`
     await page.fill('input[name="email"]', specialistEmail)
     await page.fill('input[name="password"]', 'TestPass123')
-    await page.selectOption('select[name="role"]', 'SPECIALIST')
+    await page.click('input[type="radio"][name="role"][value="SPECIALIST"]')
     await page.click('button[type="submit"]')
 
     await page.waitForURL('/dashboard')
@@ -160,7 +160,7 @@ test.describe('Application Withdrawal', () => {
     await page.goto('/register')
     await page.fill('input[name="email"]', `client-${Date.now()}@test.com`)
     await page.fill('input[name="password"]', 'TestPass123')
-    await page.selectOption('select[name="role"]', 'CLIENT')
+    await page.click('input[type="radio"][name="role"][value="CLIENT"]')
     await page.click('button[type="submit"]')
 
     await page.waitForURL('/dashboard')
@@ -187,7 +187,7 @@ test.describe('Application Withdrawal', () => {
     await page.goto('/register')
     await page.fill('input[name="email"]', `specialist-${Date.now()}@test.com`)
     await page.fill('input[name="password"]', 'TestPass123')
-    await page.selectOption('select[name="role"]', 'SPECIALIST')
+    await page.click('input[type="radio"][name="role"][value="SPECIALIST"]')
     await page.click('button[type="submit"]')
 
     await page.waitForURL('/dashboard')

@@ -127,7 +127,7 @@ test.describe('Complete Specialist Journey E2E', () => {
 
     await page.goto('http://localhost:3000/gigs')
     await page.waitForLoadState('networkidle')
-    await expect(page).toHaveURL(/\/dashboard\/gigs/)
+    await expect(page).toHaveURL(/\/gigs/)
 
     // Verify the gig is visible on the page
     const gigTitle = page.locator(`text=${gig.title}`)

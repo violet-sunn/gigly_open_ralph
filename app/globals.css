@@ -4,6 +4,28 @@
 
 @layer base {
   :root {
+    /* OpenSpec semantic UI tokens (subset for Specialist Profile pilot)
+       Source: openspec/specs/ui/design-tokens.json */
+    --bg-surface-level-0: #01030e;
+    --bg-surface-level-1: #060813;
+    --bg-surface-level-2: #10121c;
+
+    --border-neutral-weak: #242935;
+    --border-neutral-strong: #242935;
+    --border-brand-default: #0265dc;
+
+    --text-neutral-strong: #ffffff;
+    --text-neutral-weak: #b2b2b2;
+    --text-neutral-inverted: #262626;
+    --text-brand-default: #1379f3;
+
+    --gradient-brand: linear-gradient(
+      90.1454deg,
+      rgba(0, 136, 255, 0.1) 1.9769%,
+      rgba(0, 136, 255, 0.083) 11.158%,
+      rgba(0, 136, 255, 0) 75.021%
+    );
+
     --background: 220 15% 6%;
     --foreground: 210 40% 98%;
 
@@ -72,6 +94,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-color: var(--bg-surface-level-0);
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }

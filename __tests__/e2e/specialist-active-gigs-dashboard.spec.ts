@@ -70,12 +70,12 @@ test.describe('Specialist Active Gigs Dashboard E2E', () => {
     await page.goto('http://localhost:3000/dashboard')
     await page.waitForLoadState('networkidle')
 
-    // Verify Active Gigs section exists
-    const activeGigsHeading = page.locator('text=Active Gigs')
+    // Verify Active Work section exists (specialist dashboard tab)
+    const activeGigsHeading = page.locator('text=Active Work')
     await expect(activeGigsHeading).toBeVisible()
 
-    // Verify My Applications section exists
-    const applicationsHeading = page.locator('text=My Applications')
+    // Verify Pending Applications section exists
+    const applicationsHeading = page.locator('text=Pending Applications')
     await expect(applicationsHeading).toBeVisible()
 
     // Verify Active Gigs appears before My Applications
@@ -118,11 +118,11 @@ test.describe('Specialist Active Gigs Dashboard E2E', () => {
     await page.waitForLoadState('networkidle')
 
     // Verify empty state message
-    await expect(page.locator('text=No active gigs yet')).toBeVisible()
-    await expect(page.locator('text=Browse and apply to gigs')).toBeVisible()
+    await expect(page.locator('text=No Active Work Yet')).toBeVisible()
+    await expect(page.locator('text=Browse available gigs and apply to projects that match your skills')).toBeVisible()
 
     // Verify link to browse gigs exists
-    const browseLink = page.locator('a:has-text("Browse and apply to gigs")')
+    const browseLink = page.locator('a:has-text("Browse Gigs")')
     await expect(browseLink).toBeVisible()
     await expect(browseLink).toHaveAttribute('href', '/gigs')
   })
@@ -152,7 +152,7 @@ test.describe('Specialist Active Gigs Dashboard E2E', () => {
       title: 'Build REST API',
       status: 'IN_PROGRESS',
       assignedSpecialistId: specialist.id,
-      budget: 10000000 // 100,000 roubles in kopecks
+      budget: 10000000 // 100,000 roubles in kopecks (formatRoubles divides by 100)
     })
 
     // Set authenticated session
@@ -176,8 +176,8 @@ test.describe('Specialist Active Gigs Dashboard E2E', () => {
     // Verify gig title is displayed
     await expect(page.locator('text=Build REST API')).toBeVisible()
 
-    // Verify budget is displayed
-    await expect(page.locator('text=100,000 ₽')).toBeVisible()
+    // Verify budget is displayed (locale formatting may use space or comma)
+    await expect(page.locator('text=/100[\s,]000 ₽/')).toBeVisible()
 
     // Verify client company name is displayed
     await expect(page.locator('text=Client: Test Company LLC')).toBeVisible()
@@ -231,8 +231,8 @@ test.describe('Specialist Active Gigs Dashboard E2E', () => {
     await page.goto('http://localhost:3000/dashboard')
     await page.waitForLoadState('networkidle')
 
-    // Click on the active gig
-    await page.click('text=Build REST API')
+    // Click on the active gig (use the link card to avoid clicking intercepted inner text)
+    await page.click(`a[href^="/gigs/${gig.id}"]`)
     await page.waitForLoadState('networkidle')
 
     // Verify navigation to gig detail page
@@ -311,6 +311,9 @@ test.describe('Specialist Active Gigs Dashboard E2E', () => {
     await expect(page.locator('text=In Progress').first()).toBeVisible()
     await expect(page.locator('text=Under Review').first()).toBeVisible()
     await expect(page.locator('text=Completed - Awaiting Payment').first()).toBeVisible()
+
+    // Paid gigs appear under the Archive tab
+    await page.click('button:has-text("Archive")')
     await expect(page.locator('text=Paid').first()).toBeVisible()
   })
 
@@ -361,12 +364,15 @@ test.describe('Specialist Active Gigs Dashboard E2E', () => {
     await page.goto('http://localhost:3000/dashboard')
     await page.waitForLoadState('networkidle')
 
+    // Paid gigs appear under the Archive tab
+    await page.click('button:has-text("Archive")')
+
     // Verify PAID badge is displayed
     await expect(page.locator('text=Paid').first()).toBeVisible()
 
     // Verify payment date is displayed (formatted as ru-RU locale)
     const formattedDate = paidDate.toLocaleDateString('ru-RU')
-    await expect(page.locator(`text=${formattedDate}`).first()).toBeVisible()
+    await expect(page.locator(`text=Paid on ${formattedDate}`).first()).toBeVisible()
   })
 
   test('shows client company name when available', async ({ page }) => {

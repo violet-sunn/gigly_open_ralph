@@ -93,7 +93,7 @@ test.describe('Complete Client Journey E2E', () => {
     // ========================================================================
 
     await page.goto('http://localhost:3000/gigs/new')
-    await expect(page).toHaveURL(/\/dashboard\/gigs\/new/)
+    await expect(page).toHaveURL(/\/gigs\/new/)
 
     // Fill gig creation form with Russian data
     await page.fill('input[name="title"]', 'Разработка REST API для мобильного приложения')

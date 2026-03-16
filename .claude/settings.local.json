@@ -136,7 +136,9 @@
       "Bash(wc -l openspec/changes/multi-page-navigation/*.md openspec/changes/multi-page-navigation/specs/*/*.md)",
       "Bash(git restore:*)",
       "Bash(find \"app/\\(protected\\)\" -name \"layout.tsx\" -type f)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "mcp__figma__get_design_context",
+      "Bash(python:*)"
     ]
   }
 }

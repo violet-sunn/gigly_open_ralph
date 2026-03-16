@@ -13,7 +13,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="bg-navy-900 text-white min-h-screen">{children}</body>
+      <body className="text-white min-h-screen" style={{ backgroundColor: 'var(--bg-surface-level-0)' }}>
+        {children}
+      </body>
     </html>
   );
 }

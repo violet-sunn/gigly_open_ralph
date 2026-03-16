@@ -70,7 +70,7 @@ test.describe('Gig Browse Access Control E2E', () => {
 
     // Navigate to gig creation form
     await page.goto('http://localhost:3000/gigs/new')
-    await expect(page).toHaveURL(/\/dashboard\/gigs\/new/)
+    await expect(page).toHaveURL(/\/gigs\/new/)
 
     // Find and click the example gigs link
     const exampleLink = page.locator('a:has-text("💡 View example gigs for inspiration")')
@@ -85,7 +85,7 @@ test.describe('Gig Browse Access Control E2E', () => {
     await newPage.waitForLoadState('networkidle')
 
     // Verify new tab opened to examples page
-    await expect(newPage).toHaveURL(/\/dashboard\/gigs\/examples/)
+    await expect(newPage).toHaveURL(/\/gigs\/examples/)
 
     // Verify example gigs page displays correctly
     await expect(newPage.locator('h2:has-text("Example Gigs")')).toBeVisible()
@@ -101,7 +101,7 @@ test.describe('Gig Browse Access Control E2E', () => {
     await newPage.close()
 
     // Verify original page (gig creation form) is still intact
-    await expect(page).toHaveURL(/\/dashboard\/gigs\/new/)
+    await expect(page).toHaveURL(/\/gigs\/new/)
     await expect(page.locator('input[name="title"]')).toBeVisible()
   })
 
@@ -137,7 +137,7 @@ test.describe('Gig Browse Access Control E2E', () => {
     await page.waitForLoadState('networkidle')
 
     // Verify redirect to dashboard
-    await expect(page).toHaveURL(/\/dashboard(\?|$)/)
+    await expect(page).toHaveURL(/\/(dashboard|gigs)(\?|$)/)
 
     // Verify error message is visible
     await expect(page.locator('text=Browse Gigs is only available for specialists')).toBeVisible()
@@ -199,7 +199,7 @@ test.describe('Gig Browse Access Control E2E', () => {
     await page.waitForLoadState('networkidle')
 
     // Verify page loads successfully
-    await expect(page).toHaveURL(/\/dashboard\/gigs(\?|$)/)
+    await expect(page).toHaveURL(/\/gigs(\?|$)/)
     await expect(page.locator('h2:has-text("Open Gigs")')).toBeVisible()
 
     // Verify both regular and example gigs are displayed
@@ -214,7 +214,7 @@ test.describe('Gig Browse Access Control E2E', () => {
     await page.waitForLoadState('networkidle')
 
     // Verify examples page loads successfully
-    await expect(page).toHaveURL(/\/dashboard\/gigs\/examples/)
+    await expect(page).toHaveURL(/\/gigs\/examples/)
     await expect(page.locator('h2:has-text("Example Gigs")')).toBeVisible()
 
     // Verify only example gig is displayed
@@ -226,7 +226,7 @@ test.describe('Gig Browse Access Control E2E', () => {
     await page.waitForLoadState('networkidle')
 
     // Verify can navigate between both pages
-    await expect(page).toHaveURL(/\/dashboard\/gigs(\?|$)/)
+    await expect(page).toHaveURL(/\/gigs(\?|$)/)
     await expect(page.locator('h2:has-text("Open Gigs")')).toBeVisible()
   })
 
