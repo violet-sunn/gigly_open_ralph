@@ -11,6 +11,36 @@ The project has a comprehensive 134KB design token system (`openspec/specs/ui/de
 
 From `project.md`, "Professional B2B Experience" is a core design principle and "Quality Over Quantity" positioning requires polished UI. The current ad-hoc styling approach creates three critical problems: (1) inconsistent visual language across 14 pages and 46 components, (2) no single source of truth for design decisions, making maintenance difficult, and (3) inability to systematically update the design system without touching every file. A token-driven approach ensures design consistency, maintainability, and the professional appearance that B2B clients expect from a quality platform.
 
+## Design System Reference
+
+**Figma Prototype:** https://www.figma.com/design/Nexptl0M63VM62lPVkjxxx/gigli?node-id=4032-181&t=ULnKPLddnbzb4xxM-4
+
+This prototype demonstrates the target design patterns for the dashboard. Use it to understand the design system logic, not as pixel-perfect specifications. Extract and apply these patterns:
+
+**Visual Hierarchy Pattern:**
+- Primary content: Large cards with `bg-surface-level-1` (#060813), prominent headings, clear section separation
+- Secondary content: Nested cards with `bg-surface-level-2` (#10121c) for visual depth
+- Tertiary content: Subtle borders (`border-neutral-weak` #242935), muted text for supporting information
+
+**Status Communication Pattern:**
+- Created/Inactive states: Gray backgrounds (#333643), muted text (#b5b5b5)
+- Active/In Progress states: Green backgrounds (#044329), success text (#43c78f)
+- Apply this semantic color logic consistently across all status indicators (gig status, application status, etc.)
+
+**Spacing Rhythm:**
+- Section gaps: 36-48px between major sections (gap-9 to gap-12)
+- Card padding: 20px internal spacing (p-5 or p-6)
+- Card gaps: 24px between cards in lists (gap-6)
+- Maintain consistent rhythm across all pages
+
+**CTA Prominence:**
+- Primary actions: Solid blue (#1379f3), prominent placement, clear visual weight
+- Secondary actions: Text links with blue hover states
+- Sidebar CTAs: Full-width blue cards with subtle gradient backgrounds
+
+**Reference Implementation:**
+Phase 5 (Dashboard Pages) establishes these patterns as the canonical implementation. Subsequent phases should apply the same design logic to their specific content, maintaining visual consistency across the application.
+
 ## Scope
 
 ### Systems Affected
@@ -122,7 +152,7 @@ Execute these changes in order:
 
 ### 4. Navigation and Layout Components
 ```bash
-/ralphy-plan ui-navigation-layout "Migrate navigation and layout components to token-based styling. Requirements: (1) Update MainNav component to use token-based colors, spacing, and typography, (2) Update NotificationBell component styling, (3) Update page layout containers (max-width, padding, spacing), (4) Preserve all navigation link text exactly as-is, (5) Maintain active/hover states for navigation items, (6) Keep notification badge functionality unchanged. Test: run E2E navigation tests, verify all links navigate correctly, check notification bell interactions, test responsive behavior on mobile."
+/ralphy-plan ui-navigation-layout "Migrate navigation and layout components to token-based styling. Reference Figma prototype (https://www.figma.com/design/Nexptl0M63VM62lPVkjxxx/gigli?node-id=4032-181) for header layout patterns - note the dark background (#060813), navigation structure, notification badge with count, and profile avatar positioning. Requirements: (1) Update MainNav component to use token-based colors (bg-surface-level-1 for header), spacing, and typography, (2) Update NotificationBell component styling with badge count display, (3) Update page layout containers (max-width, padding, spacing), (4) Preserve all navigation link text exactly as-is, (5) Maintain active/hover states for navigation items, (6) Keep notification badge functionality unchanged. Test: run E2E navigation tests, verify all links navigate correctly, check notification bell interactions, test responsive behavior on mobile."
 ```
 
 **Why:** Navigation is the primary wayfinding mechanism. Consistent styling improves usability and brand perception.
@@ -133,10 +163,10 @@ Execute these changes in order:
 
 ### 5. Dashboard Pages
 ```bash
-/ralphy-plan ui-dashboard-pages "Migrate dashboard pages to token-based styling. Requirements: (1) Update CLIENT dashboard layout and styling (My Gigs section, Post Gig CTA), (2) Update SPECIALIST dashboard with tabs (Active Work, Pending Applications, Archive), (3) Update profile completion cards and empty states, (4) Preserve all tab labels and button text, (5) Maintain gig/application card click handlers, (6) Keep dashboard statistics and counts unchanged. Test: run client-journey and specialist-journey E2E tests, verify tab switching works, check gig/application navigation, test profile completion hints."
+/ralphy-plan ui-dashboard-pages "Migrate dashboard pages to token-based styling using Figma prototype (https://www.figma.com/design/Nexptl0M63VM62lPVkjxxx/gigli?node-id=4032-181) as design reference. This phase establishes the visual hierarchy and component patterns that subsequent phases will follow. Requirements: (1) Implement card hierarchy: primary cards (My Gigs section) use bg-surface-level-1, nested order/gig cards use bg-surface-level-2 for depth, (2) Implement status badge system: Created=gray (#333643/#b5b5b5), In Progress=green (#044329/#43c78f), apply semantic color logic consistently, (3) Implement spacing rhythm: section gaps 36-48px (gap-9 to gap-12), card padding 20px (p-5/p-6), card gaps 24px (gap-6), (4) Implement CTA prominence: primary actions solid blue (#1379f3), sidebar CTA full-width blue card with gradient, (5) Update CLIENT dashboard (My Gigs section, Post Gig CTA) and SPECIALIST dashboard (tabs: Active Work, Pending Applications, Archive), (6) Preserve all tab labels and button text, (7) Maintain functionality. Test: run client-journey and specialist-journey E2E tests, verify visual hierarchy matches prototype conceptually, check tab switching and navigation."
 ```
 
-**Why:** Dashboard is the primary landing page for authenticated users. Professional appearance is critical for first impression.
+**Why:** Dashboard is the primary landing page for authenticated users. Professional appearance is critical for first impression. This phase establishes the canonical design patterns.
 
 **Testing Friction:** HIGH - E2E tests interact with dashboard extensively. Mitigation: preserve button text, tab labels, and card structure.
 
@@ -144,7 +174,7 @@ Execute these changes in order:
 
 ### 6. Gig Pages (Browse, Detail, Create)
 ```bash
-/ralphy-plan ui-gig-pages "Migrate gig-related pages to token-based styling. Requirements: (1) Update gig browse page with filter panel and gig grid, (2) Update gig detail page layout (two-column with sidebar), (3) Update gig creation form with visual sections, (4) Preserve all form field names, labels, and placeholders, (5) Maintain filter functionality and URL parameters, (6) Keep application/message sections unchanged structurally. Test: run gig-creation, gig-filtering, and application-flow integration tests, verify form submission works, check filter state persistence, test messaging functionality."
+/ralphy-plan ui-gig-pages "Migrate gig pages following the design patterns established in Dashboard (Phase 5). Apply the same visual hierarchy, status badge system, spacing rhythm, and CTA prominence patterns to gig-specific content. Requirements: (1) Gig cards: use same card hierarchy as Dashboard order cards (bg-surface-level-2 on bg-surface-level-1 background), (2) Status badges: apply same semantic color system (OPEN=gray, IN_PROGRESS=green, COMPLETED=appropriate color, etc.), (3) Spacing: use same rhythm (gap-6 between cards, p-5/p-6 padding, gap-9 to gap-12 for sections), (4) Filter sidebar: apply sidebar pattern similar to Dashboard sidebar widgets, (5) CTAs: primary actions prominent blue, secondary actions text links, (6) Update gig browse page with filter panel and gig grid, gig detail page (two-column layout), gig creation form with visual sections, (7) Preserve all form field names, labels, placeholders, and filter functionality. Test: verify visual consistency with Dashboard, run gig-creation, gig-filtering, and application-flow integration tests."
 ```
 
 **Why:** Gig pages are core to the marketplace functionality. Clear visual hierarchy improves usability for both clients and specialists.
@@ -155,7 +185,7 @@ Execute these changes in order:
 
 ### 7. Profile Pages
 ```bash
-/ralphy-plan ui-profile-pages "Migrate profile pages to token-based styling. Requirements: (1) Update profile view page layout (already partially token-based from specialist-profile-ui-tokens), (2) Update profile edit page to match view page layout, (3) Update public profile page styling, (4) Preserve all form field names and labels, (5) Maintain profile completion logic, (6) Keep edit/save button text unchanged. Test: run profile-specialist-ui-tokens E2E test, verify profile edit form submission, check profile completion hints, test public profile access."
+/ralphy-plan ui-profile-pages "Migrate profile pages following the design patterns established in Dashboard (Phase 5). Apply the same visual hierarchy, card system, spacing rhythm, and form styling patterns. Requirements: (1) Profile cards: use same card hierarchy (bg-surface-level-1 for main cards, bg-surface-level-2 for nested sections), (2) Spacing: apply same rhythm (gap-6 for card spacing, p-5/p-6 padding, gap-9 to gap-12 for sections), (3) Form styling: consistent with Dashboard form elements, (4) CTAs: primary actions prominent blue, edit links text blue, (5) Update profile view page layout (already partially token-based from specialist-profile-ui-tokens), profile edit page to match view page, public profile page styling, (6) Preserve all form field names, labels, and profile completion logic. Test: verify visual consistency with Dashboard, run profile-specialist-ui-tokens E2E test, verify profile edit form submission, check profile completion hints."
 ```
 
 **Why:** Profile pages communicate specialist expertise and client credibility. Professional styling builds trust.
@@ -166,7 +196,7 @@ Execute these changes in order:
 
 ### 8. Admin Pages
 ```bash
-/ralphy-plan ui-admin-pages "Migrate admin pages to token-based styling. Requirements: (1) Update admin dashboard with statistics cards, (2) Update user management page with filters and pagination, (3) Update gig management page with filters and pagination, (4) Preserve all filter labels and button text, (5) Maintain table/list structure for users and gigs, (6) Keep moderation action buttons unchanged. Test: run admin-moderation E2E tests, verify suspend/unsuspend actions work, check gig close functionality, test pagination and filters."
+/ralphy-plan ui-admin-pages "Migrate admin pages following the design patterns established in Dashboard (Phase 5). Apply the same visual hierarchy, card system, spacing rhythm, and status badge patterns to admin-specific content. Requirements: (1) Statistics cards: use same card hierarchy as Dashboard (bg-surface-level-1), (2) User/gig lists: apply same card pattern for list items (bg-surface-level-2 on bg-surface-level-1), (3) Status indicators: use same semantic color system for user status and gig status, (4) Spacing: apply same rhythm (gap-6 for cards, p-5/p-6 padding, gap-9 to gap-12 for sections), (5) Filter panels: consistent with gig filter styling, (6) Action buttons: prominent blue for primary actions, appropriate colors for moderation actions, (7) Update admin dashboard, user management page, gig management page with filters and pagination, (8) Preserve all filter labels, button text, and table/list structure. Test: verify visual consistency with Dashboard, run admin-moderation E2E tests, verify suspend/unsuspend actions, check gig close functionality, test pagination and filters."
 ```
 
 **Why:** Admin pages need clear visual hierarchy for moderation tasks. Consistent styling improves efficiency.
@@ -177,7 +207,7 @@ Execute these changes in order:
 
 ### 9. Authentication Pages
 ```bash
-/ralphy-plan ui-auth-pages "Migrate authentication pages to token-based styling. Requirements: (1) Update login page form styling, (2) Update registration page with role selector, (3) Update homepage for anonymous users, (4) Preserve all form field names and labels, (5) Maintain role selector values (CLIENT, SPECIALIST), (6) Keep error message display unchanged. Test: run login and registration integration tests, verify authentication flow works, check role selection, test error handling."
+/ralphy-plan ui-auth-pages "Migrate authentication pages following the design patterns established in Dashboard (Phase 5). Apply the same visual hierarchy, card system, spacing rhythm, and form styling patterns to auth-specific content. Requirements: (1) Form cards: use same card hierarchy (bg-surface-level-1 for form containers), (2) Form inputs: consistent styling with Dashboard form elements, (3) Spacing: apply same rhythm (p-5/p-6 padding, gap-6 for form fields), (4) CTAs: primary actions prominent blue (Login, Register buttons), secondary actions text links, (5) Error messages: consistent styling with Dashboard warning/error patterns, (6) Update login page form, registration page with role selector, homepage for anonymous users, (7) Preserve all form field names, labels, role selector values (CLIENT, SPECIALIST), and error message display. Test: verify visual consistency with Dashboard, run login and registration integration tests, verify authentication flow, check role selection, test error handling."
 ```
 
 **Why:** Auth pages are the first touchpoint for new users. Professional appearance affects signup conversion.
@@ -188,7 +218,7 @@ Execute these changes in order:
 
 ### 10. Visual Consistency Audit and Polish
 ```bash
-/ralphy-plan ui-consistency-audit "Audit all pages for visual consistency and polish. Requirements: (1) Review all 14 pages for consistent spacing, typography, and color usage, (2) Verify all interactive elements have proper hover/focus states, (3) Check responsive behavior on mobile (320px) and desktop (1920px), (4) Ensure WCAG AA contrast ratios for all text, (5) Document any remaining ad-hoc styles that need token equivalents, (6) Create visual regression test baseline (optional). Test: manual QA checklist for all pages, accessibility audit with axe-core, responsive testing on multiple viewports, run full test suite to confirm zero regressions."
+/ralphy-plan ui-consistency-audit "Audit all pages for visual consistency and polish against the design patterns established in Dashboard (Phase 5). Verify consistent application of visual hierarchy, status badge system, spacing rhythm, and CTA prominence across all 14 pages. Requirements: (1) Review all pages for consistent spacing (gap-6 for cards, p-5/p-6 padding, gap-9 to gap-12 for sections), typography, and color usage, (2) Verify all status badges use semantic color system consistently (gray for inactive, green for active, etc.), (3) Verify all interactive elements have proper hover/focus states matching Dashboard patterns, (4) Check responsive behavior on mobile (320px) and desktop (1920px), (5) Ensure WCAG AA contrast ratios for all text, (6) Document any remaining ad-hoc styles that need token equivalents, (7) Create visual regression test baseline (optional). Test: manual QA checklist for all pages comparing against Dashboard reference, accessibility audit with axe-core, responsive testing on multiple viewports, run full test suite to confirm zero regressions."
 ```
 
 **Why:** Final audit ensures consistent application of design system and catches edge cases missed in individual changes.
