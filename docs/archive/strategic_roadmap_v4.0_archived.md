@@ -1,3 +1,29 @@
+# Strategic Roadmap v4.0 (ARCHIVED)
+
+**⚠️ This document has been archived and replaced by the new planning system.**
+
+**Date Archived:** 2026-03-16
+
+**Reason:** This 941-line document mixed completed work, active planning, and implementation details in a way that was difficult to maintain. It has been migrated to a structured planning system.
+
+**New Planning System Location:**
+- **Roadmap:** `openspec/planning/roadmap.md` - High-level phases and priorities
+- **Milestones:** `openspec/planning/milestones/` - Business goals with success criteria
+- **Sprints:** `openspec/planning/sprints/` - 2-4 week execution plans
+- **Changes:** `openspec/changes/` - Individual feature implementation (via `/ralphy-plan`)
+
+**Migration Summary:**
+- Active phases (Phase 0-7) → `openspec/planning/roadmap.md`
+- Phase 0 changes (MVP-1 to MVP-8) → `openspec/planning/milestones/2026-q1-mvp-business-validation.md`
+- Phase 1 changes (INF-1 to INF-3) → `openspec/planning/milestones/2026-q2-infrastructure-scale.md`
+- Phase 2 changes (ENG-1 to ENG-3) → `openspec/planning/milestones/2026-q2-user-engagement.md`
+- Completed work references → Already in `openspec/archive/`, removed from planning
+- Business context → Remains in `openspec/project.md`
+
+**For current planning, see:** `openspec/planning/README.md`
+
+---
+
 # Gigly Strategic Roadmap
 
 **Document Version:** 4.0 (Post-QA Phase)

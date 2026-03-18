@@ -138,7 +138,13 @@
       "Bash(find \"app/\\(protected\\)\" -name \"layout.tsx\" -type f)",
       "Bash(find:*)",
       "mcp__figma__get_design_context",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(./scripts/planning/list-active.sh:*)",
+      "Bash(/tmp/header.txt:*)",
+      "Bash(./scripts/planning/new-milestone.sh:*)",
+      "Bash(head:*)",
+      "Bash(./scripts/planning/new-sprint.sh:*)",
+      "Bash(wc -l openspec/planning/*.md openspec/planning/milestones/*.md openspec/planning/sprints/*.md openspec/planning/templates/*.md)"
     ]
   }
 }

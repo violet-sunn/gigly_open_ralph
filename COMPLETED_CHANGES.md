@@ -310,11 +310,19 @@ All completed changes are documented in `openspec/archive/[change-name]/`:
 
 ## Next Phase
 
-See `strategic_roadmap.md` for future work:
-- PostgreSQL migration
-- Email notifications
-- Real payment processing
-- Post-MVP features
+For strategic planning, use the planning document system:
+
+```bash
+# Ask AI what to build next
+/ralphy-plan analyze-next-steps "What should we build next based on project.md?"
+/ralphy-implement analyze-next-steps
+
+# Or plan a specific initiative
+/ralphy-plan create-[initiative]-plan "Description of what needs to be built"
+/ralphy-implement create-[initiative]-plan
+```
+
+See `openspec/planning/README.md` for the planning workflow.
 
 ---
 

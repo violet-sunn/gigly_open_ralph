@@ -188,7 +188,7 @@ Gigly is a **fully functional B2B marketplace MVP** with comprehensive testing, 
 
 ## Documentation
 
-- **strategic_roadmap.md** - Future features & post-MVP work
+- **openspec/planning/** - Strategic planning documents (created via ralphy-plan)
 - **COMPLETED_CHANGES.md** - All completed work (79 changes)
 - **openspec/archive/** - Detailed specs for each change
 - **TESTING.md** - Test documentation
