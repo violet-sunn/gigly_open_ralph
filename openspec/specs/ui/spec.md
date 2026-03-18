@@ -1,5 +1,22 @@
 # UI Specification
 
+## Design Token System
+
+All UI styling SHOULD use design tokens from `openspec/specs/ui/design-tokens.json` as the single source of truth. Tokens are automatically parsed and integrated into Tailwind CSS classes and CSS variables.
+
+**Token Usage:**
+- New components SHOULD use design tokens via Tailwind utility classes (e.g., `bg-surface-level-0`, `text-neutral-strong`)
+- CSS variables are available for custom styles (e.g., `var(--bg-surface-level-0)`)
+- Hardcoded color/typography values should be avoided unless appropriate tokens don't exist
+
+**Token Regeneration:**
+When design-tokens.json is updated, run `node scripts/parse-design-tokens.js` to regenerate Tailwind config and CSS variables.
+
+**Documentation:**
+See `docs/DESIGN_SYSTEM.md` for detailed token naming conventions, usage examples, and migration guidance.
+
+---
+
 ## Requirements
 
 ### Requirement: Homepage

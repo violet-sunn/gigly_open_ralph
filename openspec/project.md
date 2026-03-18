@@ -431,6 +431,7 @@ Constraints: One application per specialist per gig. Only SPECIALIST role can ap
 - Sessions: JWT via `jose`, managed in `lib/session.ts`, stored in HTTP-only cookies
 - Route protection: Next.js middleware (`middleware.ts`)
 - File structure: Next.js App Router conventions
+- **Design Tokens**: Managed via `openspec/specs/ui/design-tokens.json` (single source of truth). Tokens are automatically parsed and integrated into Tailwind config and CSS variables. See `docs/DESIGN_SYSTEM.md` for detailed usage and token naming conventions. New UI work should use design tokens, not hardcoded values.
 
 ### Prisma Query Conventions
 

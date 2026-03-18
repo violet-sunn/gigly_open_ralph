@@ -7,6 +7,111 @@ This document defines the design tokens and component patterns for the Gigly pla
 
 ---
 
+## Design Token System
+
+Gigly uses an automated design token system powered by `openspec/specs/ui/design-tokens.json` as the single source of truth. Tokens are automatically parsed and integrated into both Tailwind CSS and CSS variables.
+
+### Token Naming Convention
+
+Tokens follow a hierarchical naming pattern: `[category]-[subcategory]-[name]`
+
+**Examples:**
+- Colors: `text-neutral-strong`, `bg-surface-level-0`, `border-brand-default`
+- Typography: `headline-xl`, `body-md`, `label-sm`
+- Effects: `shadow-100`, `shadow-200`
+
+### Using Tokens via Tailwind Classes
+
+Design tokens are available as Tailwind utility classes:
+
+```tsx
+// Background colors
+<div className="bg-surface-level-0">
+
+// Text colors
+<p className="text-neutral-strong">
+<span className="text-brand-default">
+
+// Border colors
+<div className="border border-neutral-weak">
+
+// Typography
+<h1 className="text-headline-xl">
+<p className="text-body-md">
+```
+
+### Using Tokens via CSS Variables
+
+All tokens are also available as CSS variables for use in custom styles:
+
+```css
+.custom-component {
+  background-color: var(--bg-surface-level-0);
+  color: var(--text-neutral-strong);
+  border: 1px solid var(--border-neutral-weak);
+  font-size: var(--font-size-headline-xl);
+  line-height: var(--line-height-headline-xl);
+  box-shadow: var(--shadow-200);
+}
+```
+
+**When to use CSS variables vs Tailwind classes:**
+- Use Tailwind classes for standard component styling (preferred)
+- Use CSS variables for dynamic styles, complex calculations, or when Tailwind classes aren't sufficient
+
+### Regenerating Tokens
+
+When design tokens are updated in Figma and exported to `openspec/specs/ui/design-tokens.json`:
+
+1. Run the parser script:
+   ```bash
+   node scripts/parse-design-tokens.js
+   ```
+
+2. Verify generated files:
+   - `scripts/generated-tokens.js` (Tailwind config)
+   - `scripts/generated-tokens.css` (CSS variables)
+
+3. Test the build:
+   ```bash
+   npm run build
+   ```
+
+4. Commit all changes:
+   ```bash
+   git add openspec/specs/ui/design-tokens.json scripts/generated-tokens.*
+   git commit -m "Update design tokens"
+   ```
+
+### Migration Guide
+
+**Migrating from manual tokens to automated tokens:**
+
+Before (manual):
+```tsx
+<div className="bg-navy-900 text-gray-300 border-gray-700">
+```
+
+After (automated):
+```tsx
+<div className="bg-surface-level-0 text-neutral-strong border-neutral-weak">
+```
+
+**Benefits of automated tokens:**
+- Single source of truth (design-tokens.json)
+- Automatic sync with Figma designs
+- Consistent naming across the codebase
+- Easier to maintain and update
+- Better semantic meaning (surface-level-0 vs navy-900)
+
+**Migration approach:**
+- Gradual migration is recommended
+- Manual tokens remain available for backward compatibility
+- New components should use automated tokens
+- Existing components can be migrated incrementally
+
+---
+
 ## Color Palette
 
 ### Navy (Background Colors)

@@ -1,5 +1,9 @@
 import type { Config } from "tailwindcss";
 
+// Auto-generated design tokens from openspec/specs/ui/design-tokens.json
+// To regenerate: node scripts/parse-design-tokens.js
+const tokens = require('./scripts/generated-tokens.js');
+
 export default {
   darkMode: ["class"],
   content: [
@@ -10,7 +14,10 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Design system colors from mockups
+        // Design tokens from design-tokens.json (auto-generated)
+        ...tokens.colors,
+
+        // Manual design system colors (backward compatibility)
         navy: {
           900: "#0A0E27", // Primary background
           800: "#141937", // Card background (slightly lighter)
@@ -87,6 +94,10 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontSize: {
+        // Design tokens from design-tokens.json (auto-generated)
+        ...tokens.fontSize,
+
+        // Manual font sizes (backward compatibility)
         xs: ["0.75rem", { lineHeight: "1rem" }],
         sm: ["0.875rem", { lineHeight: "1.25rem" }],
         base: ["1rem", { lineHeight: "1.5rem" }],
@@ -97,12 +108,20 @@ export default {
         "4xl": ["2.25rem", { lineHeight: "2.5rem" }],
       },
       fontWeight: {
+        // Design tokens from design-tokens.json (auto-generated)
+        ...tokens.fontWeight,
+
+        // Manual font weights (backward compatibility)
         normal: "400",
         medium: "500",
         semibold: "600",
         bold: "700",
       },
       boxShadow: {
+        // Design tokens from design-tokens.json (auto-generated)
+        ...tokens.boxShadow,
+
+        // Manual shadows (backward compatibility)
         sm: "0 1px 2px 0 rgb(0 0 0 / 0.05)",
         DEFAULT: "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
         md: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
