@@ -105,8 +105,8 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
               <div className="flex justify-between items-start">
                 <h2 className="text-3xl font-bold text-white leading-tight">{gig.title}</h2>
                 <span className={`text-xs px-2 py-1 rounded-full flex-shrink-0 ml-4 ${
-                  gig.status === 'PAID' ? 'bg-green-500/10 text-green-400' :
-                  gig.status === 'COMPLETED' ? 'bg-yellow-500/10 text-yellow-400' :
+                  gig.status === 'PAID' ? 'bg-success-500/10 text-success-400' :
+                  gig.status === 'COMPLETED' ? 'bg-warning-500/10 text-warning-400' :
                   'bg-blue-500/10 text-blue-400'
                 }`}>
                   {gig.status === 'PAID' ? 'Paid' :
@@ -116,8 +116,8 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
               </div>
 
               {gig.status === 'PAID' && gig.paidAt && (
-                <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-md">
-                  <p className="text-sm text-green-400">
+                <div className="p-3 bg-success-500/10 border border-success-500/20 rounded-md">
+                  <p className="text-sm text-success-400">
                     <span className="font-medium">Payment confirmed on:</span> {gig.paidAt.toLocaleDateString('ru-RU')}
                   </p>
                 </div>
@@ -229,10 +229,10 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
             ) : myApplication && myApplication.status === 'PENDING' ? (
               <>
                 <div className="text-center mb-4">
-                  <p className="text-sm text-green-400 font-medium">You have already applied to this gig.</p>
+                  <p className="text-sm text-success-400 font-medium">You have already applied to this gig.</p>
                 </div>
-                <div className="mt-4 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded">
-                  <p className="text-sm text-yellow-200 mb-3">
+                <div className="mt-4 p-4 bg-warning-500/10 border border-warning-500/20 rounded">
+                  <p className="text-sm text-warning-200 mb-3">
                     Changed your mind? You can withdraw your application.
                   </p>
                   <WithdrawApplicationButton applicationId={myApplication.id} />
@@ -252,7 +252,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
               </div>
             ) : hasApplied ? (
               <div className="text-center">
-                <p className="text-sm text-green-400 font-medium">You have already applied to this gig.</p>
+                <p className="text-sm text-success-400 font-medium">You have already applied to this gig.</p>
               </div>
             ) : gig.status !== 'OPEN' ? (
               <div className="text-center">
@@ -339,13 +339,13 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
                         )}
                       </div>
                       {app.status === 'ACCEPTED' ? (
-                        <span className="text-xs px-2 py-1 rounded-full bg-green-500/10 text-green-400">Accepted</span>
+                        <span className="text-xs px-2 py-1 rounded-full bg-success-500/10 text-success-400">Accepted</span>
                       ) : app.status === 'REJECTED' ? (
-                        <span className="text-xs px-2 py-1 rounded-full bg-red-500/10 text-red-400">Rejected</span>
+                        <span className="text-xs px-2 py-1 rounded-full bg-error-500/10 text-error-400">Rejected</span>
                       ) : app.status === 'WITHDRAWN' ? (
                         <span className="text-xs px-2 py-1 rounded-full bg-gray-500/50 text-gray-400">WITHDRAWN</span>
                       ) : (
-                        <span className="text-xs px-2 py-1 rounded-full bg-yellow-500/10 text-yellow-400">Pending</span>
+                        <span className="text-xs px-2 py-1 rounded-full bg-warning-500/10 text-warning-400">Pending</span>
                       )}
                     </div>
                     {app.specialist.specialistProfile?.techStack && (
@@ -462,12 +462,12 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
         )}
 
         {gig.closedByAdmin && (
-          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
-            <p className="text-sm text-red-400 font-medium">
+          <div className="bg-error-500/10 border border-error-500/20 rounded-lg p-4">
+            <p className="text-sm text-error-400 font-medium">
               This gig has been closed by administrators and is no longer accepting applications.
             </p>
             {gig.closedAt && (
-              <p className="text-xs text-red-400 mt-1">
+              <p className="text-xs text-error-400 mt-1">
                 Closed on {new Date(gig.closedAt).toLocaleString('ru-RU')}
               </p>
             )}

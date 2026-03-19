@@ -126,11 +126,11 @@ export default async function AdminUsersPage(props: { searchParams: SearchParams
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     {user.suspended ? (
-                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-500/10 text-red-400">
+                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-error-500/10 text-error-400">
                         Suspended
                       </span>
                     ) : (
-                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-500/10 text-green-400">
+                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-success-500/10 text-success-400">
                         Active
                       </span>
                     )}

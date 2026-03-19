@@ -129,7 +129,7 @@ export default async function AdminGigsPage(props: { searchParams: SearchParams 
                       {gig.title}
                     </Link>
                     {gig.closedByAdmin && (
-                      <span className="ml-2 px-2 py-1 text-xs font-medium rounded-full bg-red-500/10 text-red-400">
+                      <span className="ml-2 px-2 py-1 text-xs font-medium rounded-full bg-error-500/10 text-error-400">
                         Closed
                       </span>
                     )}

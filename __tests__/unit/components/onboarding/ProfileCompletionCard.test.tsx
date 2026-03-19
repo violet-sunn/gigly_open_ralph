@@ -138,7 +138,7 @@ describe('ProfileCompletionCard', () => {
         />
       )
 
-      const progressBar = container.querySelector('.bg-red-500')
+      const progressBar = container.querySelector('.bg-error-500')
       expect(progressBar).toBeInTheDocument()
     })
 
@@ -150,7 +150,7 @@ describe('ProfileCompletionCard', () => {
         />
       )
 
-      const progressBar = container.querySelector('.bg-yellow-500')
+      const progressBar = container.querySelector('.bg-warning-500')
       expect(progressBar).toBeInTheDocument()
     })
 

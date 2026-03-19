@@ -11,7 +11,7 @@ export function UnsuspendUserForm({ userId }: { userId: string }) {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="text-green-500 hover:text-green-400 font-medium"
+        className="text-success-500 hover:text-success-400 font-medium"
       >
         Unsuspend
       </button>
@@ -48,7 +48,7 @@ export function UnsuspendUserForm({ userId }: { userId: string }) {
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="flex-1 bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 disabled:opacity-50 transition-colors font-medium"
+                  className="flex-1 bg-success-500 text-white px-4 py-2 rounded-md hover:bg-success-600 disabled:opacity-50 transition-colors font-medium"
                 >
                   {isPending ? 'Unsuspending...' : 'Unsuspend User'}
                 </button>

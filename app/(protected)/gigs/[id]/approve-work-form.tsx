@@ -11,7 +11,7 @@ export function ApproveWorkForm({ gigId }: { gigId: string }) {
       <input type="hidden" name="gigId" value={gigId} />
 
       {state?.error && (
-        <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 p-3 rounded-md">
+        <div className="text-sm text-error-400 bg-error-500/10 border border-error-500/20 p-3 rounded-md">
           {state.error}
         </div>
       )}

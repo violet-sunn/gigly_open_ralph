@@ -31,8 +31,8 @@ export function MessageForm({ gigId }: MessageFormProps) {
       <input type="hidden" name="gigId" value={gigId} />
 
       {state?.error && (
-        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-md">
-          <p className="text-sm text-red-400">{state.error}</p>
+        <div className="p-3 bg-error-500/10 border border-error-500/20 rounded-md">
+          <p className="text-sm text-error-400">{state.error}</p>
         </div>
       )}
 

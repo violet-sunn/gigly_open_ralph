@@ -28,8 +28,8 @@ export function ApplyForm({ gigId }: { gigId: string }) {
     <form action={formAction} className="space-y-6">
       <input type="hidden" name="gigId" value={gigId} />
       {state?.error && (
-        <div className="rounded-md bg-red-500/10 border border-red-500/20 p-4">
-          <p className="text-sm text-red-400">{state.error}</p>
+        <div className="rounded-md bg-error-500/10 border border-error-500/20 p-4">
+          <p className="text-sm text-error-400">{state.error}</p>
         </div>
       )}
 
@@ -41,7 +41,7 @@ export function ApplyForm({ gigId }: { gigId: string }) {
       {/* Technical Approach */}
       <div>
         <label htmlFor="approach" className="block text-sm font-medium text-white">
-          Technical Approach / Methodology <span className="text-red-400">*</span>
+          Technical Approach / Methodology <span className="text-error-400">*</span>
         </label>
         <p className="text-xs text-gray-300 mt-1 leading-relaxed">
           How will you approach this work? What methodology, tools, or architecture will you use? Be specific about your technical plan.
@@ -65,7 +65,7 @@ export function ApplyForm({ gigId }: { gigId: string }) {
       {/* Clarifying Questions */}
       <div>
         <label htmlFor="questions" className="block text-sm font-medium text-white">
-          Clarifying Questions <span className="text-red-400">*</span>
+          Clarifying Questions <span className="text-error-400">*</span>
         </label>
         <p className="text-xs text-gray-300 mt-1 leading-relaxed">
           What questions do you have about the requirements? What needs clarification before you can provide an accurate estimate?

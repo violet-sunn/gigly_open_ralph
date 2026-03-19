@@ -228,7 +228,7 @@ Execute these changes in order:
 ## Status
 
 - [ ] ui-token-foundation
-- [ ] ui-core-components
+- [x] ui-core-components ✅ **COMPLETED 2026-03-19** - Archived in `openspec/archive/ui-core-components/`
 - [ ] ui-card-badge-components
 - [ ] ui-navigation-layout
 - [ ] ui-dashboard-pages
@@ -238,6 +238,7 @@ Execute these changes in order:
 - [ ] ui-auth-pages
 - [ ] ui-consistency-audit
 
-**Progress:** 0/10 changes completed
-**Started:** Not started
-**Completed:** Not completed
+**Progress:** 1/10 changes completed (10%)
+**Started:** 2026-03-19
+**Last Updated:** 2026-03-19
+**Next:** ui-card-badge-components (depends on ui-core-components ✅)

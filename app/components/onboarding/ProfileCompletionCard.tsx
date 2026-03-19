@@ -56,11 +56,11 @@ export default function ProfileCompletionCard({
   }
 
   // Determine progress bar color based on percentage
-  let barColor = 'bg-red-500';
+  let barColor = 'bg-error-500';
   if (percentage >= 67) {
     barColor = 'bg-blue-500';
   } else if (percentage >= 34) {
-    barColor = 'bg-yellow-500';
+    barColor = 'bg-warning-500';
   }
 
   return (

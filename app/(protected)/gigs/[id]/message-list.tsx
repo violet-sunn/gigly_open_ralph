@@ -42,7 +42,7 @@ export function MessageList({ messages, currentUserId, gigClientId }: MessageLis
               <div className={`max-w-[80%] ${
                 isClientMessage
                   ? 'border-l-4 border-blue-500 pl-3 bg-blue-500/10'
-                  : 'border-r-4 border-green-500 pr-3 bg-green-500/10'
+                  : 'border-r-4 border-success-500 pr-3 bg-success-500/10'
               } p-3 rounded`}>
                 <div className="flex justify-between items-start mb-1 gap-3">
                   <span className="text-sm font-medium text-white">{senderName}</span>

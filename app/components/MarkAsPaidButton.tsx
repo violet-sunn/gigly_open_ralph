@@ -10,7 +10,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="px-6 py-3 bg-green-500 text-white text-sm font-medium rounded-md hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+      className="px-6 py-3 bg-success-500 text-white text-sm font-medium rounded-md hover:bg-success-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
     >
       {pending ? 'Marking as Paid...' : 'Mark as Paid'}
     </button>
