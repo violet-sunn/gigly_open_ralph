@@ -25,22 +25,22 @@ export default async function AdminDashboard() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-navy-800 border border-gray-700 rounded-lg p-8 shadow-md">
+          <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8 shadow-md">
             <div className="text-sm font-medium text-gray-300 mb-2">Total Users</div>
             <div className="text-3xl font-bold text-white">{totalUsers}</div>
           </div>
 
-          <div className="bg-navy-800 border border-gray-700 rounded-lg p-8 shadow-md">
+          <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8 shadow-md">
             <div className="text-sm font-medium text-gray-300 mb-2">Total Gigs</div>
             <div className="text-3xl font-bold text-white">{totalGigs}</div>
           </div>
 
-          <div className="bg-navy-800 border border-gray-700 rounded-lg p-8 shadow-md">
+          <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8 shadow-md">
             <div className="text-sm font-medium text-gray-300 mb-2">Suspended Users</div>
             <div className="text-3xl font-bold text-error-500">{suspendedUsers}</div>
           </div>
 
-          <div className="bg-navy-800 border border-gray-700 rounded-lg p-8 shadow-md">
+          <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8 shadow-md">
             <div className="text-sm font-medium text-gray-300 mb-2">Closed Gigs</div>
             <div className="text-3xl font-bold text-error-500">{closedGigs}</div>
           </div>
@@ -49,7 +49,7 @@ export default async function AdminDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Link
             href="/admin/users"
-            className="bg-navy-800 border border-gray-700 rounded-lg p-8 hover:border-blue-500 transition-colors duration-200 shadow-md"
+            className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8 hover:border-blue-500 transition-colors duration-200 shadow-md"
           >
             <h2 className="text-xl font-semibold text-white mb-2">User Management</h2>
             <p className="text-gray-300">View and moderate user accounts</p>
@@ -57,7 +57,7 @@ export default async function AdminDashboard() {
 
           <Link
             href="/admin/gigs"
-            className="bg-navy-800 border border-gray-700 rounded-lg p-8 hover:border-blue-500 transition-colors duration-200 shadow-md"
+            className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8 hover:border-blue-500 transition-colors duration-200 shadow-md"
           >
             <h2 className="text-xl font-semibold text-white mb-2">Gig Management</h2>
             <p className="text-gray-300">View and moderate gigs</p>

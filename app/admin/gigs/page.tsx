@@ -84,7 +84,7 @@ export default async function AdminGigsPage(props: { searchParams: SearchParams 
           <p className="mt-2 text-gray-300">View and moderate gigs</p>
         </div>
 
-        <div className="bg-navy-800 border border-gray-700 rounded-lg mb-6 p-6 shadow-md">
+        <div className="bg-surface-level-1 border border-neutral-weak rounded-lg mb-6 p-6 shadow-md">
           <GigFilters />
         </div>
 
@@ -94,7 +94,7 @@ export default async function AdminGigsPage(props: { searchParams: SearchParams 
           </p>
         )}
 
-        <div className="bg-navy-800 border border-gray-700 rounded-lg overflow-hidden shadow-md">
+        <div className="bg-surface-level-1 border border-neutral-weak rounded-lg overflow-hidden shadow-md">
           <table className="min-w-full divide-y divide-gray-700">
             <thead className="bg-navy-900">
               <tr>
@@ -118,7 +118,7 @@ export default async function AdminGigsPage(props: { searchParams: SearchParams 
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-navy-800 divide-y divide-gray-700">
+            <tbody className="bg-surface-level-1 divide-y divide-gray-700">
               {gigs.map((gig) => (
                 <tr key={gig.id}>
                   <td className="px-6 py-4 text-sm text-white">
@@ -138,7 +138,14 @@ export default async function AdminGigsPage(props: { searchParams: SearchParams 
                     {gig.client.clientProfile?.companyName || gig.client.email}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-500/10 text-blue-500">
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                      gig.status === 'OPEN' ? 'bg-gray-500/20 text-gray-400' :
+                      gig.status === 'IN_PROGRESS' ? 'bg-success-500/10 text-success-400' :
+                      gig.status === 'REVIEW' ? 'bg-warning-500/10 text-warning-400' :
+                      gig.status === 'COMPLETED' ? 'bg-warning-500/10 text-warning-400' :
+                      gig.status === 'PAID' ? 'bg-success-500/10 text-success-400' :
+                      'bg-blue-500/10 text-blue-500'
+                    }`}>
                       {gig.status}
                     </span>
                   </td>

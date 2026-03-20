@@ -82,7 +82,7 @@ export default async function AdminUsersPage(props: { searchParams: SearchParams
           <p className="mt-2 text-gray-300">View and moderate user accounts</p>
         </div>
 
-        <div className="bg-navy-800 border border-gray-700 rounded-lg mb-6 p-6 shadow-md">
+        <div className="bg-surface-level-1 border border-neutral-weak rounded-lg mb-6 p-6 shadow-md">
           <UserFilters />
         </div>
 
@@ -92,7 +92,7 @@ export default async function AdminUsersPage(props: { searchParams: SearchParams
           </p>
         )}
 
-        <div className="bg-navy-800 border border-gray-700 rounded-lg overflow-hidden shadow-md">
+        <div className="bg-surface-level-1 border border-neutral-weak rounded-lg overflow-hidden shadow-md">
           <table className="min-w-full divide-y divide-gray-700">
             <thead className="bg-navy-900">
               <tr>
@@ -113,7 +113,7 @@ export default async function AdminUsersPage(props: { searchParams: SearchParams
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-navy-800 divide-y divide-gray-700">
+            <tbody className="bg-surface-level-1 divide-y divide-gray-700">
               {users.map((user) => (
                 <tr key={user.id}>
                   <td className="px-8 py-4 whitespace-nowrap text-sm text-white">

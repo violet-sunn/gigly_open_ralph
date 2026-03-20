@@ -153,7 +153,12 @@
       "Bash(openspec/changes/ui-gig-pages/IMPLEMENTATION_NOTES.md:*)",
       "Bash(/tmp/validate-ui-gig-pages.sh:*)",
       "Bash(bash /tmp/validate-ui-gig-pages.sh)",
-      "Bash(\"C:\\\\Users\\\\apiso\\\\Documents\\\\gigly_open_ralph\\\\openspec\\\\specs\\\\ui\\\\spec.md\":*)"
+      "Bash(\"C:\\\\Users\\\\apiso\\\\Documents\\\\gigly_open_ralph\\\\openspec\\\\specs\\\\ui\\\\spec.md\":*)",
+      "Bash(npx next build:*)",
+      "Bash(findstr :3000)",
+      "Bash(taskkill:*)",
+      "Bash(timeout /t 2 /nobreak)",
+      "Bash(cmd //c \"taskkill /F /PID 25788\")"
     ]
   }
 }
