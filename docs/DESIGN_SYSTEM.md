@@ -496,6 +496,38 @@ Subtle shadows for depth and hierarchy.
 
 ---
 
+### Navigation
+
+**Main Navigation Header (Token-Based):**
+```tsx
+<nav className="sticky top-0 z-50 bg-surface-level-1 border-b border-neutral-weak">
+  <div className="max-w-7xl mx-auto px-4">
+    <div className="flex items-center justify-between">
+      <Link href="/" className="text-2xl font-bold text-white tracking-tight py-4">
+        GIGLY
+      </Link>
+      <div className="flex space-x-4">
+        <Link href="/dashboard" className="px-4 py-4 text-sm font-medium border-b-2 border-blue-500 text-blue-500">
+          Dashboard
+        </Link>
+        <Link href="/profile" className="px-4 py-4 text-sm font-medium border-b-2 border-transparent text-gray-300 hover:text-white hover:bg-navy-700">
+          Profile
+        </Link>
+      </div>
+    </div>
+  </div>
+</nav>
+```
+
+**Token Usage Notes:**
+- Use `bg-surface-level-1` for navigation header background
+- Use `border-neutral-weak` for header border
+- Active state: `border-blue-500 text-blue-500`
+- Inactive state: `border-transparent text-gray-300 hover:text-white hover:bg-navy-700`
+- Keep hover states with hardcoded colors (no hover tokens available)
+
+---
+
 ## Layout Patterns
 
 ### 2-Column Grid (Main + Sidebar)

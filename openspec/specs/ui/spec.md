@@ -19,6 +19,99 @@ See `docs/DESIGN_SYSTEM.md` for detailed token naming conventions, usage example
 
 ## Requirements
 
+### Requirement: Navigation Header Token-Based Styling
+The main navigation header MUST use design tokens for all color and spacing values to ensure consistency with the design system.
+
+#### Scenario: Navigation header uses token-based background color
+- GIVEN an authenticated user views any page with the MainNav component
+- WHEN the navigation header renders
+- THEN the header background MUST use `bg-surface-level-1` design token
+- AND the header border MUST use `border-neutral-weak` design token
+- AND the header MUST NOT use hardcoded color values like `bg-navy-800` or `border-gray-700`
+
+#### Scenario: Navigation links maintain active and hover states
+- GIVEN an authenticated user is on a specific page (e.g., /dashboard)
+- WHEN the navigation header renders
+- THEN the active navigation link MUST be visually highlighted
+- AND the active link MUST use `border-blue-500` and `text-blue-500` for active state
+- AND hovering over inactive links MUST show hover state with `hover:text-white` and `hover:bg-navy-700`
+- AND all navigation link text MUST remain exactly as implemented (no text changes)
+
+#### Scenario: Navigation header is responsive
+- GIVEN an authenticated user views the navigation on a mobile device (320px width)
+- WHEN the page renders
+- THEN the navigation header MUST remain functional and accessible
+- AND all navigation links MUST be clickable
+- AND the layout MUST NOT cause horizontal scrolling
+- AND the notification bell MUST remain visible and functional
+
+**Acceptance Criteria:**
+- MainNav component uses `bg-surface-level-1` for header background
+- MainNav component uses `border-neutral-weak` for header border
+- Active state styling uses `border-blue-500` and `text-blue-500`
+- Hover states use `hover:text-white` and `hover:bg-navy-700`
+- All navigation link text preserved exactly as-is
+- Responsive behavior works on mobile (320px width)
+- All existing E2E navigation tests pass without modification
+
+---
+
+### Requirement: Notification Bell Token-Based Styling
+The notification bell component MUST use design tokens where appropriate while maintaining semantic color usage for badges.
+
+#### Scenario: Notification badge uses semantic error color
+- GIVEN an authenticated user (CLIENT or SPECIALIST) has unread notifications
+- WHEN the notification bell renders in the navigation header
+- THEN the unread count badge MUST display with `bg-error-500` background
+- AND the badge MUST use `text-white` for the count text
+- AND the badge MUST be positioned at the top-right of the bell icon
+- AND the badge MUST be visually prominent and easily noticeable
+
+#### Scenario: Notification bell maintains functionality
+- GIVEN an authenticated user clicks the notification bell
+- WHEN the dropdown opens
+- THEN all notification functionality MUST work as before
+- AND clicking outside the dropdown MUST close it
+- AND clicking a notification item MUST navigate to the gig page
+- AND the unread count MUST update correctly after viewing notifications
+
+**Acceptance Criteria:**
+- NotificationBell component uses `bg-error-500` for badge background (semantic color)
+- Badge displays unread count correctly
+- All notification bell functionality preserved
+- Dropdown interactions work as before
+- No functional regressions in notification system
+
+---
+
+### Requirement: Layout Container Token-Based Background
+The protected layout container MUST use design tokens for background colors to ensure visual consistency across all pages.
+
+#### Scenario: Protected layout uses token-based background
+- GIVEN an authenticated user navigates to any protected page
+- WHEN the layout renders
+- THEN the page background MUST use `var(--bg-surface-level-0)` CSS variable
+- AND the background color MUST be consistent across all protected pages
+- AND the MainNav component MUST be wrapped in Suspense boundary
+- AND the layout MUST provide proper fallback during loading
+
+#### Scenario: Layout maintains responsive behavior
+- GIVEN an authenticated user views a protected page on various devices
+- WHEN the page renders at different viewport sizes (320px, 768px, 1024px, 1440px)
+- THEN the layout MUST adapt appropriately
+- AND the navigation header MUST remain sticky at the top
+- AND page content MUST be properly contained with max-width constraints
+- AND horizontal scrolling MUST NOT occur
+
+**Acceptance Criteria:**
+- Protected layout uses `var(--bg-surface-level-0)` for page background
+- MainNav wrapped in Suspense with proper fallback
+- Layout is responsive across all viewport sizes
+- No horizontal scrolling on any viewport
+- Consistent visual appearance across all protected pages
+
+---
+
 ### Requirement: Homepage
 The homepage at `/` MUST display the application name and adapt based on authentication state.
 
@@ -247,6 +340,10 @@ The dashboard MUST render different content based on the user's role.
   - Tab switching is client-side only (no network requests)
 - "Browse Gigs" is a `<Link>` to `/gigs`
 - Profile completion hints remain visible above tabs
+- Dashboard page background uses token-based color from layout (see Layout Container Token-Based Background requirement)
+- Navigation header uses token-based styling (see Navigation Header Token-Based Styling requirement)
+- All dashboard functionality remains unchanged
+- Token migration does not affect dashboard behavior or data display
 - "My Profile" link remains accessible
 
 ---

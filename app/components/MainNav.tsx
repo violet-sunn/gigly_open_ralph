@@ -43,7 +43,7 @@ export function MainNav({ userEmail, userRole }: MainNavProps) {
   }
 
   return (
-    <nav className="sticky top-0 z-50 bg-navy-800 border-b border-gray-700">
+    <nav className="sticky top-0 z-50 bg-surface-level-1 border-b border-neutral-weak">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-8">
