@@ -54,7 +54,7 @@ export function GigForm() {
       />
 
       {/* Section 1: Basic Information */}
-      <div className="bg-navy-800 border border-gray-700 rounded-lg p-8 shadow-md">
+      <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8 shadow-md">
         <h3 className="text-xl font-semibold text-white mb-2">Basic Information</h3>
         <p className="text-sm text-gray-300 mb-4">
           Provide a clear title and overview of the work
@@ -92,7 +92,7 @@ export function GigForm() {
       </div>
 
       {/* Section 2: Requirements & Success Criteria */}
-      <div className="bg-navy-800 border border-gray-700 rounded-lg p-8 shadow-md">
+      <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8 shadow-md">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-xl font-semibold text-white">Requirements &amp; Success Criteria</h3>
           <a
@@ -218,7 +218,7 @@ export function GigForm() {
       </div>
 
       {/* Section 3: Budget & Details */}
-      <div className="bg-navy-800 border border-gray-700 rounded-lg p-6 shadow-md">
+      <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 shadow-md">
         <h3 className="text-lg font-semibold text-white mb-2">Budget &amp; Details</h3>
         <p className="text-sm text-gray-300 mb-4">
           Set your budget and add tags to help specialists find your gig

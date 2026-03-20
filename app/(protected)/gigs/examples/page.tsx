@@ -41,7 +41,7 @@ export default async function ExampleGigsPage() {
         </div>
 
         {exampleGigs.length === 0 ? (
-          <div className="bg-navy-800 border border-gray-700 rounded-lg p-8 text-center shadow-md">
+          <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8 text-center shadow-md">
             <p className="text-sm text-gray-300">No example gigs available.</p>
           </div>
         ) : (
@@ -50,7 +50,7 @@ export default async function ExampleGigsPage() {
               <li key={gig.id}>
                 <Link
                   href={`/dashboard/gigs/${gig.id}?from=examples`}
-                  className="block bg-navy-800 border border-gray-700 rounded-lg p-8 hover:border-blue-500 transition-colors duration-200 shadow-md"
+                  className="block bg-surface-level-1 border border-neutral-weak rounded-lg p-8 hover:bg-surface-level-2 hover:border-neutral-strong transition-colors duration-200 shadow-md"
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-2">
