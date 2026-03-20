@@ -89,7 +89,7 @@ export default function PaginationControls({
           <span
             aria-disabled="true"
             aria-label="Previous page"
-            className="px-3 py-2 text-sm font-medium text-gray-500 bg-navy-900 border border-gray-700 rounded-md cursor-not-allowed opacity-50 pointer-events-none"
+            className="px-3 py-2 text-sm font-medium text-gray-500 bg-surface-level-0 border border-gray-700 rounded-md cursor-not-allowed opacity-50 pointer-events-none"
           >
             Previous
           </span>
@@ -149,7 +149,7 @@ export default function PaginationControls({
           <span
             aria-disabled="true"
             aria-label="Next page"
-            className="px-3 py-2 text-sm font-medium text-gray-500 bg-navy-900 border border-gray-700 rounded-md cursor-not-allowed opacity-50 pointer-events-none"
+            className="px-3 py-2 text-sm font-medium text-gray-500 bg-surface-level-0 border border-gray-700 rounded-md cursor-not-allowed opacity-50 pointer-events-none"
           >
             Next
           </span>

@@ -101,7 +101,7 @@ export default async function DashboardPage({
   const recentMessages = await getRecentMessages()
 
   return (
-    <div className="min-h-screen bg-navy-900">
+    <div className="min-h-screen bg-surface-level-0">
       {(session.role === 'CLIENT' || session.role === 'SPECIALIST') && (
         <DashboardOnboarding role={session.role} />
       )}

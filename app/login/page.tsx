@@ -22,7 +22,7 @@ export default function LoginPage() {
   const [state, formAction] = useActionState(loginUser, null)
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-navy-900 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-surface-level-0 px-4">
       <div className="max-w-md w-full space-y-8 p-8 bg-surface-level-1 border border-neutral-weak rounded-lg shadow-md">
         <div>
           <h2 className="text-center text-3xl font-bold text-white">

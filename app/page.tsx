@@ -6,7 +6,7 @@ export default async function Home() {
   const session = await getSession()
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-navy-900">
+    <div className="min-h-screen flex items-center justify-center bg-surface-level-0">
       <main className="text-center space-y-8 px-4">
         <h1 className="text-6xl font-bold text-white tracking-tight">GIGLY</h1>
         <p className="text-lg text-gray-300">High-end B2B freelance marketplace for Russian IT specialists</p>

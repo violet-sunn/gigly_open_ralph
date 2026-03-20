@@ -121,7 +121,7 @@ The homepage at `/` MUST display the application name and adapt based on authent
 - THEN it MUST display the application name "Gigly"
 - AND it MUST display a "Get Started" link to `/register`
 - AND it MUST display a "Sign in" link to `/login`
-- AND the page background MUST use `bg-navy-900`
+- AND the page background MUST use `bg-surface-level-0`
 - AND the "Get Started" button MUST use `bg-blue-500 hover:bg-blue-600 text-white`
 - AND the "Sign in" link MUST use `text-blue-500 hover:text-blue-400`
 
@@ -133,13 +133,13 @@ The homepage at `/` MUST display the application name and adapt based on authent
 - AND it MUST NOT show the "Get Started" CTA
 - AND the "Go to Dashboard" button MUST use `bg-blue-500 hover:bg-blue-600 text-white`
 - AND the "Sign out" button MUST use `text-blue-500 border border-blue-500 hover:bg-blue-500/10`
-- AND the page background MUST use `bg-navy-900`
+- AND the page background MUST use `bg-surface-level-0`
 
 **Acceptance Criteria:**
 - `app/page.tsx` calls `getSession()` to check auth state
 - Authenticated: shows email + logout form with token-based button styling
 - Anonymous: shows "Get Started" link + "Sign in" link with token-based styling
-- Page background uses `bg-navy-900`
+- Page background uses `bg-surface-level-0`
 - Primary CTA uses `bg-blue-500 hover:bg-blue-600`
 - Secondary actions use text link styling or outlined button styling
 
@@ -154,7 +154,7 @@ The registration form MUST provide visible feedback after submission and include
 - THEN the form container MUST use `bg-surface-level-1 border border-neutral-weak rounded-lg shadow-md`
 - AND the form container MUST use `p-8` (32px) padding
 - AND form fields MUST use `space-y-6` (24px) vertical spacing
-- AND the page background MUST use `bg-navy-900`
+- AND the page background MUST use `bg-surface-level-0`
 
 #### Scenario: Role selector renders with token-based styling
 - GIVEN a user navigates to `/register`
@@ -232,7 +232,7 @@ The registration form MUST provide visible feedback after submission and include
 - Submit button uses `bg-blue-500 hover:bg-blue-600 text-white w-full`
 - Error messages use `text-error-500 text-sm`
 - Login link uses `text-blue-500 hover:text-blue-400`
-- Page background uses `bg-navy-900`
+- Page background uses `bg-surface-level-0`
 - On success: user is redirected to `/dashboard` with session set
 - On error: an error message is displayed inline on the registration page
 - A loading/pending indicator is shown while the form submits
@@ -254,7 +254,7 @@ The application MUST provide a login page at `/login` with email and password fi
 - AND the form container MUST use `bg-surface-level-1 border border-neutral-weak rounded-lg shadow-md`
 - AND the form container MUST use `p-8` (32px) padding
 - AND form fields MUST use `space-y-6` (24px) vertical spacing
-- AND the page background MUST use `bg-navy-900`
+- AND the page background MUST use `bg-surface-level-0`
 
 #### Scenario: Login form inputs use token-based styling
 - GIVEN a user views the login form
@@ -302,7 +302,7 @@ The application MUST provide a login page at `/login` with email and password fi
 - Submit button uses `bg-blue-500 hover:bg-blue-600 text-white w-full`
 - Error messages use `text-error-500 text-sm`
 - Registration link uses `text-blue-500 hover:text-blue-400`
-- Page background uses `bg-navy-900`
+- Page background uses `bg-surface-level-0`
 - Includes a `<Link>` to `/register`
 - Displays `state?.error` when present
 
@@ -1490,7 +1490,7 @@ The gig browse page MUST use design tokens to establish visual hierarchy through
 - AND on hover, cards MUST use `bg-surface-level-2` for visual feedback
 - AND borders MUST use `border-neutral-weak` token for subtle separation
 - AND hover borders MUST use `border-neutral-strong` for emphasis
-- AND the page background MUST remain `bg-navy-900` (from layout)
+- AND the page background MUST remain `bg-surface-level-0` (from layout)
 
 #### Scenario: Filter panel uses sidebar pattern
 - GIVEN a SPECIALIST user views the gig browse page

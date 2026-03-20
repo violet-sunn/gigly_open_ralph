@@ -30,7 +30,7 @@ export default async function ExampleGigsPage() {
   })
 
   return (
-    <div className="min-h-screen bg-navy-900 py-8">
+    <div className="min-h-screen bg-surface-level-0 py-8">
       <div className="max-w-2xl mx-auto px-4">
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-white leading-tight">Example Gigs</h2>

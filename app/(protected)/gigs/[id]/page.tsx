@@ -61,7 +61,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
 
   if (!gig) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-navy-900">
+      <div className="min-h-screen flex items-center justify-center bg-surface-level-0">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-white">Gig not found</h2>
         </div>
@@ -89,7 +89,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
   }
 
   return (
-    <div className="min-h-screen bg-navy-900 py-8">
+    <div className="min-h-screen bg-surface-level-0 py-8">
       <div className="max-w-7xl mx-auto px-4">
         <div className="mb-6">
           <Suspense fallback={<div className="h-8" />}>

@@ -77,7 +77,7 @@ export default async function AdminGigsPage(props: { searchParams: SearchParams 
   }
 
   return (
-    <div className="min-h-screen bg-navy-900">
+    <div className="min-h-screen bg-surface-level-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white">Gig Management</h1>
@@ -96,7 +96,7 @@ export default async function AdminGigsPage(props: { searchParams: SearchParams 
 
         <div className="bg-surface-level-1 border border-neutral-weak rounded-lg overflow-hidden shadow-md">
           <table className="min-w-full divide-y divide-gray-700">
-            <thead className="bg-navy-900">
+            <thead className="bg-surface-level-0">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                   Title
