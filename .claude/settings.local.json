@@ -158,7 +158,22 @@
       "Bash(findstr :3000)",
       "Bash(taskkill:*)",
       "Bash(timeout /t 2 /nobreak)",
-      "Bash(cmd //c \"taskkill /F /PID 25788\")"
+      "Bash(cmd //c \"taskkill /F /PID 25788\")",
+      "Bash(then:*)",
+      "Bash(fi)",
+      "Bash(if grep -A 50 \"^## Scope\" openspec/planning/ui-overhaul-completion.md)",
+      "Bash(then echo \"✅ Documents token availability\")",
+      "Bash(while read -r line)",
+      "Bash(do if echo \"$line\")",
+      "Bash(else echo \"   ⚠️  Command may have format issues: $line\")",
+      "Bash(if grep \"Run full test suite \\(521 tests\\)\" openspec/planning/ui-overhaul-completion.md)",
+      "Bash(if grep:*)",
+      "Bash(else:*)",
+      "Bash(else echo \"   text-gray-600 NOT in DESIGN_SYSTEM.md\")",
+      "Bash(/tmp/validation_report.md:*)",
+      "Bash(/tmp/implementation_check.txt:*)",
+      "Bash(do)",
+      "Bash(/tmp/verification_report.md:*)"
     ]
   }
 }
