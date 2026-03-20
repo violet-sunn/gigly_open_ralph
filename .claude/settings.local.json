@@ -144,7 +144,16 @@
       "Bash(./scripts/planning/new-milestone.sh:*)",
       "Bash(head:*)",
       "Bash(./scripts/planning/new-sprint.sh:*)",
-      "Bash(wc -l openspec/planning/*.md openspec/planning/milestones/*.md openspec/planning/sprints/*.md openspec/planning/templates/*.md)"
+      "Bash(wc -l openspec/planning/*.md openspec/planning/milestones/*.md openspec/planning/sprints/*.md openspec/planning/templates/*.md)",
+      "Bash(pgrep:*)",
+      "Bash(/tmp/verify_tokens.sh:*)",
+      "Bash(bash /tmp/verify_tokens.sh)",
+      "Bash(npm run test:integration)",
+      "Bash(/tmp/implementation-summary.txt:*)",
+      "Bash(openspec/changes/ui-gig-pages/IMPLEMENTATION_NOTES.md:*)",
+      "Bash(/tmp/validate-ui-gig-pages.sh:*)",
+      "Bash(bash /tmp/validate-ui-gig-pages.sh)",
+      "Bash(\"C:\\\\Users\\\\apiso\\\\Documents\\\\gigly_open_ralph\\\\openspec\\\\specs\\\\ui\\\\spec.md\":*)"
     ]
   }
 }
