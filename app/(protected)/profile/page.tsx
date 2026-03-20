@@ -21,7 +21,7 @@ export default async function ProfilePage() {
 
     if (!user.specialistProfile) {
       return (
-        <div className="min-h-screen bg-navy-900 py-8">
+        <div className="min-h-screen bg-[var(--bg-surface-level-0)] py-8">
           <div className="max-w-2xl mx-auto px-4">
             <h1 className="text-3xl font-bold text-white mb-8 leading-tight">My Profile</h1>
             <div className="bg-warning-500/10 border border-warning-500/20 rounded-lg p-4 mb-6">
@@ -191,7 +191,7 @@ export default async function ProfilePage() {
 
     if (!user.clientProfile) {
       return (
-        <div className="min-h-screen bg-navy-900 py-8">
+        <div className="min-h-screen bg-[var(--bg-surface-level-0)] py-8">
           <div className="max-w-2xl mx-auto px-4">
             <h1 className="text-3xl font-bold text-white mb-8 leading-tight">My Profile</h1>
             <div className="bg-warning-500/10 border border-warning-500/20 rounded-lg p-4 mb-6">
@@ -211,10 +211,10 @@ export default async function ProfilePage() {
     const profile = user.clientProfile
 
     return (
-      <div className="min-h-screen bg-navy-900 py-8">
+      <div className="min-h-screen bg-[var(--bg-surface-level-0)] py-8">
         <div className="max-w-7xl mx-auto px-4">
           {/* Header Card with Avatar and Stats */}
-          <div className="flex items-start gap-6 bg-navy-800 border border-gray-700 rounded-lg p-6 mb-6 shadow-md">
+          <div className="flex items-start gap-6 bg-surface-level-1 border border-neutral-weak rounded-lg p-6 mb-6 shadow-md">
             {/* Avatar */}
             <div className="w-24 h-24 rounded-full bg-gray-700 flex items-center justify-center text-white text-3xl font-bold flex-shrink-0">
               {profile.companyName ? profile.companyName.charAt(0).toUpperCase() : session.email.charAt(0).toUpperCase()}
@@ -255,7 +255,7 @@ export default async function ProfilePage() {
           {/* 2-Column Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left Column: Company Information */}
-            <div className="bg-navy-800 border border-gray-700 rounded-lg p-6 shadow-md">
+            <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 shadow-md">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-white">Информация о компании</h2>
                 <Link href="/profile/edit" className="text-sm text-blue-500 hover:text-blue-400">
@@ -289,7 +289,7 @@ export default async function ProfilePage() {
             </div>
 
             {/* Right Column: Active Projects */}
-            <div className="bg-navy-800 border border-gray-700 rounded-lg p-6 shadow-md">
+            <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 shadow-md">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-white">Активные проекты</h2>
                 <Link href="/gigs/new" className="text-sm text-blue-500 hover:text-blue-400">
@@ -312,7 +312,7 @@ export default async function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-navy-900 py-8">
+    <div className="min-h-screen bg-[var(--bg-surface-level-0)] py-8">
       <div className="max-w-2xl mx-auto px-4">
         <p className="text-white">Unknown role</p>
       </div>
