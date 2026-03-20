@@ -60,14 +60,14 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
   return (
     <div className="space-y-6">
       {/* Tab Navigation */}
-      <div className="border-b border-gray-700">
+      <div className="border-b border-neutral-weak">
         <nav className="-mb-px flex space-x-8" aria-label="Tabs">
           <button
             onClick={() => setActiveTab('active')}
             className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
               activeTab === 'active'
                 ? 'border-blue-500 text-blue-500'
-                : 'border-transparent text-gray-300 hover:text-white hover:border-gray-600'
+                : 'border-transparent text-gray-300 hover:text-white hover:border-neutral-weak'
             }`}
           >
             Active Work
@@ -77,7 +77,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
             className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
               activeTab === 'pending'
                 ? 'border-blue-500 text-blue-500'
-                : 'border-transparent text-gray-300 hover:text-white hover:border-gray-600'
+                : 'border-transparent text-gray-300 hover:text-white hover:border-neutral-weak'
             }`}
           >
             Pending Applications
@@ -87,7 +87,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
             className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
               activeTab === 'archive'
                 ? 'border-blue-500 text-blue-500'
-                : 'border-transparent text-gray-300 hover:text-white hover:border-gray-600'
+                : 'border-transparent text-gray-300 hover:text-white hover:border-neutral-weak'
             }`}
           >
             Archive
@@ -98,7 +98,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
       {/* Tab Content */}
       <div role="tabpanel">
         {activeTab === 'active' && (
-          <div className="bg-navy-800 border border-gray-700 rounded-lg p-6 shadow-md">
+          <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 shadow-md">
             <h3 className="text-lg font-semibold text-white mb-4">Active Work</h3>
             {activeWorkGigs.length === 0 ? (
               <EmptyState
@@ -113,7 +113,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
                   <Link
                     key={gig.id}
                     href={`/gigs/${gig.id}?from=dashboard&tab=active`}
-                    className="block bg-surface-level-2 border border-neutral-weak rounded-lg p-4 hover:bg-navy-700 hover:border-neutral-strong transition-colors"
+                    className="block bg-surface-level-2 border border-neutral-weak rounded-lg p-4 hover:border-neutral-strong transition-colors"
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
@@ -128,7 +128,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
                       <div className="text-right ml-4">
                         <p className="text-sm font-semibold text-white">{formatRoubles(gig.budget)} ₽</p>
                         <span className={`inline-block px-2 py-1 text-xs font-medium rounded-md border mt-1 ${
-                          gig.status === 'IN_PROGRESS' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
+                          gig.status === 'IN_PROGRESS' ? 'bg-success-weak-default text-success-default border-success-default' :
                           gig.status === 'REVIEW' ? 'bg-warning-weak-default text-warning-default border-warning-default' :
                           gig.status === 'COMPLETED' ? 'bg-success-weak-default text-success-default border-success-default' :
                           'bg-gray-500/20 text-gray-400 border-gray-500/30'
@@ -147,7 +147,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
         )}
 
         {activeTab === 'pending' && (
-          <div className="bg-navy-800 border border-gray-700 rounded-lg p-6 shadow-md">
+          <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 shadow-md">
             <h3 className="text-lg font-semibold text-white mb-4">Pending Applications</h3>
             {pendingApplications.length === 0 ? (
               <EmptyState
@@ -162,7 +162,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
                   <Link
                     key={app.id}
                     href={`/gigs/${app.gigId}?from=dashboard&tab=pending`}
-                    className="block bg-surface-level-2 border border-neutral-weak rounded-lg p-4 hover:bg-navy-700 hover:border-neutral-strong transition-colors"
+                    className="block bg-surface-level-2 border border-neutral-weak rounded-lg p-4 hover:border-neutral-strong transition-colors"
                   >
                     <div className="flex justify-between items-start">
                       <span className="text-sm font-medium text-white">{app.gig.title}</span>
@@ -181,7 +181,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
         )}
 
         {activeTab === 'archive' && (
-          <div className="bg-navy-800 border border-gray-700 rounded-lg p-6 shadow-md">
+          <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 shadow-md">
             <h3 className="text-lg font-semibold text-white mb-4">Archive</h3>
             {paidGigs.length === 0 && archivedApplications.length === 0 ? (
               <EmptyState
@@ -200,7 +200,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
                         <Link
                           key={gig.id}
                           href={`/gigs/${gig.id}?from=dashboard&tab=archive`}
-                          className="block bg-surface-level-2 border border-neutral-weak rounded-lg p-4 hover:bg-navy-700 hover:border-neutral-strong transition-colors"
+                          className="block bg-surface-level-2 border border-neutral-weak rounded-lg p-4 hover:border-neutral-strong transition-colors"
                         >
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
@@ -236,7 +236,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
                         <Link
                           key={app.id}
                           href={`/gigs/${app.gigId}?from=dashboard&tab=archive`}
-                          className="block bg-surface-level-2 border border-neutral-weak rounded-lg p-4 hover:bg-navy-700 hover:border-neutral-strong transition-colors"
+                          className="block bg-surface-level-2 border border-neutral-weak rounded-lg p-4 hover:border-neutral-strong transition-colors"
                         >
                           <div className="flex justify-between items-start">
                             <span className="text-sm font-medium text-white">{app.gig.title}</span>

@@ -112,7 +112,7 @@ export default async function DashboardPage({
               role={session.role}
               profile={user?.clientProfile || null}
             />
-            <div className="bg-navy-800 border border-gray-700 rounded-lg p-8 shadow-md">
+            <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8 shadow-md">
               <h2 className="text-3xl font-bold text-white leading-tight">Welcome back, {user?.clientProfile?.companyName || session.email}</h2>
               <p className="mt-2 text-sm text-gray-300">Client Dashboard</p>
               <div className="mt-4">
@@ -141,7 +141,7 @@ export default async function DashboardPage({
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">
-                <div className="bg-navy-800 border border-gray-700 rounded-lg p-8 shadow-md">
+                <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8 shadow-md">
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="text-xl font-semibold text-white">My Gigs</h3>
                     <Link
@@ -165,14 +165,14 @@ export default async function DashboardPage({
                         <Link
                           key={gig.id}
                           href={`/gigs/${gig.id}?from=dashboard`}
-                          className="block bg-surface-level-2 border border-neutral-weak rounded-lg p-6 hover:bg-navy-700 hover:border-neutral-strong transition-colors duration-200"
+                          className="block bg-surface-level-2 border border-neutral-weak rounded-lg p-6 hover:border-neutral-strong transition-colors duration-200"
                         >
                           <div className="flex justify-between items-start mb-2">
                             <h4 className="text-sm font-medium text-white">{gig.title}</h4>
                             <span className={`text-xs px-2 py-1 rounded-md border font-medium ${
                               gig.status === 'PAID' ? 'bg-success-weak-default text-success-default border-success-default' :
                               gig.status === 'COMPLETED' ? 'bg-warning-weak-default text-warning-default border-warning-default' :
-                              gig.status === 'IN_PROGRESS' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
+                              gig.status === 'IN_PROGRESS' ? 'bg-success-weak-default text-success-default border-success-default' :
                               'bg-gray-500/20 text-gray-400 border-gray-500/30'
                             }`}>
                               {gig.status === 'PAID' ? 'Paid' :
@@ -225,7 +225,7 @@ export default async function DashboardPage({
                 </div>
 
                 {/* Finances Card */}
-                <div className="bg-navy-800 border border-gray-700 rounded-lg p-6 shadow-md">
+                <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 shadow-md">
                   <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">ФИНАНСЫ</h3>
                   <div className="flex items-center justify-between">
                     <div>
@@ -239,7 +239,7 @@ export default async function DashboardPage({
                 </div>
 
                 {/* Messages Card */}
-                <div className="bg-navy-800 border border-gray-700 rounded-lg p-6 shadow-md">
+                <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 shadow-md">
                   <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">СООБЩЕНИЯ</h3>
                   {recentMessages.length === 0 ? (
                     <div className="text-center py-4">
@@ -251,7 +251,7 @@ export default async function DashboardPage({
                         <Link
                           key={message.gigId}
                           href={`/gigs/${message.gigId}#messages`}
-                          className="block p-3 rounded-lg hover:bg-navy-700 transition-colors"
+                          className="block p-3 rounded-lg hover:bg-surface-level-2 transition-colors"
                         >
                           <h4 className="text-sm font-semibold text-white mb-1">{message.gigTitle}</h4>
                           <p className="text-xs text-gray-400 mb-1">{message.senderName}</p>
@@ -273,7 +273,7 @@ export default async function DashboardPage({
               role={session.role}
               profile={user?.specialistProfile || null}
             />
-            <div className="bg-navy-800 border border-gray-700 rounded-lg p-8 shadow-md">
+            <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8 shadow-md">
               <h2 className="text-3xl font-bold text-white leading-tight">Welcome back, {user?.specialistProfile?.displayName || session.email}</h2>
               <p className="mt-2 text-sm text-gray-300">Specialist Dashboard</p>
               <div className="mt-4 flex gap-4">
@@ -306,7 +306,7 @@ export default async function DashboardPage({
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Main Content - Tabs */}
               <div className="lg:col-span-2">
-                <Suspense fallback={<div className="h-64 animate-pulse bg-navy-800 rounded-lg" />}>
+                <Suspense fallback={<div className="h-64 animate-pulse bg-surface-level-1 rounded-lg" />}>
                   <SpecialistDashboardTabs activeGigs={activeGigs} applications={applications} />
                 </Suspense>
               </div>
@@ -335,7 +335,7 @@ export default async function DashboardPage({
                 </div>
 
                 {/* Finances Card */}
-                <div className="bg-navy-800 border border-gray-700 rounded-lg p-6 shadow-md">
+                <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 shadow-md">
                   <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">ФИНАНСЫ</h3>
                   <div className="flex items-center justify-between">
                     <div>
@@ -349,7 +349,7 @@ export default async function DashboardPage({
                 </div>
 
                 {/* Messages Card */}
-                <div className="bg-navy-800 border border-gray-700 rounded-lg p-6 shadow-md">
+                <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 shadow-md">
                   <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">СООБЩЕНИЯ</h3>
                   {recentMessages.length === 0 ? (
                     <div className="text-center py-4">
@@ -361,7 +361,7 @@ export default async function DashboardPage({
                         <Link
                           key={message.gigId}
                           href={`/gigs/${message.gigId}#messages`}
-                          className="block p-3 rounded-lg hover:bg-navy-700 transition-colors"
+                          className="block p-3 rounded-lg hover:bg-surface-level-2 transition-colors"
                         >
                           <h4 className="text-sm font-semibold text-white mb-1">{message.gigTitle}</h4>
                           <p className="text-xs text-gray-400 mb-1">{message.senderName}</p>
@@ -378,7 +378,7 @@ export default async function DashboardPage({
             </div>
           </div>
         ) : (
-          <div className="bg-navy-800 border border-gray-700 rounded-lg p-8 text-center shadow-md">
+          <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8 text-center shadow-md">
             <h2 className="text-3xl font-bold text-white leading-tight">Dashboard</h2>
             <p className="mt-2 text-sm text-gray-300">Signed in as {session.email}</p>
             <p className="mt-4 text-sm text-warning-400">Your account role is not recognized. Please contact support.</p>
