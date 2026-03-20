@@ -165,13 +165,13 @@ export default async function DashboardPage({
                         <Link
                           key={gig.id}
                           href={`/gigs/${gig.id}?from=dashboard`}
-                          className="block bg-navy-900 border border-gray-700 rounded-lg p-6 hover:bg-navy-700 hover:border-gray-600 transition-colors duration-200"
+                          className="block bg-surface-level-2 border border-neutral-weak rounded-lg p-6 hover:bg-navy-700 hover:border-neutral-strong transition-colors duration-200"
                         >
                           <div className="flex justify-between items-start mb-2">
                             <h4 className="text-sm font-medium text-white">{gig.title}</h4>
                             <span className={`text-xs px-2 py-1 rounded-md border font-medium ${
-                              gig.status === 'PAID' ? 'bg-success-500/20 text-success-400 border-success-500/30' :
-                              gig.status === 'COMPLETED' ? 'bg-warning-500/20 text-warning-400 border-warning-500/30' :
+                              gig.status === 'PAID' ? 'bg-success-weak-default text-success-default border-success-default' :
+                              gig.status === 'COMPLETED' ? 'bg-warning-weak-default text-warning-default border-warning-default' :
                               gig.status === 'IN_PROGRESS' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
                               'bg-gray-500/20 text-gray-400 border-gray-500/30'
                             }`}>

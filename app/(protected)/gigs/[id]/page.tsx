@@ -101,12 +101,12 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
           {/* Main Content - Left Column (2/3 width) */}
           <div className="lg:col-span-2 space-y-8">
             {/* Gig Details Card */}
-            <div className="bg-navy-800 border border-gray-700 rounded-lg p-8 space-y-6">
+            <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8 space-y-6">
               <div className="flex justify-between items-start">
                 <h2 className="text-3xl font-bold text-white leading-tight">{gig.title}</h2>
                 <span className={`text-xs px-2 py-1 rounded-full flex-shrink-0 ml-4 ${
-                  gig.status === 'PAID' ? 'bg-success-500/10 text-success-400' :
-                  gig.status === 'COMPLETED' ? 'bg-warning-500/10 text-warning-400' :
+                  gig.status === 'PAID' ? 'bg-success-weak-default text-success-default' :
+                  gig.status === 'COMPLETED' ? 'bg-warning-weak-default text-warning-default' :
                   'bg-blue-500/10 text-blue-400'
                 }`}>
                   {gig.status === 'PAID' ? 'Paid' :
@@ -216,7 +216,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
             </div>
 
         {session.role === 'SPECIALIST' && (
-          <div className="bg-navy-800 border border-gray-700 rounded-lg p-8">
+          <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8">
             {gig.isExample ? (
               <div className="p-4 bg-navy-700/50 border border-gray-700 rounded-lg">
                 <p className="text-sm text-white">
@@ -268,7 +268,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
         )}
 
         {isAssignedSpecialist && gig.status === 'IN_PROGRESS' && (
-          <div className="bg-navy-800 border border-gray-700 rounded-lg p-8">
+          <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8">
             <h3 className="text-xl font-medium text-white mb-4">Submit Your Work</h3>
             <p className="text-sm text-gray-300 mb-4 leading-relaxed">
               Once you&apos;ve completed the work, submit it for client review.
@@ -278,7 +278,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
         )}
 
         {isOwner && gig.status === 'REVIEW' && (
-          <div className="bg-navy-800 border border-gray-700 rounded-lg p-8">
+          <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8">
             <h3 className="text-xl font-medium text-white mb-4">Review Submitted Work</h3>
             {gig.assignedSpecialist && (
               <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-md">
@@ -295,7 +295,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
         )}
 
         {isOwner && gig.status === 'COMPLETED' && (
-          <div className="bg-navy-800 border border-gray-700 rounded-lg p-8">
+          <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8">
             <h3 className="text-xl font-medium text-white mb-4">Mark as Paid</h3>
             <p className="text-sm text-gray-300 mb-4 leading-relaxed">
               Once you&apos;ve paid the specialist, mark this gig as paid to complete the transaction.
@@ -305,7 +305,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
         )}
 
         {isOwner && (
-          <div className="bg-navy-800 border border-gray-700 rounded-lg p-8">
+          <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8">
             {gig.status === 'IN_PROGRESS' && gig.assignedSpecialist && (
               <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-md">
                 <p className="text-sm text-blue-500">
@@ -321,7 +321,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
             ) : (
               <div className="space-y-6">
                 {gig.applications.map((app) => (
-                  <div key={app.id} className="bg-navy-900 border border-gray-700 rounded-lg p-6">
+                  <div key={app.id} className="bg-surface-level-2 border border-neutral-weak rounded-lg p-6">
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex-1">
                         <Link
@@ -339,13 +339,13 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
                         )}
                       </div>
                       {app.status === 'ACCEPTED' ? (
-                        <span className="text-xs px-2 py-1 rounded-full bg-success-500/10 text-success-400">Accepted</span>
+                        <span className="text-xs px-2 py-1 rounded-full bg-success-weak-default text-success-default">Accepted</span>
                       ) : app.status === 'REJECTED' ? (
-                        <span className="text-xs px-2 py-1 rounded-full bg-error-500/10 text-error-400">Rejected</span>
+                        <span className="text-xs px-2 py-1 rounded-full bg-danger-weak-default text-danger-default">Rejected</span>
                       ) : app.status === 'WITHDRAWN' ? (
                         <span className="text-xs px-2 py-1 rounded-full bg-gray-500/50 text-gray-400">WITHDRAWN</span>
                       ) : (
-                        <span className="text-xs px-2 py-1 rounded-full bg-warning-500/10 text-warning-400">Pending</span>
+                        <span className="text-xs px-2 py-1 rounded-full bg-warning-weak-default text-warning-default">Pending</span>
                       )}
                     </div>
                     {app.specialist.specialistProfile?.techStack && (
@@ -478,7 +478,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
           {/* Sidebar - Right Column (1/3 width) */}
           <div className="lg:col-span-1 space-y-6">
             <div className="sticky top-6 space-y-6">
-              <div className="bg-navy-800 border border-gray-700 rounded-lg p-6">
+              <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6">
                 <h3 className="text-sm font-medium text-gray-300 mb-2">Budget</h3>
                 <p className="text-3xl font-bold text-white">{formatRoubles(gig.budget)} ₽</p>
                 <p className="text-xs text-gray-300 mt-1">Fixed price</p>

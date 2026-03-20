@@ -151,7 +151,7 @@ export default async function GigBrowsePage({
 
         {/* Gig List */}
         {gigs.length === 0 ? (
-          <div className="bg-navy-800 border border-gray-700 rounded-lg p-8 text-center">
+          <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8 text-center">
             <p className="text-sm text-gray-300">
               {hasActiveFilters
                 ? 'No gigs match your filters. Try adjusting your search criteria.'
@@ -176,7 +176,7 @@ export default async function GigBrowsePage({
               <Link
                 key={gig.id}
                 href={gigDetailUrl}
-                className="flex justify-between items-start gap-6 bg-navy-800 border border-gray-700 rounded-lg p-6 hover:bg-navy-700 hover:border-gray-600 transition-colors duration-200"
+                className="flex justify-between items-start gap-6 bg-surface-level-1 border border-neutral-weak rounded-lg p-6 hover:bg-surface-level-2 hover:border-neutral-strong transition-colors duration-200"
               >
                 {/* Left side: Content */}
                 <div className="flex-1 min-w-0">

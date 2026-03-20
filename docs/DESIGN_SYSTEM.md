@@ -97,18 +97,109 @@ After (automated):
 <div className="bg-surface-level-0 text-neutral-strong border-neutral-weak">
 ```
 
+**Card Component Migration:**
+
+Before (hardcoded colors):
+```tsx
+<div className="bg-navy-800 border border-gray-700 rounded-lg p-6 hover:bg-navy-700">
+  <h3 className="text-xl font-semibold text-white">Card Title</h3>
+  <p className="text-gray-300">Card content</p>
+</div>
+```
+
+After (token-based):
+```tsx
+<div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 hover:bg-surface-level-2 hover:border-neutral-strong transition-colors">
+  <h3 className="text-xl font-semibold text-white">Card Title</h3>
+  <p className="text-gray-300">Card content</p>
+</div>
+```
+
+**Nested Card Migration:**
+
+Before (hardcoded colors):
+```tsx
+<div className="bg-navy-800 border border-gray-700 rounded-lg p-6">
+  <div className="bg-navy-900 border border-gray-700 rounded-lg p-4">
+    Nested card content
+  </div>
+</div>
+```
+
+After (token-based):
+```tsx
+<div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6">
+  <div className="bg-surface-level-2 border border-neutral-weak rounded-lg p-4 hover:bg-navy-700 hover:border-neutral-strong">
+    Nested card content
+  </div>
+</div>
+```
+
+**Status Badge Migration:**
+
+Before (hardcoded colors):
+```tsx
+{/* Success status */}
+<span className="bg-success-500/20 text-success-400 border-success-500/30">
+  Paid
+</span>
+
+{/* Warning status */}
+<span className="bg-warning-500/20 text-warning-400 border-warning-500/30">
+  Pending
+</span>
+
+{/* Error status */}
+<span className="bg-error-500/20 text-error-400 border-error-500/30">
+  Rejected
+</span>
+```
+
+After (token-based):
+```tsx
+{/* Success status */}
+<span className="bg-success-weak-default text-success-default border-success-default">
+  Paid
+</span>
+
+{/* Warning status */}
+<span className="bg-warning-weak-default text-warning-default border-warning-default">
+  Pending
+</span>
+
+{/* Error/Danger status */}
+<span className="bg-danger-weak-default text-danger-default border-danger-default">
+  Rejected
+</span>
+
+{/* Brand/Info status (no tokens available - keep hardcoded) */}
+<span className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+  In Progress
+</span>
+```
+
+**Token Coverage Notes:**
+- ✅ Card backgrounds: Use `bg-surface-level-1` (primary cards) and `bg-surface-level-2` (nested cards)
+- ✅ Card borders: Use `border-neutral-weak`
+- ✅ Card hover backgrounds: Use `hover:bg-surface-level-2` (for level-1 cards)
+- ✅ Card hover borders: Use `hover:border-neutral-strong`
+- ⚠️ Nested card hover states: Keep hardcoded `hover:bg-navy-700` (no level-3 token available)
+- ✅ Status badges: Use semantic tokens (`bg-success-weak-default`, `bg-warning-weak-default`, `bg-danger-weak-default`)
+- ⚠️ Brand/Info badges: Keep opacity-based classes (e.g., `bg-blue-500/20`) - no brand background tokens available
+
 **Benefits of automated tokens:**
 - Single source of truth (design-tokens.json)
 - Automatic sync with Figma designs
 - Consistent naming across the codebase
 - Easier to maintain and update
-- Better semantic meaning (surface-level-0 vs navy-900)
+- Better semantic meaning (surface-level-1 vs navy-800)
 
 **Migration approach:**
 - Gradual migration is recommended
 - Manual tokens remain available for backward compatibility
-- New components should use automated tokens
+- New components should use automated tokens where available
 - Existing components can be migrated incrementally
+- Use hardcoded classes where tokens don't exist (hover states, subtle backgrounds)
 
 ---
 
@@ -352,23 +443,39 @@ Subtle shadows for depth and hierarchy.
 
 ### Cards
 
-**Standard Card:**
+**Standard Card (Token-Based):**
 ```tsx
-<div className="bg-navy-800 border border-gray-700 rounded-lg p-6 shadow-md">
+<div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 shadow-md">
   <h3 className="text-xl font-semibold text-white mb-2">Card Title</h3>
   <p className="text-gray-300">Card content</p>
 </div>
 ```
 
-**Clickable Card:**
+**Clickable Card (Token-Based):**
 ```tsx
 <Link href="/path">
-  <div className="bg-navy-800 border border-gray-700 rounded-lg p-6 shadow-md hover:bg-navy-700 hover:border-gray-600 cursor-pointer transition-colors duration-200">
+  <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 shadow-md hover:bg-navy-700 hover:border-gray-600 cursor-pointer transition-colors duration-200">
     <h3 className="text-xl font-semibold text-white mb-2">Card Title</h3>
     <p className="text-gray-300">Card content</p>
   </div>
 </Link>
 ```
+
+**Nested Card Pattern:**
+```tsx
+<div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6">
+  <h3 className="text-xl font-semibold text-white mb-4">Parent Card</h3>
+  <div className="bg-surface-level-2 border border-neutral-weak rounded-lg p-4">
+    <p className="text-sm text-gray-300">Nested card content</p>
+  </div>
+</div>
+```
+
+**Token Usage Notes:**
+- Use `bg-surface-level-1` for primary cards on page backgrounds
+- Use `bg-surface-level-2` for nested cards or cards within other containers
+- Use `border-neutral-weak` for all card borders
+- Hover states currently use hardcoded colors (no tokens available yet)
 
 ---
 

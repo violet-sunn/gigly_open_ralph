@@ -1,6 +1,6 @@
 // Auto-generated design tokens
 // Source: openspec/specs/ui/design-tokens.json
-// Generated: 2026-03-18T22:57:37.330Z
+// Generated: 2026-03-19T16:35:20.134Z
 //
 // To regenerate: node scripts/parse-design-tokens.js
 

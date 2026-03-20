@@ -113,7 +113,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
                   <Link
                     key={gig.id}
                     href={`/gigs/${gig.id}?from=dashboard&tab=active`}
-                    className="block bg-navy-900 border border-gray-700 rounded-lg p-4 hover:bg-navy-700 hover:border-gray-600 transition-colors"
+                    className="block bg-surface-level-2 border border-neutral-weak rounded-lg p-4 hover:bg-navy-700 hover:border-neutral-strong transition-colors"
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
@@ -129,8 +129,8 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
                         <p className="text-sm font-semibold text-white">{formatRoubles(gig.budget)} ₽</p>
                         <span className={`inline-block px-2 py-1 text-xs font-medium rounded-md border mt-1 ${
                           gig.status === 'IN_PROGRESS' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
-                          gig.status === 'REVIEW' ? 'bg-warning-500/20 text-warning-400 border-warning-500/30' :
-                          gig.status === 'COMPLETED' ? 'bg-success-500/20 text-success-400 border-success-500/30' :
+                          gig.status === 'REVIEW' ? 'bg-warning-weak-default text-warning-default border-warning-default' :
+                          gig.status === 'COMPLETED' ? 'bg-success-weak-default text-success-default border-success-default' :
                           'bg-gray-500/20 text-gray-400 border-gray-500/30'
                         }`}>
                           {gig.status === 'IN_PROGRESS' && 'In Progress'}
@@ -162,11 +162,11 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
                   <Link
                     key={app.id}
                     href={`/gigs/${app.gigId}?from=dashboard&tab=pending`}
-                    className="block bg-navy-900 border border-gray-700 rounded-lg p-4 hover:bg-navy-700 hover:border-gray-600 transition-colors"
+                    className="block bg-surface-level-2 border border-neutral-weak rounded-lg p-4 hover:bg-navy-700 hover:border-neutral-strong transition-colors"
                   >
                     <div className="flex justify-between items-start">
                       <span className="text-sm font-medium text-white">{app.gig.title}</span>
-                      <span className="text-xs px-2 py-1 rounded-md border font-medium bg-warning-500/20 text-warning-400 border-warning-500/30">
+                      <span className="text-xs px-2 py-1 rounded-md border font-medium bg-warning-weak-default text-warning-default border-warning-default">
                         {app.status}
                       </span>
                     </div>
@@ -200,7 +200,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
                         <Link
                           key={gig.id}
                           href={`/gigs/${gig.id}?from=dashboard&tab=archive`}
-                          className="block bg-navy-900 border border-gray-700 rounded-lg p-4 hover:bg-navy-700 hover:border-gray-600 transition-colors"
+                          className="block bg-surface-level-2 border border-neutral-weak rounded-lg p-4 hover:bg-navy-700 hover:border-neutral-strong transition-colors"
                         >
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
@@ -216,7 +216,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
                             </div>
                             <div className="text-right ml-4">
                               <p className="text-sm font-semibold text-white">{formatRoubles(gig.budget)} ₽</p>
-                              <span className="inline-block px-2 py-1 text-xs font-medium rounded-md border mt-1 bg-success-500/20 text-success-400 border-success-500/30">
+                              <span className="inline-block px-2 py-1 text-xs font-medium rounded-md border mt-1 bg-success-weak-default text-success-default border-success-default">
                                 Paid
                               </span>
                             </div>
@@ -236,14 +236,14 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
                         <Link
                           key={app.id}
                           href={`/gigs/${app.gigId}?from=dashboard&tab=archive`}
-                          className="block bg-navy-900 border border-gray-700 rounded-lg p-4 hover:bg-navy-700 hover:border-gray-600 transition-colors"
+                          className="block bg-surface-level-2 border border-neutral-weak rounded-lg p-4 hover:bg-navy-700 hover:border-neutral-strong transition-colors"
                         >
                           <div className="flex justify-between items-start">
                             <span className="text-sm font-medium text-white">{app.gig.title}</span>
                             <span className={`text-xs px-2 py-1 rounded-md border font-medium ${
                               app.status === 'WITHDRAWN'
                                 ? 'bg-gray-500/20 text-gray-400 border-gray-500/30'
-                                : 'bg-error-500/20 text-error-400 border-error-500/30'
+                                : 'bg-danger-weak-default text-danger-default border-danger-default'
                             }`}>
                               {app.status}
                             </span>
