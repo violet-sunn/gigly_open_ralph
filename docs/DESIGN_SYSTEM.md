@@ -602,6 +602,103 @@ All interactive elements must be keyboard accessible:
 
 ---
 
+## Auth Component Tokens
+
+The design token system includes spacing and border-radius tokens specifically for auth screen components. These tokens are extracted from `openspec/specs/ui/design-tokens.json` and available as CSS variables.
+
+### Spacing Tokens
+
+Auth components use the following spacing tokens:
+
+- **spacing-300** (`24px`) - Internal gaps between elements
+- **spacing-500** (`40px`) - Container padding
+- **spacing-600** (`48px`) - Large gaps between sections
+
+**Usage via CSS Variables:**
+```tsx
+// Auth container with 40px padding
+<div className="p-[var(--spacing-500)]">
+
+// Section with 48px gap
+<div className="flex flex-col gap-[var(--spacing-600)]">
+
+// Internal elements with 24px gap
+<div className="flex flex-col gap-[var(--spacing-300)]">
+```
+
+### Border-Radius Tokens
+
+Auth components use the following border-radius tokens:
+
+- **radius-10** (`10px`) - Buttons and small interactive elements
+- **radius-20** (`20px`) - Cards and form containers
+- **radius-25** (`25px`) - Main auth container
+
+**Usage via CSS Variables:**
+```tsx
+// Auth container (25px radius)
+<div className="rounded-[var(--radius-25)]">
+
+// Auth card (20px radius)
+<div className="rounded-[var(--radius-20)]">
+
+// Auth button (10px radius)
+<button className="rounded-[var(--radius-10)]">
+```
+
+### Complete Auth Component Example
+
+```tsx
+// Main auth container
+<div className="bg-surface-level-1 border border-neutral-strong rounded-[var(--radius-25)] p-[var(--spacing-500)]">
+  <div className="flex flex-col gap-[var(--spacing-600)] items-center">
+
+    {/* Logo and heading section */}
+    <div className="flex flex-col gap-[var(--spacing-300)] items-center">
+      <div className="bg-[rgba(49,54,67,0.5)] rounded-[var(--radius-10)] px-2 py-2">
+        <img src="/logo.svg" alt="Logo" />
+      </div>
+      <h1 className="text-2xl font-semibold text-white">Вход</h1>
+    </div>
+
+    {/* Form cards */}
+    <div className="flex flex-col gap-4 w-full">
+      <div className="bg-surface-level-2 border-2 border-brand-default rounded-[var(--radius-20)] p-5">
+        <p className="text-white">Профиль специалиста</p>
+      </div>
+      <div className="bg-surface-level-2 rounded-[var(--radius-20)] p-5">
+        <p className="text-white">Профиль Компании</p>
+      </div>
+    </div>
+
+    {/* Action buttons */}
+    <div className="flex flex-col gap-5 w-full">
+      <button className="bg-[#0088FF] text-white font-medium h-[50px] rounded-[var(--radius-10)]">
+        Войти
+      </button>
+      <button className="bg-[rgba(0,136,255,0.24)] text-brand-default font-medium h-[50px] rounded-[var(--radius-10)]">
+        Зарегестрироватся
+      </button>
+    </div>
+  </div>
+</div>
+```
+
+### Color Tokens for Auth
+
+Auth components use these color tokens:
+
+- **Background**: `bg-surface-level-1` (`#060813`) - Main container background
+- **Card Background**: `bg-surface-level-2` (`#10121c`) - Card backgrounds
+- **Border**: `border-neutral-strong` (`#242935`) - Container borders
+- **Brand Border**: `border-brand-default` (`#0265dc`) - Active/selected state borders
+- **Primary Button**: `#0088FF` - Primary action button background (available as `color-primitives.light.blue.700`)
+
+**Note on Primary Blue (#0088FF):**
+The primary blue color (`#0088FF`) is now available as a color primitive at `color-primitives.light.blue.700`. It can be referenced in semantic tokens or used directly via CSS variables once semantic tokens are configured.
+
+---
+
 ## Best Practices
 
 1. **Use design tokens**: Always use the defined color classes (navy-900, blue-500) instead of arbitrary values

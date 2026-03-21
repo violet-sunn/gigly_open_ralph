@@ -1683,6 +1683,20 @@
           }
         }
       },
+      "600": {
+        "type": "dimension",
+        "value": 48,
+        "extensions": {
+          "org.lukasoppermann.figmaDesignTokens": {
+            "collection": "numbers",
+            "scopes": [
+              "GAP"
+            ],
+            "variableId": "VariableID:custom:600",
+            "exportKey": "variables"
+          }
+        }
+      },
       "1000": {
         "type": "dimension",
         "value": 80,
@@ -1713,6 +1727,48 @@
       }
     },
     "corner": {
+      "10": {
+        "type": "dimension",
+        "value": 10,
+        "extensions": {
+          "org.lukasoppermann.figmaDesignTokens": {
+            "collection": "numbers",
+            "scopes": [
+              "CORNER_RADIUS"
+            ],
+            "variableId": "VariableID:custom:10",
+            "exportKey": "variables"
+          }
+        }
+      },
+      "20": {
+        "type": "dimension",
+        "value": 20,
+        "extensions": {
+          "org.lukasoppermann.figmaDesignTokens": {
+            "collection": "numbers",
+            "scopes": [
+              "CORNER_RADIUS"
+            ],
+            "variableId": "VariableID:custom:20",
+            "exportKey": "variables"
+          }
+        }
+      },
+      "25": {
+        "type": "dimension",
+        "value": 25,
+        "extensions": {
+          "org.lukasoppermann.figmaDesignTokens": {
+            "collection": "numbers",
+            "scopes": [
+              "CORNER_RADIUS"
+            ],
+            "variableId": "VariableID:custom:25",
+            "exportKey": "variables"
+          }
+        }
+      },
       "50": {
         "type": "dimension",
         "value": 4,
@@ -2220,6 +2276,21 @@
   "color-primitives": {
     "light": {
       "blue": {
+        "700": {
+          "type": "color",
+          "value": "#0088ffff",
+          "blendMode": "normal",
+          "extensions": {
+            "org.lukasoppermann.figmaDesignTokens": {
+              "collection": "color-primitives",
+              "scopes": [
+                "ALL_SCOPES"
+              ],
+              "variableId": "VariableID:custom:blue700",
+              "exportKey": "variables"
+            }
+          }
+        },
         "800": {
           "type": "color",
           "value": "#1379f3ff",

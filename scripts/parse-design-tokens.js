@@ -149,15 +149,29 @@ if (tokens.effect && tokens.effect.shadow) {
   console.log(`✓ Extracted ${Object.keys(shadowTokens).length} shadow tokens`);
 }
 
-// Extract spacing tokens (if they exist)
+// Extract spacing tokens
 const spacingTokens = {};
-// Note: spacing tokens might be in a different location in the JSON
-// For now, we'll leave this empty and can expand later
+if (tokens.numbers && tokens.numbers.spacing) {
+  const flatSpacing = flattenObject(tokens.numbers.spacing);
+  for (const [key, token] of Object.entries(flatSpacing)) {
+    if (token.value && typeof token.value === 'number') {
+      spacingTokens[key] = `${token.value}px`;
+    }
+  }
+  console.log(`✓ Extracted ${Object.keys(spacingTokens).length} spacing tokens`);
+}
 
-// Extract border radius tokens (if they exist)
+// Extract border radius tokens from numbers.corner
 const borderRadiusTokens = {};
-// Note: border radius tokens might be in a different location
-// For now, we'll leave this empty and can expand later
+if (tokens.numbers && tokens.numbers.corner) {
+  const flatRadius = flattenObject(tokens.numbers.corner);
+  for (const [key, token] of Object.entries(flatRadius)) {
+    if (token.value && typeof token.value === 'number') {
+      borderRadiusTokens[key] = `${token.value}px`;
+    }
+  }
+  console.log(`✓ Extracted ${Object.keys(borderRadiusTokens).length} border radius tokens`);
+}
 
 console.log('\n📝 Generating output files...\n');
 

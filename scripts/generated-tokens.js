@@ -1,6 +1,6 @@
 // Auto-generated design tokens
 // Source: openspec/specs/ui/design-tokens.json
-// Generated: 2026-03-19T16:35:20.134Z
+// Generated: 2026-03-21T22:06:44.659Z
 //
 // To regenerate: node scripts/parse-design-tokens.js
 
@@ -129,6 +129,26 @@ module.exports = {
   "300": "0px 8px 16px 0px rgba(0, 0, 0, 0.12)",
   "400": "0px 8px 32px 0px rgba(0, 0, 0, 0.16)"
 },
-  spacing: {},
-  borderRadius: {},
+  spacing: {
+  "25": "2px",
+  "50": "4px",
+  "75": "6px",
+  "100": "8px",
+  "150": "12px",
+  "300": "24px",
+  "400": "32px",
+  "500": "40px",
+  "600": "48px",
+  "1000": "80px",
+  "base": "16px"
+},
+  borderRadius: {
+  "10": "10px",
+  "20": "20px",
+  "25": "25px",
+  "50": "4px",
+  "200": "16px",
+  "round": "9999px",
+  "base": "8px"
+},
 };

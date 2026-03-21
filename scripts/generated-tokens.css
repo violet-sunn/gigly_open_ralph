@@ -1,6 +1,6 @@
 /* Auto-generated design tokens */
 /* Source: openspec/specs/ui/design-tokens.json */
-/* Generated: 2026-03-19T16:35:20.139Z */
+/* Generated: 2026-03-21T22:06:44.661Z */
 /* To regenerate: node scripts/parse-design-tokens.js */
 
 :root {
@@ -128,4 +128,26 @@
   --shadow-200: 0px 4px 12px 0px rgba(0, 0, 0, 0.16);
   --shadow-300: 0px 8px 16px 0px rgba(0, 0, 0, 0.12);
   --shadow-400: 0px 8px 32px 0px rgba(0, 0, 0, 0.16);
+
+  /* Design Tokens - Spacing */
+  --spacing-25: 2px;
+  --spacing-50: 4px;
+  --spacing-75: 6px;
+  --spacing-100: 8px;
+  --spacing-150: 12px;
+  --spacing-300: 24px;
+  --spacing-400: 32px;
+  --spacing-500: 40px;
+  --spacing-600: 48px;
+  --spacing-1000: 80px;
+  --spacing-base: 16px;
+
+  /* Design Tokens - Border Radius */
+  --radius-10: 10px;
+  --radius-20: 20px;
+  --radius-25: 25px;
+  --radius-50: 4px;
+  --radius-200: 16px;
+  --radius-round: 9999px;
+  --radius-base: 8px;
 }
