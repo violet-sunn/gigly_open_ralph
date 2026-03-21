@@ -627,3 +627,113 @@ When updating existing components:
 ---
 
 **Questions?** Refer to the Tailwind config at `tailwind.config.ts` for the complete token definitions.
+
+---
+
+## Migration Status
+
+**Last Validated:** March 21, 2026
+**Migration Completion:** ❌ **INCOMPLETE** (87% complete)
+
+### Validation Results
+
+#### Automated Grep Audit
+- **Status:** ❌ FAILED
+- **Old Color Instances Found:** 65 matches across active codebase
+- **Command:** `npm run validate:tokens`
+
+#### Test Suite Status
+- **Status:** ✅ PASSED
+- **Tests Executed:** 647 tests (exceeds expected 521)
+- **Test Failures:** 0
+- **Command:** `npm run test:unit`
+
+### Remaining Migration Work
+
+The following files still contain old hardcoded color patterns that need migration to design tokens:
+
+#### High Priority (User-Facing Components)
+1. **app/(protected)/gigs/new/gig-form.tsx**
+   - Line 247: `bg-navy-900 border-gray-700` (budget preview box)
+   - Line 256: `border-gray-700` (divider)
+   - **Recommended tokens:** `bg-surface-level-1`, `border-neutral-weak`
+
+2. **app/(protected)/gigs/[id]/page.tsx**
+   - Lines 146, 221, 242, 406, 418, 423, 430, 442, 446: Multiple instances of `bg-navy-800`, `bg-navy-700/50`, `border-gray-700`
+   - **Recommended tokens:** `bg-surface-level-1`, `bg-surface-level-2`, `border-neutral-weak`
+
+3. **app/components/NotificationDropdown.tsx**
+   - Lines 75, 79: `bg-navy-800 border-gray-700`
+   - **Recommended tokens:** `bg-surface-level-1`, `border-neutral-weak`
+
+4. **app/components/PaginationControls.tsx**
+   - Lines 84, 92, 132, 144, 152: Multiple instances of `bg-navy-800 border-gray-700`
+   - **Recommended tokens:** `bg-surface-level-1`, `border-neutral-weak`
+
+5. **app/(protected)/gigs/components/GigFilters.tsx**
+   - Lines 98, 102, 117, 127, 129, 138, 152, 169, 196: Multiple instances of `text-gray-*`, `border-gray-*`
+   - **Recommended tokens:** `text-neutral-strong`, `text-neutral-default`, `border-neutral-weak`
+
+6. **app/(protected)/dashboard/page.tsx**
+   - Lines 176, 235, 345: `text-gray-600`, `border-gray-500/30`
+   - **Recommended tokens:** `text-neutral-default`, `border-neutral-weak`
+
+7. **app/register/page.tsx**
+   - Lines 44, 51: `border-gray-600`
+   - **Recommended tokens:** `border-neutral-weak`
+
+#### Medium Priority (Onboarding Components)
+8. **app/components/onboarding/EmptyState.tsx**
+   - Lines 25, 28, 29: `border-gray-200`, `text-gray-900`, `text-gray-600`, `bg-gray-50`
+   - **Recommended tokens:** `border-neutral-weak`, `text-neutral-strong`, `text-neutral-default`, `bg-surface-level-0`
+
+9. **app/components/onboarding/ProfileCompletionCard.tsx**
+   - Lines 67, 68, 81: `border-gray-200`, `text-gray-900`, `text-gray-600`
+   - **Recommended tokens:** `border-neutral-weak`, `text-neutral-strong`, `text-neutral-default`
+
+10. **app/components/onboarding/WelcomeModal.tsx**
+    - Lines 82, 86, 97, 98, 113: Multiple instances of `text-gray-*`
+    - **Recommended tokens:** `text-neutral-strong`, `text-neutral-default`
+
+#### Low Priority (Layout/Infrastructure)
+11. **app/(protected)/layout.tsx**
+    - Line 16: `border-gray-200` (fallback during Suspense)
+    - **Recommended tokens:** `border-neutral-weak`
+
+12. **app/(protected)/dashboard/SpecialistDashboardTabs.tsx**
+    - Lines 134, 245: `border-gray-500/30`
+    - **Recommended tokens:** `border-neutral-weak`
+
+### Intentional Exclusions
+
+The following files are excluded from migration requirements:
+
+1. **scripts/validate-token-migration.sh** - Contains pattern strings for validation purposes (not actual usage)
+2. **.claude/settings.local.json** - IDE configuration file (not production code)
+3. **__tests__/unit/components/onboarding/EmptyState.test.tsx** - Test file verifying legacy class names
+
+### Validation Procedures
+
+To verify migration completion in the future:
+
+```bash
+# Run automated grep audit
+npm run validate:tokens
+
+# Run full test suite
+npm run test:unit
+
+# Expected output when migration is complete:
+# ✅ SUCCESS: No old color patterns found!
+# Test Files: 62 passed (62)
+# Tests: 647 passed (647)
+```
+
+### Next Steps
+
+1. **Migrate remaining components** to design tokens (estimated 2-3 hours)
+2. **Run validation script** to verify zero old color patterns
+3. **Perform visual regression testing** across all pages
+4. **Run accessibility audit** using Lighthouse
+5. **Update this section** to reflect 100% completion status
+
