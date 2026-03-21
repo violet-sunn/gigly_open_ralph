@@ -1709,3 +1709,45 @@ All gig page functionality MUST remain unchanged during token migration to ensur
 - All existing integration tests pass without modification
 - No functional regressions introduced
 - All URL parameters preserved correctly
+
+---
+
+### Requirement: Text Color Token Usage Guidelines
+
+All UI components MUST use design token-based text colors for consistency with the automated design token system.
+
+#### Scenario: Primary text uses text-neutral-strong token
+- GIVEN any component renders primary text content (headings, body text, important labels)
+- WHEN the text is displayed
+- THEN the text MUST use `text-neutral-strong` token
+- AND the text MUST NOT use manual gray classes (`text-gray-300`, `text-gray-400`, `text-gray-500`)
+- AND the text MUST be readable on `bg-surface-level-0` backgrounds
+
+#### Scenario: Secondary text uses text-neutral-weak token
+- GIVEN any component renders secondary text content (metadata, timestamps, helper text, labels)
+- WHEN the text is displayed
+- THEN the text MUST use `text-neutral-weak` token
+- AND the text MUST NOT use manual gray classes (`text-gray-300`, `text-gray-400`, `text-gray-500`)
+- AND the text MUST be readable on `bg-surface-level-0`, `bg-surface-level-1`, and `bg-surface-level-2` backgrounds
+
+#### Scenario: Text color tokens meet WCAG AA contrast standards
+- GIVEN text is displayed on any background surface
+- WHEN contrast ratio is calculated
+- THEN `text-neutral-strong` on `bg-surface-level-0` MUST meet WCAG AA (≥ 4.5:1 for normal text)
+- AND `text-neutral-weak` on `bg-surface-level-0` MUST meet WCAG AA (≥ 4.5:1 for normal text)
+- AND `text-neutral-weak` on `bg-surface-level-1` MUST meet WCAG AA (≥ 4.5:1 for normal text)
+- AND `text-neutral-weak` on `bg-surface-level-2` MUST meet WCAG AA (≥ 4.5:1 for normal text)
+
+#### Scenario: Semantic colors remain unchanged
+- GIVEN a component displays status, error, success, or warning text
+- WHEN the text is displayed
+- THEN semantic color tokens MUST be used (e.g., `text-error-500`, `text-success-400`, `text-warning-500`)
+- AND semantic colors MUST NOT be replaced with neutral tokens
+- AND `text-white` MAY be used for maximum contrast headings
+
+**Acceptance Criteria:**
+- All new components use `text-neutral-strong` or `text-neutral-weak` for non-semantic text
+- Zero instances of `text-gray-300`, `text-gray-400`, or `text-gray-500` in component files
+- All text meets WCAG AA contrast standards
+- Semantic colors (`text-error-*`, `text-success-*`, `text-warning-*`) remain unchanged
+- `text-white` remains available for maximum contrast use cases
