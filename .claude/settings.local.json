@@ -174,7 +174,10 @@
       "Bash(/tmp/implementation_check.txt:*)",
       "Bash(do)",
       "Bash(/tmp/verification_report.md:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(npm run validate:tokens)",
+      "Bash(tee:*)",
+      "Bash(wc:*)"
     ]
   }
 }
