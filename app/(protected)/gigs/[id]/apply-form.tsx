@@ -54,7 +54,7 @@ export function ApplyForm({ gigId }: { gigId: string }) {
           maxLength={2000}
           required
           onChange={(e) => setApproachCount(e.target.value.length)}
-          className="mt-2 block w-full rounded-md bg-navy-800 border border-gray-600 text-white px-4 py-3 placeholder:text-neutral-weak focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm"
+          className="mt-2 block w-full rounded-md bg-surface-level-1 border border-neutral-weak text-white px-4 py-3 placeholder:text-neutral-weak focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm"
           placeholder="How will you approach this work? What methodology, tools, or architecture will you use? Be specific about your technical plan."
         />
         <p className="text-xs text-neutral-strong mt-1">
@@ -78,7 +78,7 @@ export function ApplyForm({ gigId }: { gigId: string }) {
           maxLength={1000}
           required
           onChange={(e) => setQuestionsCount(e.target.value.length)}
-          className="mt-2 block w-full rounded-md bg-navy-800 border border-gray-600 text-white px-4 py-3 placeholder:text-neutral-weak focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm"
+          className="mt-2 block w-full rounded-md bg-surface-level-1 border border-neutral-weak text-white px-4 py-3 placeholder:text-neutral-weak focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm"
           placeholder="What questions do you have about the requirements? What needs clarification before you can provide an accurate estimate?"
         />
         <p className="text-xs text-neutral-strong mt-1">
@@ -100,7 +100,7 @@ export function ApplyForm({ gigId }: { gigId: string }) {
           rows={2}
           maxLength={200}
           onChange={(e) => setEffortCount(e.target.value.length)}
-          className="mt-2 block w-full rounded-md bg-navy-800 border border-gray-600 text-white px-4 py-3 placeholder:text-neutral-weak focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm"
+          className="mt-2 block w-full rounded-md bg-surface-level-1 border border-neutral-weak text-white px-4 py-3 placeholder:text-neutral-weak focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm"
           placeholder="e.g., '2-3 weeks', '40 hours', 'depends on answers to questions above'"
         />
         <p className="text-xs text-neutral-strong mt-1">

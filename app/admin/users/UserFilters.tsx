@@ -25,7 +25,7 @@ export function UserFilters() {
       <div>
         <label className="block text-sm font-medium text-white mb-1">Role</label>
         <select
-          className="border border-gray-600 rounded-md px-3 py-2 bg-navy-800 text-white"
+          className="border border-neutral-weak rounded-md px-3 py-2 bg-surface-level-1 text-white"
           value={roleFilter}
           onChange={(e) => updateFilter('role', e.target.value)}
         >
@@ -39,7 +39,7 @@ export function UserFilters() {
       <div>
         <label className="block text-sm font-medium text-white mb-1">Status</label>
         <select
-          className="border border-gray-600 rounded-md px-3 py-2 bg-navy-800 text-white"
+          className="border border-neutral-weak rounded-md px-3 py-2 bg-surface-level-1 text-white"
           value={statusFilter}
           onChange={(e) => updateFilter('status', e.target.value)}
         >

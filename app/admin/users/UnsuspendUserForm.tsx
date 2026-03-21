@@ -33,7 +33,7 @@ export function UnsuspendUserForm({ userId }: { userId: string }) {
                   name="reason"
                   rows={4}
                   required
-                  className="w-full border border-gray-600 rounded-md px-3 py-2 bg-surface-level-0 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full border border-neutral-weak rounded-md px-3 py-2 bg-surface-level-1 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   placeholder="Enter the reason for unsuspending this user..."
                 />
               </div>

@@ -70,7 +70,7 @@ export function GigForm() {
               name="title"
               type="text"
               required
-              className="mt-1 block w-full rounded-md border border-gray-600 px-4 py-3 bg-navy-800 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
+              className="mt-1 block w-full rounded-md border border-neutral-weak px-4 py-3 bg-surface-level-1 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
               placeholder="e.g. Build a React dashboard"
             />
           </div>
@@ -84,7 +84,7 @@ export function GigForm() {
               name="description"
               required
               rows={4}
-              className="mt-1 block w-full rounded-md border border-gray-600 px-4 py-3 bg-navy-800 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
+              className="mt-1 block w-full rounded-md border border-neutral-weak px-4 py-3 bg-surface-level-1 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
               placeholder="Describe the scope of work in detail..."
             />
           </div>
@@ -124,7 +124,7 @@ export function GigForm() {
                   setAcHasInteracted(true)
                 }
               }}
-              className="mt-1 block w-full rounded-md border border-gray-600 px-4 py-3 bg-navy-800 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
+              className="mt-1 block w-full rounded-md border border-neutral-weak px-4 py-3 bg-surface-level-1 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
               placeholder="What does 'done' look like? Be specific: deliverables, quality standards, success metrics. Example: 'API returns user data in JSON format with <200ms response time, includes unit tests with >80% coverage, deployed to staging environment.'"
             />
             <AcceptanceCriteriaQualityWarning
@@ -152,7 +152,7 @@ export function GigForm() {
               name="goal"
               rows={3}
               onChange={(e) => setGoalCount(e.target.value.length)}
-              className="mt-1 block w-full rounded-md border border-gray-600 px-4 py-3 bg-navy-800 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
+              className="mt-1 block w-full rounded-md border border-neutral-weak px-4 py-3 bg-surface-level-1 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
               placeholder="Example: We need to migrate our user authentication from custom solution to OAuth 2.0 to improve security and reduce maintenance burden."
             />
             <div className="mt-1 flex justify-between items-start">
@@ -176,7 +176,7 @@ export function GigForm() {
               name="deliverables"
               rows={3}
               onChange={(e) => setDeliverablesCount(e.target.value.length)}
-              className="mt-1 block w-full rounded-md border border-gray-600 px-4 py-3 bg-navy-800 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
+              className="mt-1 block w-full rounded-md border border-neutral-weak px-4 py-3 bg-surface-level-1 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
               placeholder="Example: 1. OAuth 2.0 integration with Google and GitHub&#10;2. Migration script for existing users&#10;3. Updated documentation&#10;4. Deployment to staging and production"
             />
             <div className="mt-1 flex justify-between items-start">
@@ -200,7 +200,7 @@ export function GigForm() {
               name="constraints"
               rows={3}
               onChange={(e) => setConstraintsCount(e.target.value.length)}
-              className="mt-1 block w-full rounded-md border border-gray-600 px-4 py-3 bg-navy-800 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
+              className="mt-1 block w-full rounded-md border border-neutral-weak px-4 py-3 bg-surface-level-1 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
               placeholder="Example: Must maintain backward compatibility with existing API endpoints. Prefer using Passport.js library. Deadline: end of Q1 2026."
             />
             <div className="mt-1 flex justify-between items-start">
@@ -238,7 +238,7 @@ export function GigForm() {
               step="1"
               value={budget}
               onChange={(e) => setBudget(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-gray-600 px-4 py-3 bg-navy-800 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
+              className="mt-1 block w-full rounded-md border border-neutral-weak px-4 py-3 bg-surface-level-1 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
               placeholder="100000"
             />
           </div>
@@ -268,7 +268,7 @@ export function GigForm() {
               id="tags"
               name="tags"
               type="text"
-              className="mt-1 block w-full rounded-md border border-gray-600 px-4 py-3 bg-navy-800 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
+              className="mt-1 block w-full rounded-md border border-neutral-weak px-4 py-3 bg-surface-level-1 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
               placeholder="React, TypeScript, Node.js"
             />
           </div>
