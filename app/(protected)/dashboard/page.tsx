@@ -173,7 +173,7 @@ export default async function DashboardPage({
                               gig.status === 'PAID' ? 'bg-success-weak-default text-success-default border-success-default' :
                               gig.status === 'COMPLETED' ? 'bg-warning-weak-default text-warning-default border-warning-default' :
                               gig.status === 'IN_PROGRESS' ? 'bg-success-weak-default text-success-default border-success-default' :
-                              'bg-gray-500/20 text-neutral-weak border-gray-500/30'
+                              'bg-gray-500/20 text-neutral-weak border-neutral-weak'
                             }`}>
                               {gig.status === 'PAID' ? 'Paid' :
                                gig.status === 'COMPLETED' ? 'Completed' :
@@ -232,7 +232,7 @@ export default async function DashboardPage({
                       <p className="text-xs text-neutral-weak mb-1">Earned this month</p>
                       <p className="text-2xl font-bold text-white">$0.00</p>
                     </div>
-                    <svg className="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-6 h-6 text-neutral-weak" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </div>
@@ -342,7 +342,7 @@ export default async function DashboardPage({
                       <p className="text-xs text-neutral-weak mb-1">Earned this month</p>
                       <p className="text-2xl font-bold text-white">$0.00</p>
                     </div>
-                    <svg className="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-6 h-6 text-neutral-weak" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </div>

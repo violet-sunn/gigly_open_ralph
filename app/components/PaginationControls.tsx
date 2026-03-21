@@ -81,7 +81,7 @@ export default function PaginationControls({
           <Link
             href={buildPageUrl(currentPage - 1)}
             aria-label="Previous page"
-            className="px-3 py-2 text-sm font-medium text-white bg-navy-800 border border-gray-700 rounded-md hover:bg-navy-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-2 text-sm font-medium text-white bg-surface-level-1 border border-neutral-weak rounded-md hover:bg-navy-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             Previous
           </Link>
@@ -89,7 +89,7 @@ export default function PaginationControls({
           <span
             aria-disabled="true"
             aria-label="Previous page"
-            className="px-3 py-2 text-sm font-medium text-neutral-weak bg-surface-level-0 border border-gray-700 rounded-md cursor-not-allowed opacity-50 pointer-events-none"
+            className="px-3 py-2 text-sm font-medium text-neutral-weak bg-surface-level-0 border border-neutral-weak rounded-md cursor-not-allowed opacity-50 pointer-events-none"
           >
             Previous
           </span>
@@ -129,7 +129,7 @@ export default function PaginationControls({
               key={pageNum}
               href={buildPageUrl(pageNum)}
               aria-label={`Go to page ${pageNum}`}
-              className="px-4 py-2 text-sm font-medium text-white bg-navy-800 border border-gray-700 rounded-md hover:bg-navy-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 text-sm font-medium text-white bg-surface-level-1 border border-neutral-weak rounded-md hover:bg-navy-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {pageNum}
             </Link>
@@ -141,7 +141,7 @@ export default function PaginationControls({
           <Link
             href={buildPageUrl(currentPage + 1)}
             aria-label="Next page"
-            className="px-3 py-2 text-sm font-medium text-white bg-navy-800 border border-gray-700 rounded-md hover:bg-navy-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-2 text-sm font-medium text-white bg-surface-level-1 border border-neutral-weak rounded-md hover:bg-navy-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             Next
           </Link>
@@ -149,7 +149,7 @@ export default function PaginationControls({
           <span
             aria-disabled="true"
             aria-label="Next page"
-            className="px-3 py-2 text-sm font-medium text-neutral-weak bg-surface-level-0 border border-gray-700 rounded-md cursor-not-allowed opacity-50 pointer-events-none"
+            className="px-3 py-2 text-sm font-medium text-neutral-weak bg-surface-level-0 border border-neutral-weak rounded-md cursor-not-allowed opacity-50 pointer-events-none"
           >
             Next
           </span>

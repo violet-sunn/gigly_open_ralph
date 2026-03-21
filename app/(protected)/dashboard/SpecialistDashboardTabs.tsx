@@ -131,7 +131,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
                           gig.status === 'IN_PROGRESS' ? 'bg-success-weak-default text-success-default border-success-default' :
                           gig.status === 'REVIEW' ? 'bg-warning-weak-default text-warning-default border-warning-default' :
                           gig.status === 'COMPLETED' ? 'bg-success-weak-default text-success-default border-success-default' :
-                          'bg-gray-500/20 text-neutral-weak border-gray-500/30'
+                          'bg-gray-500/20 text-neutral-weak border-neutral-weak'
                         }`}>
                           {gig.status === 'IN_PROGRESS' && 'In Progress'}
                           {gig.status === 'REVIEW' && 'Under Review'}
@@ -242,7 +242,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
                             <span className="text-sm font-medium text-white">{app.gig.title}</span>
                             <span className={`text-xs px-2 py-1 rounded-md border font-medium ${
                               app.status === 'WITHDRAWN'
-                                ? 'bg-gray-500/20 text-neutral-weak border-gray-500/30'
+                                ? 'bg-surface-level-2 text-neutral-weak border-neutral-weak'
                                 : 'bg-danger-weak-default text-danger-default border-danger-default'
                             }`}>
                               {app.status}

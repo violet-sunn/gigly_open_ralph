@@ -64,13 +64,13 @@ export default function ProfileCompletionCard({
   }
 
   return (
-    <div className="border border-gray-200 rounded-lg p-6 bg-white shadow-sm mb-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-3">
+    <div className="border border-neutral-weak rounded-lg p-6 bg-surface-level-1 shadow-sm mb-6">
+      <h3 className="text-lg font-semibold text-white mb-3">
         Complete Your Profile
       </h3>
 
       <div className="mb-3">
-        <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+        <div className="w-full bg-surface-level-2 rounded-full h-4 overflow-hidden">
           <div
             className={`h-4 rounded-full transition-all duration-300 ${barColor}`}
             style={{ width: `${percentage}%` }}
@@ -78,7 +78,7 @@ export default function ProfileCompletionCard({
         </div>
       </div>
 
-      <p className="text-sm text-gray-600 mb-4">{percentage}% complete</p>
+      <p className="text-sm text-neutral-default mb-4">{percentage}% complete</p>
 
       <Link
         href="/profile/edit"

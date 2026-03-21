@@ -244,7 +244,7 @@ export function GigForm() {
           </div>
 
           {showPreview && (
-            <div className="rounded-md bg-navy-900 border border-gray-700 p-4 space-y-1 text-sm">
+            <div className="rounded-md bg-surface-level-1 border border-neutral-weak p-4 space-y-1 text-sm">
               <div className="flex justify-between">
                 <span className="text-neutral-strong">Budget:</span>
                 <span className="font-medium text-white">{formatRoubles(budgetNum)} ₽</span>
@@ -253,7 +253,7 @@ export function GigForm() {
                 <span className="text-neutral-strong">Service fee (10%):</span>
                 <span className="font-medium text-white">{formatRoubles(fee)} ₽</span>
               </div>
-              <div className="flex justify-between border-t border-gray-700 pt-1">
+              <div className="flex justify-between border-t border-neutral-weak pt-1">
                 <span className="text-white font-medium">Total:</span>
                 <span className="font-bold text-white">{formatRoubles(total)} ₽</span>
               </div>

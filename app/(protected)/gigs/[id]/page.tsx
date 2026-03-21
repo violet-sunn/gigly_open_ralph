@@ -143,7 +143,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
               <p className="text-sm text-neutral-strong whitespace-pre-wrap leading-relaxed">{gig.description}</p>
 
               {(gig.goal || gig.deliverables || gig.constraints) && (
-                <div className="mt-6 border-t border-gray-700 pt-6">
+                <div className="mt-6 border-t border-neutral-weak pt-6">
                   <h3 className="text-xl font-semibold text-white mb-4">Additional Requirements</h3>
 
                   {gig.goal && (
@@ -218,7 +218,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
         {session.role === 'SPECIALIST' && (
           <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8">
             {gig.isExample ? (
-              <div className="p-4 bg-navy-700/50 border border-gray-700 rounded-lg">
+              <div className="p-4 bg-surface-level-2 border border-neutral-weak rounded-lg">
                 <p className="text-sm text-white">
                   This is an example gig for demonstration purposes. You cannot apply to example gigs.
                 </p>
@@ -239,7 +239,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
                 </div>
               </>
             ) : myApplication && myApplication.status === 'WITHDRAWN' ? (
-              <div className="p-4 bg-navy-700/50 border border-gray-700 rounded">
+              <div className="p-4 bg-surface-level-2 border border-neutral-weak rounded">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-white">Your Application Status:</span>
                   <span className="text-xs px-2 py-1 rounded-full bg-navy-700/50 text-neutral-strong">
@@ -403,7 +403,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
         )}
 
         {(isOwner || isAssignedSpecialist) && (
-          <div id="messages" className="bg-navy-800 border border-gray-700 rounded-lg p-8 shadow-md">
+          <div id="messages" className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8 shadow-md">
             <h3 className="text-xl font-medium text-white mb-6">Messages</h3>
             {gig.assignedSpecialistId === null ? (
               <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-md">
@@ -415,19 +415,19 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
               <>
                 <MessageList messages={gig.messages} currentUserId={session.userId} gigClientId={gig.clientId} />
                 {!gig.closedByAdmin && gig.status !== 'PAID' && (
-                  <div className="mt-4 pt-4 border-t border-gray-700">
+                  <div className="mt-4 pt-4 border-t border-neutral-weak">
                     <MessageForm gigId={gig.id} />
                   </div>
                 )}
                 {gig.closedByAdmin && (
-                  <div className="mt-4 p-3 bg-navy-700/50 border border-gray-700 rounded-md">
+                  <div className="mt-4 p-3 bg-surface-level-2 border border-neutral-weak rounded-md">
                     <p className="text-sm text-neutral-strong">
                       This gig has been closed by administrators. Messaging is no longer available.
                     </p>
                   </div>
                 )}
                 {gig.status === 'PAID' && (
-                  <div className="mt-4 p-3 bg-navy-700/50 border border-gray-700 rounded-md">
+                  <div className="mt-4 p-3 bg-surface-level-2 border border-neutral-weak rounded-md">
                     <p className="text-sm text-neutral-strong">
                       This gig has been marked as paid. Messaging is no longer available.
                     </p>
@@ -439,11 +439,11 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
         )}
 
         {session.role === 'ADMIN' && gig.moderations && gig.moderations.length > 0 && (
-          <div className="bg-navy-800 border border-gray-700 rounded-lg p-6 shadow-md">
+          <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 shadow-md">
             <h3 className="text-lg font-medium text-white mb-4">Moderation History</h3>
             <div className="space-y-3">
               {gig.moderations.map((log) => (
-                <div key={log.id} className="border-b border-gray-700 pb-3 last:border-0 last:pb-0">
+                <div key={log.id} className="border-b border-neutral-weak pb-3 last:border-0 last:pb-0">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <span className="text-sm font-medium text-white">

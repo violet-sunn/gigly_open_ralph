@@ -77,13 +77,13 @@ export default function WelcomeModal({ role, onDismiss }: WelcomeModalProps) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
-        className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-xl p-6 max-w-md w-[90vw] sm:w-full z-50"
+        className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-surface-level-1 rounded-lg shadow-xl p-6 max-w-md w-[90vw] sm:w-full z-50 border border-neutral-weak"
       >
-        <h2 id="modal-title" className="text-2xl font-bold text-gray-900 mb-4">
+        <h2 id="modal-title" className="text-2xl font-bold text-white mb-4">
           Welcome to Gigly!
         </h2>
 
-        <p className="text-gray-600 mb-6">
+        <p className="text-neutral-default mb-6">
           Get started with these simple steps:
         </p>
 
@@ -94,8 +94,8 @@ export default function WelcomeModal({ role, onDismiss }: WelcomeModalProps) {
                 {step.number}
               </div>
               <div>
-                <p className="font-medium text-gray-900">{step.text}</p>
-                <p className="text-sm text-gray-600">{step.detail}</p>
+                <p className="font-medium text-white">{step.text}</p>
+                <p className="text-sm text-neutral-default">{step.detail}</p>
               </div>
             </li>
           ))}
@@ -110,7 +110,7 @@ export default function WelcomeModal({ role, onDismiss }: WelcomeModalProps) {
           </button>
           <button
             onClick={handleDismiss}
-            className="text-gray-600 hover:text-gray-800 px-6 py-2 rounded font-medium transition-colors"
+            className="text-neutral-default hover:text-white px-6 py-2 rounded font-medium transition-colors"
           >
             Skip for now
           </button>

@@ -72,11 +72,11 @@ export function NotificationDropdown({ isOpen, onClose }: NotificationDropdownPr
 
   return (
     <div
-      className="absolute right-0 mt-2 w-80 bg-navy-800 rounded-lg shadow-lg border border-gray-700 z-50"
+      className="absolute right-0 mt-2 w-80 bg-surface-level-1 rounded-lg shadow-lg border border-neutral-weak z-50"
       role="menu"
       aria-label="Notifications menu"
     >
-      <div className="p-6 border-b border-gray-700">
+      <div className="p-6 border-b border-neutral-weak">
         <h3 className="text-xl font-semibold text-white">Notifications</h3>
       </div>
 

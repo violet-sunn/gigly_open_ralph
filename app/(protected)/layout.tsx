@@ -13,7 +13,7 @@ export default async function ProtectedLayout({
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-surface-level-0)' }}>
-      <Suspense fallback={<div className="h-16 bg-white border-b border-gray-200" />}>
+      <Suspense fallback={<div className="h-16 bg-surface-level-1 border-b border-neutral-weak" />}>
         <MainNav userEmail={session.email} userRole={session.role} />
       </Suspense>
       {children}

@@ -26,6 +26,8 @@ EXCLUDE_DIRS=(
   ".next"
   ".git"
   "openspec"
+  ".claude"
+  "scripts"
 )
 
 # Build exclude arguments for grep

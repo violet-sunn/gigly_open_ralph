@@ -94,12 +94,12 @@ export default function GigFilters() {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-      <h3 className="text-lg font-medium text-gray-900 mb-4">Filter Gigs</h3>
+    <div className="bg-surface-level-1 rounded-lg shadow-md p-6 mb-6 border border-neutral-weak">
+      <h3 className="text-lg font-medium text-white mb-4">Filter Gigs</h3>
 
       {/* Search Input */}
       <div className="mb-4">
-        <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="search" className="block text-sm font-medium text-neutral-strong mb-1">
           Search
         </label>
         <input
@@ -108,13 +108,13 @@ export default function GigFilters() {
           placeholder="Search gigs..."
           value={filters.search}
           onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-neutral-weak rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-surface-level-0 text-white placeholder:text-neutral-weak"
         />
       </div>
 
       {/* Tags */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-neutral-strong mb-2">
           Tags
         </label>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -124,9 +124,9 @@ export default function GigFilters() {
                 type="checkbox"
                 checked={filters.tags.includes(tag)}
                 onChange={() => handleTagToggle(tag)}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                className="rounded border-neutral-weak text-blue-600 focus:ring-blue-500"
               />
-              <span className="text-sm text-gray-700">{tag}</span>
+              <span className="text-sm text-neutral-default">{tag}</span>
             </label>
           ))}
         </div>
@@ -135,7 +135,7 @@ export default function GigFilters() {
       {/* Budget Range */}
       <div className="mb-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="minBudget" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="minBudget" className="block text-sm font-medium text-neutral-strong mb-1">
             Min Budget (₽)
           </label>
           <input
@@ -145,11 +145,11 @@ export default function GigFilters() {
             value={filters.minBudget}
             onChange={(e) => setFilters(prev => ({ ...prev, minBudget: e.target.value }))}
             min="0"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-neutral-weak rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-surface-level-0 text-white placeholder:text-neutral-weak"
           />
         </div>
         <div>
-          <label htmlFor="maxBudget" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="maxBudget" className="block text-sm font-medium text-neutral-strong mb-1">
             Max Budget (₽)
           </label>
           <input
@@ -159,21 +159,21 @@ export default function GigFilters() {
             value={filters.maxBudget}
             onChange={(e) => setFilters(prev => ({ ...prev, maxBudget: e.target.value }))}
             min="0"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-neutral-weak rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-surface-level-0 text-white placeholder:text-neutral-weak"
           />
         </div>
       </div>
 
       {/* Sort */}
       <div className="mb-4">
-        <label htmlFor="sort" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="sort" className="block text-sm font-medium text-neutral-strong mb-1">
           Sort By
         </label>
         <select
           id="sort"
           value={filters.sort}
           onChange={(e) => setFilters(prev => ({ ...prev, sort: e.target.value }))}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-neutral-weak rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-surface-level-0 text-white"
         >
           <option value="newest">Newest First</option>
           <option value="budget-desc">Highest Budget</option>
@@ -193,7 +193,7 @@ export default function GigFilters() {
         <button
           type="button"
           onClick={handleClearFilters}
-          className="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+          className="flex-1 bg-surface-level-2 text-neutral-default px-4 py-2 rounded-md hover:bg-navy-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
         >
           Clear Filters
         </button>

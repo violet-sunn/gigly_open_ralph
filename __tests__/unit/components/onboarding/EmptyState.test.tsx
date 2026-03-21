@@ -102,6 +102,6 @@ describe('EmptyState', () => {
     )
 
     const card = container.firstChild
-    expect(card).toHaveClass('border', 'border-gray-200', 'rounded-lg', 'p-8', 'text-center', 'bg-gray-50')
+    expect(card).toHaveClass('border', 'border-neutral-weak', 'rounded-lg', 'p-8', 'text-center', 'bg-surface-level-1')
   })
 })

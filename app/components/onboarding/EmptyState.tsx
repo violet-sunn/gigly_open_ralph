@@ -22,11 +22,11 @@ export default function EmptyState({
   secondaryAction,
 }: EmptyStateProps) {
   return (
-    <div className="border border-gray-200 rounded-lg p-8 text-center bg-gray-50">
+    <div className="border border-neutral-weak rounded-lg p-8 text-center bg-surface-level-1">
       <div className="flex flex-col items-center gap-4">
         <div className="text-5xl">{icon}</div>
-        <h3 className="text-xl font-semibold text-gray-900">{heading}</h3>
-        <p className="text-gray-600 max-w-md">{description}</p>
+        <h3 className="text-xl font-semibold text-white">{heading}</h3>
+        <p className="text-neutral-default max-w-md">{description}</p>
         {(primaryAction || secondaryAction) && (
           <div className="flex flex-col sm:flex-row gap-3 mt-2">
             {primaryAction && (
