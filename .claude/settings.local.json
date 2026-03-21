@@ -173,7 +173,8 @@
       "Bash(/tmp/validation_report.md:*)",
       "Bash(/tmp/implementation_check.txt:*)",
       "Bash(do)",
-      "Bash(/tmp/verification_report.md:*)"
+      "Bash(/tmp/verification_report.md:*)",
+      "Bash(git stash:*)"
     ]
   }
 }
