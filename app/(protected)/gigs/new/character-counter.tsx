@@ -7,7 +7,7 @@ interface CharacterCounterProps {
 
 export function CharacterCounter({ current, min, max, label }: CharacterCounterProps) {
   // Determine color based on thresholds
-  let colorClass = 'text-gray-600'
+  let colorClass = 'text-neutral-weak'
 
   if (min !== undefined && current < min) {
     colorClass = 'text-red-600'

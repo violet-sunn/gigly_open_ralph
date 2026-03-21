@@ -79,7 +79,7 @@ export default async function AdminUsersPage(props: { searchParams: SearchParams
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white">User Management</h1>
-          <p className="mt-2 text-gray-300">View and moderate user accounts</p>
+          <p className="mt-2 text-neutral-strong">View and moderate user accounts</p>
         </div>
 
         <div className="bg-surface-level-1 border border-neutral-weak rounded-lg mb-6 p-6 shadow-md">
@@ -87,7 +87,7 @@ export default async function AdminUsersPage(props: { searchParams: SearchParams
         </div>
 
         {totalCount > 0 && (
-          <p className="text-sm text-gray-300 mb-4">
+          <p className="text-sm text-neutral-strong mb-4">
             Showing {(page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, totalCount)} of {totalCount} users
           </p>
         )}
@@ -96,19 +96,19 @@ export default async function AdminUsersPage(props: { searchParams: SearchParams
           <table className="min-w-full divide-y divide-gray-700">
             <thead className="bg-surface-level-0">
               <tr>
-                <th className="px-8 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                <th className="px-8 py-4 text-left text-xs font-medium text-neutral-strong uppercase tracking-wider">
                   Email
                 </th>
-                <th className="px-8 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                <th className="px-8 py-4 text-left text-xs font-medium text-neutral-strong uppercase tracking-wider">
                   Role
                 </th>
-                <th className="px-8 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                <th className="px-8 py-4 text-left text-xs font-medium text-neutral-strong uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-8 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                <th className="px-8 py-4 text-left text-xs font-medium text-neutral-strong uppercase tracking-wider">
                   Registered
                 </th>
-                <th className="px-8 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                <th className="px-8 py-4 text-left text-xs font-medium text-neutral-strong uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -135,7 +135,7 @@ export default async function AdminUsersPage(props: { searchParams: SearchParams
                       </span>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-strong">
                     {new Date(user.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -151,7 +151,7 @@ export default async function AdminUsersPage(props: { searchParams: SearchParams
           </table>
 
           {users.length === 0 && (
-            <div className="text-center py-12 text-gray-300">
+            <div className="text-center py-12 text-neutral-strong">
               No users found
             </div>
           )}

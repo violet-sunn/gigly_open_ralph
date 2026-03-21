@@ -67,7 +67,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
             className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
               activeTab === 'active'
                 ? 'border-blue-500 text-blue-500'
-                : 'border-transparent text-gray-300 hover:text-white hover:border-neutral-weak'
+                : 'border-transparent text-neutral-strong hover:text-white hover:border-neutral-weak'
             }`}
           >
             Active Work
@@ -77,7 +77,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
             className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
               activeTab === 'pending'
                 ? 'border-blue-500 text-blue-500'
-                : 'border-transparent text-gray-300 hover:text-white hover:border-neutral-weak'
+                : 'border-transparent text-neutral-strong hover:text-white hover:border-neutral-weak'
             }`}
           >
             Pending Applications
@@ -87,7 +87,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
             className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
               activeTab === 'archive'
                 ? 'border-blue-500 text-blue-500'
-                : 'border-transparent text-gray-300 hover:text-white hover:border-neutral-weak'
+                : 'border-transparent text-neutral-strong hover:text-white hover:border-neutral-weak'
             }`}
           >
             Archive
@@ -118,10 +118,10 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <h4 className="text-sm font-semibold text-white">{gig.title}</h4>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-neutral-weak mt-1">
                           Client: {gig.client.clientProfile?.companyName || gig.client.email}
                         </p>
-                        <p className="text-xs text-gray-500 mt-0.5">
+                        <p className="text-xs text-neutral-weak mt-0.5">
                           Updated: {new Date(gig.updatedAt).toLocaleDateString('ru-RU')}
                         </p>
                       </div>
@@ -131,7 +131,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
                           gig.status === 'IN_PROGRESS' ? 'bg-success-weak-default text-success-default border-success-default' :
                           gig.status === 'REVIEW' ? 'bg-warning-weak-default text-warning-default border-warning-default' :
                           gig.status === 'COMPLETED' ? 'bg-success-weak-default text-success-default border-success-default' :
-                          'bg-gray-500/20 text-gray-400 border-gray-500/30'
+                          'bg-gray-500/20 text-neutral-weak border-gray-500/30'
                         }`}>
                           {gig.status === 'IN_PROGRESS' && 'In Progress'}
                           {gig.status === 'REVIEW' && 'Under Review'}
@@ -171,7 +171,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
                       </span>
                     </div>
                     <div className="mt-2">
-                      <span className="text-xs text-gray-500">{app.createdAt.toLocaleDateString('ru-RU')}</span>
+                      <span className="text-xs text-neutral-weak">{app.createdAt.toLocaleDateString('ru-RU')}</span>
                     </div>
                   </Link>
                 ))}
@@ -194,7 +194,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
                 {/* Completed Gigs Section */}
                 {paidGigs.length > 0 && (
                   <div>
-                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Completed Gigs</h4>
+                    <h4 className="text-xs font-semibold text-neutral-weak uppercase tracking-wider mb-3">Completed Gigs</h4>
                     <div className="space-y-4">
                       {paidGigs.map((gig) => (
                         <Link
@@ -205,7 +205,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
                               <h5 className="text-sm font-semibold text-white">{gig.title}</h5>
-                              <p className="text-xs text-gray-500 mt-1">
+                              <p className="text-xs text-neutral-weak mt-1">
                                 Client: {gig.client.clientProfile?.companyName || gig.client.email}
                               </p>
                               {gig.paidAt && (
@@ -230,7 +230,7 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
                 {/* Rejected/Withdrawn Applications Section */}
                 {archivedApplications.length > 0 && (
                   <div>
-                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Rejected & Withdrawn Applications</h4>
+                    <h4 className="text-xs font-semibold text-neutral-weak uppercase tracking-wider mb-3">Rejected & Withdrawn Applications</h4>
                     <div className="space-y-4">
                       {archivedApplications.map((app) => (
                         <Link
@@ -242,14 +242,14 @@ export function SpecialistDashboardTabs({ activeGigs, applications }: Props) {
                             <span className="text-sm font-medium text-white">{app.gig.title}</span>
                             <span className={`text-xs px-2 py-1 rounded-md border font-medium ${
                               app.status === 'WITHDRAWN'
-                                ? 'bg-gray-500/20 text-gray-400 border-gray-500/30'
+                                ? 'bg-gray-500/20 text-neutral-weak border-gray-500/30'
                                 : 'bg-danger-weak-default text-danger-default border-danger-default'
                             }`}>
                               {app.status}
                             </span>
                           </div>
                           <div className="mt-2">
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs text-neutral-weak">
                               {app.status === 'WITHDRAWN'
                                 ? `Withdrawn on ${new Date(app.updatedAt).toLocaleDateString('ru-RU')}`
                                 : `Applied on ${app.createdAt.toLocaleDateString('ru-RU')}`

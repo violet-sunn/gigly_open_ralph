@@ -46,11 +46,11 @@ export function MessageList({ messages, currentUserId, gigClientId }: MessageLis
               } p-3 rounded`}>
                 <div className="flex justify-between items-start mb-1 gap-3">
                   <span className="text-sm font-medium text-white">{senderName}</span>
-                  <span className="text-xs text-gray-300 whitespace-nowrap">
+                  <span className="text-xs text-neutral-strong whitespace-nowrap">
                     {message.createdAt.toLocaleString('ru-RU')}
                   </span>
                 </div>
-                <p className="text-sm text-gray-300 whitespace-pre-wrap">{message.content}</p>
+                <p className="text-sm text-neutral-strong whitespace-pre-wrap">{message.content}</p>
               </div>
             </div>
           </div>

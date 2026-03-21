@@ -51,19 +51,19 @@ export default async function PublicProfilePage({
           <h1 className="text-2xl font-bold text-white mb-6">Specialist Profile</h1>
           <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 space-y-4 shadow-md">
           <div>
-            <label className="block text-sm font-medium text-gray-300">Name</label>
+            <label className="block text-sm font-medium text-neutral-strong">Name</label>
             <p className="mt-1 text-white">{profile.displayName || user.email}</p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300">Tech Stack</label>
+            <label className="block text-sm font-medium text-neutral-strong">Tech Stack</label>
             <p className="mt-1 text-white">{profile.techStack || 'Not specified'}</p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300">Experience Level</label>
+            <label className="block text-sm font-medium text-neutral-strong">Experience Level</label>
             <p className="mt-1 text-white">{profile.experienceLevel || 'Not specified'}</p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300">Bio</label>
+            <label className="block text-sm font-medium text-neutral-strong">Bio</label>
             <p className="mt-1 text-white whitespace-pre-wrap">{profile.bio || 'Not specified'}</p>
           </div>
           </div>
@@ -82,11 +82,11 @@ export default async function PublicProfilePage({
           <h1 className="text-2xl font-bold text-white mb-6">Client Profile</h1>
           <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 space-y-4 shadow-md">
           <div>
-            <label className="block text-sm font-medium text-gray-300">Company Name</label>
+            <label className="block text-sm font-medium text-neutral-strong">Company Name</label>
             <p className="mt-1 text-white">{profile.companyName}</p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300">Contact Person</label>
+            <label className="block text-sm font-medium text-neutral-strong">Contact Person</label>
             <p className="mt-1 text-white">{profile.contactPerson || 'Not specified'}</p>
           </div>
           </div>
@@ -101,7 +101,7 @@ export default async function PublicProfilePage({
       <div className="max-w-2xl mx-auto px-4">
         <h1 className="text-2xl font-bold text-white mb-6">Profile</h1>
         <div className="bg-surface-level-1 border border-neutral-weak rounded p-4 mb-6 shadow-md">
-          <p className="text-gray-300">Profile not available</p>
+          <p className="text-neutral-strong">Profile not available</p>
         </div>
       </div>
     </div>

@@ -103,7 +103,7 @@ Before (hardcoded colors):
 ```tsx
 <div className="bg-navy-800 border border-gray-700 rounded-lg p-6 hover:bg-navy-700">
   <h3 className="text-xl font-semibold text-white">Card Title</h3>
-  <p className="text-gray-300">Card content</p>
+  <p className="text-neutral-strong">Card content</p>
 </div>
 ```
 
@@ -111,7 +111,7 @@ After (token-based):
 ```tsx
 <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 hover:bg-surface-level-2 hover:border-neutral-strong transition-colors">
   <h3 className="text-xl font-semibold text-white">Card Title</h3>
-  <p className="text-gray-300">Card content</p>
+  <p className="text-neutral-strong">Card content</p>
 </div>
 ```
 
@@ -201,6 +201,18 @@ After (token-based):
 - Existing components can be migrated incrementally
 - Use hardcoded classes where tokens don't exist (hover states, subtle backgrounds)
 
+**Text Color Migration (Completed March 2026):**
+All text colors have been migrated to design tokens:
+- `text-gray-300` → `text-neutral-strong` (primary text)
+- `text-gray-400` → `text-neutral-weak` (secondary text)
+- `text-gray-500` → `text-neutral-weak` (tertiary text)
+
+Benefits:
+- Clear semantic hierarchy (strong vs weak)
+- Consistent with bg-surface-level-* and border-neutral-* tokens
+- WCAG AA compliant contrast ratios
+- Single source of truth in design-tokens.json
+
 ---
 
 ## Color Palette
@@ -247,31 +259,40 @@ Primary accent color for interactive elements, CTAs, and focus states.
 
 ---
 
-### Gray (Text & Borders)
+### Text Colors (Design Tokens)
 
-Neutral colors for text, borders, and subtle UI elements.
+Use semantic design tokens for all text colors to maintain consistency with the automated design token system.
 
-- **gray-300** `#D1D5DB` - Light text (headings on dark background)
-- **gray-400** `#9CA3AF` - Placeholder text
-- **gray-500** `#6B7280` - Secondary text
-- **gray-600** `#4B5563` - Input borders
-- **gray-700** `#374151` - Subtle borders (cards)
-- **gray-800** `#1F2937` - Dark elements
+- **text-neutral-strong** `rgba(255, 255, 255, 1.00)` - Primary text (headings, body content, important labels)
+- **text-neutral-weak** `rgba(178, 178, 178, 1.00)` - Secondary text (metadata, timestamps, helper text)
+- **text-white** `#FFFFFF` - Maximum contrast headings (optional, use sparingly)
 
 **Usage:**
 ```tsx
-// Heading
+// Primary heading
 <h1 className="text-white font-bold">
 
 // Body text
-<p className="text-gray-300">
+<p className="text-neutral-strong">
 
-// Secondary text
-<span className="text-gray-500 text-sm">
+// Secondary text / metadata
+<span className="text-neutral-weak text-sm">
 
 // Placeholder
-<input placeholder="..." className="placeholder:text-gray-400">
+<input placeholder="..." className="placeholder:text-neutral-weak">
 ```
+
+**IMPORTANT:** Do NOT use manual gray classes for text:
+- ❌ `text-gray-300`, `text-gray-400`, `text-gray-500`
+- ✅ `text-neutral-strong`, `text-neutral-weak`
+
+### Gray (Borders & UI Elements)
+
+Neutral colors for borders and subtle UI elements (NOT for text).
+
+- **gray-600** `#4B5563` - Input borders
+- **gray-700** `#374151` - Subtle borders (cards)
+- **gray-800** `#1F2937` - Dark elements
 
 ---
 
@@ -335,10 +356,10 @@ Systematic scale with consistent line heights.
 <h1 className="text-2xl font-bold text-white">
 
 // Card title
-<h2 className="text-xl font-semibold text-gray-300">
+<h2 className="text-xl font-semibold text-neutral-strong">
 
 // Body text
-<p className="text-base font-normal text-gray-300">
+<p className="text-base font-normal text-neutral-strong">
 
 // Button text
 <button className="text-base font-medium">
@@ -597,7 +618,7 @@ All interactive elements must be keyboard accessible:
 When updating existing components:
 
 1. Replace background colors: `bg-white` → `bg-navy-900`, `bg-gray-50` → `bg-navy-800`
-2. Replace text colors: `text-gray-900` → `text-white`, `text-gray-600` → `text-gray-300`
+2. Replace text colors: `text-gray-900` → `text-white`, `text-gray-300/400/500` → `text-neutral-strong` or `text-neutral-weak`
 3. Replace accent colors: `bg-indigo-600` → `bg-blue-500`, `text-indigo-600` → `text-blue-500`
 4. Update borders: `border-gray-300` → `border-gray-700`
 5. Add focus rings: `focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-navy-900`

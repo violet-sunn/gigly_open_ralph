@@ -84,7 +84,7 @@ export function NotificationDropdown({ isOpen, onClose }: NotificationDropdownPr
         {isLoading && (
           <div className="p-8 text-center">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-            <p className="mt-2 text-sm text-gray-300">Loading notifications...</p>
+            <p className="mt-2 text-sm text-neutral-strong">Loading notifications...</p>
           </div>
         )}
 
@@ -108,7 +108,7 @@ export function NotificationDropdown({ isOpen, onClose }: NotificationDropdownPr
               viewBox="0 0 24 24"
               strokeWidth={1.5}
               stroke="currentColor"
-              className="w-12 h-12 mx-auto text-gray-400 mb-2"
+              className="w-12 h-12 mx-auto text-neutral-weak mb-2"
             >
               <path
                 strokeLinecap="round"
@@ -116,8 +116,8 @@ export function NotificationDropdown({ isOpen, onClose }: NotificationDropdownPr
                 d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <p className="text-sm text-gray-300">No new notifications</p>
-            <p className="text-xs text-gray-400 mt-1">You&apos;re all caught up!</p>
+            <p className="text-sm text-neutral-strong">No new notifications</p>
+            <p className="text-xs text-neutral-weak mt-1">You&apos;re all caught up!</p>
           </div>
         )}
 
@@ -150,10 +150,10 @@ export function NotificationDropdown({ isOpen, onClose }: NotificationDropdownPr
                               ? `${notification.gigTitle.substring(0, 50)}...`
                               : notification.gigTitle}
                           </p>
-                          <p className="text-sm text-gray-300 mt-1">
+                          <p className="text-sm text-neutral-strong mt-1">
                             {notification.displayText}
                           </p>
-                          <p className="text-xs text-gray-400 mt-1">
+                          <p className="text-xs text-neutral-weak mt-1">
                             {formatRelativeTime(new Date(notification.timestamp))}
                             {notification.unreadCount > 1 && (
                               <span className="ml-2 text-blue-400 font-medium">

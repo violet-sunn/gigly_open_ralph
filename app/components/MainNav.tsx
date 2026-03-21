@@ -39,7 +39,7 @@ export function MainNav({ userEmail, userRole }: MainNavProps) {
     const base = 'px-4 py-4 text-sm font-medium border-b-2 transition-colors duration-200'
     return isActive(path)
       ? `${base} border-blue-500 text-blue-500`
-      : `${base} border-transparent text-gray-300 hover:text-white hover:bg-navy-700`
+      : `${base} border-transparent text-neutral-strong hover:text-white hover:bg-navy-700`
   }
 
   return (
@@ -91,11 +91,11 @@ export function MainNav({ userEmail, userRole }: MainNavProps) {
             {(userRole === 'CLIENT' || userRole === 'SPECIALIST') && (
               <NotificationBell />
             )}
-            <span className="text-sm text-gray-300">{userEmail}</span>
+            <span className="text-sm text-neutral-strong">{userEmail}</span>
             <form action={logoutUser}>
               <button
                 type="submit"
-                className="text-sm text-gray-300 hover:text-white transition-colors duration-200"
+                className="text-sm text-neutral-strong hover:text-white transition-colors duration-200"
               >
                 Sign Out
               </button>

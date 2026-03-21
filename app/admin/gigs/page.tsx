@@ -81,7 +81,7 @@ export default async function AdminGigsPage(props: { searchParams: SearchParams 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white">Gig Management</h1>
-          <p className="mt-2 text-gray-300">View and moderate gigs</p>
+          <p className="mt-2 text-neutral-strong">View and moderate gigs</p>
         </div>
 
         <div className="bg-surface-level-1 border border-neutral-weak rounded-lg mb-6 p-6 shadow-md">
@@ -89,7 +89,7 @@ export default async function AdminGigsPage(props: { searchParams: SearchParams 
         </div>
 
         {totalCount > 0 && (
-          <p className="text-sm text-gray-300 mb-4">
+          <p className="text-sm text-neutral-strong mb-4">
             Showing {(page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, totalCount)} of {totalCount} gigs
           </p>
         )}
@@ -98,22 +98,22 @@ export default async function AdminGigsPage(props: { searchParams: SearchParams 
           <table className="min-w-full divide-y divide-gray-700">
             <thead className="bg-surface-level-0">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-strong uppercase tracking-wider">
                   Title
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-strong uppercase tracking-wider">
                   Client
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-strong uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-strong uppercase tracking-wider">
                   Budget
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-strong uppercase tracking-wider">
                   Created
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-neutral-strong uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -139,7 +139,7 @@ export default async function AdminGigsPage(props: { searchParams: SearchParams 
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      gig.status === 'OPEN' ? 'bg-gray-500/20 text-gray-400' :
+                      gig.status === 'OPEN' ? 'bg-gray-500/20 text-neutral-weak' :
                       gig.status === 'IN_PROGRESS' ? 'bg-success-500/10 text-success-400' :
                       gig.status === 'REVIEW' ? 'bg-warning-500/10 text-warning-400' :
                       gig.status === 'COMPLETED' ? 'bg-warning-500/10 text-warning-400' :
@@ -152,7 +152,7 @@ export default async function AdminGigsPage(props: { searchParams: SearchParams 
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
                     {(gig.budget / 100).toLocaleString()} ₽
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-strong">
                     {new Date(gig.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -164,7 +164,7 @@ export default async function AdminGigsPage(props: { searchParams: SearchParams 
           </table>
 
           {gigs.length === 0 && (
-            <div className="text-center py-12 text-gray-300">
+            <div className="text-center py-12 text-neutral-strong">
               No gigs found
             </div>
           )}

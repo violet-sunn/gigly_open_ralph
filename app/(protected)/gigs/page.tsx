@@ -136,7 +136,7 @@ export default async function GigBrowsePage({
       <div className="max-w-7xl mx-auto px-4">
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-white leading-tight">Open Gigs</h2>
-          <p className="text-sm text-gray-300 mt-2">Browse and apply to available projects</p>
+          <p className="text-sm text-neutral-strong mt-2">Browse and apply to available projects</p>
         </div>
 
         {/* Filter Panel */}
@@ -144,7 +144,7 @@ export default async function GigBrowsePage({
 
         {/* Results Count */}
         {totalCount > 0 && (
-          <p className="text-sm text-gray-300 mb-4">
+          <p className="text-sm text-neutral-strong mb-4">
             Showing {(page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, totalCount)} of {totalCount} gigs
           </p>
         )}
@@ -152,7 +152,7 @@ export default async function GigBrowsePage({
         {/* Gig List */}
         {gigs.length === 0 ? (
           <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8 text-center">
-            <p className="text-sm text-gray-300">
+            <p className="text-sm text-neutral-strong">
               {hasActiveFilters
                 ? 'No gigs match your filters. Try adjusting your search criteria.'
                 : 'No open gigs available.'}
@@ -188,7 +188,7 @@ export default async function GigBrowsePage({
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-300 line-clamp-2 mb-3 leading-relaxed">{gig.description}</p>
+                  <p className="text-sm text-neutral-strong line-clamp-2 mb-3 leading-relaxed">{gig.description}</p>
                   <div className="flex flex-wrap gap-2">
                     {gig.tags && gig.tags.split(',').map((tag) => tag.trim()).filter(Boolean).slice(0, 4).map((tag) => (
                       <span key={tag} className="text-xs px-2 py-1 rounded-full bg-blue-500/10 text-blue-500">
@@ -196,7 +196,7 @@ export default async function GigBrowsePage({
                       </span>
                     ))}
                   </div>
-                  <p className="text-xs text-gray-400 mt-3">{gig.createdAt.toLocaleDateString('ru-RU')}</p>
+                  <p className="text-xs text-neutral-weak mt-3">{gig.createdAt.toLocaleDateString('ru-RU')}</p>
                 </div>
 
                 {/* Right side: Price and Action */}

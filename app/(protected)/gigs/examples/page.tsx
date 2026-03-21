@@ -34,7 +34,7 @@ export default async function ExampleGigsPage() {
       <div className="max-w-2xl mx-auto px-4">
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-white leading-tight">Example Gigs</h2>
-          <p className="mt-2 text-sm text-gray-300 leading-relaxed">
+          <p className="mt-2 text-sm text-neutral-strong leading-relaxed">
             These are example gigs to help you understand what makes a good gig description.
             Use them as inspiration when creating your own gigs.
           </p>
@@ -42,7 +42,7 @@ export default async function ExampleGigsPage() {
 
         {exampleGigs.length === 0 ? (
           <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8 text-center shadow-md">
-            <p className="text-sm text-gray-300">No example gigs available.</p>
+            <p className="text-sm text-neutral-strong">No example gigs available.</p>
           </div>
         ) : (
           <ul className="space-y-6">
@@ -61,7 +61,7 @@ export default async function ExampleGigsPage() {
                     </div>
                     <span className="text-sm font-medium text-success-400">{formatRoubles(gig.budget)} ₽</span>
                   </div>
-                  <p className="mt-2 text-sm text-gray-300 line-clamp-2 leading-relaxed">{gig.description}</p>
+                  <p className="mt-2 text-sm text-neutral-strong line-clamp-2 leading-relaxed">{gig.description}</p>
                   <div className="mt-3 flex items-center justify-between">
                     <div className="flex gap-2">
                       {gig.tags && gig.tags.split(',').map((tag) => tag.trim()).filter(Boolean).map((tag) => (
@@ -70,7 +70,7 @@ export default async function ExampleGigsPage() {
                         </span>
                       ))}
                     </div>
-                    <span className="text-xs text-gray-400">{gig.createdAt.toLocaleDateString('ru-RU')}</span>
+                    <span className="text-xs text-neutral-weak">{gig.createdAt.toLocaleDateString('ru-RU')}</span>
                   </div>
                 </Link>
               </li>

@@ -223,21 +223,21 @@ export default async function ProfilePage() {
             {/* Info and Stats */}
             <div className="flex-1">
               <h1 className="text-2xl font-bold text-white">{profile.companyName || session.email}</h1>
-              <p className="text-gray-300 mt-1">Client</p>
+              <p className="text-neutral-strong mt-1">Client</p>
 
               {/* Stats Row */}
               <div className="flex gap-8 mt-4">
                 <div className="flex flex-col">
                   <span className="text-2xl font-bold text-white">5.0 ⭐</span>
-                  <span className="text-sm text-gray-400">Rating</span>
+                  <span className="text-sm text-neutral-weak">Rating</span>
                 </div>
                 <div className="flex flex-col">
                   <span className="text-2xl font-bold text-white">0</span>
-                  <span className="text-sm text-gray-400">Опубликовано заказов</span>
+                  <span className="text-sm text-neutral-weak">Опубликовано заказов</span>
                 </div>
                 <div className="flex flex-col">
                   <span className="text-2xl font-bold text-white">0</span>
-                  <span className="text-sm text-gray-400">Завершено</span>
+                  <span className="text-sm text-neutral-weak">Завершено</span>
                 </div>
               </div>
 
@@ -264,24 +264,24 @@ export default async function ProfilePage() {
               </div>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-400">INN</label>
+                  <label className="block text-sm font-medium text-neutral-weak">INN</label>
                   <p className="mt-1 text-white">{profile.inn}</p>
                 </div>
                 {profile.kpp && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-400">KPP</label>
+                    <label className="block text-sm font-medium text-neutral-weak">KPP</label>
                     <p className="mt-1 text-white">{profile.kpp}</p>
                   </div>
                 )}
                 {profile.contactPerson && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-400">Contact Person</label>
+                    <label className="block text-sm font-medium text-neutral-weak">Contact Person</label>
                     <p className="mt-1 text-white">{profile.contactPerson}</p>
                   </div>
                 )}
                 {profile.phoneNumber && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-400">Phone Number</label>
+                    <label className="block text-sm font-medium text-neutral-weak">Phone Number</label>
                     <p className="mt-1 text-white">{profile.phoneNumber}</p>
                   </div>
                 )}
@@ -297,7 +297,7 @@ export default async function ProfilePage() {
                 </Link>
               </div>
               <div className="text-center py-8">
-                <p className="text-gray-400 text-sm">У вас пока нет активных проектов</p>
+                <p className="text-neutral-weak text-sm">У вас пока нет активных проектов</p>
                 <div className="mt-4 text-gray-600">
                   <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />

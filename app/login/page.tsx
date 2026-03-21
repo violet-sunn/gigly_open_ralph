@@ -28,7 +28,7 @@ export default function LoginPage() {
           <h2 className="text-center text-3xl font-bold text-white">
             Sign in to your account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-300">
+          <p className="mt-2 text-center text-sm text-neutral-strong">
             Welcome back to Gigly
           </p>
         </div>
@@ -43,7 +43,7 @@ export default function LoginPage() {
                 name="email"
                 type="email"
                 required
-                className="mt-1 block w-full px-4 py-3 bg-navy-800 border border-gray-600 text-white rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 block w-full px-4 py-3 bg-navy-800 border border-gray-600 text-white rounded-md placeholder:text-neutral-weak focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="you@example.com"
               />
             </div>
@@ -56,7 +56,7 @@ export default function LoginPage() {
                 name="password"
                 type="password"
                 required
-                className="mt-1 block w-full px-4 py-3 bg-navy-800 border border-gray-600 text-white rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 block w-full px-4 py-3 bg-navy-800 border border-gray-600 text-white rounded-md placeholder:text-neutral-weak focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="••••••••"
               />
             </div>
@@ -68,7 +68,7 @@ export default function LoginPage() {
             <SubmitButton />
           </div>
         </form>
-        <p className="text-center text-sm text-gray-300">
+        <p className="text-center text-sm text-neutral-strong">
           Don&apos;t have an account?{' '}
           <Link href="/register" className="text-blue-500 hover:text-blue-400 font-medium">
             Sign up

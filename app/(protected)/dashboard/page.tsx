@@ -114,7 +114,7 @@ export default async function DashboardPage({
             />
             <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8 shadow-md">
               <h2 className="text-3xl font-bold text-white leading-tight">Welcome back, {user?.clientProfile?.companyName || session.email}</h2>
-              <p className="mt-2 text-sm text-gray-300">Client Dashboard</p>
+              <p className="mt-2 text-sm text-neutral-strong">Client Dashboard</p>
               <div className="mt-4">
                 <Link href="/profile" className="text-sm text-blue-500 hover:text-blue-400 font-medium">
                   View Profile →
@@ -173,7 +173,7 @@ export default async function DashboardPage({
                               gig.status === 'PAID' ? 'bg-success-weak-default text-success-default border-success-default' :
                               gig.status === 'COMPLETED' ? 'bg-warning-weak-default text-warning-default border-warning-default' :
                               gig.status === 'IN_PROGRESS' ? 'bg-success-weak-default text-success-default border-success-default' :
-                              'bg-gray-500/20 text-gray-400 border-gray-500/30'
+                              'bg-gray-500/20 text-neutral-weak border-gray-500/30'
                             }`}>
                               {gig.status === 'PAID' ? 'Paid' :
                                gig.status === 'COMPLETED' ? 'Completed' :
@@ -182,7 +182,7 @@ export default async function DashboardPage({
                           </div>
                           <div className="flex justify-between items-center text-sm">
                             <span className="text-white font-semibold">{formatRoubles(gig.budget)} ₽</span>
-                            <span className="text-gray-500 text-xs">
+                            <span className="text-neutral-weak text-xs">
                               {gig._count.applications} app{gig._count.applications !== 1 ? 's' : ''} · {gig.createdAt.toLocaleDateString('ru-RU')}
                             </span>
                           </div>
@@ -213,7 +213,7 @@ export default async function DashboardPage({
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold text-white mb-1">Найти проект</h3>
-                      <p className="text-sm text-gray-300 mb-3">Проекты и вакансии с актуальными заказами</p>
+                      <p className="text-sm text-neutral-strong mb-3">Проекты и вакансии с актуальными заказами</p>
                       <Link
                         href="/gigs/new"
                         className="inline-block px-4 py-2 bg-blue-500 text-white rounded-md text-sm font-medium hover:bg-blue-600 transition-colors"
@@ -226,10 +226,10 @@ export default async function DashboardPage({
 
                 {/* Finances Card */}
                 <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 shadow-md">
-                  <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">ФИНАНСЫ</h3>
+                  <h3 className="text-sm font-semibold text-neutral-weak uppercase tracking-wide mb-3">ФИНАНСЫ</h3>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-gray-400 mb-1">Earned this month</p>
+                      <p className="text-xs text-neutral-weak mb-1">Earned this month</p>
                       <p className="text-2xl font-bold text-white">$0.00</p>
                     </div>
                     <svg className="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -240,10 +240,10 @@ export default async function DashboardPage({
 
                 {/* Messages Card */}
                 <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 shadow-md">
-                  <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">СООБЩЕНИЯ</h3>
+                  <h3 className="text-sm font-semibold text-neutral-weak uppercase tracking-wide mb-3">СООБЩЕНИЯ</h3>
                   {recentMessages.length === 0 ? (
                     <div className="text-center py-4">
-                      <p className="text-sm text-gray-500">No recent messages</p>
+                      <p className="text-sm text-neutral-weak">No recent messages</p>
                     </div>
                   ) : (
                     <div className="max-h-80 overflow-y-auto space-y-3">
@@ -254,9 +254,9 @@ export default async function DashboardPage({
                           className="block p-3 rounded-lg hover:bg-surface-level-2 transition-colors"
                         >
                           <h4 className="text-sm font-semibold text-white mb-1">{message.gigTitle}</h4>
-                          <p className="text-xs text-gray-400 mb-1">{message.senderName}</p>
-                          <p className="text-xs text-gray-300 mb-1">{message.contentPreview}</p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-neutral-weak mb-1">{message.senderName}</p>
+                          <p className="text-xs text-neutral-strong mb-1">{message.contentPreview}</p>
+                          <p className="text-xs text-neutral-weak">
                             {formatDistanceToNow(new Date(message.createdAt), { addSuffix: true })}
                           </p>
                         </Link>
@@ -275,7 +275,7 @@ export default async function DashboardPage({
             />
             <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8 shadow-md">
               <h2 className="text-3xl font-bold text-white leading-tight">Welcome back, {user?.specialistProfile?.displayName || session.email}</h2>
-              <p className="mt-2 text-sm text-gray-300">Specialist Dashboard</p>
+              <p className="mt-2 text-sm text-neutral-strong">Specialist Dashboard</p>
               <div className="mt-4 flex gap-4">
                 <Link href="/profile" className="text-sm text-blue-500 hover:text-blue-400 font-medium">
                   View Profile →
@@ -323,7 +323,7 @@ export default async function DashboardPage({
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold text-white mb-1">Найти проект</h3>
-                      <p className="text-sm text-gray-300 mb-3">Проекты и вакансии с актуальными заказами</p>
+                      <p className="text-sm text-neutral-strong mb-3">Проекты и вакансии с актуальными заказами</p>
                       <Link
                         href="/gigs"
                         className="inline-block px-4 py-2 bg-blue-500 text-white rounded-md text-sm font-medium hover:bg-blue-600 transition-colors"
@@ -336,10 +336,10 @@ export default async function DashboardPage({
 
                 {/* Finances Card */}
                 <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 shadow-md">
-                  <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">ФИНАНСЫ</h3>
+                  <h3 className="text-sm font-semibold text-neutral-weak uppercase tracking-wide mb-3">ФИНАНСЫ</h3>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-gray-400 mb-1">Earned this month</p>
+                      <p className="text-xs text-neutral-weak mb-1">Earned this month</p>
                       <p className="text-2xl font-bold text-white">$0.00</p>
                     </div>
                     <svg className="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -350,10 +350,10 @@ export default async function DashboardPage({
 
                 {/* Messages Card */}
                 <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 shadow-md">
-                  <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">СООБЩЕНИЯ</h3>
+                  <h3 className="text-sm font-semibold text-neutral-weak uppercase tracking-wide mb-3">СООБЩЕНИЯ</h3>
                   {recentMessages.length === 0 ? (
                     <div className="text-center py-4">
-                      <p className="text-sm text-gray-500">No recent messages</p>
+                      <p className="text-sm text-neutral-weak">No recent messages</p>
                     </div>
                   ) : (
                     <div className="max-h-80 overflow-y-auto space-y-3">
@@ -364,9 +364,9 @@ export default async function DashboardPage({
                           className="block p-3 rounded-lg hover:bg-surface-level-2 transition-colors"
                         >
                           <h4 className="text-sm font-semibold text-white mb-1">{message.gigTitle}</h4>
-                          <p className="text-xs text-gray-400 mb-1">{message.senderName}</p>
-                          <p className="text-xs text-gray-300 mb-1">{message.contentPreview}</p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-neutral-weak mb-1">{message.senderName}</p>
+                          <p className="text-xs text-neutral-strong mb-1">{message.contentPreview}</p>
+                          <p className="text-xs text-neutral-weak">
                             {formatDistanceToNow(new Date(message.createdAt), { addSuffix: true })}
                           </p>
                         </Link>
@@ -380,7 +380,7 @@ export default async function DashboardPage({
         ) : (
           <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8 text-center shadow-md">
             <h2 className="text-3xl font-bold text-white leading-tight">Dashboard</h2>
-            <p className="mt-2 text-sm text-gray-300">Signed in as {session.email}</p>
+            <p className="mt-2 text-sm text-neutral-strong">Signed in as {session.email}</p>
             <p className="mt-4 text-sm text-warning-400">Your account role is not recognized. Please contact support.</p>
           </div>
         )}

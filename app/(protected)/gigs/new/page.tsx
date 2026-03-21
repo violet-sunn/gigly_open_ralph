@@ -12,7 +12,7 @@ export default async function NewGigPage() {
       <div className="max-w-lg w-full space-y-8 p-8 bg-surface-level-1 border border-neutral-weak rounded-lg shadow-md">
         <div className="text-center">
           <h2 className="text-3xl font-bold text-white">Post a Gig</h2>
-          <p className="mt-2 text-sm text-gray-300">Describe the work and set your budget</p>
+          <p className="mt-2 text-sm text-neutral-strong">Describe the work and set your budget</p>
         </div>
         <GigForm />
       </div>

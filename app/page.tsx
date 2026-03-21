@@ -9,10 +9,10 @@ export default async function Home() {
     <div className="min-h-screen flex items-center justify-center bg-surface-level-0">
       <main className="text-center space-y-8 px-4">
         <h1 className="text-6xl font-bold text-white tracking-tight">GIGLY</h1>
-        <p className="text-lg text-gray-300">High-end B2B freelance marketplace for Russian IT specialists</p>
+        <p className="text-lg text-neutral-strong">High-end B2B freelance marketplace for Russian IT specialists</p>
         {session ? (
           <div className="space-y-4">
-            <p className="text-sm text-gray-300">Signed in as {session.email}</p>
+            <p className="text-sm text-neutral-strong">Signed in as {session.email}</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
                 href="/dashboard"
@@ -38,7 +38,7 @@ export default async function Home() {
             >
               Get Started
             </Link>
-            <p className="text-sm text-gray-300">
+            <p className="text-sm text-neutral-strong">
               Already have an account?{' '}
               <Link href="/login" className="text-blue-500 hover:text-blue-400 font-medium">
                 Sign in

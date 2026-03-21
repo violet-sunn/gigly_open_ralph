@@ -89,7 +89,7 @@ export default function PaginationControls({
           <span
             aria-disabled="true"
             aria-label="Previous page"
-            className="px-3 py-2 text-sm font-medium text-gray-500 bg-surface-level-0 border border-gray-700 rounded-md cursor-not-allowed opacity-50 pointer-events-none"
+            className="px-3 py-2 text-sm font-medium text-neutral-weak bg-surface-level-0 border border-gray-700 rounded-md cursor-not-allowed opacity-50 pointer-events-none"
           >
             Previous
           </span>
@@ -101,7 +101,7 @@ export default function PaginationControls({
             return (
               <span
                 key={`ellipsis-${index}`}
-                className="px-2 text-gray-400"
+                className="px-2 text-neutral-weak"
                 aria-hidden="true"
               >
                 ...
@@ -149,7 +149,7 @@ export default function PaginationControls({
           <span
             aria-disabled="true"
             aria-label="Next page"
-            className="px-3 py-2 text-sm font-medium text-gray-500 bg-surface-level-0 border border-gray-700 rounded-md cursor-not-allowed opacity-50 pointer-events-none"
+            className="px-3 py-2 text-sm font-medium text-neutral-weak bg-surface-level-0 border border-gray-700 rounded-md cursor-not-allowed opacity-50 pointer-events-none"
           >
             Next
           </span>

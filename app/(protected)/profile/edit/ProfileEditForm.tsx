@@ -56,7 +56,7 @@ export default function ProfileEditForm({ role, profile, email }: ProfileEditFor
               {/* Left Column */}
               <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 shadow-md space-y-6">
                 <div>
-                  <label htmlFor="displayName" className="block text-sm font-medium text-gray-300">
+                  <label htmlFor="displayName" className="block text-sm font-medium text-neutral-strong">
                     Display Name
                   </label>
                   <input
@@ -64,12 +64,12 @@ export default function ProfileEditForm({ role, profile, email }: ProfileEditFor
                     id="displayName"
                     name="displayName"
                     defaultValue={profile?.displayName || ''}
-                    className="mt-1 block w-full rounded border border-gray-600 px-4 py-3 bg-navy-800 text-white placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded border border-gray-600 px-4 py-3 bg-navy-800 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="techStack" className="block text-sm font-medium text-gray-300">
+                  <label htmlFor="techStack" className="block text-sm font-medium text-neutral-strong">
                     Tech Stack
                   </label>
                   <input
@@ -78,12 +78,12 @@ export default function ProfileEditForm({ role, profile, email }: ProfileEditFor
                     name="techStack"
                     placeholder="React, TypeScript, Node.js"
                     defaultValue={profile?.techStack || ''}
-                    className="mt-1 block w-full rounded border border-gray-600 px-4 py-3 bg-navy-800 text-white placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded border border-gray-600 px-4 py-3 bg-navy-800 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="experienceLevel" className="block text-sm font-medium text-gray-300">
+                  <label htmlFor="experienceLevel" className="block text-sm font-medium text-neutral-strong">
                     Experience Level
                   </label>
                   <select
@@ -101,7 +101,7 @@ export default function ProfileEditForm({ role, profile, email }: ProfileEditFor
 
               {/* Right Column */}
               <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 shadow-md">
-                <label htmlFor="bio" className="block text-sm font-medium text-gray-300">
+                <label htmlFor="bio" className="block text-sm font-medium text-neutral-strong">
                   Bio
                 </label>
                 <textarea
@@ -109,7 +109,7 @@ export default function ProfileEditForm({ role, profile, email }: ProfileEditFor
                   name="bio"
                   rows={12}
                   defaultValue={profile?.bio || ''}
-                  className="mt-1 block w-full rounded border border-gray-600 px-4 py-3 bg-navy-800 text-white placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="mt-1 block w-full rounded border border-gray-600 px-4 py-3 bg-navy-800 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -119,7 +119,7 @@ export default function ProfileEditForm({ role, profile, email }: ProfileEditFor
               <SubmitButton />
               <Link
                 href="/profile"
-                className="px-4 py-2 text-gray-400 hover:text-gray-300"
+                className="px-4 py-2 text-neutral-weak hover:text-neutral-strong"
               >
                 Cancel
               </Link>
@@ -151,7 +151,7 @@ export default function ProfileEditForm({ role, profile, email }: ProfileEditFor
               {/* Left Column */}
               <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 shadow-md space-y-6">
                 <div>
-                  <label htmlFor="companyName" className="block text-sm font-medium text-gray-300">
+                  <label htmlFor="companyName" className="block text-sm font-medium text-neutral-strong">
                     Company Name <span className="text-error-500">*</span>
                   </label>
                   <input
@@ -160,12 +160,12 @@ export default function ProfileEditForm({ role, profile, email }: ProfileEditFor
                     name="companyName"
                     required
                     defaultValue={profile?.companyName || ''}
-                    className="mt-1 block w-full rounded border border-gray-600 px-4 py-3 bg-navy-800 text-white placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded border border-gray-600 px-4 py-3 bg-navy-800 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="inn" className="block text-sm font-medium text-gray-300">
+                  <label htmlFor="inn" className="block text-sm font-medium text-neutral-strong">
                     INN <span className="text-error-500">*</span>
                   </label>
                   <input
@@ -174,12 +174,12 @@ export default function ProfileEditForm({ role, profile, email }: ProfileEditFor
                     name="inn"
                     required
                     defaultValue={profile?.inn || ''}
-                    className="mt-1 block w-full rounded border border-gray-600 px-4 py-3 bg-navy-800 text-white placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded border border-gray-600 px-4 py-3 bg-navy-800 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="kpp" className="block text-sm font-medium text-gray-300">
+                  <label htmlFor="kpp" className="block text-sm font-medium text-neutral-strong">
                     KPP
                   </label>
                   <input
@@ -187,7 +187,7 @@ export default function ProfileEditForm({ role, profile, email }: ProfileEditFor
                     id="kpp"
                     name="kpp"
                     defaultValue={profile?.kpp || ''}
-                    className="mt-1 block w-full rounded border border-gray-600 px-4 py-3 bg-navy-800 text-white placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded border border-gray-600 px-4 py-3 bg-navy-800 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -195,7 +195,7 @@ export default function ProfileEditForm({ role, profile, email }: ProfileEditFor
               {/* Right Column */}
               <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 shadow-md space-y-6">
                 <div>
-                  <label htmlFor="contactPerson" className="block text-sm font-medium text-gray-300">
+                  <label htmlFor="contactPerson" className="block text-sm font-medium text-neutral-strong">
                     Contact Person
                   </label>
                   <input
@@ -203,12 +203,12 @@ export default function ProfileEditForm({ role, profile, email }: ProfileEditFor
                     id="contactPerson"
                     name="contactPerson"
                     defaultValue={profile?.contactPerson || ''}
-                    className="mt-1 block w-full rounded border border-gray-600 px-4 py-3 bg-navy-800 text-white placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded border border-gray-600 px-4 py-3 bg-navy-800 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-300">
+                  <label htmlFor="phoneNumber" className="block text-sm font-medium text-neutral-strong">
                     Phone Number
                   </label>
                   <input
@@ -216,7 +216,7 @@ export default function ProfileEditForm({ role, profile, email }: ProfileEditFor
                     id="phoneNumber"
                     name="phoneNumber"
                     defaultValue={profile?.phoneNumber || ''}
-                    className="mt-1 block w-full rounded border border-gray-600 px-4 py-3 bg-navy-800 text-white placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded border border-gray-600 px-4 py-3 bg-navy-800 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -227,7 +227,7 @@ export default function ProfileEditForm({ role, profile, email }: ProfileEditFor
               <SubmitButton />
               <Link
                 href="/profile"
-                className="px-4 py-2 text-gray-400 hover:text-gray-300"
+                className="px-4 py-2 text-neutral-weak hover:text-neutral-strong"
               >
                 Cancel
               </Link>

@@ -131,7 +131,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
                       <h3 className="text-sm font-semibold text-white mb-1">
                         Example Gig
                       </h3>
-                      <p className="text-sm text-gray-300">
+                      <p className="text-sm text-neutral-strong">
                         This is an example gig demonstrating best practices for writing clear requirements.
                         Use this as a reference when creating your own gigs.
                       </p>
@@ -140,7 +140,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
                 </div>
               )}
 
-              <p className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">{gig.description}</p>
+              <p className="text-sm text-neutral-strong whitespace-pre-wrap leading-relaxed">{gig.description}</p>
 
               {(gig.goal || gig.deliverables || gig.constraints) && (
                 <div className="mt-6 border-t border-gray-700 pt-6">
@@ -148,21 +148,21 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
 
                   {gig.goal && (
                     <div className="mb-4">
-                      <h4 className="text-sm font-medium text-gray-300 mb-1">🎯 Goal / Desired Outcome</h4>
+                      <h4 className="text-sm font-medium text-neutral-strong mb-1">🎯 Goal / Desired Outcome</h4>
                       <p className="text-white whitespace-pre-wrap">{gig.goal}</p>
                     </div>
                   )}
 
                   {gig.deliverables && (
                     <div className="mb-4">
-                      <h4 className="text-sm font-medium text-gray-300 mb-1">📦 Specific Deliverables</h4>
+                      <h4 className="text-sm font-medium text-neutral-strong mb-1">📦 Specific Deliverables</h4>
                       <p className="text-white whitespace-pre-wrap">{gig.deliverables}</p>
                     </div>
                   )}
 
                   {gig.constraints && (
                     <div className="mb-4">
-                      <h4 className="text-sm font-medium text-gray-300 mb-1">⚙️ Constraints & Preferences</h4>
+                      <h4 className="text-sm font-medium text-neutral-strong mb-1">⚙️ Constraints & Preferences</h4>
                       <p className="text-white whitespace-pre-wrap">{gig.constraints}</p>
                     </div>
                   )}
@@ -173,18 +173,18 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
                 <h3 className="text-xl font-semibold text-white mb-2">
                   Definition of Done
                 </h3>
-                <p className="text-gray-300 whitespace-pre-wrap leading-relaxed">
+                <p className="text-neutral-strong whitespace-pre-wrap leading-relaxed">
                   {gig.acceptanceCriteria || 'Not specified'}
                 </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="text-gray-300">Budget:</span>
+                  <span className="text-neutral-strong">Budget:</span>
                   <span className="ml-2 font-medium text-white">{formatRoubles(gig.budget)} ₽</span>
                 </div>
                 <div>
-                  <span className="text-gray-300">Posted by:</span>
+                  <span className="text-neutral-strong">Posted by:</span>
                   <span className="ml-2 font-medium text-white">{gig.client.email}</span>
                   {gig.client.clientProfile?.companyName && (
                     <>
@@ -210,7 +210,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
                 </div>
               )}
 
-              <p className="text-xs text-gray-300">
+              <p className="text-xs text-neutral-strong">
                 Posted {gig.createdAt.toLocaleDateString('ru-RU')}
               </p>
             </div>
@@ -222,7 +222,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
                 <p className="text-sm text-white">
                   This is an example gig for demonstration purposes. You cannot apply to example gigs.
                 </p>
-                <p className="text-sm text-gray-300 mt-2">
+                <p className="text-sm text-neutral-strong mt-2">
                   Use this example to understand what clear requirements look like when posting your own gigs.
                 </p>
               </div>
@@ -242,11 +242,11 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
               <div className="p-4 bg-navy-700/50 border border-gray-700 rounded">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-white">Your Application Status:</span>
-                  <span className="text-xs px-2 py-1 rounded-full bg-navy-700/50 text-gray-300">
+                  <span className="text-xs px-2 py-1 rounded-full bg-navy-700/50 text-neutral-strong">
                     WITHDRAWN
                   </span>
                 </div>
-                <p className="text-xs text-gray-300 mt-2">
+                <p className="text-xs text-neutral-strong mt-2">
                   Withdrawn on {myApplication.updatedAt.toLocaleDateString('ru-RU')}
                 </p>
               </div>
@@ -256,7 +256,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
               </div>
             ) : gig.status !== 'OPEN' ? (
               <div className="text-center">
-                <p className="text-sm text-gray-300">This gig is no longer accepting applications.</p>
+                <p className="text-sm text-neutral-strong">This gig is no longer accepting applications.</p>
               </div>
             ) : (
               <>
@@ -270,7 +270,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
         {isAssignedSpecialist && gig.status === 'IN_PROGRESS' && (
           <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8">
             <h3 className="text-xl font-medium text-white mb-4">Submit Your Work</h3>
-            <p className="text-sm text-gray-300 mb-4 leading-relaxed">
+            <p className="text-sm text-neutral-strong mb-4 leading-relaxed">
               Once you&apos;ve completed the work, submit it for client review.
             </p>
             <SubmitWorkForm gigId={gig.id} />
@@ -287,7 +287,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
                 </p>
               </div>
             )}
-            <p className="text-sm text-gray-300 mb-4 leading-relaxed">
+            <p className="text-sm text-neutral-strong mb-4 leading-relaxed">
               Review the specialist&apos;s work and approve it to mark the gig as completed.
             </p>
             <ApproveWorkForm gigId={gig.id} />
@@ -297,7 +297,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
         {isOwner && gig.status === 'COMPLETED' && (
           <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8">
             <h3 className="text-xl font-medium text-white mb-4">Mark as Paid</h3>
-            <p className="text-sm text-gray-300 mb-4 leading-relaxed">
+            <p className="text-sm text-neutral-strong mb-4 leading-relaxed">
               Once you&apos;ve paid the specialist, mark this gig as paid to complete the transaction.
             </p>
             <MarkAsPaidButton gigId={gig.id} />
@@ -317,7 +317,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
               Applications ({gig.applications.length})
             </h3>
             {gig.applications.length === 0 ? (
-              <p className="text-sm text-gray-300 text-center">No applications yet.</p>
+              <p className="text-sm text-neutral-strong text-center">No applications yet.</p>
             ) : (
               <div className="space-y-6">
                 {gig.applications.map((app) => (
@@ -343,7 +343,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
                       ) : app.status === 'REJECTED' ? (
                         <span className="text-xs px-2 py-1 rounded-full bg-danger-weak-default text-danger-default">Rejected</span>
                       ) : app.status === 'WITHDRAWN' ? (
-                        <span className="text-xs px-2 py-1 rounded-full bg-gray-500/50 text-gray-400">WITHDRAWN</span>
+                        <span className="text-xs px-2 py-1 rounded-full bg-gray-500/50 text-neutral-weak">WITHDRAWN</span>
                       ) : (
                         <span className="text-xs px-2 py-1 rounded-full bg-warning-weak-default text-warning-default">Pending</span>
                       )}
@@ -362,16 +362,16 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
                       <div className="mt-3 space-y-3">
                         <div>
                           <h5 className="text-sm font-semibold text-white">🔧 Technical Approach</h5>
-                          <p className="mt-1 text-sm text-gray-300 whitespace-pre-wrap">{app.approach}</p>
+                          <p className="mt-1 text-sm text-neutral-strong whitespace-pre-wrap">{app.approach}</p>
                         </div>
                         <div>
                           <h5 className="text-sm font-semibold text-white">❓ Clarifying Questions</h5>
-                          <p className="mt-1 text-sm text-gray-300 whitespace-pre-wrap">{app.questions}</p>
+                          <p className="mt-1 text-sm text-neutral-strong whitespace-pre-wrap">{app.questions}</p>
                         </div>
                         {app.estimatedEffort && (
                           <div>
-                            <h5 className="text-sm font-semibold text-gray-300">⏱️ Estimated Effort</h5>
-                            <p className="mt-1 text-sm text-gray-300 whitespace-pre-wrap">{app.estimatedEffort}</p>
+                            <h5 className="text-sm font-semibold text-neutral-strong">⏱️ Estimated Effort</h5>
+                            <p className="mt-1 text-sm text-neutral-strong whitespace-pre-wrap">{app.estimatedEffort}</p>
                           </div>
                         )}
                       </div>
@@ -380,11 +380,11 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
                       app.coverLetter && (
                         <div className="mt-3">
                           <h5 className="text-sm font-semibold text-white">Cover Letter</h5>
-                          <p className="mt-1 text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">{app.coverLetter}</p>
+                          <p className="mt-1 text-sm text-neutral-strong whitespace-pre-wrap leading-relaxed">{app.coverLetter}</p>
                         </div>
                       )
                     )}
-                    <p className="mt-2 text-xs text-gray-400">
+                    <p className="mt-2 text-xs text-neutral-weak">
                       {app.status === 'WITHDRAWN'
                         ? `Withdrawn on ${app.updatedAt.toLocaleDateString('ru-RU')}`
                         : app.createdAt.toLocaleDateString('ru-RU')
@@ -421,14 +421,14 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
                 )}
                 {gig.closedByAdmin && (
                   <div className="mt-4 p-3 bg-navy-700/50 border border-gray-700 rounded-md">
-                    <p className="text-sm text-gray-300">
+                    <p className="text-sm text-neutral-strong">
                       This gig has been closed by administrators. Messaging is no longer available.
                     </p>
                   </div>
                 )}
                 {gig.status === 'PAID' && (
                   <div className="mt-4 p-3 bg-navy-700/50 border border-gray-700 rounded-md">
-                    <p className="text-sm text-gray-300">
+                    <p className="text-sm text-neutral-strong">
                       This gig has been marked as paid. Messaging is no longer available.
                     </p>
                   </div>
@@ -449,8 +449,8 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
                       <span className="text-sm font-medium text-white">
                         {log.action === 'CLOSE_GIG' ? 'Gig Closed' : log.action}
                       </span>
-                      <p className="text-sm text-gray-300 mt-1">{log.reason}</p>
-                      <p className="text-xs text-gray-400 mt-1">
+                      <p className="text-sm text-neutral-strong mt-1">{log.reason}</p>
+                      <p className="text-xs text-neutral-weak mt-1">
                         By {'admin' in log ? (log as any).admin.email : 'Admin'} on {new Date(log.createdAt).toLocaleString('ru-RU')}
                       </p>
                     </div>
@@ -479,9 +479,9 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
           <div className="lg:col-span-1 space-y-6">
             <div className="sticky top-6 space-y-6">
               <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6">
-                <h3 className="text-sm font-medium text-gray-300 mb-2">Budget</h3>
+                <h3 className="text-sm font-medium text-neutral-strong mb-2">Budget</h3>
                 <p className="text-3xl font-bold text-white">{formatRoubles(gig.budget)} ₽</p>
-                <p className="text-xs text-gray-300 mt-1">Fixed price</p>
+                <p className="text-xs text-neutral-strong mt-1">Fixed price</p>
               </div>
             </div>
           </div>

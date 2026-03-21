@@ -28,7 +28,7 @@ export default function RegisterPage() {
           <h2 className="text-center text-3xl font-bold text-white">
             Create your account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-300">
+          <p className="mt-2 text-center text-sm text-neutral-strong">
             Sign up to get started with Gigly
           </p>
         </div>
@@ -43,14 +43,14 @@ export default function RegisterPage() {
                   <input type="radio" name="role" value="CLIENT" className="peer sr-only" required />
                   <div className="p-3 text-center border border-gray-600 rounded-md peer-checked:border-blue-500 peer-checked:bg-blue-500/10 peer-checked:text-blue-500 hover:bg-navy-700 transition-colors">
                     <span className="text-sm font-medium">Client</span>
-                    <p className="text-xs text-gray-400 mt-1">Post gigs, hire specialists</p>
+                    <p className="text-xs text-neutral-weak mt-1">Post gigs, hire specialists</p>
                   </div>
                 </label>
                 <label className="flex-1 cursor-pointer">
                   <input type="radio" name="role" value="SPECIALIST" className="peer sr-only" required />
                   <div className="p-3 text-center border border-gray-600 rounded-md peer-checked:border-blue-500 peer-checked:bg-blue-500/10 peer-checked:text-blue-500 hover:bg-navy-700 transition-colors">
                     <span className="text-sm font-medium">Specialist</span>
-                    <p className="text-xs text-gray-400 mt-1">Browse gigs, get hired</p>
+                    <p className="text-xs text-neutral-weak mt-1">Browse gigs, get hired</p>
                   </div>
                 </label>
               </div>
@@ -64,7 +64,7 @@ export default function RegisterPage() {
                 name="email"
                 type="email"
                 required
-                className="mt-1 block w-full px-4 py-3 bg-navy-800 border border-gray-600 text-white rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 block w-full px-4 py-3 bg-navy-800 border border-gray-600 text-white rounded-md placeholder:text-neutral-weak focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="you@example.com"
               />
             </div>
@@ -77,7 +77,7 @@ export default function RegisterPage() {
                 name="password"
                 type="password"
                 required
-                className="mt-1 block w-full px-4 py-3 bg-navy-800 border border-gray-600 text-white rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 block w-full px-4 py-3 bg-navy-800 border border-gray-600 text-white rounded-md placeholder:text-neutral-weak focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="••••••••"
               />
             </div>
@@ -89,7 +89,7 @@ export default function RegisterPage() {
             <SubmitButton />
           </div>
         </form>
-        <p className="text-center text-sm text-gray-300">
+        <p className="text-center text-sm text-neutral-strong">
           Already have an account?{' '}
           <Link href="/login" className="text-blue-500 hover:text-blue-400 font-medium">
             Sign in

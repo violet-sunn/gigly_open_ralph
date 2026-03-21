@@ -57,7 +57,7 @@ export function NotificationBell() {
         onClick={handleToggle}
         aria-label="Notifications"
         aria-expanded={isOpen}
-        className="relative p-2 text-gray-300 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-full transition-colors"
+        className="relative p-2 text-neutral-strong hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-full transition-colors"
       >
         {/* Bell Icon */}
         <svg
