@@ -146,7 +146,7 @@ export default async function DashboardPage({
                     <h3 className="text-xl font-semibold text-white">My Gigs</h3>
                     <Link
                       href="/gigs/new"
-                      className="px-6 py-3 bg-blue-500 text-white rounded-md text-sm font-medium hover:bg-blue-600 transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-navy-900"
+                      className="px-6 py-3 bg-blue-500 text-white rounded-md text-sm font-medium hover:bg-blue-600 transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-surface-level-0"
                     >
                       Post New Gig
                     </Link>

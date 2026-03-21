@@ -16,14 +16,14 @@ export default async function Home() {
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
                 href="/dashboard"
-                className="inline-block px-8 py-3 text-sm font-semibold bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-navy-900"
+                className="inline-block px-8 py-3 text-sm font-semibold bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-surface-level-0"
               >
                 Go to Dashboard
               </Link>
               <form action={logoutUser}>
                 <button
                   type="submit"
-                  className="inline-block px-8 py-3 text-sm font-medium text-blue-500 border border-blue-500 rounded-lg hover:bg-blue-500/10 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-navy-900"
+                  className="inline-block px-8 py-3 text-sm font-medium text-blue-500 border border-blue-500 rounded-lg hover:bg-blue-500/10 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-surface-level-0"
                 >
                   Sign out
                 </button>
@@ -34,7 +34,7 @@ export default async function Home() {
           <div className="space-y-4">
             <Link
               href="/register"
-              className="inline-block px-8 py-3 text-sm font-semibold bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-navy-900"
+              className="inline-block px-8 py-3 text-sm font-semibold bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-surface-level-0"
             >
               Get Started
             </Link>

@@ -1751,3 +1751,61 @@ All UI components MUST use design token-based text colors for consistency with t
 - All text meets WCAG AA contrast standards
 - Semantic colors (`text-error-*`, `text-success-*`, `text-warning-*`) remain unchanged
 - `text-white` remains available for maximum contrast use cases
+
+---
+
+### Requirement: Hover State Strategy
+
+All interactive elements MUST follow a consistent strategy for hover state styling.
+
+#### Scenario: Token-first approach for hover states
+- GIVEN an interactive element needs hover state styling
+- WHEN appropriate design tokens exist for the hover state
+- THEN the component MUST use design tokens (e.g., `hover:bg-surface-level-2` for cards)
+- AND hardcoded values MUST NOT be used when tokens are available
+
+#### Scenario: Hardcoded fallbacks for hover states without tokens
+- GIVEN an interactive element needs hover state styling
+- AND no appropriate design token exists for the desired hover effect
+- WHEN the hover state is implemented
+- THEN hardcoded values MAY be used as a pragmatic fallback (e.g., `hover:bg-navy-700` for subtle hover effects)
+- AND the usage SHOULD be consistent with the design system's color palette
+
+**Hover State Guidelines:**
+
+1. **Cards and Containers:**
+   - Use `hover:bg-surface-level-2` when hovering over cards on `bg-surface-level-1` backgrounds
+   - Use `hover:border-neutral-strong` for border emphasis on hover
+
+2. **Buttons:**
+   - Primary buttons: Use `hover:bg-blue-600` (semantic color, not a token)
+   - Secondary buttons: Use `hover:bg-gray-200` or similar semantic colors
+   - Danger buttons: Use `hover:bg-red-600` (semantic color)
+
+3. **Links:**
+   - Use `hover:text-blue-400` for blue links
+   - Use `hover:text-white` for navigation links on dark backgrounds
+
+4. **Navigation Items:**
+   - Use `hover:bg-navy-700` for subtle hover effects on dark navigation (acceptable hardcoded fallback)
+   - Use `hover:text-white` for text color changes
+
+5. **Form Inputs:**
+   - Use `focus:border-blue-500` and `focus:ring-blue-500` (semantic colors)
+   - Hover states on inputs are generally not needed (focus states are sufficient)
+
+**When Hardcoded Values Are Acceptable:**
+- Subtle hover effects where no appropriate token exists (e.g., `hover:bg-navy-700`)
+- Semantic colors for buttons and status indicators (e.g., `hover:bg-blue-600`, `hover:bg-red-600`)
+- Transitions and animations that require specific color values
+
+**When Tokens Are Required:**
+- Background surfaces (use `bg-surface-level-*` tokens)
+- Borders (use `border-neutral-*` tokens)
+- Text colors (use `text-neutral-*` tokens for non-semantic text)
+
+**Acceptance Criteria:**
+- Hover states use tokens where appropriate tokens exist
+- Hardcoded values used only for semantic colors or where no token exists
+- Hover effects are consistent across similar components
+- All hover states maintain adequate contrast for accessibility
