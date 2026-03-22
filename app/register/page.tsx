@@ -15,7 +15,7 @@ function SubmitButton() {
       variant="primary"
       disabled={pending}
     >
-      {pending ? 'Signing up...' : 'Sign up'}
+      {pending ? 'Signing up...' : 'Зарегестрироватся'}
     </AuthButton>
   )
 }
@@ -44,134 +44,149 @@ function RegisterForm() {
   }, [roleParam])
 
   return (
-    <AuthContainer>
-      <div className="w-full h-full flex flex-col gap-[47px] items-start p-[40px]">
-        <div className="w-full flex flex-col gap-[30px] items-center justify-center">
-          <LogoHeader />
+    <div className="bg-[#01030e] min-h-screen flex items-center justify-center relative overflow-hidden px-4">
+      {/* Decorative background pattern */}
+      <div className="absolute bottom-0 left-0 right-0 z-0 pointer-events-none">
+        <svg width="100%" height="327" viewBox="0 0 1909 327" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+          <pattern id="checkerboard" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+            <rect x="0" y="0" width="20" height="20" fill="#0088ff" opacity="0.3"/>
+            <rect x="20" y="20" width="20" height="20" fill="#0088ff" opacity="0.3"/>
+          </pattern>
+          <rect width="100%" height="100%" fill="url(#checkerboard)"/>
+        </svg>
+      </div>
 
-          <div className="w-full flex flex-col gap-[30px] items-center">
-            <h2 className="text-[22px] font-semibold text-white text-center">
-              Create your account
-            </h2>
+      {/* Auth Container */}
+      <div className="bg-[#060813] border border-[#242935] rounded-[25px] w-[90vw] md:w-[418px] min-h-[540px] p-[20px] md:p-[40px] z-10 relative">
+        <div className="flex flex-col gap-[47px]">
+          {/* Logo Header */}
+          <div className="flex flex-col gap-[30px] items-center">
+            <LogoHeader />
 
-            <form action={formAction} className="w-full flex flex-col gap-[21px]">
-              <div className="w-full flex flex-col gap-[17px]" role="radiogroup" aria-label="Select your role">
-                <input
-                  ref={clientRadioRef}
-                  type="radio"
-                  name="role"
-                  value="CLIENT"
-                  required
-                  className="sr-only"
-                />
-                <div
-                  onClick={() => handleRoleClick('CLIENT')}
-                  data-testid="role-client"
-                  className={`
-                    cursor-pointer
-                    w-full
-                    flex items-center gap-[24px]
-                    px-[20px] py-[20px]
-                    rounded-[20px]
-                    bg-surface-level-2
-                    transition-all duration-200
-                    ${selectedRole === 'CLIENT' ? 'border-2 border-border-brand-default' : 'border-2 border-transparent'}
-                    ${selectedRole !== 'CLIENT' ? 'hover:border-border-neutral-weak' : ''}
-                  `}
-                >
-                  <div className="w-[32px] h-[32px] flex-shrink-0 flex items-center justify-center">
-                    <ClientIcon className="w-[32px] h-[32px]" />
+            <div className="flex flex-col gap-[30px] items-center w-full">
+              {/* Heading */}
+              <h2 className="text-[22px] font-semibold text-white text-center">
+                Регистрация
+              </h2>
+
+              {/* Registration Form */}
+              <form action={formAction} className="w-full flex flex-col gap-[21px]">
+                <div className="w-full flex flex-col gap-[17px]" role="radiogroup" aria-label="Select your role">
+                  <input
+                    ref={clientRadioRef}
+                    type="radio"
+                    name="role"
+                    value="CLIENT"
+                    required
+                    className="sr-only"
+                  />
+                  <div
+                    onClick={() => handleRoleClick('CLIENT')}
+                    data-testid="role-client"
+                    className={`
+                      cursor-pointer
+                      w-full
+                      flex items-center gap-[24px]
+                      px-[20px] py-[20px]
+                      rounded-[20px]
+                      bg-[#10121c]
+                      transition-all duration-200
+                      ${selectedRole === 'CLIENT' ? 'border-2 border-[#0265dc]' : 'border-2 border-transparent'}
+                      ${selectedRole !== 'CLIENT' ? 'hover:border-[#242935]' : ''}
+                    `}
+                  >
+                    <div className="w-[32px] h-[32px] flex-shrink-0 flex items-center justify-center">
+                      <ClientIcon className="w-[32px] h-[32px]" />
+                    </div>
+                    <span className="text-[17px] leading-[32px] text-white whitespace-nowrap">
+                      Профиль Компании
+                    </span>
                   </div>
-                  <span className="text-[17px] leading-[32px] text-neutral-strong whitespace-nowrap">
-                    Client
-                  </span>
+
+                  <input
+                    ref={specialistRadioRef}
+                    type="radio"
+                    name="role"
+                    value="SPECIALIST"
+                    required
+                    className="sr-only"
+                  />
+                  <div
+                    onClick={() => handleRoleClick('SPECIALIST')}
+                    data-testid="role-specialist"
+                    className={`
+                      cursor-pointer
+                      w-full
+                      flex items-center gap-[24px]
+                      px-[20px] py-[20px]
+                      rounded-[20px]
+                      bg-[#10121c]
+                      transition-all duration-200
+                      ${selectedRole === 'SPECIALIST' ? 'border-2 border-[#0265dc]' : 'border-2 border-transparent'}
+                      ${selectedRole !== 'SPECIALIST' ? 'hover:border-[#242935]' : ''}
+                    `}
+                  >
+                    <div className="w-[32px] h-[32px] flex-shrink-0 flex items-center justify-center">
+                      <SpecialistIcon className="w-[32px] h-[32px]" />
+                    </div>
+                    <span className="text-[17px] leading-[32px] text-white whitespace-nowrap">
+                      Профиль специалиста
+                    </span>
+                  </div>
                 </div>
 
-                <input
-                  ref={specialistRadioRef}
-                  type="radio"
-                  name="role"
-                  value="SPECIALIST"
-                  required
-                  className="sr-only"
-                />
-                <div
-                  onClick={() => handleRoleClick('SPECIALIST')}
-                  data-testid="role-specialist"
-                  className={`
-                    cursor-pointer
-                    w-full
-                    flex items-center gap-[24px]
-                    px-[20px] py-[20px]
-                    rounded-[20px]
-                    bg-surface-level-2
-                    transition-all duration-200
-                    ${selectedRole === 'SPECIALIST' ? 'border-2 border-border-brand-default' : 'border-2 border-transparent'}
-                    ${selectedRole !== 'SPECIALIST' ? 'hover:border-border-neutral-weak' : ''}
-                  `}
-                >
-                  <div className="w-[32px] h-[32px] flex-shrink-0 flex items-center justify-center">
-                    <SpecialistIcon className="w-[32px] h-[32px]" />
-                  </div>
-                  <span className="text-[17px] leading-[32px] text-neutral-strong whitespace-nowrap">
-                    Specialist
-                  </span>
+                <div>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    className="w-full px-[20px] py-[20px] bg-[#10121c] border border-[#242935] text-white rounded-[20px] placeholder:text-neutral-weak focus:outline-none focus:ring-2 focus:ring-[#0088ff] focus:border-[#0088ff]"
+                    placeholder="you@example.com"
+                  />
                 </div>
-              </div>
 
-              <div>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  className="w-full px-4 py-3 bg-surface-level-2 border border-border-neutral-weak text-white rounded-[10px] placeholder:text-neutral-weak focus:outline-none focus:ring-2 focus:ring-border-brand-default focus:border-transparent"
-                  placeholder="you@example.com"
-                />
-              </div>
+                <div>
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    required
+                    className="w-full px-[20px] py-[20px] bg-[#10121c] border border-[#242935] text-white rounded-[20px] placeholder:text-neutral-weak focus:outline-none focus:ring-2 focus:ring-[#0088ff] focus:border-[#0088ff]"
+                    placeholder="••••••••"
+                  />
+                </div>
 
-              <div>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  className="w-full px-4 py-3 bg-surface-level-2 border border-border-neutral-weak text-white rounded-[10px] placeholder:text-neutral-weak focus:outline-none focus:ring-2 focus:ring-border-brand-default focus:border-transparent"
-                  placeholder="••••••••"
-                />
-              </div>
+                {state?.error && (
+                  <p className="text-sm text-danger-default">{state.error}</p>
+                )}
 
-              {state?.error && (
-                <p className="text-sm text-danger-default">{state.error}</p>
-              )}
+                <div className="w-full flex flex-col gap-[21px]">
+                  <SubmitButton />
 
-              <div className="w-full flex flex-col gap-[21px]">
-                <SubmitButton />
-
-                <AuthButton
-                  type="button"
-                  variant="secondary"
-                  onClick={() => window.location.href = '/login'}
-                >
-                  Already have an account? Sign in
-                </AuthButton>
-              </div>
-            </form>
+                  <AuthButton
+                    type="button"
+                    variant="secondary"
+                    onClick={() => window.location.href = '/login'}
+                  >
+                    Войти
+                  </AuthButton>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       </div>
-    </AuthContainer>
+    </div>
   )
 }
 
 export default function RegisterPage() {
   return (
     <Suspense fallback={
-      <AuthContainer>
-        <div className="w-full h-full flex items-center justify-center">
-          <div className="text-white">Loading...</div>
-        </div>
-      </AuthContainer>
+      <div className="bg-[#01030e] min-h-screen flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
     }>
       <RegisterForm />
     </Suspense>
