@@ -2,6 +2,9 @@ import { getSession } from '@/lib/session'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { BackButton } from '@/app/components/BackButton'
+import { Suspense } from 'react'
+import EmptyState from '@/app/components/onboarding/EmptyState'
 
 function formatRoubles(kopecks: number): string {
   return new Intl.NumberFormat('ru-RU').format(kopecks / 100)
@@ -32,6 +35,11 @@ export default async function ExampleGigsPage() {
   return (
     <div className="min-h-screen bg-surface-level-0 py-8">
       <div className="max-w-2xl mx-auto px-4">
+        <div className="mb-4">
+          <Suspense fallback={null}>
+            <BackButton />
+          </Suspense>
+        </div>
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-white leading-tight">Example Gigs</h2>
           <p className="mt-2 text-sm text-neutral-strong leading-relaxed">
@@ -41,9 +49,11 @@ export default async function ExampleGigsPage() {
         </div>
 
         {exampleGigs.length === 0 ? (
-          <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8 text-center shadow-md">
-            <p className="text-sm text-neutral-strong">No example gigs available.</p>
-          </div>
+          <EmptyState
+            icon="✨"
+            heading="No Example Gigs Available"
+            description="Example gigs haven't been set up yet. Check back later for inspiration on creating great gig descriptions."
+          />
         ) : (
           <ul className="space-y-6">
             {exampleGigs.map((gig) => (

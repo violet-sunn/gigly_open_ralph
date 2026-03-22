@@ -7,6 +7,8 @@ import { SuspendUserForm } from './SuspendUserForm'
 import { UnsuspendUserForm } from './UnsuspendUserForm'
 import { UserFilters } from './UserFilters'
 import PaginationControls from '@/app/components/PaginationControls'
+import { BackButton } from '@/app/components/BackButton'
+import EmptyState from '@/app/components/onboarding/EmptyState'
 
 const PAGE_SIZE = 30
 
@@ -45,6 +47,8 @@ export default async function AdminUsersPage(props: { searchParams: SearchParams
   } else if (statusFilter === 'active') {
     where.suspended = false
   }
+
+  const hasActiveFilters = roleFilter || statusFilter
 
   // Execute queries in parallel: fetch paginated users and total count
   const [users, totalCount] = await Promise.all([
@@ -151,8 +155,21 @@ export default async function AdminUsersPage(props: { searchParams: SearchParams
           </table>
 
           {users.length === 0 && (
-            <div className="text-center py-12 text-neutral-strong">
-              No users found
+            <div className="p-6">
+              {hasActiveFilters ? (
+                <EmptyState
+                  icon="🔍"
+                  heading="No Users Found"
+                  description="No users match your current filters. Try adjusting the role or status filters to see more results."
+                  primaryAction={{ label: "Clear Filters", href: "/admin/users" }}
+                />
+              ) : (
+                <EmptyState
+                  icon="👥"
+                  heading="No Users Yet"
+                  description="No users have registered yet. Once users sign up, they will appear here for moderation."
+                />
+              )}
             </div>
           )}
         </div>
@@ -170,9 +187,9 @@ export default async function AdminUsersPage(props: { searchParams: SearchParams
         )}
 
         <div className="mt-8">
-          <Link href="/admin" className="text-blue-500 hover:text-blue-400">
-            ← Back to Admin Dashboard
-          </Link>
+          <Suspense fallback={null}>
+            <BackButton />
+          </Suspense>
         </div>
       </div>
     </div>

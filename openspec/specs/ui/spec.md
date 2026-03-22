@@ -2177,3 +2177,295 @@ Auth components MUST match Figma design specifications pixel-perfect, verified t
 - THEN the Figma MCP tool MUST be used to fetch exact measurements and colors from nodes
 - AND manual measurement or guessing SHALL NOT be used
 - AND the fetched specs MUST be documented in implementation notes
+### Requirement: BackButton Component Context Handling
+
+The BackButton component MUST support multiple navigation contexts via the `from` query parameter and render appropriate back navigation links.
+
+#### Scenario: BackButton renders for profile context
+- GIVEN a user navigates to a page with `?from=profile` query parameter
+- WHEN the BackButton component renders
+- THEN it MUST display "← Back to Profile" text
+- AND it MUST link to `/dashboard/profile`
+
+#### Scenario: BackButton renders for dashboard context
+- GIVEN a user navigates to a page with `?from=dashboard` query parameter
+- WHEN the BackButton component renders
+- THEN it MUST display "← Back to Dashboard" text
+- AND it MUST link to `/dashboard`
+
+#### Scenario: BackButton renders for admin-dashboard context
+- GIVEN a user navigates to a page with `?from=admin-dashboard` query parameter
+- WHEN the BackButton component renders
+- THEN it MUST display "← Back to Admin Dashboard" text
+- AND it MUST link to `/admin`
+
+#### Scenario: BackButton renders for examples context
+- GIVEN a user navigates to a page with `?from=examples` query parameter
+- WHEN the BackButton component renders
+- THEN it MUST display "← Back to Examples" text
+- AND it MUST link to `/dashboard/gigs/examples`
+
+#### Scenario: BackButton preserves browse filters and pagination
+- GIVEN a user navigates to a gig detail page with `?from=browse&search=react&tags=React&page=2` query parameters
+- WHEN the BackButton component renders
+- THEN it MUST display "← Back to Browse Gigs" text
+- AND it MUST link to `/gigs?search=react&tags=React&page=2`
+- AND it MUST preserve all filter and pagination query parameters (search, tags, minBudget, maxBudget, sort, page)
+
+#### Scenario: BackButton does not render without from parameter
+- GIVEN a user navigates to a page without a `from` query parameter
+- WHEN the BackButton component renders
+- THEN it MUST return null (not render anything)
+
+#### Scenario: BackButton does not render for unknown context
+- GIVEN a user navigates to a page with `?from=unknown-context` query parameter
+- WHEN the BackButton component renders
+- THEN it MUST return null (not render anything)
+
+---
+
+### Requirement: Profile Edit Page Back Navigation
+
+The profile edit page MUST include a BackButton component to allow users to navigate back to their profile.
+
+#### Scenario: BackButton appears on profile edit page
+- GIVEN a user navigates to `/profile/edit?from=profile`
+- WHEN the page renders
+- THEN a BackButton component MUST be visible at the top of the page content
+- AND clicking the BackButton MUST navigate to `/dashboard/profile`
+
+#### Scenario: Profile edit links include from parameter
+- GIVEN a user is viewing their profile page at `/dashboard/profile`
+- WHEN they click any "Edit Profile" or "Редактировать профиль" link
+- THEN they MUST be navigated to `/profile/edit?from=profile`
+
+---
+
+### Requirement: Gig Creation Page Back Navigation
+
+The gig creation page MUST include a BackButton component to allow users to navigate back to the dashboard.
+
+#### Scenario: BackButton appears on gig creation page
+- GIVEN a user navigates to `/gigs/new?from=dashboard`
+- WHEN the page renders
+- THEN a BackButton component MUST be visible at the top of the page content
+- AND clicking the BackButton MUST navigate to `/dashboard`
+
+#### Scenario: Gig creation links include from parameter
+- GIVEN a user is viewing their dashboard
+- WHEN they click a "Post a Gig" or "Create Gig" link
+- THEN they MUST be navigated to `/gigs/new?from=dashboard`
+
+---
+
+### Requirement: Admin Pages Back Navigation
+
+Admin user management and gig management pages MUST use the BackButton component for consistent navigation back to the admin dashboard.
+
+#### Scenario: BackButton appears on admin users page
+- GIVEN an admin navigates to `/admin/users?from=admin-dashboard`
+- WHEN the page renders
+- THEN a BackButton component MUST be visible at the bottom of the page
+- AND clicking the BackButton MUST navigate to `/admin`
+- AND the manual "← Back to Admin Dashboard" link MUST be removed
+
+#### Scenario: BackButton appears on admin gigs page
+- GIVEN an admin navigates to `/admin/gigs?from=admin-dashboard`
+- WHEN the page renders
+- THEN a BackButton component MUST be visible at the bottom of the page
+- AND clicking the BackButton MUST navigate to `/admin`
+- AND the manual "← Back to Admin Dashboard" link MUST be removed
+
+#### Scenario: Admin dashboard links include from parameter
+- GIVEN an admin is viewing the admin dashboard at `/admin`
+- WHEN they click "User Management" or "Gig Management" links
+- THEN they MUST be navigated to `/admin/users?from=admin-dashboard` or `/admin/gigs?from=admin-dashboard` respectively
+
+---
+
+### Requirement: Public Profile Page Back Navigation
+
+The public profile page MUST include a BackButton component to allow users to navigate back to the dashboard.
+
+#### Scenario: BackButton appears on public profile page
+- GIVEN a user navigates to `/profile/[userId]?from=dashboard`
+- WHEN the page renders
+- THEN a BackButton component MUST be visible at the top of the page content
+- AND clicking the BackButton MUST navigate to `/dashboard`
+
+#### Scenario: Public profile links include from parameter
+- GIVEN a user views a specialist's name in an application list or gig details
+- WHEN they click the link to view the specialist's public profile
+- THEN they MUST be navigated to `/profile/[userId]?from=dashboard`
+
+---
+
+### Requirement: Examples Page Back Navigation
+
+The examples page MUST include a BackButton component to allow users to navigate back to the dashboard.
+
+#### Scenario: BackButton appears on examples page
+- GIVEN a user navigates to `/gigs/examples?from=dashboard`
+- WHEN the page renders
+- THEN a BackButton component MUST be visible at the top of the page content
+- AND clicking the BackButton MUST navigate to `/dashboard`
+
+#### Scenario: Examples page links include from parameter
+- GIVEN a user is viewing the gig creation form
+- WHEN they click the "💡 View example gigs for inspiration" link
+- THEN they MUST be navigated to `/gigs/examples?from=dashboard` (note: link already opens in new tab, so from parameter is for consistency)
+
+---
+
+### Requirement: BackButton Component Implementation
+
+The BackButton component MUST be implemented as a client component using Next.js hooks for query parameter access.
+
+#### Scenario: BackButton uses useSearchParams hook
+- GIVEN the BackButton component is rendered
+- WHEN it needs to access the `from` query parameter
+- THEN it MUST use the `useSearchParams()` hook from `next/navigation`
+- AND it MUST be wrapped in a Suspense boundary where used
+
+#### Scenario: BackButton maintains consistent styling
+- GIVEN a BackButton is rendered on any page
+- WHEN the component displays
+- THEN it MUST use consistent styling: `inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 transition-colors`
+- AND it MUST display the arrow character "←" before the text
+
+---
+# UI Specification: Empty States
+
+## ADDED Requirements
+
+### Requirement: Gig Browse Page Empty State Enhancement
+The gig browse page MUST use the EmptyState component when no gigs match filters or when no gigs are available.
+
+#### Scenario: No gigs match active filters
+- GIVEN a SPECIALIST user is on `/dashboard/gigs` with active filters
+- WHEN no gigs match the filter criteria
+- THEN the page MUST display an EmptyState component with:
+  - icon: "🔍"
+  - heading: "No Gigs Match Your Filters"
+  - description: "Try adjusting your search criteria, tags, or budget range to find more opportunities."
+  - primaryAction: { label: "Clear Filters", href: "/gigs" }
+
+#### Scenario: No open gigs available at all
+- GIVEN a SPECIALIST user is on `/dashboard/gigs` with no active filters
+- WHEN no OPEN gigs exist in the system
+- THEN the page MUST display an EmptyState component with:
+  - icon: "📭"
+  - heading: "No Open Gigs Available"
+  - description: "There are no open gigs at the moment. Check back soon for new opportunities, or view example gigs to see what projects look like."
+  - primaryAction: { label: "View Example Gigs", href: "/gigs/examples" }
+
+### Requirement: Admin Gigs Page Empty State Enhancement
+The admin gigs management page MUST use the EmptyState component when no gigs are found.
+
+#### Scenario: No gigs found with filters
+- GIVEN an ADMIN user is on `/admin/gigs` with active filters
+- WHEN no gigs match the filter criteria
+- THEN the page MUST display an EmptyState component with:
+  - icon: "🔍"
+  - heading: "No Gigs Found"
+  - description: "No gigs match your current filters. Try adjusting the status or closed filters to see more results."
+  - primaryAction: { label: "Clear Filters", href: "/admin/gigs" }
+
+#### Scenario: No gigs exist in system
+- GIVEN an ADMIN user is on `/admin/gigs` with no active filters
+- WHEN no gigs exist in the database
+- THEN the page MUST display an EmptyState component with:
+  - icon: "📋"
+  - heading: "No Gigs Yet"
+  - description: "No gigs have been created yet. Once clients start posting gigs, they will appear here for moderation."
+
+### Requirement: Admin Users Page Empty State Enhancement
+The admin users management page MUST use the EmptyState component when no users are found.
+
+#### Scenario: No users found with filters
+- GIVEN an ADMIN user is on `/admin/users` with active filters
+- WHEN no users match the filter criteria
+- THEN the page MUST display an EmptyState component with:
+  - icon: "🔍"
+  - heading: "No Users Found"
+  - description: "No users match your current filters. Try adjusting the role or status filters to see more results."
+  - primaryAction: { label: "Clear Filters", href: "/admin/users" }
+
+#### Scenario: No users exist in system
+- GIVEN an ADMIN user is on `/admin/users` with no active filters
+- WHEN no users exist in the database (excluding the admin themselves)
+- THEN the page MUST display an EmptyState component with:
+  - icon: "👥"
+  - heading: "No Users Yet"
+  - description: "No users have registered yet. Once users sign up, they will appear here for moderation."
+
+### Requirement: Example Gigs Page Empty State Enhancement
+The example gigs page MUST use the EmptyState component when no example gigs are available.
+
+#### Scenario: No example gigs available
+- GIVEN a user (CLIENT or SPECIALIST) is on `/gigs/examples`
+- WHEN no example gigs exist in the database
+- THEN the page MUST display an EmptyState component with:
+  - icon: "✨"
+  - heading: "No Example Gigs Available"
+  - description: "Example gigs haven't been set up yet. Check back later for inspiration on creating great gig descriptions."
+
+### Requirement: Dashboard Messages Empty State Enhancement
+The dashboard messages card MUST use the EmptyState component when no recent messages exist.
+
+#### Scenario: No recent messages for CLIENT
+- GIVEN a CLIENT user views their dashboard
+- WHEN no recent messages exist for their gigs
+- THEN the messages card MUST display an EmptyState component with:
+  - icon: "💬"
+  - heading: "No Messages Yet"
+  - description: "Messages with specialists will appear here once you accept applications and start communicating."
+
+#### Scenario: No recent messages for SPECIALIST
+- GIVEN a SPECIALIST user views their dashboard
+- WHEN no recent messages exist for their active gigs
+- THEN the messages card MUST display an EmptyState component with:
+  - icon: "💬"
+  - heading: "No Messages Yet"
+  - description: "Messages with clients will appear here once your applications are accepted and work begins."
+
+### Requirement: Empty State Design Token Compliance
+All empty states MUST use design tokens for styling to ensure consistency with the design system.
+
+#### Scenario: EmptyState component uses design tokens
+- GIVEN any page renders an EmptyState component
+- WHEN the component is inspected
+- THEN it MUST use design tokens for:
+  - Background: `bg-surface-level-1`
+  - Border: `border-neutral-weak`
+  - Heading text: `text-white`
+  - Description text: `text-neutral-default`
+  - Primary button: `bg-blue-500 hover:bg-blue-600 text-white`
+  - Secondary link: `text-blue-600 hover:text-blue-800`
+- AND it MUST NOT use hardcoded color values
+
+### Requirement: Empty State Accessibility
+All empty states MUST be accessible to screen readers and keyboard navigation.
+
+#### Scenario: Empty state is accessible
+- GIVEN any page renders an EmptyState component
+- WHEN a user navigates with keyboard or screen reader
+- THEN the heading MUST be properly structured (h3 or appropriate level)
+- AND action buttons MUST be keyboard accessible
+- AND links MUST have descriptive text (not just "Click here")
+- AND the empty state MUST have sufficient color contrast
+
+### Requirement: Role-Specific Empty State Testing
+Empty states MUST be tested for both CLIENT and SPECIALIST roles to ensure appropriate messaging.
+
+#### Scenario: CLIENT sees appropriate empty states
+- GIVEN a CLIENT user navigates through the application
+- WHEN they encounter empty states on their dashboard
+- THEN empty states MUST reference CLIENT-specific actions (e.g., "Post New Gig", "Accept Applications")
+- AND empty states MUST NOT reference SPECIALIST actions (e.g., "Browse Gigs", "Apply to Gigs")
+
+#### Scenario: SPECIALIST sees appropriate empty states
+- GIVEN a SPECIALIST user navigates through the application
+- WHEN they encounter empty states on their dashboard or gig browsing
+- THEN empty states MUST reference SPECIALIST-specific actions (e.g., "Browse Gigs", "Apply to Projects")
+- AND empty states MUST NOT reference CLIENT actions (e.g., "Post Gig", "Review Applications")

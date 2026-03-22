@@ -96,7 +96,7 @@ export function GigForm() {
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-xl font-semibold text-white">Requirements &amp; Success Criteria</h3>
           <a
-            href="/gigs/examples"
+            href="/gigs/examples?from=dashboard"
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm text-blue-500 hover:text-blue-400 underline"

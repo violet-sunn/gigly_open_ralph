@@ -48,7 +48,7 @@ export default async function AdminDashboard() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Link
-            href="/admin/users"
+            href="/admin/users?from=admin-dashboard"
             className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8 hover:border-blue-500 transition-colors duration-200 shadow-md"
           >
             <h2 className="text-xl font-semibold text-white mb-2">User Management</h2>
@@ -56,7 +56,7 @@ export default async function AdminDashboard() {
           </Link>
 
           <Link
-            href="/admin/gigs"
+            href="/admin/gigs?from=admin-dashboard"
             className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8 hover:border-blue-500 transition-colors duration-200 shadow-md"
           >
             <h2 className="text-xl font-semibold text-white mb-2">Gig Management</h2>

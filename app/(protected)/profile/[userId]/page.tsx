@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/session'
 import { prisma } from '@/lib/prisma'
+import { BackButton } from '@/app/components/BackButton'
+import { Suspense } from 'react'
 
 export default async function PublicProfilePage({
   params,
@@ -48,6 +50,11 @@ export default async function PublicProfilePage({
     return (
       <div className="min-h-screen bg-[var(--bg-surface-level-0)] py-8">
         <div className="max-w-2xl mx-auto px-4">
+          <div className="mb-4">
+            <Suspense fallback={null}>
+              <BackButton />
+            </Suspense>
+          </div>
           <h1 className="text-2xl font-bold text-white mb-6">Specialist Profile</h1>
           <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 space-y-4 shadow-md">
           <div>
@@ -79,6 +86,11 @@ export default async function PublicProfilePage({
     return (
       <div className="min-h-screen bg-[var(--bg-surface-level-0)] py-8">
         <div className="max-w-2xl mx-auto px-4">
+          <div className="mb-4">
+            <Suspense fallback={null}>
+              <BackButton />
+            </Suspense>
+          </div>
           <h1 className="text-2xl font-bold text-white mb-6">Client Profile</h1>
           <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 space-y-4 shadow-md">
           <div>

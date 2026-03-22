@@ -1,10 +1,11 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, Suspense } from 'react'
 import { useFormStatus } from 'react-dom'
 import Link from 'next/link'
 import { updateProfile } from '@/app/actions/profile'
 import ProfileEditHeader from './ProfileEditHeader'
+import { BackButton } from '@/app/components/BackButton'
 
 function SubmitButton() {
   const { pending } = useFormStatus()
@@ -37,6 +38,11 @@ export default function ProfileEditForm({ role, profile, email }: ProfileEditFor
     return (
       <div className="min-h-screen bg-[var(--bg-surface-level-0)] py-8">
         <div className="max-w-7xl mx-auto px-4">
+          <div className="mb-4">
+            <Suspense fallback={null}>
+              <BackButton />
+            </Suspense>
+          </div>
           <ProfileEditHeader
             displayName={displayName}
             email={email}
@@ -132,6 +138,11 @@ export default function ProfileEditForm({ role, profile, email }: ProfileEditFor
     return (
       <div className="min-h-screen bg-[var(--bg-surface-level-0)] py-8">
         <div className="max-w-7xl mx-auto px-4">
+          <div className="mb-4">
+            <Suspense fallback={null}>
+              <BackButton />
+            </Suspense>
+          </div>
           <ProfileEditHeader
             displayName={displayName}
             email={email}

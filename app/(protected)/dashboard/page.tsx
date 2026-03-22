@@ -145,7 +145,7 @@ export default async function DashboardPage({
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="text-xl font-semibold text-white">My Gigs</h3>
                     <Link
-                      href="/gigs/new"
+                      href="/gigs/new?from=dashboard"
                       className="px-6 py-3 bg-blue-500 text-white rounded-md text-sm font-medium hover:bg-blue-600 transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-surface-level-0"
                     >
                       Post New Gig
@@ -156,7 +156,7 @@ export default async function DashboardPage({
                       icon="📋"
                       heading="Post Your First Gig"
                       description="Get started by posting a gig. Describe what you need, set your budget, and receive applications from qualified specialists."
-                      primaryAction={{ label: "Create Gig", href: "/gigs/new" }}
+                      primaryAction={{ label: "Create Gig", href: "/gigs/new?from=dashboard" }}
                       secondaryAction={{ label: "View Example Gigs", href: "/gigs/examples" }}
                     />
                   ) : (
@@ -215,7 +215,7 @@ export default async function DashboardPage({
                       <h3 className="text-lg font-semibold text-white mb-1">Найти проект</h3>
                       <p className="text-sm text-neutral-strong mb-3">Проекты и вакансии с актуальными заказами</p>
                       <Link
-                        href="/gigs/new"
+                        href="/gigs/new?from=dashboard"
                         className="inline-block px-4 py-2 bg-blue-500 text-white rounded-md text-sm font-medium hover:bg-blue-600 transition-colors"
                       >
                         Создать заказ
@@ -242,9 +242,11 @@ export default async function DashboardPage({
                 <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 shadow-md">
                   <h3 className="text-sm font-semibold text-neutral-weak uppercase tracking-wide mb-3">СООБЩЕНИЯ</h3>
                   {recentMessages.length === 0 ? (
-                    <div className="text-center py-4">
-                      <p className="text-sm text-neutral-weak">No recent messages</p>
-                    </div>
+                    <EmptyState
+                      icon="💬"
+                      heading="No Messages Yet"
+                      description="Messages with specialists will appear here once you accept applications and start communicating."
+                    />
                   ) : (
                     <div className="max-h-80 overflow-y-auto space-y-3">
                       {recentMessages.map((message) => (
@@ -352,9 +354,11 @@ export default async function DashboardPage({
                 <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 shadow-md">
                   <h3 className="text-sm font-semibold text-neutral-weak uppercase tracking-wide mb-3">СООБЩЕНИЯ</h3>
                   {recentMessages.length === 0 ? (
-                    <div className="text-center py-4">
-                      <p className="text-sm text-neutral-weak">No recent messages</p>
-                    </div>
+                    <EmptyState
+                      icon="💬"
+                      heading="No Messages Yet"
+                      description="Messages with clients will appear here once your applications are accepted and work begins."
+                    />
                   ) : (
                     <div className="max-h-80 overflow-y-auto space-y-3">
                       {recentMessages.map((message) => (

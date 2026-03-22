@@ -325,7 +325,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex-1">
                         <Link
-                          href={`/dashboard/profile/${app.specialist.id}`}
+                          href={`/dashboard/profile/${app.specialist.id}?from=dashboard`}
                           className="text-sm font-medium text-blue-500 hover:text-blue-400"
                         >
                           {app.specialist.specialistProfile?.displayName

@@ -27,7 +27,7 @@ export default async function ProfilePage() {
             <div className="bg-warning-500/10 border border-warning-500/20 rounded-lg p-4 mb-6">
               <p className="text-warning-400">Profile not set up yet</p>
               <Link
-                href="/profile/edit"
+                href="/profile/edit?from=profile"
                 className="text-blue-500 hover:text-blue-400 underline"
               >
                 Set up your profile
@@ -93,7 +93,7 @@ export default async function ProfilePage() {
                 </div>
 
                 <Link
-                  href="/profile/edit"
+                  href="/profile/edit?from=profile"
                   className="shrink-0 rounded-[10px] bg-white px-5 py-2.5 text-[18px] font-semibold text-[var(--text-neutral-inverted)]"
                 >
                   Редактировать профиль
@@ -127,7 +127,7 @@ export default async function ProfilePage() {
                 <div className="flex items-center justify-between">
                   <h2 className="text-[22px] font-medium text-[var(--text-neutral-strong)]">Опыт работы</h2>
                   <Link
-                    href="/profile/edit"
+                    href="/profile/edit?from=profile"
                     className="text-[16px] font-medium text-[var(--text-brand-default)]"
                   >
                     Редактировать
@@ -161,7 +161,7 @@ export default async function ProfilePage() {
                 <div className="flex items-center justify-between">
                   <h2 className="text-[22px] font-medium text-[var(--text-neutral-strong)]">Избранные проекты</h2>
                   <Link
-                    href="/profile/edit"
+                    href="/profile/edit?from=profile"
                     className="text-[16px] font-medium text-[var(--text-brand-default)]"
                   >
                     Редактировать
@@ -197,7 +197,7 @@ export default async function ProfilePage() {
             <div className="bg-warning-500/10 border border-warning-500/20 rounded-lg p-4 mb-6">
               <p className="text-warning-400">Profile not set up yet</p>
               <Link
-                href="/profile/edit"
+                href="/profile/edit?from=profile"
                 className="text-blue-500 hover:text-blue-400 underline"
               >
                 Set up your profile
@@ -243,7 +243,7 @@ export default async function ProfilePage() {
 
               <div className="mt-4">
                 <Link
-                  href="/profile/edit"
+                  href="/profile/edit?from=profile"
                   className="inline-block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-200 font-medium text-sm focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-surface-level-0"
                 >
                   Edit Profile
@@ -292,7 +292,7 @@ export default async function ProfilePage() {
             <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 shadow-md">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-white">Активные проекты</h2>
-                <Link href="/gigs/new" className="text-sm text-blue-500 hover:text-blue-400">
+                <Link href="/gigs/new?from=dashboard" className="text-sm text-blue-500 hover:text-blue-400">
                   Создать заказ
                 </Link>
               </div>

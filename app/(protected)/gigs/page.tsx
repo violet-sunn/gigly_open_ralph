@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Suspense } from 'react'
 import GigFilters from './components/GigFilters'
 import PaginationControls from '@/app/components/PaginationControls'
+import EmptyState from '@/app/components/onboarding/EmptyState'
 
 const PAGE_SIZE = 25
 
@@ -151,13 +152,21 @@ export default async function GigBrowsePage({
 
         {/* Gig List */}
         {gigs.length === 0 ? (
-          <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8 text-center">
-            <p className="text-sm text-neutral-strong">
-              {hasActiveFilters
-                ? 'No gigs match your filters. Try adjusting your search criteria.'
-                : 'No open gigs available.'}
-            </p>
-          </div>
+          hasActiveFilters ? (
+            <EmptyState
+              icon="🔍"
+              heading="No Gigs Match Your Filters"
+              description="Try adjusting your search criteria, tags, or budget range to find more opportunities."
+              primaryAction={{ label: "Clear Filters", href: "/gigs" }}
+            />
+          ) : (
+            <EmptyState
+              icon="📭"
+              heading="No Open Gigs Available"
+              description="There are no open gigs at the moment. Check back soon for new opportunities, or view example gigs to see what projects look like."
+              primaryAction={{ label: "View Example Gigs", href: "/gigs/examples" }}
+            />
+          )
         ) : (
           <div className="space-y-4">
             {gigs.map((gig) => {

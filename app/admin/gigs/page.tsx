@@ -6,6 +6,8 @@ import { Suspense } from 'react'
 import { CloseGigForm } from './CloseGigForm'
 import { GigFilters } from './GigFilters'
 import PaginationControls from '@/app/components/PaginationControls'
+import { BackButton } from '@/app/components/BackButton'
+import EmptyState from '@/app/components/onboarding/EmptyState'
 
 const PAGE_SIZE = 30
 
@@ -44,6 +46,8 @@ export default async function AdminGigsPage(props: { searchParams: SearchParams 
   } else if (closedFilter === 'false') {
     where.closedByAdmin = false
   }
+
+  const hasActiveFilters = statusFilter || closedFilter
 
   // Execute queries in parallel: fetch paginated gigs and total count
   const [gigs, totalCount] = await Promise.all([
@@ -164,8 +168,21 @@ export default async function AdminGigsPage(props: { searchParams: SearchParams 
           </table>
 
           {gigs.length === 0 && (
-            <div className="text-center py-12 text-neutral-strong">
-              No gigs found
+            <div className="p-6">
+              {hasActiveFilters ? (
+                <EmptyState
+                  icon="🔍"
+                  heading="No Gigs Found"
+                  description="No gigs match your current filters. Try adjusting the status or closed filters to see more results."
+                  primaryAction={{ label: "Clear Filters", href: "/admin/gigs" }}
+                />
+              ) : (
+                <EmptyState
+                  icon="📋"
+                  heading="No Gigs Yet"
+                  description="No gigs have been created yet. Once clients start posting gigs, they will appear here for moderation."
+                />
+              )}
             </div>
           )}
         </div>
@@ -183,9 +200,9 @@ export default async function AdminGigsPage(props: { searchParams: SearchParams 
         )}
 
         <div className="mt-8">
-          <Link href="/admin" className="text-blue-500 hover:text-blue-400">
-            ← Back to Admin Dashboard
-          </Link>
+          <Suspense fallback={null}>
+            <BackButton />
+          </Suspense>
         </div>
       </div>
     </div>

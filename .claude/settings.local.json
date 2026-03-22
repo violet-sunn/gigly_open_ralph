@@ -177,7 +177,9 @@
       "Bash(git stash:*)",
       "Bash(npm run validate:tokens)",
       "Bash(tee:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(findstr /i \"node\")",
+      "Bash(npm run test:integration:*)"
     ]
   }
 }

@@ -12,8 +12,8 @@ export function BackButton() {
     return null
   }
 
-  let href = '/dashboard'
-  let text = '← Back to Dashboard'
+  let href = ''
+  let text = ''
 
   if (from === 'browse') {
     // Preserve all filter/pagination params when going back to browse
@@ -35,6 +35,21 @@ export function BackButton() {
     const queryString = browseParams.toString()
     href = queryString ? `/gigs?${queryString}` : '/gigs'
     text = '← Back to Browse Gigs'
+  } else if (from === 'profile') {
+    href = '/dashboard/profile'
+    text = '← Back to Profile'
+  } else if (from === 'dashboard') {
+    href = '/dashboard'
+    text = '← Back to Dashboard'
+  } else if (from === 'admin-dashboard') {
+    href = '/admin'
+    text = '← Back to Admin Dashboard'
+  } else if (from === 'examples') {
+    href = '/dashboard/gigs/examples'
+    text = '← Back to Examples'
+  } else {
+    // Unknown context - don't render
+    return null
   }
 
   return (
