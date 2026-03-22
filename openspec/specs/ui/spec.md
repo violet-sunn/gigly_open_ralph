@@ -1809,3 +1809,96 @@ All interactive elements MUST follow a consistent strategy for hover state styli
 - Hardcoded values used only for semantic colors or where no token exists
 - Hover effects are consistent across similar components
 - All hover states maintain adequate contrast for accessibility
+
+---
+
+### Requirement: Auth Asset File Organization
+Auth screen assets MUST be organized in a dedicated directory structure with clear naming conventions.
+
+#### Scenario: Assets are stored in public/assets/auth directory
+- GIVEN the auth-assets change is implemented
+- WHEN the file system is inspected
+- THEN a `public/assets/auth/` directory MUST exist
+- AND the directory MUST contain the following files:
+  - `specialist-icon.svg` (32x32px user/person icon)
+  - `client-icon.svg` (32x32px briefcase/bag icon)
+  - `background-pattern.svg` (pixelated checkered pattern)
+  - `logo.svg` or multiple logo variants
+
+#### Scenario: Asset filenames follow kebab-case convention
+- GIVEN any auth asset file
+- WHEN the filename is inspected
+- THEN the filename MUST use kebab-case (lowercase with hyphens)
+- AND the filename MUST have `.svg` extension
+- AND the filename MUST be descriptive of the asset's purpose
+
+---
+
+### Requirement: SVG Optimization and Accessibility
+All SVG assets MUST be optimized for performance and accessible to assistive technologies.
+
+#### Scenario: SVG files are under 10KB
+- GIVEN any SVG file in `public/assets/auth/`
+- WHEN the file size is measured
+- THEN the file size MUST be less than 10KB (10,240 bytes)
+- AND the SVG MUST NOT contain unnecessary metadata, comments, or editor artifacts
+
+#### Scenario: SVG files include proper viewBox attributes
+- GIVEN any SVG file in `public/assets/auth/`
+- WHEN the SVG markup is inspected
+- THEN the `<svg>` element MUST include a `viewBox` attribute
+- AND the viewBox MUST define the coordinate system for proper scaling
+- AND icon SVGs MUST use `viewBox="0 0 32 32"` for 32x32px dimensions
+
+#### Scenario: Icon SVGs include accessibility attributes
+- GIVEN an icon SVG file (specialist-icon.svg or client-icon.svg)
+- WHEN the SVG markup is inspected
+- THEN the `<svg>` element MUST include either:
+  - An `aria-label` attribute with descriptive text (e.g., "Specialist role icon"), OR
+  - A `role="img"` attribute with a child `<title>` element
+- AND the accessibility text MUST describe the icon's purpose, not its visual appearance
+
+#### Scenario: Decorative SVGs are marked as presentational
+- GIVEN the background pattern SVG (background-pattern.svg)
+- WHEN the SVG markup is inspected
+- THEN the `<svg>` element MUST include `aria-hidden="true"` attribute
+- AND the SVG MUST include `role="presentation"` attribute
+- BECAUSE decorative elements should be hidden from screen readers
+
+---
+
+### Requirement: Centralized Asset Imports
+Auth assets MUST be importable through a centralized module to ensure consistency and type safety.
+
+#### Scenario: Asset constants file exports all auth assets
+- GIVEN the auth-assets change is implemented
+- WHEN a developer needs to use an auth asset
+- THEN they MUST be able to import from `lib/assets.tsx`
+- AND the module MUST export constants or components for each asset
+- AND the exports MUST include TypeScript types for props
+
+#### Scenario: Asset components accept className prop
+- GIVEN an asset exported as a React component
+- WHEN the component is used in JSX
+- THEN the component MUST accept a `className` prop for Tailwind styling
+- AND the className MUST be applied to the root `<svg>` element
+- AND the component MUST preserve default dimensions while allowing override via className
+
+---
+
+### Requirement: Asset Integration in Auth Pages
+Auth assets MUST be integrated into login and register pages with proper rendering and positioning.
+
+#### Scenario: Role icons appear in register page role selection
+- GIVEN a user visits the `/register` page
+- WHEN the role selection UI renders
+- THEN the specialist icon MUST appear next to the SPECIALIST role option
+- AND the client icon MUST appear next to the CLIENT role option
+- AND the icons MUST be visually distinct and recognizable
+
+#### Scenario: Assets render without layout shift
+- GIVEN a user loads an auth page (login or register)
+- WHEN the page renders
+- THEN assets MUST NOT cause cumulative layout shift (CLS)
+- AND assets MUST have explicit width/height attributes or CSS dimensions
+- AND assets MUST load without blocking page interactivity

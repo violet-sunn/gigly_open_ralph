@@ -4,6 +4,7 @@ import { useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
 import Link from 'next/link'
 import { registerUser } from '@/app/actions/auth'
+import { SpecialistIcon, ClientIcon } from '@/lib/assets'
 
 function SubmitButton() {
   const { pending } = useFormStatus()
@@ -42,6 +43,9 @@ export default function RegisterPage() {
                 <label className="flex-1 cursor-pointer">
                   <input type="radio" name="role" value="CLIENT" className="peer sr-only" required />
                   <div className="p-3 text-center border border-neutral-weak rounded-md peer-checked:border-blue-500 peer-checked:bg-blue-500/10 peer-checked:text-blue-500 hover:bg-navy-700 transition-colors">
+                    <div className="flex justify-center mb-2">
+                      <ClientIcon className="w-8 h-8 text-neutral-strong peer-checked:text-blue-500" />
+                    </div>
                     <span className="text-sm font-medium">Client</span>
                     <p className="text-xs text-neutral-weak mt-1">Post gigs, hire specialists</p>
                   </div>
@@ -49,6 +53,9 @@ export default function RegisterPage() {
                 <label className="flex-1 cursor-pointer">
                   <input type="radio" name="role" value="SPECIALIST" className="peer sr-only" required />
                   <div className="p-3 text-center border border-neutral-weak rounded-md peer-checked:border-blue-500 peer-checked:bg-blue-500/10 peer-checked:text-blue-500 hover:bg-navy-700 transition-colors">
+                    <div className="flex justify-center mb-2">
+                      <SpecialistIcon className="w-8 h-8 text-neutral-strong peer-checked:text-blue-500" />
+                    </div>
                     <span className="text-sm font-medium">Specialist</span>
                     <p className="text-xs text-neutral-weak mt-1">Browse gigs, get hired</p>
                   </div>
