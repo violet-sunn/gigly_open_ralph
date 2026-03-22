@@ -23,8 +23,34 @@ async function globalSetup() {
 
   // Remove existing test database to start fresh
   if (fs.existsSync(dbPath)) {
-    fs.unlinkSync(dbPath)
-    console.log('✓ Removed existing test database')
+    try {
+      fs.unlinkSync(dbPath)
+      console.log('✓ Removed existing test database')
+    } catch (error: any) {
+      if (error.code === 'EBUSY' || error.code === 'EPERM') {
+        console.log('⚠ Test database is locked, will use existing database')
+        // Database is locked by another process, continue anyway
+        // The database will be cleaned by test cleanup hooks
+      } else {
+        throw error
+      }
+    }
+  }
+
+  // Remove WAL and SHM files if they exist
+  const walPath = `${dbPath}-wal`
+  const shmPath = `${dbPath}-shm`
+
+  for (const filePath of [walPath, shmPath]) {
+    if (fs.existsSync(filePath)) {
+      try {
+        fs.unlinkSync(filePath)
+      } catch (error: any) {
+        if (error.code !== 'EBUSY' && error.code !== 'EPERM') {
+          throw error
+        }
+      }
+    }
   }
 
   // Apply schema using prisma db push
