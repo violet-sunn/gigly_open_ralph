@@ -49,21 +49,38 @@ export async function createGig(
   const serviceFee = Math.floor(budgetKopecks * 0.10)
   const totalAmount = budgetKopecks + serviceFee
 
-  await prisma.gig.create({
-    data: {
-      title,
-      description,
-      acceptanceCriteria,
-      goal,
-      deliverables,
-      constraints,
-      budget: budgetKopecks,
-      serviceFee,
-      totalAmount,
-      tags,
-      clientId: session.userId,
-    },
+  // Check if this is the user's first gig
+  const user = await prisma.user.findUnique({
+    where: { id: session.userId },
+    select: { hasCreatedFirstGig: true },
   })
+
+  const gigData = {
+    title,
+    description,
+    acceptanceCriteria,
+    goal,
+    deliverables,
+    constraints,
+    budget: budgetKopecks,
+    serviceFee,
+    totalAmount,
+    tags,
+    clientId: session.userId,
+  }
+
+  // If this is the first gig, update user state in same transaction
+  if (user && !user.hasCreatedFirstGig) {
+    await prisma.$transaction([
+      prisma.gig.create({ data: gigData }),
+      prisma.user.update({
+        where: { id: session.userId },
+        data: { hasCreatedFirstGig: true },
+      }),
+    ])
+  } else {
+    await prisma.gig.create({ data: gigData })
+  }
 
   redirect('/dashboard')
 }
@@ -146,33 +163,68 @@ export async function applyToGig(
   // Get specialist profile for notification
   const specialist = await prisma.user.findUnique({
     where: { id: session.userId },
-    include: { specialistProfile: true },
-  })
-
-  const application = await prisma.application.create({
-    data: {
-      gigId,
-      specialistId: session.userId,
-      approach,
-      questions,
-      estimatedEffort,
-      coverLetter: '', // Legacy field, set to empty string
+    select: {
+      id: true,
+      email: true,
+      hasSubmittedFirstApplication: true,
+      specialistProfile: {
+        select: {
+          displayName: true,
+        },
+      },
     },
   })
 
-  // Create notification for gig owner (fire-and-forget)
-  const specialistName = specialist?.specialistProfile?.displayName || specialist?.email || 'A specialist'
-  createNotification(
-    gig.clientId,
+  const applicationData = {
     gigId,
-    'APPLICATION',
-    'application_submitted',
-    {
-      specialistId: session.userId,
-      specialistName,
-      applicationId: application.id,
-    }
-  )
+    specialistId: session.userId,
+    approach,
+    questions,
+    estimatedEffort,
+    coverLetter: '', // Legacy field, set to empty string
+  }
+
+  // If this is the first application, update user state in same transaction
+  if (specialist && !specialist.hasSubmittedFirstApplication) {
+    const application = await prisma.$transaction(async (tx) => {
+      const app = await tx.application.create({ data: applicationData })
+      await tx.user.update({
+        where: { id: session.userId },
+        data: { hasSubmittedFirstApplication: true },
+      })
+      return app
+    })
+
+    // Create notification for gig owner (fire-and-forget)
+    const specialistName = specialist?.specialistProfile?.displayName || specialist?.email || 'A specialist'
+    createNotification(
+      gig.clientId,
+      gigId,
+      'APPLICATION',
+      'application_submitted',
+      {
+        specialistId: session.userId,
+        specialistName,
+        applicationId: application.id,
+      }
+    )
+  } else {
+    const application = await prisma.application.create({ data: applicationData })
+
+    // Create notification for gig owner (fire-and-forget)
+    const specialistName = specialist?.specialistProfile?.displayName || specialist?.email || 'A specialist'
+    createNotification(
+      gig.clientId,
+      gigId,
+      'APPLICATION',
+      'application_submitted',
+      {
+        specialistId: session.userId,
+        specialistName,
+        applicationId: application.id,
+      }
+    )
+  }
 
   redirect(`/gigs/${gigId}`)
 }

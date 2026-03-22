@@ -3,11 +3,23 @@ import { redirect } from 'next/navigation'
 import { GigForm } from './gig-form'
 import { BackButton } from '@/app/components/BackButton'
 import { Suspense } from 'react'
+import { prisma } from '@/lib/prisma'
 
 export default async function NewGigPage() {
   const session = await getSession()
   if (!session) redirect('/login')
   if (session.role !== 'CLIENT') redirect('/dashboard')
+
+  // Fetch user's guidance state
+  const user = await prisma.user.findUnique({
+    where: { id: session.userId },
+    select: {
+      hasCreatedFirstGig: true,
+      gigCreationGuidanceDismissed: true,
+    },
+  })
+
+  const showGuidance = user && !user.hasCreatedFirstGig && !user.gigCreationGuidanceDismissed
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-surface-level-0 py-12">
@@ -21,7 +33,7 @@ export default async function NewGigPage() {
           <h2 className="text-3xl font-bold text-white">Post a Gig</h2>
           <p className="mt-2 text-sm text-neutral-strong">Describe the work and set your budget</p>
         </div>
-        <GigForm />
+        <GigForm showGuidance={showGuidance || false} />
       </div>
     </div>
   )

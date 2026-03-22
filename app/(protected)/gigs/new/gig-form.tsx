@@ -3,9 +3,13 @@
 import { useActionState, useState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { createGig } from '@/app/actions/gig'
+import { dismissGuidance } from '@/app/actions/user'
 import { CharacterCounter } from './character-counter'
 import { AcceptanceCriteriaQualityWarning } from '@/app/components/AcceptanceCriteriaQualityWarning'
 import FirstTimeTooltip from '@/app/components/onboarding/FirstTimeTooltip'
+import { HelpBanner } from '@/app/components/ui/HelpBanner'
+import { Tooltip } from '@/app/components/ui/Tooltip'
+import { InfoIcon } from '@/app/components/ui/InfoIcon'
 
 function SubmitButton() {
   const { pending } = useFormStatus()
@@ -24,9 +28,14 @@ function formatRoubles(amount: number): string {
   return new Intl.NumberFormat('ru-RU').format(amount)
 }
 
-export function GigForm() {
+interface GigFormProps {
+  showGuidance: boolean
+}
+
+export function GigForm({ showGuidance }: GigFormProps) {
   const [state, formAction] = useActionState(createGig, null)
   const [budget, setBudget] = useState('')
+  const [guidanceVisible, setGuidanceVisible] = useState(showGuidance)
 
   // Character count state for textarea fields
   const [acceptanceCriteriaCount, setAcceptanceCriteriaCount] = useState(0)
@@ -40,12 +49,32 @@ export function GigForm() {
   const fee = showPreview ? Math.floor(budgetNum * 0.10) : 0
   const total = showPreview ? budgetNum + fee : 0
 
+  const handleDismissGuidance = async () => {
+    setGuidanceVisible(false)
+    await dismissGuidance('gigCreation')
+  }
+
   return (
     <form action={formAction} className="space-y-8">
       {state?.error && (
         <div className="rounded-md bg-error-500/10 border border-error-500/20 p-4">
           <p className="text-sm text-error-500">{state.error}</p>
         </div>
+      )}
+
+      {guidanceVisible && (
+        <HelpBanner onDismiss={handleDismissGuidance}>
+          Creating your first gig? Clear requirements lead to better applications. Define what success looks like, provide context, and check out{' '}
+          <a
+            href="/gigs/examples"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-700 underline hover:text-blue-800"
+          >
+            example gigs
+          </a>{' '}
+          for inspiration.
+        </HelpBanner>
       )}
 
       <FirstTimeTooltip
@@ -110,9 +139,14 @@ export function GigForm() {
 
         <div className="space-y-6">
           <div>
-            <label htmlFor="acceptanceCriteria" className="block text-sm font-medium text-white">
-              Definition of Done (Acceptance Criteria) *
-            </label>
+            <div className="flex items-center gap-2">
+              <label htmlFor="acceptanceCriteria" className="block text-sm font-medium text-white">
+                Definition of Done (Acceptance Criteria) *
+              </label>
+              <Tooltip content="Specific, measurable criteria that define when the work is complete. Example: 'API returns user data in JSON format with <200ms response time.'">
+                <InfoIcon />
+              </Tooltip>
+            </div>
             <textarea
               id="acceptanceCriteria"
               name="acceptanceCriteria"
@@ -144,9 +178,14 @@ export function GigForm() {
           </div>
 
           <div>
-            <label htmlFor="goal" className="block text-sm font-medium text-white">
-              Goal / Desired Outcome
-            </label>
+            <div className="flex items-center gap-2">
+              <label htmlFor="goal" className="block text-sm font-medium text-white">
+                Goal / Desired Outcome
+              </label>
+              <Tooltip content="What problem are you solving? Why does this work matter? Helps specialists understand the bigger picture.">
+                <InfoIcon />
+              </Tooltip>
+            </div>
             <textarea
               id="goal"
               name="goal"
@@ -168,9 +207,14 @@ export function GigForm() {
           </div>
 
           <div>
-            <label htmlFor="deliverables" className="block text-sm font-medium text-white">
-              Specific Deliverables
-            </label>
+            <div className="flex items-center gap-2">
+              <label htmlFor="deliverables" className="block text-sm font-medium text-white">
+                Specific Deliverables
+              </label>
+              <Tooltip content="What specific outputs do you expect? (e.g., 'Working API endpoint', 'Updated documentation', 'Test coverage report')">
+                <InfoIcon />
+              </Tooltip>
+            </div>
             <textarea
               id="deliverables"
               name="deliverables"
@@ -192,9 +236,14 @@ export function GigForm() {
           </div>
 
           <div>
-            <label htmlFor="constraints" className="block text-sm font-medium text-white">
-              Constraints &amp; Preferences
-            </label>
+            <div className="flex items-center gap-2">
+              <label htmlFor="constraints" className="block text-sm font-medium text-white">
+                Constraints &amp; Preferences
+              </label>
+              <Tooltip content="Any technical preferences, deadlines, or limitations? (e.g., 'Must use TypeScript', 'Deadline: 2 weeks', 'No external dependencies')">
+                <InfoIcon />
+              </Tooltip>
+            </div>
             <textarea
               id="constraints"
               name="constraints"
@@ -249,8 +298,13 @@ export function GigForm() {
                 <span className="text-neutral-strong">Budget:</span>
                 <span className="font-medium text-white">{formatRoubles(budgetNum)} ₽</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-neutral-strong">Service fee (10%):</span>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <span className="text-neutral-strong">Service fee (10%):</span>
+                  <Tooltip content="Gigly charges a 10% service fee on top of your budget. You pay budget + 10%, the specialist receives the full budget amount.">
+                    <InfoIcon />
+                  </Tooltip>
+                </div>
                 <span className="font-medium text-white">{formatRoubles(fee)} ₽</span>
               </div>
               <div className="flex justify-between border-t border-neutral-weak pt-1">

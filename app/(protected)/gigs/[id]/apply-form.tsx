@@ -3,7 +3,11 @@
 import { useActionState, useState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { applyToGig } from '@/app/actions/gig'
+import { dismissGuidance } from '@/app/actions/user'
 import FirstTimeTooltip from '@/app/components/onboarding/FirstTimeTooltip'
+import { HelpBanner } from '@/app/components/ui/HelpBanner'
+import { Tooltip } from '@/app/components/ui/Tooltip'
+import { InfoIcon } from '@/app/components/ui/InfoIcon'
 
 function SubmitButton() {
   const { pending } = useFormStatus()
@@ -18,11 +22,22 @@ function SubmitButton() {
   )
 }
 
-export function ApplyForm({ gigId }: { gigId: string }) {
+interface ApplyFormProps {
+  gigId: string
+  showGuidance: boolean
+}
+
+export function ApplyForm({ gigId, showGuidance }: ApplyFormProps) {
   const [state, formAction] = useActionState(applyToGig, null)
   const [approachCount, setApproachCount] = useState(0)
   const [questionsCount, setQuestionsCount] = useState(0)
   const [effortCount, setEffortCount] = useState(0)
+  const [guidanceVisible, setGuidanceVisible] = useState(showGuidance)
+
+  const handleDismissGuidance = async () => {
+    setGuidanceVisible(false)
+    await dismissGuidance('application')
+  }
 
   return (
     <form action={formAction} className="space-y-6">
@@ -33,6 +48,12 @@ export function ApplyForm({ gigId }: { gigId: string }) {
         </div>
       )}
 
+      {guidanceVisible && (
+        <HelpBanner onDismiss={handleDismissGuidance}>
+          Submitting your first application? Focus on substance over sales. Explain your technical approach, ask clarifying questions, and demonstrate your expertise.
+        </HelpBanner>
+      )}
+
       <FirstTimeTooltip
         storageKey="onboarding_application_seen"
         message="💡 Tip: Focus on your technical approach and ask clarifying questions. Clients value substance over sales pitches!"
@@ -40,9 +61,14 @@ export function ApplyForm({ gigId }: { gigId: string }) {
 
       {/* Technical Approach */}
       <div>
-        <label htmlFor="approach" className="block text-sm font-medium text-white">
-          Technical Approach / Methodology <span className="text-error-400">*</span>
-        </label>
+        <div className="flex items-center gap-2">
+          <label htmlFor="approach" className="block text-sm font-medium text-white">
+            Technical Approach / Methodology <span className="text-error-400">*</span>
+          </label>
+          <Tooltip content="Describe your methodology and implementation plan. What technologies will you use? What's your step-by-step approach? Be specific and technical.">
+            <InfoIcon />
+          </Tooltip>
+        </div>
         <p className="text-xs text-neutral-strong mt-1 leading-relaxed">
           How will you approach this work? What methodology, tools, or architecture will you use? Be specific about your technical plan.
         </p>
@@ -64,9 +90,14 @@ export function ApplyForm({ gigId }: { gigId: string }) {
 
       {/* Clarifying Questions */}
       <div>
-        <label htmlFor="questions" className="block text-sm font-medium text-white">
-          Clarifying Questions <span className="text-error-400">*</span>
-        </label>
+        <div className="flex items-center gap-2">
+          <label htmlFor="questions" className="block text-sm font-medium text-white">
+            Clarifying Questions <span className="text-error-400">*</span>
+          </label>
+          <Tooltip content="What do you need to know about the requirements? Asking good questions demonstrates thoroughness and helps avoid scope creep.">
+            <InfoIcon />
+          </Tooltip>
+        </div>
         <p className="text-xs text-neutral-strong mt-1 leading-relaxed">
           What questions do you have about the requirements? What needs clarification before you can provide an accurate estimate?
         </p>
@@ -88,9 +119,14 @@ export function ApplyForm({ gigId }: { gigId: string }) {
 
       {/* Estimated Effort */}
       <div>
-        <label htmlFor="estimatedEffort" className="block text-sm font-medium text-white">
-          Estimated Effort <span className="text-neutral-strong">(optional)</span>
-        </label>
+        <div className="flex items-center gap-2">
+          <label htmlFor="estimatedEffort" className="block text-sm font-medium text-white">
+            Estimated Effort <span className="text-neutral-strong">(optional)</span>
+          </label>
+          <Tooltip content="How long will this take? (e.g., '2-3 days', '1 week', '20 hours'). Optional but helps set expectations.">
+            <InfoIcon />
+          </Tooltip>
+        </div>
         <p className="text-xs text-neutral-strong mt-1 leading-relaxed">
           How long do you estimate this will take?
         </p>

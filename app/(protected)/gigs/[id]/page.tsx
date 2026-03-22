@@ -24,6 +24,17 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
 
   const { id } = await params
 
+  // Fetch user's guidance state for specialists
+  const user = session.role === 'SPECIALIST' ? await prisma.user.findUnique({
+    where: { id: session.userId },
+    select: {
+      hasSubmittedFirstApplication: true,
+      applicationGuidanceDismissed: true,
+    },
+  }) : null
+
+  const showApplicationGuidance = user && !user.hasSubmittedFirstApplication && !user.applicationGuidanceDismissed
+
   const gig = await prisma.gig.findUnique({
     where: { id },
     include: {
@@ -261,7 +272,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
             ) : (
               <>
                 <h3 className="text-xl font-medium text-white mb-4">Apply to this Gig</h3>
-                <ApplyForm gigId={gig.id} />
+                <ApplyForm gigId={gig.id} showGuidance={showApplicationGuidance || false} />
               </>
             )}
           </div>

@@ -10,22 +10,26 @@ datasource db {
 }
 
 model User {
-  id                String             @id @default(cuid())
-  email             String             @unique
-  password          String
-  role              String             @default("USER")
-  suspended         Boolean            @default(false)
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  gigs              Gig[]              @relation("ClientGigs")
-  applications      Application[]
-  assignedGigs      Gig[]              @relation("AssignedGigs")
-  clientProfile     ClientProfile?
-  specialistProfile SpecialistProfile?
-  adminActions      ModerationLog[]    @relation("AdminActions")
-  moderations       ModerationLog[]    @relation("UserModerations")
-  sentMessages      Message[]          @relation("SentMessages")
-  notifications     Notification[]
+  id                              String             @id @default(cuid())
+  email                           String             @unique
+  password                        String
+  role                            String             @default("USER")
+  suspended                       Boolean            @default(false)
+  hasCreatedFirstGig              Boolean            @default(false)
+  hasSubmittedFirstApplication    Boolean            @default(false)
+  gigCreationGuidanceDismissed    Boolean            @default(false)
+  applicationGuidanceDismissed    Boolean            @default(false)
+  createdAt                       DateTime           @default(now())
+  updatedAt                       DateTime           @updatedAt
+  gigs                            Gig[]              @relation("ClientGigs")
+  applications                    Application[]
+  assignedGigs                    Gig[]              @relation("AssignedGigs")
+  clientProfile                   ClientProfile?
+  specialistProfile               SpecialistProfile?
+  adminActions                    ModerationLog[]    @relation("AdminActions")
+  moderations                     ModerationLog[]    @relation("UserModerations")
+  sentMessages                    Message[]          @relation("SentMessages")
+  notifications                   Notification[]
 
   @@index([suspended])
 }
