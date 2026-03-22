@@ -1,7 +1,8 @@
 'use client'
 
-import { useActionState, useState, useRef } from 'react'
+import { useActionState, useState, useRef, useEffect, Suspense } from 'react'
 import { useFormStatus } from 'react-dom'
+import { useSearchParams } from 'next/navigation'
 import { registerUser } from '@/app/actions/auth'
 import { SpecialistIcon, ClientIcon } from '@/lib/assets'
 import { AuthContainer, LogoHeader, RoleCard, AuthButton } from '@/components/auth'
@@ -19,7 +20,9 @@ function SubmitButton() {
   )
 }
 
-export default function RegisterPage() {
+function RegisterForm() {
+  const searchParams = useSearchParams()
+  const roleParam = searchParams.get('role')
   const [state, formAction] = useActionState(registerUser, null)
   const [selectedRole, setSelectedRole] = useState<'CLIENT' | 'SPECIALIST' | null>(null)
   const clientRadioRef = useRef<HTMLInputElement>(null)
@@ -27,13 +30,18 @@ export default function RegisterPage() {
 
   const handleRoleClick = (role: 'CLIENT' | 'SPECIALIST') => {
     setSelectedRole(role)
-    // Programmatically check the radio input
     if (role === 'CLIENT' && clientRadioRef.current) {
       clientRadioRef.current.checked = true
     } else if (role === 'SPECIALIST' && specialistRadioRef.current) {
       specialistRadioRef.current.checked = true
     }
   }
+
+  useEffect(() => {
+    if (roleParam === 'SPECIALIST' || roleParam === 'CLIENT') {
+      handleRoleClick(roleParam)
+    }
+  }, [roleParam])
 
   return (
     <AuthContainer>
@@ -153,5 +161,19 @@ export default function RegisterPage() {
         </div>
       </div>
     </AuthContainer>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={
+      <AuthContainer>
+        <div className="w-full h-full flex items-center justify-center">
+          <div className="text-white">Loading...</div>
+        </div>
+      </AuthContainer>
+    }>
+      <RegisterForm />
+    </Suspense>
   )
 }

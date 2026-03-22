@@ -1,7 +1,8 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, Suspense } from 'react'
 import { useFormStatus } from 'react-dom'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { loginUser } from '@/app/actions/auth'
 import { Logo } from '@/lib/assets'
@@ -19,7 +20,9 @@ function SubmitButton() {
   )
 }
 
-export default function LoginPage() {
+function LoginForm() {
+  const searchParams = useSearchParams()
+  const role = searchParams.get('role') // 'SPECIALIST' | 'CLIENT' | null
   const [state, formAction] = useActionState(loginUser, null)
 
   return (
@@ -82,5 +85,17 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-surface-level-0">
+        <div className="text-white">Loading...</div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   )
 }

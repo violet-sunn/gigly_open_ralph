@@ -50,6 +50,14 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Auth landing page — allow unauthenticated, redirect authenticated to dashboard
+  if (pathname === '/auth') {
+    if (session) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+    return NextResponse.next()
+  }
+
   // Auth pages — redirect to dashboard if already logged in
   if (pathname === '/login' || pathname === '/register') {
     if (session) {
@@ -61,5 +69,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/gigs/:path*', '/profile/:path*', '/login', '/register', '/admin/:path*'],
+  matcher: ['/dashboard/:path*', '/gigs/:path*', '/profile/:path*', '/login', '/register', '/auth', '/admin/:path*'],
 }
