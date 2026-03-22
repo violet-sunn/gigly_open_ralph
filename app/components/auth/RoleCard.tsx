@@ -2,14 +2,16 @@ interface RoleCardProps {
   role: 'SPECIALIST' | 'CLIENT';
   selected: boolean;
   onClick: () => void;
+  'data-testid'?: string;
 }
 
-export default function RoleCard({ role, selected, onClick }: RoleCardProps) {
+export default function RoleCard({ role, selected, onClick, 'data-testid': dataTestId }: RoleCardProps) {
   const isSpecialist = role === 'SPECIALIST';
 
   return (
     <button
       onClick={onClick}
+      data-testid={dataTestId}
       className={`
         bg-[#10121c] rounded-[20px] px-[20px] py-[20px]
         flex items-center gap-[24px]

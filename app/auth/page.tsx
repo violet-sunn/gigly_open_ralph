@@ -59,11 +59,13 @@ export default function AuthPage() {
                 role="SPECIALIST"
                 selected={selectedRole === 'SPECIALIST'}
                 onClick={() => setSelectedRole('SPECIALIST')}
+                data-testid="role-specialist"
               />
               <RoleCard
                 role="CLIENT"
                 selected={selectedRole === 'CLIENT'}
                 onClick={() => setSelectedRole('CLIENT')}
+                data-testid="role-client"
               />
             </div>
           </div>

@@ -25,6 +25,7 @@ function RoleCardDisplay({ role, selected }: { role: 'SPECIALIST' | 'CLIENT'; se
 
   return (
     <div
+      data-testid={`role-${role.toLowerCase()}`}
       className={`
         bg-[#10121c] rounded-[20px] px-[20px] py-[20px]
         flex items-center gap-[24px]
