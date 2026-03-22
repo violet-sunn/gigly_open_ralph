@@ -43,6 +43,7 @@
 ### Validation Results
 - ✅ 31/31 spec scenarios validated
 - ✅ 682 unit tests passing
+- ✅ 9/9 E2E tests passing
 - ✅ Build successful
 - ✅ No TypeScript errors
 - ✅ Documentation complete
@@ -108,22 +109,18 @@ npm run test:unit
 
 **E2E Tests**
 ```bash
-# Start dev server
-npm run dev
-
-# In another terminal
 npx playwright test __tests__/e2e/auth-landing.spec.ts
 
-# Expected: 9 tests passing
-# - loads correctly for unauthenticated user
-# - enables buttons when Specialist role selected
-# - enables buttons when Client role selected
-# - allows changing role selection
-# - navigates to login with Specialist role
-# - navigates to login with Client role
-# - navigates to register with Specialist role
-# - navigates to register with Client role
-# - responsive layout on mobile
+# Result: ✅ 9/9 tests passing (27.2s)
+# ✓ loads correctly for unauthenticated user
+# ✓ enables buttons when Specialist role selected
+# ✓ enables buttons when Client role selected
+# ✓ allows changing role selection
+# ✓ navigates to login with Specialist role
+# ✓ navigates to login with Client role
+# ✓ navigates to register with Specialist role
+# ✓ navigates to register with Client role
+# ✓ responsive layout on mobile
 ```
 
 **Build Verification**
