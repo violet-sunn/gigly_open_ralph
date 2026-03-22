@@ -179,7 +179,10 @@
       "Bash(tee:*)",
       "Bash(wc:*)",
       "Bash(findstr /i \"node\")",
-      "Bash(npm run test:integration:*)"
+      "Bash(npm run test:integration:*)",
+      "Bash(openspec/changes/add-loading-indicators/README.md:*)",
+      "Bash(/tmp/loading-states-summary.txt:*)",
+      "Bash(/tmp/validation-checklist.md:*)"
     ]
   }
 }

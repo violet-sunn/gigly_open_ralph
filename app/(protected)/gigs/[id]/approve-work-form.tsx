@@ -21,7 +21,7 @@ export function ApproveWorkForm({ gigId }: { gigId: string }) {
         disabled={pending}
         className="w-full px-6 py-3 bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
       >
-        {pending ? 'Approving...' : 'Approve Work'}
+        {pending ? 'Approving work...' : 'Approve Work'}
       </button>
     </form>
   )

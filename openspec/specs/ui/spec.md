@@ -2469,3 +2469,116 @@ Empty states MUST be tested for both CLIENT and SPECIALIST roles to ensure appro
 - WHEN they encounter empty states on their dashboard or gig browsing
 - THEN empty states MUST reference SPECIALIST-specific actions (e.g., "Browse Gigs", "Apply to Projects")
 - AND empty states MUST NOT reference CLIENT actions (e.g., "Post Gig", "Review Applications")
+
+---
+
+## Loading State Requirements
+
+### Requirement: Form Loading States
+
+All forms that submit data via server actions MUST display loading indicators during async operations to provide user feedback and prevent duplicate submissions.
+
+#### Scenario: Form displays loading state during submission
+
+**Given** a user has filled out a form with valid data
+**When** the user clicks the submit button
+**Then** the submit button MUST display loading text (e.g., "Saving...", "Submitting...", "Loading...")
+**And** the submit button MUST be disabled
+**And** the button MUST show reduced opacity (opacity-50) to indicate disabled state
+**And** the cursor MUST change to not-allowed when hovering over the disabled button
+
+**Acceptance Criteria:**
+- Submit button uses `useFormStatus()` hook from 'react-dom'
+- Button text changes from default to loading text when `pending` is true
+- Button has `disabled={pending}` attribute
+- Button styling includes `disabled:opacity-50` and `disabled:cursor-not-allowed`
+- Loading text is contextual to the operation (e.g., "Saving profile...", "Posting gig...", "Submitting application...")
+
+#### Scenario: Form prevents duplicate submissions
+
+**Given** a user has submitted a form
+**When** the user clicks the submit button multiple times rapidly
+**Then** only one submission MUST occur
+**And** subsequent clicks MUST be ignored while the first submission is pending
+**And** the button MUST remain disabled until the submission completes
+
+**Acceptance Criteria:**
+- Button is disabled immediately when clicked
+- Multiple rapid clicks do not trigger multiple server action calls
+- Database contains only one record after multiple clicks
+
+#### Scenario: Loading state clears after submission completes
+
+**Given** a form is in loading state
+**When** the server action completes (success or error)
+**Then** the loading state MUST clear
+**And** the button MUST return to enabled state (if form is still visible)
+**And** the button text MUST return to default text (if form is still visible)
+**And** if submission succeeded, the user MUST be redirected or see success feedback
+**And** if submission failed, the user MUST see error message and can retry
+
+**Acceptance Criteria:**
+- Loading state clears on successful submission
+- Loading state clears on failed submission
+- Error messages are displayed if submission fails
+- User can retry submission after error
+
+### Requirement: Consistent Loading UI Patterns
+
+All loading indicators MUST follow consistent UI patterns for visual coherence and predictable user experience.
+
+#### Scenario: Loading buttons use consistent styling
+
+**Given** any form with a submit button
+**When** the form is in loading state
+**Then** the button MUST use consistent styling:
+- Text changes to contextual loading message
+- Button is disabled with `disabled={pending}`
+- Opacity reduced to 50% with `disabled:opacity-50`
+- Cursor changes to not-allowed with `disabled:cursor-not-allowed`
+- Transition duration of 200ms for smooth state changes
+- Design tokens used for colors (bg-blue-500, text-white, etc.)
+
+**Acceptance Criteria:**
+- All loading buttons use the same CSS classes for disabled state
+- All loading buttons use design tokens for colors
+- Visual review confirms consistent appearance across all forms
+
+#### Scenario: Loading text is contextual and clear
+
+**Given** different types of forms (profile edit, gig creation, application submission, etc.)
+**When** each form is in loading state
+**Then** the loading text MUST be contextual to the operation:
+- Profile edit: "Saving profile..."
+- Gig creation: "Posting gig..."
+- Application submission: "Submitting application..."
+- Work submission: "Submitting work..."
+- Work approval: "Approving work..."
+- Payment marking: "Marking as paid..."
+- User suspension: "Suspending..."
+- User unsuspension: "Unsuspending..."
+- Gig closing: "Closing..."
+- Message sending: "Sending message..."
+
+**Acceptance Criteria:**
+- Each form has contextually appropriate loading text
+- Loading text is concise (2-3 words + ellipsis)
+- Loading text uses present continuous tense ("-ing" form)
+
+### Requirement: LoadingButton Component
+
+The platform SHOULD provide a shared LoadingButton component to standardize loading state implementation across all forms.
+
+#### Scenario: LoadingButton component displays loading state
+
+**Given** a form uses the LoadingButton component
+**When** the form is submitted
+**Then** the LoadingButton MUST display the loading text
+**And** the button MUST be disabled
+**And** the button MUST use the specified variant styling (primary, secondary, or danger)
+
+**Acceptance Criteria:**
+- LoadingButton component exists at `app/components/LoadingButton.tsx`
+- Component accepts props: `loadingText`, `defaultText`, `variant`, `className`
+- Component uses `useFormStatus()` hook internally
+- Component supports variants: primary (blue), secondary (gray), danger (red)

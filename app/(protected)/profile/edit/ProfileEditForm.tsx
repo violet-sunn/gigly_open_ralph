@@ -13,9 +13,9 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="bg-blue-500 text-white px-6 py-3 rounded hover:bg-blue-600 disabled:opacity-50 transition-colors duration-200 font-medium focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-surface-level-0"
+      className="bg-blue-500 text-white px-6 py-3 rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 font-medium focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-surface-level-0"
     >
-      {pending ? 'Saving...' : 'Save Profile'}
+      {pending ? 'Saving profile...' : 'Save Profile'}
     </button>
   )
 }
