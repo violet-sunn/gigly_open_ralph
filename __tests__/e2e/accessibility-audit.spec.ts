@@ -34,7 +34,8 @@ test.describe('Accessibility Audit - Critical Pages', () => {
     await page.goto('/register')
     await page.fill('input[name="email"]', 'accessibility-test@example.com')
     await page.fill('input[name="password"]', 'TestPass123')
-    await page.click('input[name="role"][value="CLIENT"]')
+    await page.click('[data-testid="role-client"]')
+    await page.waitForTimeout(200) // Allow React state to flush
     await page.click('button[type="submit"]')
 
     // Wait for redirect to dashboard
@@ -52,7 +53,8 @@ test.describe('Accessibility Audit - Critical Pages', () => {
     await page.goto('/register')
     await page.fill('input[name="email"]', 'specialist-a11y@example.com')
     await page.fill('input[name="password"]', 'TestPass123')
-    await page.click('input[name="role"][value="SPECIALIST"]')
+    await page.click('[data-testid="role-specialist"]')
+    await page.waitForTimeout(200) // Allow React state to flush
     await page.click('button[type="submit"]')
 
     // Navigate to gig browse

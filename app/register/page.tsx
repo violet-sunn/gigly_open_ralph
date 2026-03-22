@@ -1,108 +1,157 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState, useRef } from 'react'
 import { useFormStatus } from 'react-dom'
-import Link from 'next/link'
 import { registerUser } from '@/app/actions/auth'
 import { SpecialistIcon, ClientIcon } from '@/lib/assets'
+import { AuthContainer, LogoHeader, RoleCard, AuthButton } from '@/components/auth'
 
 function SubmitButton() {
   const { pending } = useFormStatus()
   return (
-    <button
+    <AuthButton
       type="submit"
+      variant="primary"
       disabled={pending}
-      className="w-full flex justify-center py-3 px-6 rounded-md text-sm font-semibold bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-surface-level-0 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
     >
       {pending ? 'Signing up...' : 'Sign up'}
-    </button>
+    </AuthButton>
   )
 }
 
 export default function RegisterPage() {
   const [state, formAction] = useActionState(registerUser, null)
+  const [selectedRole, setSelectedRole] = useState<'CLIENT' | 'SPECIALIST' | null>(null)
+  const clientRadioRef = useRef<HTMLInputElement>(null)
+  const specialistRadioRef = useRef<HTMLInputElement>(null)
+
+  const handleRoleClick = (role: 'CLIENT' | 'SPECIALIST') => {
+    setSelectedRole(role)
+    // Programmatically check the radio input
+    if (role === 'CLIENT' && clientRadioRef.current) {
+      clientRadioRef.current.checked = true
+    } else if (role === 'SPECIALIST' && specialistRadioRef.current) {
+      specialistRadioRef.current.checked = true
+    }
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-surface-level-0 px-4">
-      <div className="max-w-md w-full space-y-8 p-8 bg-surface-level-1 border border-neutral-weak rounded-lg shadow-md">
-        <div>
-          <h2 className="text-center text-3xl font-bold text-white">
-            Create your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-neutral-strong">
-            Sign up to get started with Gigly
-          </p>
-        </div>
-        <form action={formAction} className="mt-8 space-y-6">
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-white mb-2">
-                I am a
-              </label>
-              <div className="flex gap-4">
-                <label className="flex-1 cursor-pointer">
-                  <input type="radio" name="role" value="CLIENT" className="peer sr-only" required />
-                  <div className="p-3 text-center border border-neutral-weak rounded-md peer-checked:border-blue-500 peer-checked:bg-blue-500/10 peer-checked:text-blue-500 hover:bg-navy-700 transition-colors">
-                    <div className="flex justify-center mb-2">
-                      <ClientIcon className="w-8 h-8 text-neutral-strong peer-checked:text-blue-500" />
-                    </div>
-                    <span className="text-sm font-medium">Client</span>
-                    <p className="text-xs text-neutral-weak mt-1">Post gigs, hire specialists</p>
+    <AuthContainer>
+      <div className="w-full h-full flex flex-col gap-[47px] items-start p-[40px]">
+        <div className="w-full flex flex-col gap-[30px] items-center justify-center">
+          <LogoHeader />
+
+          <div className="w-full flex flex-col gap-[30px] items-center">
+            <h2 className="text-[22px] font-semibold text-white text-center">
+              Create your account
+            </h2>
+
+            <form action={formAction} className="w-full flex flex-col gap-[21px]">
+              <div className="w-full flex flex-col gap-[17px]" role="radiogroup" aria-label="Select your role">
+                <input
+                  ref={clientRadioRef}
+                  type="radio"
+                  name="role"
+                  value="CLIENT"
+                  required
+                  className="sr-only"
+                />
+                <div
+                  onClick={() => handleRoleClick('CLIENT')}
+                  data-testid="role-client"
+                  className={`
+                    cursor-pointer
+                    w-full
+                    flex items-center gap-[24px]
+                    px-[20px] py-[20px]
+                    rounded-[20px]
+                    bg-surface-level-2
+                    transition-all duration-200
+                    ${selectedRole === 'CLIENT' ? 'border-2 border-border-brand-default' : 'border-2 border-transparent'}
+                    ${selectedRole !== 'CLIENT' ? 'hover:border-border-neutral-weak' : ''}
+                  `}
+                >
+                  <div className="w-[32px] h-[32px] flex-shrink-0 flex items-center justify-center">
+                    <ClientIcon className="w-[32px] h-[32px]" />
                   </div>
-                </label>
-                <label className="flex-1 cursor-pointer">
-                  <input type="radio" name="role" value="SPECIALIST" className="peer sr-only" required />
-                  <div className="p-3 text-center border border-neutral-weak rounded-md peer-checked:border-blue-500 peer-checked:bg-blue-500/10 peer-checked:text-blue-500 hover:bg-navy-700 transition-colors">
-                    <div className="flex justify-center mb-2">
-                      <SpecialistIcon className="w-8 h-8 text-neutral-strong peer-checked:text-blue-500" />
-                    </div>
-                    <span className="text-sm font-medium">Specialist</span>
-                    <p className="text-xs text-neutral-weak mt-1">Browse gigs, get hired</p>
+                  <span className="text-[17px] leading-[32px] text-neutral-strong whitespace-nowrap">
+                    Client
+                  </span>
+                </div>
+
+                <input
+                  ref={specialistRadioRef}
+                  type="radio"
+                  name="role"
+                  value="SPECIALIST"
+                  required
+                  className="sr-only"
+                />
+                <div
+                  onClick={() => handleRoleClick('SPECIALIST')}
+                  data-testid="role-specialist"
+                  className={`
+                    cursor-pointer
+                    w-full
+                    flex items-center gap-[24px]
+                    px-[20px] py-[20px]
+                    rounded-[20px]
+                    bg-surface-level-2
+                    transition-all duration-200
+                    ${selectedRole === 'SPECIALIST' ? 'border-2 border-border-brand-default' : 'border-2 border-transparent'}
+                    ${selectedRole !== 'SPECIALIST' ? 'hover:border-border-neutral-weak' : ''}
+                  `}
+                >
+                  <div className="w-[32px] h-[32px] flex-shrink-0 flex items-center justify-center">
+                    <SpecialistIcon className="w-[32px] h-[32px]" />
                   </div>
-                </label>
+                  <span className="text-[17px] leading-[32px] text-neutral-strong whitespace-nowrap">
+                    Specialist
+                  </span>
+                </div>
               </div>
-            </div>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-white">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                className="mt-1 block w-full px-4 py-3 bg-surface-level-1 border border-neutral-weak text-white rounded-md placeholder:text-neutral-weak focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="you@example.com"
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-white">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                className="mt-1 block w-full px-4 py-3 bg-surface-level-1 border border-neutral-weak text-white rounded-md placeholder:text-neutral-weak focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="••••••••"
-              />
-            </div>
+
+              <div>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  className="w-full px-4 py-3 bg-surface-level-2 border border-border-neutral-weak text-white rounded-[10px] placeholder:text-neutral-weak focus:outline-none focus:ring-2 focus:ring-border-brand-default focus:border-transparent"
+                  placeholder="you@example.com"
+                />
+              </div>
+
+              <div>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  className="w-full px-4 py-3 bg-surface-level-2 border border-border-neutral-weak text-white rounded-[10px] placeholder:text-neutral-weak focus:outline-none focus:ring-2 focus:ring-border-brand-default focus:border-transparent"
+                  placeholder="••••••••"
+                />
+              </div>
+
+              {state?.error && (
+                <p className="text-sm text-danger-default">{state.error}</p>
+              )}
+
+              <div className="w-full flex flex-col gap-[21px]">
+                <SubmitButton />
+
+                <AuthButton
+                  type="button"
+                  variant="secondary"
+                  onClick={() => window.location.href = '/login'}
+                >
+                  Already have an account? Sign in
+                </AuthButton>
+              </div>
+            </form>
           </div>
-          {state?.error && (
-            <p className="text-sm text-error-500">{state.error}</p>
-          )}
-          <div>
-            <SubmitButton />
-          </div>
-        </form>
-        <p className="text-center text-sm text-neutral-strong">
-          Already have an account?{' '}
-          <Link href="/login" className="text-blue-500 hover:text-blue-400 font-medium">
-            Sign in
-          </Link>
-        </p>
+        </div>
       </div>
-    </div>
+    </AuthContainer>
   )
 }
