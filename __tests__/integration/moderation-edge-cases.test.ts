@@ -198,7 +198,7 @@ describe('Moderation Edge Cases', () => {
 
     await withAuthContext(admin, async () => {
       const result = await suspendUser(null, formData)
-      expect(result).toEqual({ error: 'User not found.' })
+      expect(result).toEqual({ error: 'This user no longer exists or has been removed.' })
     })
 
     // Verify no log was created
@@ -308,7 +308,7 @@ describe('Moderation Edge Cases', () => {
 
     await withAuthContext(admin, async () => {
       const result = await unsuspendUser(null, formData)
-      expect(result).toEqual({ error: 'User not found.' })
+      expect(result).toEqual({ error: 'This user no longer exists or has been removed.' })
     })
 
     // Cleanup
@@ -448,7 +448,7 @@ describe('Moderation Edge Cases', () => {
 
     await withAuthContext(admin, async () => {
       const result = await closeGig(null, formData)
-      expect(result).toEqual({ error: 'Gig not found.' })
+      expect(result).toEqual({ error: 'This gig no longer exists or has been removed.' })
     })
 
     // Verify no log was created

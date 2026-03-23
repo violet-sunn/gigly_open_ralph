@@ -380,7 +380,7 @@ describe('Notification System', () => {
         return await markNotificationAsRead('non-existent-id')
       })
 
-      expect(result.error).toBe('Gig not found.')
+      expect(result.error).toBe('This gig no longer exists or has been removed.')
     })
   })
 })

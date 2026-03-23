@@ -96,7 +96,7 @@ describe('Closed Gig Message Prevention', () => {
 
     await withAuthContext(client, async () => {
       const result = await sendMessage(null, formData)
-      expect(result).toEqual({ error: 'Cannot send messages to a closed gig.' })
+      expect(result).toEqual({ error: 'Cannot send messages to closed gigs. This gig has been closed by administrators.' })
     })
 
     // Verify no message was created
@@ -156,7 +156,7 @@ describe('Closed Gig Message Prevention', () => {
 
     await withAuthContext(specialist, async () => {
       const result = await sendMessage(null, formData)
-      expect(result).toEqual({ error: 'Cannot send messages to a closed gig.' })
+      expect(result).toEqual({ error: 'Cannot send messages to closed gigs. This gig has been closed by administrators.' })
     })
 
     // Verify no message was created
@@ -346,7 +346,7 @@ describe('Closed Gig Message Prevention', () => {
     await withAuthContext(client, async () => {
       const result = await sendMessage(null, formData)
       // Verify exact error message
-      expect(result.error).toBe('Cannot send messages to a closed gig.')
+      expect(result.error).toBe('Cannot send messages to closed gigs. This gig has been closed by administrators.')
     })
 
     // Cleanup

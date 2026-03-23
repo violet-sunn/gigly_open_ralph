@@ -112,7 +112,7 @@ describe('withdrawApplication action', () => {
       return withdrawApplication(null, formData)
     })
 
-    expect(result).toEqual({ error: 'Only specialists can withdraw applications.' })
+    expect(result).toEqual({ error: 'Only specialists can withdraw applications. If you\'re the client, you can reject applications instead.' })
 
     // Verify application status unchanged
     const updatedApp = await prisma.application.findUnique({
@@ -209,7 +209,7 @@ describe('withdrawApplication action', () => {
       return withdrawApplication(null, formData)
     })
 
-    expect(result).toEqual({ error: 'Only pending applications can be withdrawn.' })
+    expect(result).toEqual({ error: 'You can only withdraw pending applications. This application has already been accepted or rejected.' })
 
     // Verify application status unchanged
     const updatedApp = await prisma.application.findUnique({
@@ -242,7 +242,7 @@ describe('withdrawApplication action', () => {
       return withdrawApplication(null, formData)
     })
 
-    expect(result).toEqual({ error: 'Only pending applications can be withdrawn.' })
+    expect(result).toEqual({ error: 'You can only withdraw pending applications. This application has already been accepted or rejected.' })
 
     // Verify application status unchanged
     const updatedApp = await prisma.application.findUnique({
@@ -358,6 +358,6 @@ describe('withdrawApplication action', () => {
       return withdrawApplication(null, formData)
     })
 
-    expect(result).toEqual({ error: 'Application not found.' })
+    expect(result).toEqual({ error: 'This application no longer exists or has been removed.' })
   })
 })

@@ -113,7 +113,7 @@ describe('Gig Creation Tests', () => {
 
       await withAuthContext(client, async () => {
         const result = await createGig(null, formData)
-        expect(result).toEqual({ error: 'Title, description, and acceptance criteria are required.' })
+        expect(result).toEqual({ error: 'Please fill in all required fields: title, description, and acceptance criteria.' })
       })
 
       // Verify no gig created
@@ -144,7 +144,7 @@ describe('Gig Creation Tests', () => {
 
       await withAuthContext(client, async () => {
         const result = await createGig(null, formData)
-        expect(result).toEqual({ error: 'Title, description, and acceptance criteria are required.' })
+        expect(result).toEqual({ error: 'Please fill in all required fields: title, description, and acceptance criteria.' })
       })
 
       // Verify no gig created
@@ -175,7 +175,7 @@ describe('Gig Creation Tests', () => {
 
       await withAuthContext(client, async () => {
         const result = await createGig(null, formData)
-        expect(result).toEqual({ error: 'Title, description, and acceptance criteria are required.' })
+        expect(result).toEqual({ error: 'Please fill in all required fields: title, description, and acceptance criteria.' })
       })
 
       // Verify no gig created
@@ -206,7 +206,7 @@ describe('Gig Creation Tests', () => {
 
       await withAuthContext(client, async () => {
         const result = await createGig(null, formData)
-        expect(result).toEqual({ error: 'Budget must be a positive number.' })
+        expect(result).toEqual({ error: 'Budget must be a positive number in roubles. Enter the amount you\'ll pay the specialist (service fee will be calculated automatically).' })
       })
 
       // Verify no gig created
@@ -237,7 +237,7 @@ describe('Gig Creation Tests', () => {
 
       await withAuthContext(client, async () => {
         const result = await createGig(null, formData)
-        expect(result).toEqual({ error: 'Title, description, and acceptance criteria are required.' })
+        expect(result).toEqual({ error: 'Please fill in all required fields: title, description, and acceptance criteria.' })
       })
 
       // Cleanup
@@ -264,7 +264,7 @@ describe('Gig Creation Tests', () => {
 
       await withAuthContext(client, async () => {
         const result = await createGig(null, formData)
-        expect(result).toEqual({ error: 'Title, description, and acceptance criteria are required.' })
+        expect(result).toEqual({ error: 'Please fill in all required fields: title, description, and acceptance criteria.' })
       })
 
       // Cleanup
@@ -291,7 +291,7 @@ describe('Gig Creation Tests', () => {
 
       await withAuthContext(client, async () => {
         const result = await createGig(null, formData)
-        expect(result).toEqual({ error: 'Title, description, and acceptance criteria are required.' })
+        expect(result).toEqual({ error: 'Please fill in all required fields: title, description, and acceptance criteria.' })
       })
 
       // Cleanup
@@ -390,7 +390,7 @@ describe('Gig Creation Tests', () => {
 
       await withAuthContext(client, async () => {
         const result = await createGig(null, formData)
-        expect(result).toEqual({ error: 'Acceptance criteria must be at least 50 characters.' })
+        expect(result).toEqual({ error: 'Acceptance criteria must be at least 50 characters. Add more detail about what defines success for this gig.' })
       })
 
       // Cleanup
@@ -417,7 +417,7 @@ describe('Gig Creation Tests', () => {
 
       await withAuthContext(client, async () => {
         const result = await createGig(null, formData)
-        expect(result).toEqual({ error: 'Acceptance criteria must be at least 50 characters.' })
+        expect(result).toEqual({ error: 'Acceptance criteria must be at least 50 characters. Add more detail about what defines success for this gig.' })
       })
 
       // Cleanup
@@ -444,7 +444,7 @@ describe('Gig Creation Tests', () => {
 
       await withAuthContext(client, async () => {
         const result = await createGig(null, formData)
-        expect(result).toEqual({ error: 'Title, description, and acceptance criteria are required.' })
+        expect(result).toEqual({ error: 'Please fill in all required fields: title, description, and acceptance criteria.' })
       })
 
       // Cleanup
@@ -621,7 +621,7 @@ describe('Gig Creation Tests', () => {
 
       await withAuthContext(client, async () => {
         const result = await createGig(null, formData)
-        expect(result).toEqual({ error: 'Budget must be a positive number.' })
+        expect(result).toEqual({ error: 'Budget must be a positive number in roubles. Enter the amount you\'ll pay the specialist (service fee will be calculated automatically).' })
       })
 
       // Verify no gig created
@@ -652,7 +652,7 @@ describe('Gig Creation Tests', () => {
 
       await withAuthContext(client, async () => {
         const result = await createGig(null, formData)
-        expect(result).toEqual({ error: 'Budget must be a positive number.' })
+        expect(result).toEqual({ error: 'Budget must be a positive number in roubles. Enter the amount you\'ll pay the specialist (service fee will be calculated automatically).' })
       })
 
       // Cleanup
@@ -679,7 +679,7 @@ describe('Gig Creation Tests', () => {
 
       await withAuthContext(client, async () => {
         const result = await createGig(null, formData)
-        expect(result).toEqual({ error: 'Budget must be a positive number.' })
+        expect(result).toEqual({ error: 'Budget must be a positive number in roubles. Enter the amount you\'ll pay the specialist (service fee will be calculated automatically).' })
       })
 
       // Cleanup
@@ -706,7 +706,7 @@ describe('Gig Creation Tests', () => {
 
       await withAuthContext(client, async () => {
         const result = await createGig(null, formData)
-        expect(result).toEqual({ error: 'Budget must be a positive number.' })
+        expect(result).toEqual({ error: 'Budget must be a positive number in roubles. Enter the amount you\'ll pay the specialist (service fee will be calculated automatically).' })
       })
 
       // Cleanup
@@ -1278,7 +1278,7 @@ describe('Gig Creation Tests', () => {
 
       await withAuthContext(specialist, async () => {
         const result = await createGig(null, formData)
-        expect(result).toEqual({ error: 'Only clients can create gigs.' })
+        expect(result).toEqual({ error: 'Only clients can post gigs. Switch to a client account or register as a client to continue.' })
       })
 
       // Verify no gig created
@@ -1750,7 +1750,7 @@ describe('Gig Creation Tests', () => {
         return await createGig(null, formData)
       })
 
-      expect(result).toEqual({ error: 'Title, description, and acceptance criteria are required.' })
+      expect(result).toEqual({ error: 'Please fill in all required fields: title, description, and acceptance criteria.' })
 
       // Verify no gig created
       const gigs = await prisma.gig.findMany({ where: { clientId: client.id } })

@@ -112,7 +112,7 @@ describe('Horizontal Privilege Escalation Tests (IDOR)', () => {
     // Try to accept as Client A (not the owner)
     await withAuthContext(clientA, async () => {
       const result = await acceptApplication(null, formData)
-      expect(result).toEqual({ error: 'Only the gig owner can manage applications.' })
+      expect(result).toEqual({ error: 'Only the client who posted this gig can accept applications.' })
     })
 
     // Verify application status unchanged
@@ -180,7 +180,7 @@ describe('Horizontal Privilege Escalation Tests (IDOR)', () => {
     // Try to approve as Client A (not the owner)
     await withAuthContext(clientA, async () => {
       const result = await approveWork(null, formData)
-      expect(result).toEqual({ error: 'Only the gig owner can approve work.' })
+      expect(result).toEqual({ error: 'Only the client who posted this gig can approve the work.' })
     })
 
     // Verify gig status unchanged
@@ -247,7 +247,7 @@ describe('Horizontal Privilege Escalation Tests (IDOR)', () => {
     // Try to mark as paid as Client A (not the owner)
     await withAuthContext(clientA, async () => {
       const result = await markAsPaid(null, formData)
-      expect(result).toEqual({ error: 'Only the gig owner can mark this gig as paid.' })
+      expect(result).toEqual({ error: 'Only the client who posted this gig can mark it as paid.' })
     })
 
     // Verify gig status unchanged
@@ -315,7 +315,7 @@ describe('Horizontal Privilege Escalation Tests (IDOR)', () => {
     // Try to submit work as Specialist A (not assigned)
     await withAuthContext(specialistA, async () => {
       const result = await submitWork(null, formData)
-      expect(result).toEqual({ error: 'Only the assigned specialist can submit work.' })
+      expect(result).toEqual({ error: 'Only the assigned specialist can submit work for this gig.' })
     })
 
     // Verify gig status unchanged

@@ -446,7 +446,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(specialist, async () => {
         return await applyToGig(null, formData2)
       })
-      expect(result).toEqual({ error: 'You have already applied to this gig.' })
+      expect(result).toEqual({ error: 'You\'ve already applied to this gig. Check your dashboard to see your application status.' })
       const applications = await prisma.application.findMany({
         where: { gigId: gig.id, specialistId: specialist.id }
       })
@@ -467,7 +467,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(specialist, async () => {
         return await applyToGig(null, formData)
       })
-      expect(result).toEqual({ error: 'Gig not found.' })
+      expect(result).toEqual({ error: 'This gig no longer exists or has been removed.' })
     })
 
     it('rejects application to example gig', async () => {
@@ -523,7 +523,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(specialist, async () => {
         return await applyToGig(null, formData)
       })
-      expect(result).toEqual({ error: 'This gig has been closed by administrators.' })
+      expect(result).toEqual({ error: 'This gig has been closed by administrators and is no longer available.' })
     })
   })
 
@@ -552,7 +552,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(specialist, async () => {
         return await applyToGig(null, formData)
       })
-      expect(result).toEqual({ error: 'This gig is no longer accepting applications.' })
+      expect(result).toEqual({ error: 'This gig is no longer accepting applications. It may already have an assigned specialist.' })
     })
 
     it('rejects application to REVIEW gig', async () => {
@@ -579,7 +579,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(specialist, async () => {
         return await applyToGig(null, formData)
       })
-      expect(result).toEqual({ error: 'This gig is no longer accepting applications.' })
+      expect(result).toEqual({ error: 'This gig is no longer accepting applications. It may already have an assigned specialist.' })
     })
 
     it('rejects application to COMPLETED gig', async () => {
@@ -606,7 +606,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(specialist, async () => {
         return await applyToGig(null, formData)
       })
-      expect(result).toEqual({ error: 'This gig is no longer accepting applications.' })
+      expect(result).toEqual({ error: 'This gig is no longer accepting applications. It may already have an assigned specialist.' })
     })
 
     it('rejects application to PAID gig', async () => {
@@ -633,7 +633,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(specialist, async () => {
         return await applyToGig(null, formData)
       })
-      expect(result).toEqual({ error: 'This gig is no longer accepting applications.' })
+      expect(result).toEqual({ error: 'This gig is no longer accepting applications. It may already have an assigned specialist.' })
     })
   })
 
@@ -659,7 +659,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(client, async () => {
         return await applyToGig(null, formData)
       })
-      expect(result).toEqual({ error: 'Only specialists can apply to gigs.' })
+      expect(result).toEqual({ error: 'Only specialists can apply to gigs. Switch to a specialist account or register as a specialist to continue.' })
     })
 
     it('redirects unauthenticated user to login', async () => {
@@ -833,7 +833,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(otherClient, async () => {
         return await acceptApplication(null, formData)
       })
-      expect(result).toEqual({ error: 'Only the gig owner can manage applications.' })
+      expect(result).toEqual({ error: 'Only the client who posted this gig can accept applications.' })
     })
 
     it('rejects acceptance by SPECIALIST', async () => {
@@ -864,7 +864,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(specialist, async () => {
         return await acceptApplication(null, formData)
       })
-      expect(result).toEqual({ error: 'Only clients can manage applications.' })
+      expect(result).toEqual({ error: 'Only clients can manage applications. If you\'re the specialist, wait for the client\'s decision.' })
     })
 
     it('rejects acceptance on non-OPEN gig', async () => {
@@ -895,7 +895,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(client, async () => {
         return await acceptApplication(null, formData)
       })
-      expect(result).toEqual({ error: 'This gig is no longer accepting applications.' })
+      expect(result).toEqual({ error: 'This gig is no longer accepting applications. It may already have an assigned specialist.' })
     })
 
     it('prevents accepting second application after first is accepted', async () => {
@@ -944,7 +944,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(client, async () => {
         return await acceptApplication(null, formData2)
       })
-      expect(result).toEqual({ error: 'This gig is no longer accepting applications.' })
+      expect(result).toEqual({ error: 'This gig is no longer accepting applications. It may already have an assigned specialist.' })
       const updatedApp2 = await prisma.application.findUnique({ where: { id: app2.id } })
       expect(updatedApp2?.status).toBe('REJECTED')
       const updatedGig = await prisma.gig.findUnique({ where: { id: gig.id } })
@@ -980,7 +980,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(client, async () => {
         return await acceptApplication(null, formData)
       })
-      expect(result).toEqual({ error: 'This application is no longer pending.' })
+      expect(result).toEqual({ error: 'This application has already been accepted or rejected.' })
     })
 
     it('rejects acceptance of non-existent application', async () => {
@@ -995,7 +995,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(client, async () => {
         return await acceptApplication(null, formData)
       })
-      expect(result).toEqual({ error: 'Application not found.' })
+      expect(result).toEqual({ error: 'This application no longer exists or has been removed.' })
     })
   })
 
@@ -1119,7 +1119,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(otherClient, async () => {
         return await rejectApplication(null, formData)
       })
-      expect(result).toEqual({ error: 'Only the gig owner can manage applications.' })
+      expect(result).toEqual({ error: 'Only the client who posted this gig can reject applications.' })
     })
 
     it('rejects rejection by SPECIALIST', async () => {
@@ -1150,7 +1150,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(specialist, async () => {
         return await rejectApplication(null, formData)
       })
-      expect(result).toEqual({ error: 'Only clients can manage applications.' })
+      expect(result).toEqual({ error: 'Only clients can manage applications. If you\'re the specialist, wait for the client\'s decision.' })
     })
 
     it('rejects rejection of non-PENDING application', async () => {
@@ -1181,7 +1181,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(client, async () => {
         return await rejectApplication(null, formData)
       })
-      expect(result).toEqual({ error: 'This application is no longer pending.' })
+      expect(result).toEqual({ error: 'This application has already been accepted or rejected.' })
     })
 
     it('rejects rejection of non-existent application', async () => {
@@ -1196,7 +1196,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(client, async () => {
         return await rejectApplication(null, formData)
       })
-      expect(result).toEqual({ error: 'Application not found.' })
+      expect(result).toEqual({ error: 'This application no longer exists or has been removed.' })
     })
   })
 })

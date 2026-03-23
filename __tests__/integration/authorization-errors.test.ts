@@ -84,7 +84,7 @@ describe('Authorization Error Clarity Tests', () => {
       expect(result.error).not.toContain('unauthorized')
       expect(result.error).not.toContain('forbidden')
       // Should use clear, user-friendly language
-      expect(result.error).toBe('Only clients can create gigs.')
+      expect(result.error).toBe('Only clients can post gigs. Switch to a client account or register as a client to continue.')
     })
 
     // Cleanup
@@ -154,8 +154,8 @@ describe('Authorization Error Clarity Tests', () => {
 
       // Error should clearly indicate ownership is required
       expect(result).toHaveProperty('error')
-      expect(result.error).toContain('owner')
-      expect(result.error).toBe('Only the gig owner can manage applications.')
+      expect(result.error).toContain('client who posted this gig')
+      expect(result.error).toBe('Only the client who posted this gig can accept applications.')
     })
 
     // Cleanup
@@ -309,8 +309,10 @@ describe('Authorization Error Clarity Tests', () => {
       expect(error).toMatch(/^Only/)
       // Should end with period
       expect(error).toMatch(/\.$/)
-      // Should be a single sentence
-      expect(error.split('.').length).toBe(2) // One sentence + empty string after period
+      // Should be 1-2 sentences (what + optional how to fix)
+      const sentences = error.split('.').filter(s => s.trim().length > 0)
+      expect(sentences.length).toBeGreaterThanOrEqual(1)
+      expect(sentences.length).toBeLessThanOrEqual(2)
       // Should use lowercase for roles (except at start)
       expect(error).not.toMatch(/CLIENT|SPECIALIST|ADMIN/)
     })

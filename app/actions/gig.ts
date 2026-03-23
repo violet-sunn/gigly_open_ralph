@@ -15,7 +15,7 @@ export async function createGig(
   if (!session) redirect('/login')
 
   if (session.role !== 'CLIENT') {
-    return { error: 'Only clients can create gigs.' }
+    return { error: 'Only clients can post gigs. Switch to a client account or register as a client to continue.' }
   }
 
   // Sanitize all text fields before validation
@@ -33,16 +33,16 @@ export async function createGig(
   const constraints = sanitizeInput((formData.get('constraints') as string) || '').trim()
 
   if (!title || !description || !acceptanceCriteria) {
-    return { error: 'Title, description, and acceptance criteria are required.' }
+    return { error: 'Please fill in all required fields: title, description, and acceptance criteria.' }
   }
 
   if (acceptanceCriteria.length < 50) {
-    return { error: 'Acceptance criteria must be at least 50 characters.' }
+    return { error: 'Acceptance criteria must be at least 50 characters. Add more detail about what defines success for this gig.' }
   }
 
   const budgetRoubles = Number(budgetRaw)
   if (!budgetRoubles || budgetRoubles <= 0 || !Number.isFinite(budgetRoubles)) {
-    return { error: 'Budget must be a positive number.' }
+    return { error: 'Budget must be a positive number in roubles. Enter the amount you\'ll pay the specialist (service fee will be calculated automatically).' }
   }
 
   const budgetKopecks = Math.round(budgetRoubles * 100)
@@ -93,7 +93,7 @@ export async function applyToGig(
   if (!session) redirect('/login')
 
   if (session.role !== 'SPECIALIST') {
-    return { error: 'Only specialists can apply to gigs.' }
+    return { error: 'Only specialists can apply to gigs. Switch to a specialist account or register as a specialist to continue.' }
   }
 
   // Check rate limit AFTER auth, BEFORE validation
@@ -138,26 +138,26 @@ export async function applyToGig(
 
   const gig = await prisma.gig.findUnique({ where: { id: gigId } })
   if (!gig) {
-    return { error: 'Gig not found.' }
+    return { error: 'This gig no longer exists or has been removed.' }
   }
 
   if (gig.isExample) {
-    return { error: 'This is an example gig for demonstration purposes. You cannot apply to example gigs.' }
+    return { error: 'This is an example gig for demonstration. Browse real gigs to find work opportunities.' }
   }
 
   if (gig.closedByAdmin) {
-    return { error: 'This gig has been closed by administrators.' }
+    return { error: 'This gig has been closed by administrators and is no longer available.' }
   }
 
   if (gig.status !== 'OPEN') {
-    return { error: 'This gig is no longer accepting applications.' }
+    return { error: 'This gig is no longer accepting applications. It may already have an assigned specialist.' }
   }
 
   const existing = await prisma.application.findUnique({
     where: { gigId_specialistId: { gigId, specialistId: session.userId } },
   })
   if (existing) {
-    return { error: 'You have already applied to this gig.' }
+    return { error: 'You\'ve already applied to this gig. Check your dashboard to see your application status.' }
   }
 
   // Get specialist profile for notification
@@ -237,7 +237,7 @@ export async function acceptApplication(
   if (!session) redirect('/login')
 
   if (session.role !== 'CLIENT') {
-    return { error: 'Only clients can manage applications.' }
+    return { error: 'Only clients can manage applications. If you\'re the specialist, wait for the client\'s decision.' }
   }
 
   const applicationId = formData.get('applicationId') as string
@@ -248,19 +248,19 @@ export async function acceptApplication(
   })
 
   if (!application) {
-    return { error: 'Application not found.' }
+    return { error: 'This application no longer exists or has been removed.' }
   }
 
   if (application.gig.clientId !== session.userId) {
-    return { error: 'Only the gig owner can manage applications.' }
+    return { error: 'Only the client who posted this gig can accept applications.' }
   }
 
   if (application.gig.status !== 'OPEN') {
-    return { error: 'This gig is no longer accepting applications.' }
+    return { error: 'This gig is no longer accepting applications. It may already have an assigned specialist.' }
   }
 
   if (application.status !== 'PENDING') {
-    return { error: 'This application is no longer pending.' }
+    return { error: 'This application has already been accepted or rejected.' }
   }
 
   // Get all pending applications that will be auto-rejected
@@ -326,7 +326,7 @@ export async function rejectApplication(
   if (!session) redirect('/login')
 
   if (session.role !== 'CLIENT') {
-    return { error: 'Only clients can manage applications.' }
+    return { error: 'Only clients can manage applications. If you\'re the specialist, wait for the client\'s decision.' }
   }
 
   const applicationId = formData.get('applicationId') as string
@@ -337,15 +337,15 @@ export async function rejectApplication(
   })
 
   if (!application) {
-    return { error: 'Application not found.' }
+    return { error: 'This application no longer exists or has been removed.' }
   }
 
   if (application.gig.clientId !== session.userId) {
-    return { error: 'Only the gig owner can manage applications.' }
+    return { error: 'Only the client who posted this gig can reject applications.' }
   }
 
   if (application.status !== 'PENDING') {
-    return { error: 'This application is no longer pending.' }
+    return { error: 'This application has already been accepted or rejected.' }
   }
 
   await prisma.application.update({
@@ -373,7 +373,7 @@ export async function submitWork(
   if (!session) redirect('/login')
 
   if (session.role !== 'SPECIALIST') {
-    return { error: 'Only specialists can submit work.' }
+    return { error: 'Only specialists can submit work. If you\'re the client, wait for the specialist to submit their deliverables.' }
   }
 
   const gigId = formData.get('gigId') as string
@@ -381,15 +381,15 @@ export async function submitWork(
   const gig = await prisma.gig.findUnique({ where: { id: gigId } })
 
   if (!gig) {
-    return { error: 'Gig not found.' }
+    return { error: 'This gig no longer exists or has been removed.' }
   }
 
   if (gig.status !== 'IN_PROGRESS') {
-    return { error: 'Work can only be submitted for gigs in progress.' }
+    return { error: 'Work can only be submitted for gigs that are in progress.' }
   }
 
   if (gig.assignedSpecialistId !== session.userId) {
-    return { error: 'Only the assigned specialist can submit work.' }
+    return { error: 'Only the assigned specialist can submit work for this gig.' }
   }
 
   await prisma.gig.update({
@@ -417,7 +417,7 @@ export async function approveWork(
   if (!session) redirect('/login')
 
   if (session.role !== 'CLIENT') {
-    return { error: 'Only clients can approve work.' }
+    return { error: 'Only clients can approve work. If you\'re the specialist, wait for the client to review your submission.' }
   }
 
   const gigId = formData.get('gigId') as string
@@ -425,15 +425,15 @@ export async function approveWork(
   const gig = await prisma.gig.findUnique({ where: { id: gigId } })
 
   if (!gig) {
-    return { error: 'Gig not found.' }
+    return { error: 'This gig no longer exists or has been removed.' }
   }
 
   if (gig.status !== 'REVIEW') {
-    return { error: 'Work can only be approved for gigs under review.' }
+    return { error: 'Work can only be approved for gigs under review. The specialist needs to submit their work first.' }
   }
 
   if (gig.clientId !== session.userId) {
-    return { error: 'Only the gig owner can approve work.' }
+    return { error: 'Only the client who posted this gig can approve the work.' }
   }
 
   await prisma.gig.update({
@@ -463,7 +463,7 @@ export async function markAsPaid(
   if (!session) redirect('/login')
 
   if (session.role !== 'CLIENT') {
-    return { error: 'Only clients can mark gigs as paid.' }
+    return { error: 'Only clients can mark gigs as paid. If you\'re the specialist, wait for the client to confirm payment.' }
   }
 
   const gigId = formData.get('gigId') as string
@@ -471,11 +471,11 @@ export async function markAsPaid(
   const gig = await prisma.gig.findUnique({ where: { id: gigId } })
 
   if (!gig) {
-    return { error: 'Gig not found.' }
+    return { error: 'This gig no longer exists or has been removed.' }
   }
 
   if (gig.clientId !== session.userId) {
-    return { error: 'Only the gig owner can mark this gig as paid.' }
+    return { error: 'Only the client who posted this gig can mark it as paid.' }
   }
 
   if (gig.status === 'PAID') {
@@ -483,7 +483,7 @@ export async function markAsPaid(
   }
 
   if (gig.status !== 'COMPLETED') {
-    return { error: 'Only completed gigs can be marked as paid.' }
+    return { error: 'Only completed gigs can be marked as paid. The work needs to be approved first.' }
   }
 
   const paidAt = new Date()
@@ -518,7 +518,7 @@ export async function withdrawApplication(
   if (!session) redirect('/login')
 
   if (session.role !== 'SPECIALIST') {
-    return { error: 'Only specialists can withdraw applications.' }
+    return { error: 'Only specialists can withdraw applications. If you\'re the client, you can reject applications instead.' }
   }
 
   const applicationId = formData.get('applicationId') as string
@@ -529,11 +529,11 @@ export async function withdrawApplication(
   })
 
   if (!application) {
-    return { error: 'Application not found.' }
+    return { error: 'This application no longer exists or has been removed.' }
   }
 
   if (!application.gig) {
-    return { error: 'Gig not found.' }
+    return { error: 'This gig no longer exists or has been removed.' }
   }
 
   if (application.specialistId !== session.userId) {
@@ -545,7 +545,7 @@ export async function withdrawApplication(
   }
 
   if (application.status !== 'PENDING') {
-    return { error: 'Only pending applications can be withdrawn.' }
+    return { error: 'You can only withdraw pending applications. This application has already been accepted or rejected.' }
   }
 
   if (application.gig.closedByAdmin) {
@@ -611,7 +611,7 @@ export async function sendMessage(
   const content = contentSanitized.trim()
 
   if (!content) {
-    return { error: 'Message content is required.' }
+    return { error: 'Message cannot be empty. Please enter a message to send.' }
   }
 
   const gig = await prisma.gig.findUnique({
@@ -626,26 +626,26 @@ export async function sendMessage(
   })
 
   if (!gig) {
-    return { error: 'Gig not found.' }
+    return { error: 'This gig no longer exists or has been removed.' }
   }
 
   if (gig.closedByAdmin) {
-    return { error: 'Cannot send messages to a closed gig.' }
+    return { error: 'Cannot send messages to closed gigs. This gig has been closed by administrators.' }
   }
 
   if (gig.status === 'PAID') {
-    return { error: 'Cannot send messages to a paid gig.' }
+    return { error: 'Cannot send messages to completed and paid gigs. The work has been finalized.' }
   }
 
   if (!gig.assignedSpecialistId) {
-    return { error: 'Cannot send messages until a specialist is assigned.' }
+    return { error: 'Cannot send messages until a specialist is assigned to this gig. Wait for the client to accept an application.' }
   }
 
   const isOwner = gig.clientId === session.userId
   const isAssignedSpecialist = gig.assignedSpecialistId === session.userId
 
   if (!isOwner && !isAssignedSpecialist) {
-    return { error: 'You are not authorized to send messages on this gig.' }
+    return { error: 'You can only send messages if you\'re the client who posted this gig or the assigned specialist.' }
   }
 
   // Create message

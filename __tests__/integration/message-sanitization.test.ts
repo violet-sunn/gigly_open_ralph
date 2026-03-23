@@ -150,7 +150,7 @@ describe('Message Sanitization Tests', () => {
         return await sendMessage(null, formData)
       })
 
-      expect(result).toEqual({ error: 'Message content is required.' })
+      expect(result).toEqual({ error: 'Message cannot be empty. Please enter a message to send.' })
 
       // Verify no message created
       const messages = await prisma.message.findMany({

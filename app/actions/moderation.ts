@@ -28,7 +28,7 @@ export async function suspendUser(
   try {
     const user = await prisma.user.findUnique({ where: { id: userId } })
     if (!user) {
-      return { error: 'User not found.' }
+      return { error: 'This user no longer exists or has been removed.' }
     }
 
     if (user.suspended) {
@@ -50,7 +50,7 @@ export async function suspendUser(
       })
     ])
   } catch (error) {
-    return { error: 'Failed to suspend user.' }
+    return { error: 'Failed to suspend user. Please try again. If the problem persists, contact technical support.' }
   }
 
   revalidatePath('/admin/users')
@@ -81,7 +81,7 @@ export async function unsuspendUser(
   try {
     const user = await prisma.user.findUnique({ where: { id: userId } })
     if (!user) {
-      return { error: 'User not found.' }
+      return { error: 'This user no longer exists or has been removed.' }
     }
 
     if (!user.suspended) {
@@ -103,7 +103,7 @@ export async function unsuspendUser(
       })
     ])
   } catch (error) {
-    return { error: 'Failed to unsuspend user.' }
+    return { error: 'Failed to unsuspend user. Please try again. If the problem persists, contact technical support.' }
   }
 
   revalidatePath('/admin/users')
@@ -134,7 +134,7 @@ export async function closeGig(
   try {
     const gig = await prisma.gig.findUnique({ where: { id: gigId } })
     if (!gig) {
-      return { error: 'Gig not found.' }
+      return { error: 'This gig no longer exists or has been removed.' }
     }
 
     if (gig.closedByAdmin) {
@@ -159,7 +159,7 @@ export async function closeGig(
       })
     ])
   } catch (error) {
-    return { error: 'Failed to close gig.' }
+    return { error: 'Failed to close gig. Please try again. If the problem persists, contact technical support.' }
   }
 
   revalidatePath('/admin/gigs')

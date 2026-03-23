@@ -152,7 +152,7 @@ describe('Messaging System Tests', () => {
       await withAuthContext(otherSpecialist, async () => {
         const result = await sendMessage(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toBe('You are not authorized to send messages on this gig.')
+        expect(result.error).toBe('You can only send messages if you\'re the client who posted this gig or the assigned specialist.')
       })
 
       // Verify no message was created
@@ -188,7 +188,7 @@ describe('Messaging System Tests', () => {
       await withAuthContext(otherClient, async () => {
         const result = await sendMessage(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toBe('You are not authorized to send messages on this gig.')
+        expect(result.error).toBe('You can only send messages if you\'re the client who posted this gig or the assigned specialist.')
       })
 
       // Verify no message was created
@@ -497,7 +497,7 @@ describe('Messaging System Tests', () => {
       await withAuthContext(client, async () => {
         const result = await sendMessage(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toBe('Cannot send messages until a specialist is assigned.')
+        expect(result.error).toBe('Cannot send messages until a specialist is assigned to this gig. Wait for the client to accept an application.')
       })
 
       const messages = await prisma.message.findMany({ where: { gigId: gig.id } })
@@ -527,7 +527,7 @@ describe('Messaging System Tests', () => {
       await withAuthContext(client, async () => {
         const result = await sendMessage(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toBe('Cannot send messages to a closed gig.')
+        expect(result.error).toBe('Cannot send messages to closed gigs. This gig has been closed by administrators.')
       })
 
       const messages = await prisma.message.findMany({ where: { gigId: gig.id } })
@@ -657,7 +657,7 @@ describe('Messaging System Tests', () => {
       await withAuthContext(client, async () => {
         const result = await sendMessage(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toBe('Cannot send messages to a paid gig.')
+        expect(result.error).toBe('Cannot send messages to completed and paid gigs. The work has been finalized.')
       })
 
       const messages = await prisma.message.findMany({ where: { gigId: gig.id } })
@@ -688,7 +688,7 @@ describe('Messaging System Tests', () => {
       await withAuthContext(specialist, async () => {
         const result = await sendMessage(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toBe('Cannot send messages to a paid gig.')
+        expect(result.error).toBe('Cannot send messages to completed and paid gigs. The work has been finalized.')
       })
 
       const messages = await prisma.message.findMany({ where: { gigId: gig.id } })
@@ -720,7 +720,7 @@ describe('Messaging System Tests', () => {
       await withAuthContext(client, async () => {
         const result = await sendMessage(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toBe('Message content is required.')
+        expect(result.error).toBe('Message cannot be empty. Please enter a message to send.')
       })
 
       const messages = await prisma.message.findMany({ where: { gigId: gig.id } })
@@ -750,7 +750,7 @@ describe('Messaging System Tests', () => {
       await withAuthContext(client, async () => {
         const result = await sendMessage(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toBe('Message content is required.')
+        expect(result.error).toBe('Message cannot be empty. Please enter a message to send.')
       })
 
       const messages = await prisma.message.findMany({ where: { gigId: gig.id } })
@@ -907,7 +907,7 @@ describe('Messaging System Tests', () => {
       await withAuthContext(client, async () => {
         const result = await sendMessage(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toBe('Gig not found.')
+        expect(result.error).toBe('This gig no longer exists or has been removed.')
       })
 
       await prisma.user.delete({ where: { id: client.id } })

@@ -24,7 +24,7 @@ export async function updateProfile(
 
       // Validate experienceLevel
       if (experienceLevel && !['MIDDLE', 'SENIOR'].includes(experienceLevel)) {
-        return { error: 'Experience level must be MIDDLE or SENIOR.' }
+        return { error: 'Experience level must be Middle or Senior. Please select one of these options.' }
       }
 
       // Upsert SpecialistProfile
@@ -54,7 +54,7 @@ export async function updateProfile(
 
       // Validate required fields
       if (!companyName || !inn) {
-        return { error: 'Company name and INN are required.' }
+        return { error: 'Company name and INN are required. Please fill in these fields to complete your profile.' }
       }
 
       // Upsert ClientProfile
@@ -77,10 +77,10 @@ export async function updateProfile(
         },
       })
     } else {
-      return { error: 'Invalid user role.' }
+      return { error: 'Invalid user role. Please contact support if you see this error.' }
     }
   } catch (error) {
-    return { error: 'Failed to update profile. Please try again.' }
+    return { error: 'Failed to update profile. Please check your information and try again. If the problem persists, contact support.' }
   }
 
   redirect('/profile')

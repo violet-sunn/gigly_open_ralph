@@ -35,12 +35,12 @@ export async function registerUser(
   }
 
   if (!role || !['CLIENT', 'SPECIALIST'].includes(role)) {
-    return { error: 'Please select a role.' }
+    return { error: 'Please select whether you\'re a client or specialist.' }
   }
 
   // Explicitly reject ADMIN role during registration
   if (role === 'ADMIN') {
-    return { error: 'Please select a role.' }
+    return { error: 'Please select whether you\'re a client or specialist.' }
   }
 
   try {
@@ -50,7 +50,7 @@ export async function registerUser(
     })
     await createSession(user.id, user.email, user.role as UserRole)
   } catch (error) {
-    return { error: 'An account with this email already exists.' }
+    return { error: 'An account with this email already exists. Try logging in instead.' }
   }
 
   redirect('/dashboard')
@@ -77,16 +77,16 @@ export async function loginUser(
 
   const user = await prisma.user.findUnique({ where: { email } })
   if (!user) {
-    return { error: 'Invalid email or password.' }
+    return { error: 'Invalid email or password. Check your credentials and try again.' }
   }
 
   const valid = await bcrypt.compare(password, user.password)
   if (!valid) {
-    return { error: 'Invalid email or password.' }
+    return { error: 'Invalid email or password. Check your credentials and try again.' }
   }
 
   if (user.suspended) {
-    return { error: 'Your account has been suspended. Please contact support.' }
+    return { error: 'Your account has been suspended. Contact support at support@gigly.ru for assistance.' }
   }
 
   await createSession(user.id, user.email, user.role as UserRole)

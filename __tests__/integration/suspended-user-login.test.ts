@@ -79,7 +79,7 @@ describe('Suspended User Login Prevention', () => {
     const result = await loginUser(null, formData)
 
     // Verify error message
-    expect(result).toEqual({ error: 'Your account has been suspended. Please contact support.' })
+    expect(result).toEqual({ error: 'Your account has been suspended. Contact support at support@gigly.ru for assistance.' })
 
     // Verify no session token was created
     const sessionToken = getTestSessionToken()
@@ -111,7 +111,7 @@ describe('Suspended User Login Prevention', () => {
 
     // Suspension check happens after password validation in current implementation
     // So wrong password returns "Invalid email or password"
-    expect(result).toEqual({ error: 'Invalid email or password.' })
+    expect(result).toEqual({ error: 'Invalid email or password. Check your credentials and try again.' })
 
     // Cleanup
     await prisma.user.delete({ where: { id: user.id } })
@@ -193,7 +193,7 @@ describe('Suspended User Login Prevention', () => {
     formData2.append('password', 'password123')
 
     const result = await loginUser(null, formData2)
-    expect(result).toEqual({ error: 'Your account has been suspended. Please contact support.' })
+    expect(result).toEqual({ error: 'Your account has been suspended. Contact support at support@gigly.ru for assistance.' })
 
     // Cleanup
     await prisma.user.delete({ where: { id: user.id } })

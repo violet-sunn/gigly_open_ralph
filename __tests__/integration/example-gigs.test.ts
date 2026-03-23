@@ -114,7 +114,7 @@ describe('Example Gig Tests', () => {
 
         // Verify exact error message
         expect(result).toEqual({
-          error: 'This is an example gig for demonstration purposes. You cannot apply to example gigs.'
+          error: 'This is an example gig for demonstration. Browse real gigs to find work opportunities.'
         })
       })
 
@@ -246,7 +246,7 @@ describe('Example Gig Tests', () => {
 
         // Should return example gig error even with valid data
         expect(result).toEqual({
-          error: 'This is an example gig for demonstration purposes. You cannot apply to example gigs.'
+          error: 'This is an example gig for demonstration. Browse real gigs to find work opportunities.'
         })
       })
 

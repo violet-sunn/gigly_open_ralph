@@ -137,7 +137,7 @@ describe('User Registration Tests', () => {
     const result = await registerUser(null, formData)
 
     // Should return error
-    expect(result).toEqual({ error: 'Please select a role.' })
+    expect(result).toEqual({ error: 'Please select whether you\'re a client or specialist.' })
 
     // Verify no user was created
     const prisma = getTestPrismaClient()
@@ -159,7 +159,7 @@ describe('User Registration Tests', () => {
     const result = await registerUser(null, formData)
 
     // Should return error
-    expect(result).toEqual({ error: 'Please select a role.' })
+    expect(result).toEqual({ error: 'Please select whether you\'re a client or specialist.' })
 
     // Verify no user was created
     const prisma = getTestPrismaClient()
@@ -194,7 +194,7 @@ describe('User Registration Tests', () => {
     const result = await registerUser(null, formData2)
 
     // Should return error
-    expect(result).toEqual({ error: 'An account with this email already exists.' })
+    expect(result).toEqual({ error: 'An account with this email already exists. Try logging in instead.' })
 
     // Verify only one user exists
     const prisma = getTestPrismaClient()

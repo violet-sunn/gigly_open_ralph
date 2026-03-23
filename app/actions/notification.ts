@@ -146,7 +146,7 @@ export async function markNotificationAsRead(gigId: string) {
   });
 
   if (!gig) {
-    return { error: 'Gig not found.' };
+    return { error: 'This gig no longer exists or has been removed.' };
   }
 
   // Check authorization: user must be gig owner OR assigned specialist
