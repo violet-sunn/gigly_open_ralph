@@ -13,6 +13,7 @@ import { MessageForm } from './message-form'
 import { WithdrawApplicationButton } from './withdraw-application-button'
 import { BackButton } from '@/app/components/BackButton'
 import { markNotificationAsRead } from '@/app/actions/notification'
+import { Breadcrumb } from '@/app/components/Breadcrumb'
 
 function formatRoubles(kopecks: number): string {
   return new Intl.NumberFormat('ru-RU').format(kopecks / 100)
@@ -99,9 +100,23 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
     }
   }
 
+  // Build breadcrumb items based on user role
+  const breadcrumbItems = session.role === 'SPECIALIST'
+    ? [
+        { label: 'Dashboard', href: '/dashboard' },
+        { label: 'Browse Gigs', href: '/gigs' },
+        { label: gig.title, current: true }
+      ]
+    : [
+        { label: 'Dashboard', href: '/dashboard' },
+        { label: gig.title, current: true }
+      ]
+
   return (
     <div className="min-h-screen bg-surface-level-0 py-8">
       <div className="max-w-7xl mx-auto px-4">
+        <Breadcrumb items={breadcrumbItems} />
+
         <div className="mb-6">
           <Suspense fallback={<div className="h-8" />}>
             <BackButton />

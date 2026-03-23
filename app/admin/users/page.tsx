@@ -9,6 +9,7 @@ import { UserFilters } from './UserFilters'
 import PaginationControls from '@/app/components/PaginationControls'
 import { BackButton } from '@/app/components/BackButton'
 import EmptyState from '@/app/components/onboarding/EmptyState'
+import { Breadcrumb } from '@/app/components/Breadcrumb'
 
 const PAGE_SIZE = 30
 
@@ -81,6 +82,10 @@ export default async function AdminUsersPage(props: { searchParams: SearchParams
   return (
     <div className="min-h-screen bg-surface-level-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Breadcrumb items={[
+          { label: 'Admin', href: '/admin' },
+          { label: 'Users', current: true }
+        ]} />
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white">User Management</h1>
           <p className="mt-2 text-neutral-strong">View and moderate user accounts</p>

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/session'
 import { prisma } from '@/lib/prisma'
+import { Breadcrumb } from '@/app/components/Breadcrumb'
 
 export default async function ProfilePage() {
   const session = await getSession()
@@ -23,6 +24,10 @@ export default async function ProfilePage() {
       return (
         <div className="min-h-screen bg-[var(--bg-surface-level-0)] py-8">
           <div className="max-w-2xl mx-auto px-4">
+            <Breadcrumb items={[
+              { label: 'Dashboard', href: '/dashboard' },
+              { label: 'Profile', current: true }
+            ]} />
             <h1 className="text-3xl font-bold text-white mb-8 leading-tight">My Profile</h1>
             <div className="bg-warning-500/10 border border-warning-500/20 rounded-lg p-4 mb-6">
               <p className="text-warning-400">Profile not set up yet</p>
@@ -62,6 +67,10 @@ export default async function ProfilePage() {
     return (
       <div className="min-h-screen bg-[var(--bg-surface-level-0)] py-10">
         <div className="max-w-7xl mx-auto px-4">
+          <Breadcrumb items={[
+            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Profile', current: true }
+          ]} />
           {/* Profile hero */}
           <section
             className="flex items-start gap-5 border rounded-[20px] mb-10"
@@ -193,6 +202,10 @@ export default async function ProfilePage() {
       return (
         <div className="min-h-screen bg-[var(--bg-surface-level-0)] py-8">
           <div className="max-w-2xl mx-auto px-4">
+            <Breadcrumb items={[
+              { label: 'Dashboard', href: '/dashboard' },
+              { label: 'Profile', current: true }
+            ]} />
             <h1 className="text-3xl font-bold text-white mb-8 leading-tight">My Profile</h1>
             <div className="bg-warning-500/10 border border-warning-500/20 rounded-lg p-4 mb-6">
               <p className="text-warning-400">Profile not set up yet</p>
@@ -213,6 +226,10 @@ export default async function ProfilePage() {
     return (
       <div className="min-h-screen bg-[var(--bg-surface-level-0)] py-8">
         <div className="max-w-7xl mx-auto px-4">
+          <Breadcrumb items={[
+            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Profile', current: true }
+          ]} />
           {/* Header Card with Avatar and Stats */}
           <div className="flex items-start gap-6 bg-surface-level-1 border border-neutral-weak rounded-lg p-6 mb-6 shadow-md">
             {/* Avatar */}

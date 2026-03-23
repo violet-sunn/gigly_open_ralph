@@ -4,6 +4,7 @@ import { getSession } from '@/lib/session'
 import { prisma } from '@/lib/prisma'
 import { BackButton } from '@/app/components/BackButton'
 import { Suspense } from 'react'
+import { Breadcrumb } from '@/app/components/Breadcrumb'
 
 export default async function PublicProfilePage({
   params,
@@ -46,10 +47,16 @@ export default async function PublicProfilePage({
   // Display SPECIALIST profile
   if (user.specialistProfile) {
     const profile = user.specialistProfile
+    const userName = profile.displayName || user.email
 
     return (
       <div className="min-h-screen bg-[var(--bg-surface-level-0)] py-8">
         <div className="max-w-2xl mx-auto px-4">
+          <Breadcrumb items={[
+            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Profile', href: '/profile' },
+            { label: userName, current: true }
+          ]} />
           <div className="mb-4">
             <Suspense fallback={null}>
               <BackButton />
@@ -82,10 +89,16 @@ export default async function PublicProfilePage({
   // Display CLIENT profile
   if (user.clientProfile) {
     const profile = user.clientProfile
+    const userName = profile.companyName || user.email
 
     return (
       <div className="min-h-screen bg-[var(--bg-surface-level-0)] py-8">
         <div className="max-w-2xl mx-auto px-4">
+          <Breadcrumb items={[
+            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Profile', href: '/profile' },
+            { label: userName, current: true }
+          ]} />
           <div className="mb-4">
             <Suspense fallback={null}>
               <BackButton />
