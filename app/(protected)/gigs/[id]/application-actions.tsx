@@ -3,6 +3,8 @@
 import { useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { acceptApplication, rejectApplication } from '@/app/actions/gig'
+import { ConfirmDialog } from '@/app/components/ui/ConfirmDialog'
+import { useConfirmDialog } from '@/app/hooks/useConfirmDialog'
 
 function AcceptButton() {
   const { pending } = useFormStatus()
@@ -21,7 +23,7 @@ function RejectButton() {
   const { pending } = useFormStatus()
   return (
     <button
-      type="submit"
+      type="button"
       disabled={pending}
       className="text-xs px-4 py-2 rounded-md bg-error-500 text-white hover:bg-error-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
     >
@@ -33,8 +35,21 @@ function RejectButton() {
 export function ApplicationActions({ applicationId }: { applicationId: string }) {
   const [acceptState, acceptAction] = useActionState(acceptApplication, null)
   const [rejectState, rejectAction] = useActionState(rejectApplication, null)
+  const { isOpen, openDialog, closeDialog, confirmDialog } = useConfirmDialog()
 
   const error = acceptState?.error || rejectState?.error
+
+  const handleRejectClick = () => {
+    openDialog()
+  }
+
+  const handleConfirmReject = () => {
+    confirmDialog(() => {
+      const formData = new FormData()
+      formData.append('applicationId', applicationId)
+      rejectAction(formData)
+    })
+  }
 
   return (
     <div className="mt-2">
@@ -46,11 +61,18 @@ export function ApplicationActions({ applicationId }: { applicationId: string })
           <input type="hidden" name="applicationId" value={applicationId} />
           <AcceptButton />
         </form>
-        <form action={rejectAction}>
-          <input type="hidden" name="applicationId" value={applicationId} />
+        <div onClick={handleRejectClick}>
           <RejectButton />
-        </form>
+        </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={isOpen}
+        title="Reject Application"
+        message="This will permanently reject this application. The specialist will be notified and cannot reapply to this gig."
+        onConfirm={handleConfirmReject}
+        onCancel={closeDialog}
+      />
     </div>
   )
 }
