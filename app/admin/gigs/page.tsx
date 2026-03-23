@@ -103,7 +103,8 @@ export default async function AdminGigsPage(props: { searchParams: SearchParams 
           </p>
         )}
 
-        <div className="bg-surface-level-1 border border-neutral-weak rounded-lg overflow-hidden shadow-md">
+        {/* Desktop Table View */}
+        <div className="hidden md:block bg-surface-level-1 border border-neutral-weak rounded-lg overflow-hidden shadow-md">
           <table className="min-w-full divide-y divide-gray-700">
             <thead className="bg-surface-level-0">
               <tr>
@@ -189,6 +190,74 @@ export default async function AdminGigsPage(props: { searchParams: SearchParams 
                 />
               )}
             </div>
+          )}
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="md:hidden space-y-4">
+          {gigs.length === 0 ? (
+            <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 shadow-md">
+              {hasActiveFilters ? (
+                <EmptyState
+                  icon="🔍"
+                  heading="No Gigs Found"
+                  description="No gigs match your current filters. Try adjusting the status or closed filters to see more results."
+                  primaryAction={{ label: "Clear Filters", href: "/admin/gigs" }}
+                />
+              ) : (
+                <EmptyState
+                  icon="📋"
+                  heading="No Gigs Yet"
+                  description="No gigs have been created yet. Once clients start posting gigs, they will appear here for moderation."
+                />
+              )}
+            </div>
+          ) : (
+            gigs.map((gig) => (
+              <div key={gig.id} className="bg-surface-level-1 border border-neutral-weak rounded-lg p-4 shadow-md">
+                <div className="space-y-3">
+                  <div>
+                    <Link
+                      href={`/gigs/${gig.id}`}
+                      className="text-base font-medium text-blue-500 hover:text-blue-400 break-words"
+                    >
+                      {gig.title}
+                    </Link>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                      gig.status === 'OPEN' ? 'bg-gray-500/20 text-neutral-weak' :
+                      gig.status === 'IN_PROGRESS' ? 'bg-success-500/10 text-success-400' :
+                      gig.status === 'REVIEW' ? 'bg-warning-500/10 text-warning-400' :
+                      gig.status === 'COMPLETED' ? 'bg-warning-500/10 text-warning-400' :
+                      gig.status === 'PAID' ? 'bg-success-500/10 text-success-400' :
+                      'bg-blue-500/10 text-blue-500'
+                    }`}>
+                      {gig.status}
+                    </span>
+                    {gig.closedByAdmin && (
+                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-error-500/10 text-error-400">
+                        Closed
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-sm text-white">
+                    Budget: {(gig.budget / 100).toLocaleString()} ₽
+                  </div>
+                  <div className="text-xs text-neutral-weak">
+                    Client: {gig.client.clientProfile?.companyName || gig.client.email}
+                  </div>
+                  <div className="text-xs text-neutral-weak">
+                    Created: {new Date(gig.createdAt).toLocaleDateString()}
+                  </div>
+                  {!gig.closedByAdmin && (
+                    <div className="pt-2">
+                      <CloseGigForm gigId={gig.id} />
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))
           )}
         </div>
 

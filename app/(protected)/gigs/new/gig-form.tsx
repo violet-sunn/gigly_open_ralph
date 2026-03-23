@@ -17,7 +17,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="w-full flex justify-center py-3 px-6 border border-transparent rounded-md text-sm font-medium bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-surface-level-0 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+      className="w-full flex justify-center min-h-[44px] py-3 px-6 border border-transparent rounded-md text-sm font-medium bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-surface-level-0 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
     >
       {pending ? 'Posting gig...' : 'Post Gig'}
     </button>
@@ -141,7 +141,7 @@ export function GigForm({ showGuidance }: GigFormProps) {
               name="description"
               required
               rows={4}
-              className="mt-1 block w-full rounded-md border border-neutral-weak px-4 py-3 bg-surface-level-1 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
+              className="mt-1 block w-full min-h-[88px] rounded-md border border-neutral-weak px-4 py-3 bg-surface-level-1 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
               placeholder="Describe the scope of work in detail..."
             />
           </div>
@@ -187,7 +187,7 @@ export function GigForm({ showGuidance }: GigFormProps) {
                   setAcHasInteracted(true)
                 }
               }}
-              className="mt-1 block w-full rounded-md border border-neutral-weak px-4 py-3 bg-surface-level-1 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
+              className="mt-1 block w-full min-h-[110px] rounded-md border border-neutral-weak px-4 py-3 bg-surface-level-1 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
               placeholder="What does 'done' look like? Be specific: deliverables, quality standards, success metrics. Example: 'API returns user data in JSON format with <200ms response time, includes unit tests with >80% coverage, deployed to staging environment.'"
             />
             <AcceptanceCriteriaQualityWarning
@@ -220,7 +220,7 @@ export function GigForm({ showGuidance }: GigFormProps) {
               name="goal"
               rows={3}
               onChange={(e) => setGoalCount(e.target.value.length)}
-              className="mt-1 block w-full rounded-md border border-neutral-weak px-4 py-3 bg-surface-level-1 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
+              className="mt-1 block w-full min-h-[66px] rounded-md border border-neutral-weak px-4 py-3 bg-surface-level-1 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
               placeholder="Example: We need to migrate our user authentication from custom solution to OAuth 2.0 to improve security and reduce maintenance burden."
             />
             <div className="mt-1 flex justify-between items-start">
@@ -249,7 +249,7 @@ export function GigForm({ showGuidance }: GigFormProps) {
               name="deliverables"
               rows={3}
               onChange={(e) => setDeliverablesCount(e.target.value.length)}
-              className="mt-1 block w-full rounded-md border border-neutral-weak px-4 py-3 bg-surface-level-1 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
+              className="mt-1 block w-full min-h-[66px] rounded-md border border-neutral-weak px-4 py-3 bg-surface-level-1 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
               placeholder="Example: 1. OAuth 2.0 integration with Google and GitHub&#10;2. Migration script for existing users&#10;3. Updated documentation&#10;4. Deployment to staging and production"
             />
             <div className="mt-1 flex justify-between items-start">
@@ -278,7 +278,7 @@ export function GigForm({ showGuidance }: GigFormProps) {
               name="constraints"
               rows={3}
               onChange={(e) => setConstraintsCount(e.target.value.length)}
-              className="mt-1 block w-full rounded-md border border-neutral-weak px-4 py-3 bg-surface-level-1 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
+              className="mt-1 block w-full min-h-[66px] rounded-md border border-neutral-weak px-4 py-3 bg-surface-level-1 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
               placeholder="Example: Must maintain backward compatibility with existing API endpoints. Prefer using Passport.js library. Deadline: end of Q1 2026."
             />
             <div className="mt-1 flex justify-between items-start">
@@ -317,7 +317,7 @@ export function GigForm({ showGuidance }: GigFormProps) {
               step="1"
               value={budget}
               onChange={(e) => setBudget(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-neutral-weak px-4 py-3 bg-surface-level-1 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
+              className="mt-1 block w-full h-11 rounded-md border border-neutral-weak px-4 bg-surface-level-1 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
               placeholder="100000"
             />
           </div>
@@ -352,7 +352,7 @@ export function GigForm({ showGuidance }: GigFormProps) {
               id="tags"
               name="tags"
               type="text"
-              className="mt-1 block w-full rounded-md border border-neutral-weak px-4 py-3 bg-surface-level-1 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
+              className="mt-1 block w-full h-11 rounded-md border border-neutral-weak px-4 bg-surface-level-1 text-white placeholder:text-neutral-weak focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm"
               placeholder="React, TypeScript, Node.js"
             />
           </div>

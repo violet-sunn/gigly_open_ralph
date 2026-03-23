@@ -101,7 +101,8 @@ export default async function AdminUsersPage(props: { searchParams: SearchParams
           </p>
         )}
 
-        <div className="bg-surface-level-1 border border-neutral-weak rounded-lg overflow-hidden shadow-md">
+        {/* Desktop Table View */}
+        <div className="hidden md:block bg-surface-level-1 border border-neutral-weak rounded-lg overflow-hidden shadow-md">
           <table className="min-w-full divide-y divide-gray-700">
             <thead className="bg-surface-level-0">
               <tr>
@@ -176,6 +177,62 @@ export default async function AdminUsersPage(props: { searchParams: SearchParams
                 />
               )}
             </div>
+          )}
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="md:hidden space-y-4">
+          {users.length === 0 ? (
+            <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 shadow-md">
+              {hasActiveFilters ? (
+                <EmptyState
+                  icon="🔍"
+                  heading="No Users Found"
+                  description="No users match your current filters. Try adjusting the role or status filters to see more results."
+                  primaryAction={{ label: "Clear Filters", href: "/admin/users" }}
+                />
+              ) : (
+                <EmptyState
+                  icon="👥"
+                  heading="No Users Yet"
+                  description="No users have registered yet. Once users sign up, they will appear here for moderation."
+                />
+              )}
+            </div>
+          ) : (
+            users.map((user) => (
+              <div key={user.id} className="bg-surface-level-1 border border-neutral-weak rounded-lg p-4 shadow-md">
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm font-medium text-white break-all">{user.email}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-500/10 text-blue-500">
+                      {user.role}
+                    </span>
+                    {user.suspended ? (
+                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-error-500/10 text-error-400">
+                        Suspended
+                      </span>
+                    ) : (
+                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-success-500/10 text-success-400">
+                        Active
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-xs text-neutral-weak">
+                    Registered: {new Date(user.createdAt).toLocaleDateString()}
+                  </div>
+                  <div className="pt-2">
+                    {user.suspended ? (
+                      <UnsuspendUserForm userId={user.id} />
+                    ) : (
+                      <SuspendUserForm userId={user.id} />
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))
           )}
         </div>
 

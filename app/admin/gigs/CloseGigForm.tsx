@@ -11,7 +11,7 @@ export function CloseGigForm({ gigId }: { gigId: string }) {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="text-error-500 hover:text-error-400 font-medium"
+        className="text-error-500 hover:text-error-400 font-medium min-h-[44px] px-2 py-2 inline-flex items-center"
       >
         Close
       </button>
@@ -48,7 +48,7 @@ export function CloseGigForm({ gigId }: { gigId: string }) {
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="flex-1 bg-error-500 text-white px-4 py-2 rounded-md hover:bg-error-600 disabled:opacity-50 transition-colors font-medium"
+                  className="flex-1 bg-error-500 text-white px-4 py-3 min-h-[44px] rounded-md hover:bg-error-600 disabled:opacity-50 transition-colors font-medium"
                 >
                   {isPending ? 'Closing...' : 'Close Gig'}
                 </button>
@@ -56,7 +56,7 @@ export function CloseGigForm({ gigId }: { gigId: string }) {
                   type="button"
                   onClick={() => setIsOpen(false)}
                   disabled={isPending}
-                  className="flex-1 bg-navy-700 text-white px-4 py-2 rounded-md hover:bg-navy-600 disabled:opacity-50 transition-colors font-medium"
+                  className="flex-1 bg-navy-700 text-white px-4 py-3 min-h-[44px] rounded-md hover:bg-navy-600 disabled:opacity-50 transition-colors font-medium"
                 >
                   Cancel
                 </button>
