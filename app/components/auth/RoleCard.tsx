@@ -8,9 +8,17 @@ interface RoleCardProps {
 export default function RoleCard({ role, selected, onClick, 'data-testid': dataTestId }: RoleCardProps) {
   const isSpecialist = role === 'SPECIALIST';
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onClick();
+    }
+  };
+
   return (
     <button
       onClick={onClick}
+      onKeyDown={handleKeyDown}
       data-testid={dataTestId}
       className={`
         bg-[#10121c] rounded-[20px] px-[20px] py-[20px]

@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, forwardRef } from 'react'
 
 interface FilterState {
   search: string
@@ -22,7 +22,7 @@ const AVAILABLE_TAGS = [
   'Kubernetes',
 ]
 
-export default function GigFilters() {
+const GigFilters = forwardRef<HTMLInputElement>((props, ref) => {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -103,6 +103,7 @@ export default function GigFilters() {
           Search
         </label>
         <input
+          ref={ref}
           type="text"
           id="search"
           placeholder="Search gigs..."
@@ -200,4 +201,8 @@ export default function GigFilters() {
       </div>
     </div>
   )
-}
+})
+
+GigFilters.displayName = 'GigFilters'
+
+export default GigFilters

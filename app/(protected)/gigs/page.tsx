@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Suspense } from 'react'
-import GigFilters from './components/GigFilters'
+import GigBrowseClient from './GigBrowseClient'
 import PaginationControls from '@/app/components/PaginationControls'
 import EmptyState from '@/app/components/onboarding/EmptyState'
 
@@ -141,7 +141,7 @@ export default async function GigBrowsePage({
         </div>
 
         {/* Filter Panel */}
-        <GigFilters />
+        <GigBrowseClient />
 
         {/* Results Count */}
         {totalCount > 0 && (

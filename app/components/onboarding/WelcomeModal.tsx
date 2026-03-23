@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { useFocusTrap } from '@/app/hooks/useFocusTrap';
 
 interface WelcomeModalProps {
   role: 'CLIENT' | 'SPECIALIST';
@@ -9,11 +10,15 @@ interface WelcomeModalProps {
 
 export default function WelcomeModal({ role, onDismiss }: WelcomeModalProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const triggerElementRef = useRef<HTMLElement | null>(null);
+  const modalRef = useFocusTrap(isVisible);
 
   useEffect(() => {
     // Check if welcome screen has been seen before
     const hasSeenWelcome = localStorage.getItem('onboarding_welcome_seen');
     if (!hasSeenWelcome) {
+      // Store the currently focused element
+      triggerElementRef.current = document.activeElement as HTMLElement;
       setIsVisible(true);
     }
   }, []);
@@ -43,6 +48,10 @@ export default function WelcomeModal({ role, onDismiss }: WelcomeModalProps) {
     localStorage.setItem('onboarding_welcome_seen', 'true');
     setIsVisible(false);
     onDismiss();
+    // Return focus to trigger element if it still exists
+    if (triggerElementRef.current && document.contains(triggerElementRef.current)) {
+      triggerElementRef.current.focus();
+    }
   };
 
   if (!isVisible) {
@@ -74,6 +83,7 @@ export default function WelcomeModal({ role, onDismiss }: WelcomeModalProps) {
 
       {/* Modal */}
       <div
+        ref={modalRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"

@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useState, useEffect, useRef } from 'react'
 import { useFormStatus } from 'react-dom'
 import { createGig } from '@/app/actions/gig'
 import { dismissGuidance } from '@/app/actions/user'
@@ -43,6 +43,32 @@ export function GigForm({ showGuidance }: GigFormProps) {
   const [goalCount, setGoalCount] = useState(0)
   const [deliverablesCount, setDeliverablesCount] = useState(0)
   const [constraintsCount, setConstraintsCount] = useState(0)
+
+  // Refs for form fields to manage focus on validation errors
+  const titleRef = useRef<HTMLInputElement>(null)
+  const descriptionRef = useRef<HTMLTextAreaElement>(null)
+  const acceptanceCriteriaRef = useRef<HTMLTextAreaElement>(null)
+  const budgetRef = useRef<HTMLInputElement>(null)
+
+  // Focus first error field when validation fails
+  useEffect(() => {
+    if (state?.error) {
+      // Determine which field has the error and focus it
+      const errorMessage = state.error.toLowerCase()
+      if (errorMessage.includes('title')) {
+        titleRef.current?.focus()
+      } else if (errorMessage.includes('description')) {
+        descriptionRef.current?.focus()
+      } else if (errorMessage.includes('acceptance criteria') || errorMessage.includes('definition of done')) {
+        acceptanceCriteriaRef.current?.focus()
+      } else if (errorMessage.includes('budget')) {
+        budgetRef.current?.focus()
+      } else {
+        // Default to first field if we can't determine the error
+        titleRef.current?.focus()
+      }
+    }
+  }, [state?.error])
 
   const budgetNum = Number(budget)
   const showPreview = budgetNum > 0 && Number.isFinite(budgetNum)
@@ -95,6 +121,7 @@ export function GigForm({ showGuidance }: GigFormProps) {
               Title
             </label>
             <input
+              ref={titleRef}
               id="title"
               name="title"
               type="text"
@@ -109,6 +136,7 @@ export function GigForm({ showGuidance }: GigFormProps) {
               Description
             </label>
             <textarea
+              ref={descriptionRef}
               id="description"
               name="description"
               required
@@ -148,6 +176,7 @@ export function GigForm({ showGuidance }: GigFormProps) {
               </Tooltip>
             </div>
             <textarea
+              ref={acceptanceCriteriaRef}
               id="acceptanceCriteria"
               name="acceptanceCriteria"
               required
@@ -279,6 +308,7 @@ export function GigForm({ showGuidance }: GigFormProps) {
               Budget (₽)
             </label>
             <input
+              ref={budgetRef}
               id="budget"
               name="budget"
               type="number"
