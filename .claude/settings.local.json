@@ -183,7 +183,22 @@
       "Bash(openspec/changes/add-loading-indicators/README.md:*)",
       "Bash(/tmp/loading-states-summary.txt:*)",
       "Bash(/tmp/validation-checklist.md:*)",
-      "Bash(IMPLEMENTATION_SUMMARY.md:*)"
+      "Bash(IMPLEMENTATION_SUMMARY.md:*)",
+      "Bash(mv \"C:\\\\Users\\\\apiso\\\\Documents\\\\gigly_open_ralph\\\\openspec\\\\changes\\\\write-paper-methodology\" \"C:\\\\Users\\\\apiso\\\\Documents\\\\gigly_open_ralph\\\\openspec\\\\archive\\\\write-paper-methodology\")",
+      "Bash(mv \"C:\\\\Users\\\\apiso\\\\Documents\\\\gigly_open_ralph\\\\openspec\\\\changes\\\\write-paper-implementation\" \"C:\\\\Users\\\\apiso\\\\Documents\\\\gigly_open_ralph\\\\openspec\\\\archive\\\\write-paper-implementation\")",
+      "Bash(mv \"C:\\\\Users\\\\apiso\\\\Documents\\\\gigly_open_ralph\\\\openspec\\\\changes\\\\write-paper-validation\" \"C:\\\\Users\\\\apiso\\\\Documents\\\\gigly_open_ralph\\\\openspec\\\\archive\\\\write-paper-validation\")",
+      "Bash(mv \"C:\\\\Users\\\\apiso\\\\Documents\\\\gigly_open_ralph\\\\openspec\\\\changes\\\\write-paper-conclusion\" \"C:\\\\Users\\\\apiso\\\\Documents\\\\gigly_open_ralph\\\\openspec\\\\archive\\\\write-paper-conclusion\")",
+      "Bash(awk '/^## 4 Architectural Validation/,/^---/' C:/Users/apiso/Documents/gigly_open_ralph/icid-2026-paper-final.md)",
+      "Bash([ -d \"C:/Users/apiso/Documents/gigly_open_ralph/openspec/archive/$change\" ])",
+      "Bash([ -d \"C:/Users/apiso/Documents/gigly_open_ralph/openspec/changes/$change\" ])",
+      "PowerShell(Get-ChildItem \"screens\\\\tokens.svg\",\"screens\\\\frames.svg\" | Select-Object Name, @{N='KB';E={[math]::Round\\($_.Length/1KB,1\\)}}, @{N='Bytes';E={$_.Length}})",
+      "PowerShell($sharp = Test-Path \"node_modules\\\\sharp\"; $pw = Test-Path \"node_modules\\\\@playwright\\\\test\"; $resvg = Test-Path \"node_modules\\\\@resvg\"; Write-Output \"sharp=$sharp playwright=$pw resvg=$resvg\"; if \\(Test-Path \"node_modules\\\\.bin\"\\) { Get-ChildItem \"node_modules\\\\.bin\" | Where-Object { $_.Name -match \"svg|playwright|sharp\" } | Select-Object -ExpandProperty Name })",
+      "Bash('svg')",
+      "Bash(NODE_PATH=\"C:/Users/apiso/Documents/gigly_open_ralph/node_modules\" node \"C:/Users/apiso/AppData/Local/Temp/gigly_render/render_frames.js\")",
+      "PowerShell(Move-Item *)",
+      "Bash(awk ' *)",
+      "Bash(sed -i 's#const re = /<g clip-path=\"url\\\\\\\\\\(#\\([^\\)]+\\)\\\\\\\\\\)\"\\\\[\\\\^>\\\\]\\\\*>/g;#const re = /<g\\\\\\\\b[^>]*?clip-path=\"url\\\\\\\\\\(#\\([^\\)]+\\)\\\\\\\\\\)\"[^>]*>/g;#' scripts/design-system/slice-icons.js)",
+      "Bash(rm -f \"/c/Users/apiso/AppData/Local/Temp/gigly_render/icons-raw\"/icon-*.svg)"
     ]
   }
 }

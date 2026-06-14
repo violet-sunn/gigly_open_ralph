@@ -1,5 +1,12 @@
 # Gigly Design System
 
+> ⚠️ **OUTDATED (as of 2026-06-14).** This document describes the **pre-redesign** token system and palette
+> (e.g. `navy-900 #0A0E27`, `blue-500 #0EA5E9`), which no longer reflect the product. The legacy
+> `openspec/specs/ui/design-tokens.json` has been **deleted**. The **single source of truth is now the
+> `/screens` SVGs** (`screens/tokens.svg`, `screens/frames.svg`); the extracted palette / radii / geometry
+> live in **`docs/DESIGN_SPECS.md`** (produced by the `extract-svg-tokens-and-assets` change). Do not rely on
+> the values below for new UI work — they will be replaced when `design-token-engine` regenerates tokens.
+
 **Version:** 1.0
 **Last Updated:** February 2026
 

@@ -431,7 +431,7 @@ Constraints: One application per specialist per gig. Only SPECIALIST role can ap
 - Sessions: JWT via `jose`, managed in `lib/session.ts`, stored in HTTP-only cookies
 - Route protection: Next.js middleware (`middleware.ts`)
 - File structure: Next.js App Router conventions
-- **Design Tokens**: Managed via `openspec/specs/ui/design-tokens.json` (single source of truth). Tokens are automatically parsed and integrated into Tailwind config and CSS variables. See `docs/DESIGN_SYSTEM.md` for detailed usage and token naming conventions. New UI work should use design tokens, not hardcoded values.
+- **Design Tokens**: The **`/screens` SVGs (`screens/tokens.svg`, `screens/frames.svg`) are the single source of truth** for the design system. The legacy `openspec/specs/ui/design-tokens.json` has been **deleted as outdated** (its values predate the redesign). The `extract-svg-tokens-and-assets` change derives the authoritative palette, radii, and geometry into `docs/DESIGN_SPECS.md`; `design-token-engine` will then regenerate machine tokens from that extraction. The currently committed `scripts/generated-tokens.{js,css}` (consumed by `tailwind.config.ts`) still hold the **stale pre-redesign values** until that regeneration lands, and `docs/DESIGN_SYSTEM.md` documents the old token system and is outdated. Treat `/screens` + `docs/DESIGN_SPECS.md` as authoritative for new UI work.
 
 ### Prisma Query Conventions
 
