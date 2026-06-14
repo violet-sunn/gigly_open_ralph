@@ -3472,3 +3472,1281 @@ each item routed to Figma / Dev Mode.
 
 ---
 
+<!-- Merged on archive from change: derive-design-system (2026-06-14). Source delta retained in openspec/archive/derive-design-system/specs/ui/spec.md -->
+
+## ADDED Requirements
+
+### Requirement: Canonical Design Scales
+The raw observed values in `docs/DESIGN_SPECS.md` (colour palette, radius set) plus spacing and type MUST be
+normalized into canonical **colour**, **radius**, **spacing**, and **type** scales in
+`docs/DESIGN_SYSTEM_SPEC.md`. Every raw observed value MUST be accounted for — mapped to a canonical step, or
+recorded as a reconciled near-duplicate or a promoted variant — and no canonical value may be introduced that
+does not trace to the observed substrate.
+
+#### Scenario: Canonical colour scale defined and every observed fill mapped
+- GIVEN the ~22 observed fills in `docs/DESIGN_SPECS.md` §2
+- WHEN `docs/DESIGN_SYSTEM_SPEC.md` is inspected
+- THEN it MUST define a canonical colour scale organized by role family (surface ramp, text/neutral, border,
+  brand ramp, the 6-status set, the 5-category set)
+- AND every one of the observed fills MUST appear in a mapping (observed hex → canonical token, or → a logged
+  reconciliation decision)
+- AND every canonical colour MUST be a hex that is grep-findable in `screens/tokens.svg` or `screens/frames.svg`
+
+#### Scenario: Near-duplicate colours are reconciled
+- GIVEN the observed near-duplicate pairs/sets — green `#10b981`/`#0cc671`, red `#ef4444`/`#ff383c`, and the
+  blues `#0088ff`/`#4cacff`/`#0077e6`/`#1379f3`/`#0099ff`
+- WHEN the colour normalization is inspected
+- THEN each near-duplicate MUST either collapse to a single canonical step (with the others recorded as
+  collapsed) OR be promoted to a distinct named variant with a stated reason
+- AND distinct *roles* that happen to be close (e.g. status-blue `#3b82f6` vs brand-blue `#0088ff`) MUST remain
+  separate variants rather than being collapsed
+
+#### Scenario: Canonical radius scale defined and every observed rx mapped
+- GIVEN the 13 observed radii (2, 2.5, 3, 3.5, 4, 4.5, 5, 8, 11, 12, 13, 16, 18) in `docs/DESIGN_SPECS.md` §3
+- WHEN the radius normalization is inspected
+- THEN it MUST define a canonical radius scale of fewer, named steps (e.g. xs/sm/md/lg/xl/pill, plus circular
+  for avatars)
+- AND each observed `rx` MUST map to a canonical step (with snapped values, e.g. 2.5→2 or 11/13→12, recorded)
+- AND the dominant component radius (8px → cards/inputs/buttons) and the pill radius (18px) MUST be preserved
+  as canonical steps
+
+#### Scenario: Canonical spacing scale derived from measured geometry
+- GIVEN the spacing-like measurements in `docs/DESIGN_SPECS.md` §5 (12px insets, 40px control height / nav
+  pitch, etc.) and the screen-observed one-offs (17/20/21/24/30/47px)
+- WHEN the spacing scale is inspected
+- THEN `docs/DESIGN_SYSTEM_SPEC.md` MUST define a canonical spacing scale on a regular base grid (e.g. base-4)
+- AND each observed one-off MUST map to a canonical step (e.g. 17→16, 21→20, 47→48) with the snap recorded, or
+  be flagged as a genuine value
+- AND the standard control height (40px) and standard icon size (16px) MUST be captured as named size tokens
+
+#### Scenario: Type scale and roles defined, exact metrics flagged forward
+- GIVEN that the SVG text is outlined to paths (zero `font-family` refs; exact metrics are a residual gap per
+  `docs/DESIGN_SPECS.md` §7)
+- WHEN the type section is inspected
+- THEN it MUST define a canonical type scale as a set of named roles (e.g. display, heading levels, title,
+  body, label, caption, mono) with relative size/weight/line-height structure
+- AND it MUST name the intended families (SF Compact, NKDy Mono) and MUST flag the exact font files + metrics +
+  SF Compact web licence as a residual resolved in `typography-system`
+- AND any measurable type fact (e.g. an observed heading px size) SHOULD be recorded with its provenance
+
+#### Scenario: Genuine divergences become variants, not dropped values
+- GIVEN a raw observed value that is judged an intentional difference rather than measurement noise
+- WHEN it is normalized
+- THEN it MUST be promoted to a named system variant in the canonical scale
+- AND it MUST NOT be silently discarded nor copied as a screen-specific special case
+
+**Acceptance Criteria:**
+- Canonical colour, radius, spacing, and type scales exist in `docs/DESIGN_SYSTEM_SPEC.md`
+- Every observed fill and radius is mapped to a canonical token or a logged reconciliation decision
+- Near-duplicates are reconciled (collapsed or promoted to named variants); close-but-distinct roles stay separate
+- Type roles are defined; exact font metrics/licence flagged forward to `typography-system`
+
+---
+
+### Requirement: Semantic Token Taxonomy
+`docs/DESIGN_SYSTEM_SPEC.md` MUST define the semantic token taxonomy — the namespaces, the naming convention,
+and the mapping from every canonical scale value to a semantic name — such that tokens reference **meaning**,
+never a raw hex/px. This taxonomy is the shape `design-token-engine` will serialize.
+
+#### Scenario: Token namespaces are defined
+- GIVEN the change is implemented
+- WHEN the taxonomy section is inspected
+- THEN it MUST define namespaces covering at least: `surface/*`, `text/*`, `border/*`, `brand/*`, `status/*`,
+  `category/*`, `space/*`, `radius/*`, `type/*`, and `shadow/*` (plus `z/*`, `opacity/*`, `size/*` as needed)
+- AND it MUST state a consistent naming convention (e.g. `namespace/role[-modifier]`)
+
+#### Scenario: Every canonical value has a semantic name
+- GIVEN the canonical scales from the "Canonical Design Scales" requirement
+- WHEN the taxonomy mapping is inspected
+- THEN every canonical colour, radius, spacing step, and type role MUST have exactly one semantic token name
+- AND the 6 gig statuses and 5 categories MUST each map to a named `status/*` and `category/*` token
+
+#### Scenario: Tokens reference meaning, not raw values
+- GIVEN the taxonomy
+- WHEN a token name is read
+- THEN it MUST encode role/meaning (e.g. `surface/level-2`, `text/muted`, `status/in-progress`,
+  `radius/md`, `space/4`) rather than the raw value (e.g. not `blue-0088ff`, not `radius-8`)
+
+**Acceptance Criteria:**
+- Namespaces and a naming convention are defined
+- Every canonical value maps to exactly one semantic name; statuses (6) and categories (5) are named
+- Names encode meaning, not raw values; the taxonomy is serializable by `design-token-engine`
+
+---
+
+### Requirement: Component Vocabulary and Variant/State Matrices
+`docs/DESIGN_SYSTEM_SPEC.md` MUST enumerate the component vocabulary — **primitives** and **blocks** — and
+define each component's variant / state / size axes, grounded in the states actually present in the library
+(`docs/DESIGN_SPECS.md` §4 and the SVGs), not invented.
+
+#### Scenario: Primitive vocabulary is defined with matrices
+- GIVEN the change is implemented
+- WHEN the primitives section is inspected
+- THEN it MUST enumerate at least: Button, Input, PasswordInput, Select, Filter, Tabs, Toggle, Radio, Tag,
+  CategoryTag, StatusBadge/Dot, Avatar, Rating, ViewToggle, ProgressBar, SearchInput
+- AND each primitive MUST declare its variant/state/size axes (e.g. Button: variant {primary, secondary,
+  ghost, link} × state {default, hover, pressed, disabled}; StatusBadge: 6 status variants × form {pill,
+  inline-dot}; Filter/Radio: state {off, hover, on, disabled})
+- AND the declared states MUST correspond to states observed in the library
+
+#### Scenario: Block vocabulary is defined with variants
+- GIVEN the change is implemented
+- WHEN the blocks section is inspected
+- THEN it MUST enumerate at least: GigCard, ProfileCard, MessageBubble, ConversationItem, NotificationItem,
+  SidebarNav, Topbar, FilterBar, BannerCard, StatPanel, RequirementCard, CriteriaList, ClientCard, TermsTabs,
+  ApplyPanel, ChatPanel, MessagesPanel
+- AND each block MUST declare its variant axes (e.g. GigCard: status×6 × layout {grid, list}; SidebarNav:
+  role × {expanded, collapsed})
+- AND each block MUST list the primitives it is composed from
+
+#### Scenario: Every library component maps to a vocabulary entry
+- GIVEN the component inventory in `docs/DESIGN_SPECS.md` §4
+- WHEN the vocabulary is inspected
+- THEN every inventoried component MUST correspond to a primitive, a block, or a documented composition of them
+- AND no inventoried component may be left without a vocabulary mapping
+
+**Acceptance Criteria:**
+- Primitives and blocks are enumerated with variant/state/size matrices grounded in observed states
+- Each block lists its constituent primitives
+- Every library component in `docs/DESIGN_SPECS.md` §4 maps to a vocabulary entry
+
+---
+
+### Requirement: Layout Grammar and Screen-Composition Pattern
+`docs/DESIGN_SYSTEM_SPEC.md` MUST define the layout grammar — the page templates, regions/slots, and content
+layout primitives — and the screen-composition pattern by which screens are assembled.
+
+#### Scenario: Page templates are defined
+- GIVEN the change is implemented
+- WHEN the layout-grammar section is inspected
+- THEN it MUST define an `AppShell` template with a sidebar slot, a topbar slot, and a content region, in both
+  sidebar **expanded** and **collapsed** states
+- AND it MUST define an `AuthLayout` template (centered card region + checkerboard footer) for the auth/register
+  screens
+
+#### Scenario: Regions/slots and layout primitives are defined
+- GIVEN the layout-grammar section
+- WHEN it is inspected
+- THEN it MUST define the named regions/slots each template exposes
+- AND it MUST define content layout primitives (at least `Stack`, `Grid`, `Split`, `Section`, `Panel`, `Rail`)
+- AND those primitives MUST express spacing using the canonical spacing scale (no raw px)
+
+#### Scenario: Screen-composition pattern is specified
+- GIVEN the change is implemented
+- WHEN the composition section is inspected
+- THEN it MUST state the rule that a screen = Template + slotted Blocks + data bindings
+- AND it MUST state that screens contain **no styling, no layout literals, and no raw markup** — composition
+  only (the rule a later composition lint will enforce)
+
+**Acceptance Criteria:**
+- `AppShell` (expanded + collapsed) and `AuthLayout` templates are defined with named regions/slots
+- Layout primitives (Stack, Grid, Split, Section, Panel, Rail) are defined on the canonical spacing scale
+- The screen-composition pattern and its "composition-only" rule are specified
+
+---
+
+### Requirement: Typed Block View-Model Contracts
+Every block in the vocabulary MUST declare a typed **view-model contract** — the named, typed shape of the data
+it requires — independent of the Prisma schema, so blocks render from fixtures before Phase 1 models exist.
+
+#### Scenario: Each block declares a typed view-model
+- GIVEN the block vocabulary
+- WHEN the view-model section is inspected
+- THEN every enumerated block MUST have a typed view-model contract listing its fields and their types
+- AND the contract MUST be expressed in schema-independent terms (e.g. a `GigCardVM` with `status`,
+  `category`, `tags`, `budget`, `deadlineDays`, `rating { value, count, verified }`), not as Prisma models
+
+#### Scenario: Contracts decouple UI from schema
+- GIVEN the view-model contracts
+- WHEN they are inspected
+- THEN they MUST reference the data a block displays, not database tables or query shapes
+- AND they SHOULD note which Phase 1 data change is expected to fulfill each contract (per the planning doc's
+  data-model worklist) without depending on it existing yet
+
+**Acceptance Criteria:**
+- Every block has a typed, schema-independent view-model contract with named fields
+- Contracts are renderable from fixtures and note their fulfilling Phase 1 change where applicable
+
+---
+
+### Requirement: DESIGN_SYSTEM_SPEC.md as SSOT with Reconciliation Log
+`docs/DESIGN_SYSTEM_SPEC.md` MUST exist, be declared the single source of truth for the design system, contain
+(or link to) all of the system definition, and include a **complete Reconciliation Log** recording every
+screen/library deviation and its resolution.
+
+#### Scenario: The SSOT document exists and is self-describing
+- GIVEN the change is implemented
+- WHEN the file system is inspected
+- THEN `docs/DESIGN_SYSTEM_SPEC.md` MUST exist
+- AND it MUST state that it is the single source of truth for the design system
+- AND it MUST contain (or link to) the canonical scales, the token taxonomy, the component vocabulary +
+  matrices, the layout grammar, and the block view-model contracts
+- AND it MUST reference `docs/DESIGN_SPECS.md` as its raw-substrate provenance
+
+#### Scenario: Reconciliation log records every deviation with a resolution
+- GIVEN the screens disagree with each other or with the library (spacing one-offs, near-duplicate colours,
+  radius variance, slightly different paddings)
+- WHEN the Reconciliation Log section is inspected
+- THEN it MUST contain an entry for each such deviation
+- AND each entry MUST state the observed deviation, the decision (normalize-to-scale / promote-to-variant /
+  flag-for-designer), and the canonical entity it resolves to
+- AND the log MUST be complete — no observed deviation left unaddressed
+
+#### Scenario: Screens are treated as samples, not the spec
+- GIVEN any screen-level value that differs from the canonical scale
+- WHEN its reconciliation entry is read
+- THEN the resolution MUST normalize it to the system (or promote a deliberate variant) — never enshrine the
+  screenshot value as a one-off
+- AND the canonical system, not the screenshot, MUST be stated as authoritative
+
+**Acceptance Criteria:**
+- `docs/DESIGN_SYSTEM_SPEC.md` exists, is declared the SSOT, and contains/links all system definitions
+- A Reconciliation Log records every deviation → resolution and is complete
+- Screens are treated as samples; deviations resolve to the system, not to copied one-offs
+
+---
+
+### Requirement: System Coverage and Traceability
+`docs/DESIGN_SYSTEM_SPEC.md` MUST include a **System Coverage Matrix** demonstrating that every library
+component and every one of the 12 sample screens maps onto system entities (tokens, primitives, blocks, layout
+primitives, templates) with **no unaccounted one-offs**, and that the vocabulary is complete enough for the
+later generativity proof.
+
+#### Scenario: Every library component is traced
+- GIVEN the component inventory in `docs/DESIGN_SPECS.md` §4
+- WHEN the coverage matrix is inspected
+- THEN every inventoried component MUST be traced to the primitive/block/composition that represents it
+- AND any component with no mapping MUST be recorded as a system gap, not omitted
+
+#### Scenario: Every screen maps to a composition with no orphan one-offs
+- GIVEN the 12 sample screens (`screens/auth.jpg`, `reg.jpg`, `reg-customer.jpg`, `reg-specialist.jpg`,
+  `customer-dashboard.jpg`, `customer-projects.jpg`, `specialist-dashboard.jpg`, `specialist-gig-search.jpg`,
+  `specialist-gig.jpg`, `specialist-projects.jpg`, `specialist-chats.jpg`, `specialist-progile.jpg`)
+- WHEN the coverage matrix is inspected
+- THEN each screen MUST be expressed as `Template + Blocks + data bindings`
+- AND every distinct visual element in each screen MUST resolve to a system entity (token / primitive / block /
+  layout primitive)
+- AND any element that resolves to none MUST be logged as a one-off in the Reconciliation Log with a resolution
+  — there MUST be no unaccounted one-offs
+
+#### Scenario: Every raw value is accounted for
+- GIVEN the ~22 observed fills and 13 observed radii in `docs/DESIGN_SPECS.md`
+- WHEN the coverage matrix / reconciliation log is inspected
+- THEN each observed value MUST resolve to a canonical token or a logged reconciliation decision
+- AND the matrix MUST make it verifiable that none was silently dropped
+
+#### Scenario: Vocabulary is complete enough for generativity
+- GIVEN the mock-less screens (admin moderation `/admin/*`, Finances, Disputes, Settings)
+- WHEN the coverage analysis is inspected
+- THEN the spec MUST confirm each is expressible from the defined vocabulary (`AppShell` + existing
+  blocks/primitives) with no new system entity
+- AND any entity such a screen would require but the library lacks MUST be recorded as a system gap to resolve
+  before Phase 2 (feeding the `prove-extensibility-admin` generativity proof)
+
+**Acceptance Criteria:**
+- A System Coverage Matrix traces every library component and every one of the 12 screens to system entities
+- Every raw observed value resolves to a canonical token or a logged decision — no silent drops
+- No unaccounted one-offs remain; mock-less screens are confirmed expressible (generativity-ready), gaps logged
+
+---
+
+<!-- Merged on archive from change: design-token-engine (2026-06-14). Source delta retained in openspec/archive/design-token-engine/specs/ui/spec.md -->
+
+## ADDED Requirements
+
+### Requirement: Serialized Token Source from the Canonical Taxonomy
+`openspec/specs/ui/design-tokens.json` MUST be (re)created and shaped to the `docs/DESIGN_SYSTEM_SPEC.md`
+taxonomy, with every colour/radius/spacing value tracing to the raw substrate (`docs/DESIGN_SPECS.md` → a real
+SVG fill/`rx`/coordinate). It MUST NOT contain pre-redesign "parody" values and MUST NOT re-source values from
+Figma (Figma is for names/gaps only).
+
+#### Scenario: Token JSON exists and is shaped to the taxonomy
+- GIVEN the canonical taxonomy in `docs/DESIGN_SYSTEM_SPEC.md` §2
+- WHEN `openspec/specs/ui/design-tokens.json` is inspected
+- THEN the file MUST exist and be valid JSON
+- AND it MUST contain the taxonomy namespaces — surface, text, border, brand, status, category, space, radius,
+  type, shadow, gradient, z (z-index), opacity, size — named semantically (`namespace/role` → nested
+  `namespace.role`)
+- AND token names MUST encode meaning (e.g. `status/in-progress`, `surface/level-2`), never the raw value
+  (not `blue-3b82f6`, not `radius-8`)
+
+#### Scenario: Every token value traces to the substrate; no parody values
+- GIVEN the canonical scales in `docs/DESIGN_SYSTEM_SPEC.md` §1 and the raw fills in `docs/DESIGN_SPECS.md` §2
+- WHEN a sample of colour tokens is inspected (e.g. `#0088ff`, `#10b981`, `#f59e0b`, `#f45fb1`)
+- THEN each sampled hex MUST be grep-findable in `screens/tokens.svg` or `screens/frames.svg`
+- AND no pre-redesign parody hex (e.g. `#0A0E27`, `#0EA5E9`, `#141937`) may appear in the token JSON
+
+#### Scenario: Status and category palettes are present and named
+- GIVEN the 6 gig statuses and 5 categories from the SSOT
+- WHEN the colour section is inspected
+- THEN there MUST be a `status/*` token for each of open, review, in-progress, verification, completed, rejected
+- AND a `category/*` token for each of marketing, design, programming, development, coding
+
+#### Scenario: Full token surface is represented
+- GIVEN the deliverable list (colour/type/space/radius/shadow/gradient/z-index + status + category)
+- WHEN the JSON is inspected
+- THEN each of those token groups MUST be present
+- AND type tokens MUST express the scale structure (role size/weight/line-height) with the measurable 22px
+  heading anchor, while exact font families/metrics + licence are referenced forward to `typography-system`
+
+**Acceptance Criteria:**
+- `design-tokens.json` exists, valid, shaped to the taxonomy, semantically named
+- Sampled colour/radius values trace to the SVGs; no parody values present
+- 6 statuses + 5 categories named; colour/type/space/radius/shadow/gradient/z-index all represented
+
+---
+
+### Requirement: Token Generation Pipeline
+`scripts/parse-design-tokens.js` MUST parse the new token JSON without error and regenerate
+`scripts/generated-tokens.{js,css}`, which `tailwind.config.ts` MUST consume. The parser MUST be extended to emit
+the token types the taxonomy requires while preserving its reference-resolution / hex→rgba / px→rem behaviour.
+
+#### Scenario: Parser runs clean against the new JSON
+- GIVEN `openspec/specs/ui/design-tokens.json` shaped to the taxonomy
+- WHEN `node scripts/parse-design-tokens.js` is run
+- THEN it MUST exit 0 with no error and no unresolved-reference warnings
+- AND it MUST write `scripts/generated-tokens.js` and `scripts/generated-tokens.css`
+
+#### Scenario: Parser handles the new token types
+- GIVEN the taxonomy adds semantic colour families (`surface/brand/status/category/text/border`) and the groups
+  gradient, z-index, opacity, size, plus string radii (`radius/circular`, `radius/pill`)
+- WHEN the parser processes the JSON
+- THEN it MUST emit tokens for those groups (not silently drop them)
+- AND string-valued radii (e.g. `circular = 50%`) MUST be emitted as-is rather than coerced to `NaNpx`
+
+#### Scenario: Generated outputs are in sync with the JSON
+- GIVEN the committed `scripts/generated-tokens.{js,css}`
+- WHEN the parser is re-run
+- THEN the regenerated files MUST match the committed files (ignoring the `Generated:` timestamp line)
+- AND no token may be hand-edited in the generated files (they are build artifacts of the JSON)
+
+#### Scenario: Tailwind consumes the tokens and the build passes
+- GIVEN `tailwind.config.ts` requires `./scripts/generated-tokens.js`
+- WHEN `npm run build` is run
+- THEN the build MUST pass
+- AND the token colour/spacing/radius/type scales MUST be available as Tailwind utilities
+
+**Acceptance Criteria:**
+- Parser exits clean and regenerates both output files; outputs in sync with the JSON
+- New token types (gradient, z-index, string radii, semantic colour families, opacity, size) are emitted
+- Tailwind consumes the tokens; `npm run build` passes
+
+---
+
+### Requirement: Clean Cutover Without a Legacy-Name Shim
+The legacy/parody manual palettes MUST be removed from `tailwind.config.ts` and **no legacy-name shim** may be
+introduced. The deleted parody `design-tokens.json` values and names MUST NOT be resurrected. The app is
+pre-launch and Phase 2 recomposes every screen, so the ~770 existing consumers of old token *class names* are NOT
+hand-patched here; `npm run build` and `npm run test:unit` MUST stay green, with the only build-safety obligation
+being that `@apply` directives and CSS-var anchors remain valid.
+
+#### Scenario: Legacy/parody palettes are removed
+- GIVEN the legacy manual colour blocks in `tailwind.config.ts` (`navy`, `blue`, `gray`, `success`, `warning`,
+  `error`, and stale pre-redesign values)
+- WHEN `tailwind.config.ts` is inspected after the change
+- THEN those parody palettes MUST be removed (or replaced by token-backed values), leaving the token-driven
+  scales as the source
+- AND no parody hex (e.g. `#0A0E27`, `#0EA5E9`) may remain in the config
+
+#### Scenario: No legacy-name shim is introduced
+- GIVEN the project guidance that the deleted JSON/names are the parody and stay gone
+- WHEN the change is inspected
+- THEN there MUST NOT be a shim module/alias mapping old parody names onto new tokens
+- AND the token API surface MUST be the new semantic names only
+
+#### Scenario: Build and unit suite stay green after cutover
+- GIVEN old token class names may be referenced by Phase-2-doomed components (not hand-patched here)
+- WHEN `npm run build` and `npm run test:unit` are run after the cutover
+- THEN both MUST pass
+- AND undefined `className` utilities in doomed components are acceptable (Tailwind drops them; visual-only)
+- AND every `@apply` directive and CSS-var anchor in `app/globals.css` MUST resolve to a defined token/class
+  (an `@apply` of an undefined class is a build error and MUST NOT occur)
+
+**Acceptance Criteria:**
+- Legacy/parody palettes removed from `tailwind.config.ts`; no parody hex remains
+- No legacy-name shim exists; the semantic names are the only token API
+- `npm run build` + `npm run test:unit` pass; all `@apply`/CSS-var anchors resolve
+
+---
+
+### Requirement: Token-Purity Lint (baseline-then-tighten)
+A token-purity lint MUST exist and MUST **fail** on raw colour/spacing/radius/type literals used outside the token
+system, and **pass** on token-pure code. Because ~62 raw-hex literals already exist in Phase-2-doomed legacy
+components, the lint MUST use a **baseline-then-tighten** policy: pre-existing violations are recorded in a
+baseline and do not block, while any **new** violation hard-fails. This makes Fidelity DoD **F2** structural for
+all new code; a later cleanup change flips the policy to fail-on-all once legacy components are recomposed.
+
+#### Scenario: Lint runs and passes on the baselined codebase
+- GIVEN the lint is wired into a `lint:tokens` script (referenced by the build/CI) with a baseline of pre-existing
+  legacy violations
+- WHEN the lint runs against the current codebase
+- THEN the token-purity check MUST execute
+- AND it MUST pass (the baselined pre-existing violations do not block)
+
+#### Scenario: Lint fails on a new planted raw literal
+- GIVEN a deliberately planted, non-baselined off-token literal (e.g. `color: #123456` or `padding: 7px`) in app
+  source
+- WHEN the lint runs
+- THEN it MUST report the violation and exit non-zero (fail)
+- AND the message MUST identify the offending literal/location
+
+#### Scenario: Lint allows non-design literals and token references
+- GIVEN allowlisted values (`0`, `transparent`, `currentColor`, `inherit`) and token-based utilities/vars
+- WHEN the lint runs
+- THEN those MUST NOT be flagged
+- AND values expressed via tokens (Tailwind token utilities / `var(--token)`) MUST pass
+
+**Acceptance Criteria:**
+- The lint executes (in `lint:tokens`/build) and passes on the baselined codebase
+- It fails (non-zero) on a new, non-baselined raw colour/spacing/radius/type literal, identifying it
+- Pre-existing legacy violations are baselined; allowlisted literals and token references are not flagged
+
+---
+
+### Requirement: Token Validation Replacing the Deleted Profile-Tokens Test
+Fresh token validation MUST replace the deleted `scripts/validate-profile-tokens.mjs` /
+`__tests__/unit/profile-tokens.test.ts`, asserting the token JSON's integrity and that the generated outputs
+match it.
+
+#### Scenario: Validation asserts JSON integrity and taxonomy coverage
+- GIVEN the new validation (script and/or unit test)
+- WHEN it runs
+- THEN it MUST assert `design-tokens.json` parses and contains every required taxonomy namespace
+- AND it MUST assert the 6 statuses + 5 categories are present
+
+#### Scenario: Validation asserts generated outputs are in sync
+- GIVEN the committed `scripts/generated-tokens.{js,css}`
+- WHEN the validation runs
+- THEN it MUST detect drift between the JSON and the generated outputs (ignoring the timestamp line)
+- AND it MUST fail if a generated file was hand-edited or left stale
+
+#### Scenario: Validation runs in the unit suite and is green
+- GIVEN the validation is wired into `npm run test:unit`
+- WHEN the suite runs
+- THEN the token validation MUST pass
+- AND the overall unit suite MUST remain green
+
+**Acceptance Criteria:**
+- Fresh validation asserts JSON integrity + taxonomy coverage (statuses/categories included)
+- It detects JSON↔generated drift and fails on staleness/hand-edits
+- It runs in `npm run test:unit` and the suite is green
+
+---
+
+<!-- Merged on archive from change: typography-system (2026-06-14). Source delta retained in openspec/archive/typography-system/specs/ui/spec.md -->
+
+## ADDED Requirements
+
+### Requirement: Font Licence Resolution and Decision
+The web-licensability of SF Compact (display/UI) and NKDy Mono (mono) MUST be determined and documented, and a
+dev-stage decision MUST be recorded in `docs/TYPOGRAPHY.md` — including the chosen substitutes, measured deltas,
+the capped-fidelity flag, and the swap-in path to real licensed fonts.
+
+#### Scenario: Licence finding is documented
+- GIVEN SF Compact is Apple's typeface and NKDy Mono is not a generally-available web font
+- WHEN `docs/TYPOGRAPHY.md` is inspected
+- THEN it MUST state that SF Compact / NKDy Mono are not web-embeddable for this app
+- AND it MUST reference the residual provenance (`docs/DESIGN_SYSTEM_SPEC.md` §1.4 / `docs/DESIGN_SPECS.md` §7.3)
+
+#### Scenario: Dev-stage substitutes are selected with rationale
+- GIVEN the fonts cannot be embedded
+- WHEN the decision section is inspected
+- THEN it MUST name a closest-resemblance substitute for the sans/display family (e.g. Inter for SF Compact) and
+  for the mono family (e.g. an OFL monospace for NKDy Mono)
+- AND each substitute MUST be freely licensed (e.g. SIL OFL) and justified as the closest available resemblance
+
+#### Scenario: Capped fidelity and swap-in path are recorded
+- GIVEN the substitute is not the exact reference font
+- WHEN the document is inspected
+- THEN it MUST flag fidelity as capped on the type axis until a licensed font is obtained
+- AND it MUST describe the swap-in path: replacing the font source while keeping the `--font-sans` / `--font-mono`
+  variable contract stable
+- AND it MUST record the measured glyph-metric deltas (e.g. cap-height / x-height / advance) where determinable
+
+**Acceptance Criteria:**
+- `docs/TYPOGRAPHY.md` documents the licence finding, substitutes (sans + mono), capped-fidelity flag, deltas, and swap-in path
+- Substitutes are freely licensed and justified as the closest resemblance
+
+---
+
+### Requirement: Font Loading via next/font Without Layout Shift
+Fonts MUST be loaded via `next/font` (self-hosted `local` preferred; `google` acceptable) with CSS-variable
+bindings applied at the app root, configured to avoid layout shift.
+
+#### Scenario: Fonts load with CSS-variable bindings at the root
+- GIVEN the substitute fonts
+- WHEN `app/layout.tsx` is inspected
+- THEN it MUST load them via `next/font` and expose `--font-sans` and `--font-mono` variables
+- AND those variables MUST be applied on the root `<html>`/`<body>` so the whole app inherits the type families
+
+#### Scenario: Loading is configured to avoid layout shift
+- GIVEN font swapping can cause CLS
+- WHEN the font loader configuration is inspected
+- THEN it MUST use `display: 'swap'` and `next/font`'s fallback-metric adjustment (e.g. `adjustFontFallback` /
+  size-adjust) so there is no layout shift
+- AND a self-hosted `local` loader MUST reference committed `woff2` files (deterministic/offline) where used
+
+#### Scenario: No raw font literals outside the font system
+- GIVEN the token-purity discipline
+- WHEN the change is inspected
+- THEN font families MUST be expressed via the `--font-*` variables / `font.family` tokens, not hardcoded
+  `font-family` strings scattered in components
+- AND `npm run lint:tokens` MUST still pass
+
+**Acceptance Criteria:**
+- `next/font` loads sans + mono, binds `--font-sans`/`--font-mono` at the root, CLS-safe config
+- Self-hosted `woff2` used for `local` loading where applicable; token-purity lint still passes
+
+---
+
+### Requirement: Family Tokens Bound to the Type Scale
+A `font.family` token group MUST be added to `openspec/specs/ui/design-tokens.json` and `tailwind.config.ts`
+`fontFamily` MUST consume it, so the `type/*` roles apply family together with the existing size/weight/
+line-height tokens.
+
+#### Scenario: Family tokens exist and regenerate cleanly
+- GIVEN the token engine
+- WHEN `design-tokens.json` and the generated outputs are inspected
+- THEN `design-tokens.json` MUST contain a `font.family` group with `sans` and `mono` referencing the `--font-*`
+  variables
+- AND `node scripts/parse-design-tokens.js` MUST emit a `fontFamily` group into `scripts/generated-tokens.js`
+  without error
+- AND `npm run validate:tokens` MUST pass (no drift)
+
+#### Scenario: Tailwind binds families to the type roles
+- GIVEN `tailwind.config.ts`
+- WHEN it is inspected
+- THEN `fontFamily` MUST consume the family tokens (`font-sans` → sans, `font-mono` → mono)
+- AND the `type/*` size/weight/line-height tokens MUST remain applied so a role yields family + size + weight +
+  line-height together
+
+#### Scenario: Mono role uses the mono family
+- GIVEN monospace data (e.g. `300 400 ₽`, codes) uses `type/mono`
+- WHEN the mono role is applied
+- THEN it MUST resolve to the mono family (`--font-mono`)
+- AND text roles (display/h1/h2/title/body/label/caption) MUST resolve to the sans family (`--font-sans`)
+
+**Acceptance Criteria:**
+- `font.family` tokens added + regenerated; `validate:tokens` passes
+- Tailwind `fontFamily` consumes them; type roles bind family + metrics; mono role uses the mono family
+
+---
+
+### Requirement: Metric Verification and Capped Fidelity
+The change MUST verify type metrics deterministically (no layout shift; a sample heading/label renders at the
+token metrics with the bound family) and MUST flag that the full per-screen pixel fidelity-diff is deferred to
+`fidelity-harness`.
+
+#### Scenario: A sample heading/label renders at the token metrics
+- GIVEN the bound type roles
+- WHEN a sample heading (e.g. the 22px auth heading anchor) and a label are rendered/asserted
+- THEN they MUST use the token font-size / line-height / weight and the bound family
+- AND a deterministic test (unit/build) MUST confirm the binding (size + family present), not a visual guess
+
+#### Scenario: No layout shift from the font swap
+- GIVEN the global font change
+- WHEN the app is built and rendered
+- THEN `npm run build` MUST pass and the font loader's fallback-metric adjustment MUST be in place to prevent CLS
+- AND `npm run test:unit` MUST stay green
+
+#### Scenario: Full fidelity-diff is deferred and capped status recorded
+- GIVEN `fidelity-harness` (the pixel-diff gate) is not yet built
+- WHEN the verification scope is inspected
+- THEN this change MUST document the measured metric deltas and explicitly defer the per-screen pixel diff to
+  `fidelity-harness`
+- AND it MUST record that type-axis fidelity is capped until a licensed SF Compact (or equivalent) is embedded
+
+**Acceptance Criteria:**
+- Deterministic metric/binding verification passes; `npm run build` + `npm run test:unit` green
+- Measured deltas documented; pixel fidelity-diff deferred to `fidelity-harness`; capped fidelity recorded
+
+---
+
+<!-- Merged on archive from change: layout-grammar (2026-06-14). Source delta retained in openspec/archive/layout-grammar/specs/ui/spec.md -->
+
+## ADDED Requirements
+
+### Requirement: Page Templates (AppShell and AuthLayout)
+The layout grammar MUST provide an `AppShell` template (sidebar slot + topbar slot + content region; expanded and
+collapsed sidebar states) and an `AuthLayout` template (centered card region + checkerboard footer), per
+`docs/DESIGN_SYSTEM_SPEC.md` §4.1. Templates accept blocks as slots; they do not build the blocks.
+
+#### Scenario: AppShell exposes slots and both sidebar states
+- GIVEN the `AppShell` template
+- WHEN it is rendered with placeholder `sidebar`, `topbar`, and content
+- THEN it MUST render all three regions (sidebar slot, topbar slot, content region)
+- AND it MUST support a sidebar `expanded` state and a `collapsed` (icon-rail) state, selectable via a prop
+- AND the collapsed state MUST present the sidebar as a narrow rail (icon-rail width per `docs/DESIGN_SPECS.md` §5)
+
+#### Scenario: AuthLayout exposes a centered card + checkerboard footer
+- GIVEN the `AuthLayout` template
+- WHEN it is rendered with placeholder card content
+- THEN it MUST render a centered card region
+- AND it MUST render a checkerboard footer using `public/assets/design-system/patterns/checkerboard.svg`
+
+#### Scenario: Templates take blocks as slots, not built-in
+- GIVEN the templates
+- WHEN their props are inspected
+- THEN `AppShell` MUST accept `sidebar` and `topbar` (and content/children) as slot props rather than importing
+  concrete SidebarNav/Topbar blocks
+- AND the templates MUST render with placeholder blocks (the real blocks arrive in `domain-blocks`)
+
+**Acceptance Criteria:**
+- `AppShell` renders sidebar/topbar/content with expanded + collapsed states; `AuthLayout` renders card + checkerboard footer
+- Templates accept blocks as slot props and render with placeholders
+
+---
+
+### Requirement: Content Layout Primitives on the Canonical Scale
+The grammar MUST provide the content layout primitives `Stack`, `Grid`, `Split`, `Section`, `Panel`, and `Rail`,
+each expressing spacing/radius/surface **only via canonical tokens** (no raw px / off-token literals).
+
+#### Scenario: All six primitives exist and render
+- GIVEN the change is implemented
+- WHEN the layout primitives are rendered with children
+- THEN `Stack` (axis + gap), `Grid` (columns + gap), `Split` (two-pane ratio + gap), `Section` (title + gap),
+  `Panel` (surface + radius + padding), and `Rail` (narrow icon column) MUST each render their children
+- AND each MUST expose the axes named in `docs/DESIGN_SYSTEM_SPEC.md` §4.2
+
+#### Scenario: Primitives are token-pure
+- GIVEN the rendered primitive output
+- WHEN its classes/styles are inspected
+- THEN spacing MUST be expressed via the canonical `space/*` scale (Tailwind token utilities), radius via
+  `radius/*`, and surface via `surface/*` — with no raw px or off-token colour literal
+- AND `npm run lint:tokens` MUST still pass with these components in `app/`
+
+#### Scenario: Spacing flows from the token scale
+- GIVEN a primitive's `gap`/`padding` prop
+- WHEN it maps to output
+- THEN the value MUST resolve to a canonical spacing token (e.g. `gap` → `space/*`), not a hardcoded pixel value
+
+**Acceptance Criteria:**
+- Stack/Grid/Split/Section/Panel/Rail exist and render children with their documented axes
+- Output is token-pure (space/radius/surface tokens only); `lint:tokens` passes
+
+---
+
+### Requirement: Screen-Composition Pattern and Composition Lint
+The change MUST encode the rule that a screen = Template + slotted Blocks + data bindings (composition-only: no
+styling, no layout literals, no raw markup) and MUST enforce it with a composition lint.
+
+#### Scenario: Composition rule is documented and lint exists
+- GIVEN the change is implemented
+- WHEN the repo is inspected
+- THEN there MUST be a `lint:composition` script (e.g. `scripts/design-system/validate-composition.js`)
+- AND it MUST encode the rule: a composed screen imports only from templates/blocks/primitives/data and contains
+  no `style=` attributes, no off-token `className` styling, and no raw structural markup
+
+#### Scenario: Lint fails on a raw-markup screen
+- GIVEN a planted composed-screen file containing raw styled markup (e.g. `<div className="p-4" style={{…}}>` or a
+  disallowed import)
+- WHEN `lint:composition` runs
+- THEN it MUST report the violation and exit non-zero (fail)
+- AND the message MUST identify the offending file and reason
+
+#### Scenario: Lint passes compliant screens and does not block existing pages
+- GIVEN composed screens are identified by opt-in (a `@composed-screen` marker) and none exist yet
+- WHEN `lint:composition` runs against the current tree
+- THEN it MUST pass (it MUST NOT flag existing pre-redesign pages, which are not yet composed)
+- AND a compliant composed screen (template + slotted blocks + data, no raw markup) MUST pass
+
+**Acceptance Criteria:**
+- `lint:composition` exists, encodes the composition-only rule, passes the current tree + a compliant sample
+- It fails a planted raw-markup screen, naming it; existing pages are not blocked
+
+---
+
+### Requirement: Verification and Deferred Fidelity
+The templates and primitives MUST be verified deterministically (render tests + token-purity + composition lint),
+with the F1 pixel fidelity-diff explicitly deferred to `fidelity-harness`.
+
+#### Scenario: Render tests cover templates and primitives
+- GIVEN the components
+- WHEN `npm run test:unit` runs
+- THEN render tests MUST confirm `AppShell` (expanded + collapsed) and `AuthLayout` render their slots, and each
+  layout primitive renders its children
+- AND the overall unit suite MUST stay green
+
+#### Scenario: Build stays green
+- GIVEN the new components
+- WHEN `npm run build` runs
+- THEN it MUST pass (the components compile as presentational/server-safe components)
+
+#### Scenario: F1 fidelity is deferred and noted
+- GIVEN `fidelity-harness` (the pixel-diff gate) is not yet built
+- WHEN the verification scope is inspected
+- THEN the change MUST verify structure (render), token-purity (F2), and composition (F5) now
+- AND it MUST explicitly defer the F1 pixel fidelity-diff on the empty shell to `fidelity-harness`
+
+**Acceptance Criteria:**
+- Render tests pass for templates (expanded+collapsed) and all primitives; `npm run build` + `npm run test:unit` green
+- F2 (token-purity) + F5 (composition) enforced; F1 pixel-diff deferred to `fidelity-harness`
+
+---
+
+<!-- Merged on archive from change: ui-primitives (2026-06-14). Source delta retained in openspec/archive/ui-primitives/specs/ui/spec.md -->
+
+## ADDED Requirements
+
+### Requirement: Primitive Vocabulary — 16 Variant-Driven Components
+The kit MUST provide the 16 primitives of `docs/DESIGN_SYSTEM_SPEC.md` §3.1 under `app/components/primitives/`, each
+exposing the typed `variant`/`state`/`size` axes named there and rendering **every state present in the library**
+(`docs/DESIGN_SPECS.md` §4). Each primitive is a controlled, presentational component (state is a prop).
+
+#### Scenario: All sixteen primitives exist and render
+- GIVEN the change is implemented
+- WHEN each primitive is rendered with children/props
+- THEN `Button`, `Input`, `PasswordInput`, `SearchInput`, `Select`, `Radio`, `Filter`, `Tabs`, `Toggle`, `Tag`,
+  `CategoryTag`, `StatusBadge` (badge + inline dot), `Avatar`, `Rating`, `ViewToggle`, and `ProgressBar` MUST each
+  exist as a component under `app/components/primitives/` and render its output
+
+#### Scenario: Every library state is renderable per primitive
+- GIVEN a primitive with a documented state matrix (e.g. Button `primary|secondary|ghost|link` × `default|hover|
+  pressed|disabled`; Input `default|focus|filled|disabled|error`; Radio/Filter `off|hover|on|disabled`; StatusBadge
+  the 6 status variants; Avatar `sm|lg` + `online`; ViewToggle `grid-active|list-active`)
+- WHEN each variant/state/size in the matrix is requested via props
+- THEN the primitive MUST render that exact state (the requested variant/state/size resolves to its canonical token
+  styling), with no library state missing
+
+#### Scenario: Standard controls use the canonical control geometry
+- GIVEN the standard-control primitives (Button, Input, Select, StatusBadge pill)
+- WHEN they are rendered at their default size
+- THEN they MUST express the standard control height via the `size/control` (40px) token and `radius/md`, per
+  `docs/DESIGN_SPECS.md` §5 — not a hardcoded pixel height
+
+**Acceptance Criteria:**
+- All 16 primitives exist under `app/components/primitives/` with the §3.1 variant/state/size props and render
+- Every state from the library is renderable per primitive; standard controls use `size/control` + `radius/md`
+
+---
+
+### Requirement: Token Purity and Typed-API Enforcement (F2)
+Every primitive MUST express colour/spacing/radius/type/size **only via canonical token utilities** (zero hardcoded
+values), and its `variant`/`state`/`size` props MUST be typed unions so an off-system value does not type-check.
+
+#### Scenario: Primitives are token-pure
+- GIVEN the rendered primitive output
+- WHEN its classes/styles are inspected
+- THEN colour MUST resolve to `brand/*`, `surface/*`, `text/*`, `border/*`, `status/*`, or `category/*` tokens,
+  spacing to `space/*`, radius to `radius/*`, type to `type/*`, and fixed dimensions to `size/*` — with no raw hex,
+  `rgb()/hsl()`, or raw `px` literal
+- AND `npm run lint:tokens` MUST pass with **no new baseline entries** (the new primitives add nothing to
+  `scripts/design-system/token-purity-baseline.json`)
+
+#### Scenario: Typed API rejects off-system values
+- GIVEN a primitive with typed `variant`/`state`/`size` union props
+- WHEN a non-existent variant or off-scale value is supplied (e.g. `<Button variant="purple" />`,
+  `<StatusBadge status="mauve" />`)
+- THEN the type-checker MUST reject it (`tsc --noEmit` / `npm run build` fails on the planted value)
+- AND the clean tree (only in-system values) MUST type-check and build green
+
+#### Scenario: Variant maps are JIT-visible static class strings
+- GIVEN the primitive token map (`app/components/primitives/tokens.ts`)
+- WHEN a variant/state/size is mapped to styling
+- THEN it MUST resolve through a static literal-class lookup (the `app/components/layout/scale.ts` pattern), not a
+  dynamically built class string, so Tailwind's JIT emits the utility
+
+**Acceptance Criteria:**
+- No raw colour/px literals in `app/components/primitives/`; `lint:tokens` passes with an unchanged baseline file
+- `variant`/`state`/`size` are typed unions; a planted off-system value fails `tsc --noEmit`; the clean tree builds
+
+---
+
+### Requirement: Real Assets (F4)
+Icon-bearing primitives MUST use the exported SVG assets in `public/assets/design-system/icons/`, not redrawn
+approximations; the known asset residuals MUST be flagged rather than re-drawn.
+
+#### Scenario: Icon primitives reference exported assets
+- GIVEN SearchInput (search + clear), ViewToggle (grid/list), Rating (star + verified), Radio/Filter
+  (radio-off/radio-on), and StatusBadge inline dot (status-dot)
+- WHEN their icon usage is inspected
+- THEN each MUST reference an exported asset from `public/assets/design-system/icons/` (e.g. `search.svg`,
+  `clear.svg`, `grid.svg`, `list.svg`, `star.svg`, `verified.svg`, `radio-off.svg`, `radio-on.svg`,
+  `status-dot.svg`) — not an inline redrawn glyph
+
+#### Scenario: Missing-icon residuals are flagged, not redrawn
+- GIVEN the `eye` (PasswordInput reveal) and `attach` (chat composer) icons are absent from the in-hand SVGs
+  (`docs/DESIGN_SPECS.md` §7.5)
+- WHEN PasswordInput's reveal control is implemented
+- THEN it MUST ship with an accessible text/label fallback (not a redrawn `eye` glyph), and the residual MUST be
+  flagged (routed to Figma) — preserving the `revealed` state in the typed matrix
+
+**Acceptance Criteria:**
+- Icon-bearing primitives use exported assets from `public/assets/design-system/icons/`
+- `eye`/`attach` residuals are flagged (not redrawn); PasswordInput reveal has an accessible fallback
+
+---
+
+### Requirement: All-States Render Coverage and Verification
+The primitives MUST be verified deterministically by a render-test suite covering **every variant/state/size**, plus
+the typed-rejection and token-purity checks, with the unit suite and build staying green.
+
+#### Scenario: Render tests cover every state of every primitive
+- GIVEN the render-test suite (`__tests__/unit/components/ui-primitives.test.tsx`, jsdom)
+- WHEN `npm run test:unit` runs
+- THEN it MUST render each primitive in every documented variant/state/size and assert the expected token utility /
+  asset is present (e.g. Button primary → `bg-brand-default`; StatusBadge review → `status-review`; ProgressBar
+  fill → `bg-brand-default` at the bound value)
+- AND the overall unit suite MUST stay green
+
+#### Scenario: Build stays green
+- GIVEN the new primitives
+- WHEN `npm run build` runs
+- THEN it MUST pass (the primitives compile; presentational where possible, `"use client"` only where a DOM event
+  is owned)
+
+**Acceptance Criteria:**
+- Render tests pass for every variant/state/size of all 16 primitives; `npm run build` + `npm run test:unit` green
+
+---
+
+### Requirement: Composition-Leaf Purity and Deferred Automated Fidelity
+The primitives MUST be composition leaves (token-pure presentational components that consume only tokens + exported
+assets and build no domain blocks), with the automated **F1 pixel-diff** explicitly deferred to `fidelity-harness`.
+
+#### Scenario: Primitives are leaves, not blocks
+- GIVEN the primitives
+- WHEN their imports/output are inspected
+- THEN they MUST consume only canonical tokens + exported assets (and, where applicable, other primitives such as
+  PasswordInput/SearchInput extending Input, or Filter composing Radio) — and MUST NOT import or build domain blocks
+  (GigCard, SidebarNav, …) or compose screens
+- AND `npm run lint:composition` MUST still pass (the change adds no composed-screen violations)
+
+#### Scenario: F1 automated fidelity is deferred and noted
+- GIVEN `fidelity-harness` (the pixel-diff gate) is not yet built
+- WHEN the verification scope is inspected
+- THEN the change MUST build primitives to the measured geometry of `docs/DESIGN_SPECS.md` §5 and verify F2/F3/F4/F5
+  deterministically now
+- AND it MUST explicitly defer the automated F1 pixel-diff (vs the reference crops in
+  `docs/design-system/reference-renders/`) to `fidelity-harness` (#9)
+
+#### Scenario: Legacy components are untouched
+- GIVEN the pre-redesign controls (`app/components/ui/*`, `app/components/auth/*`, `MainNav`, `LoadingButton`, …)
+- WHEN the change's diff is inspected
+- THEN those files MUST be unchanged (Phase 2 recomposes/removes them); this change adds the new vocabulary only
+
+**Acceptance Criteria:**
+- Primitives consume only tokens + assets (+ other primitives), build no blocks; `lint:composition` passes
+- F2/F3/F4/F5 enforced now; automated F1 pixel-diff deferred to `fidelity-harness`; legacy components untouched
+
+---
+
+<!-- Merged on archive from change: domain-blocks (2026-06-14). Source delta retained in openspec/archive/domain-blocks/specs/ui/spec.md -->
+
+## ADDED Requirements
+
+### Requirement: Domain Block Vocabulary — 17 Composites from Primitives
+The kit MUST provide the 17 blocks of `docs/DESIGN_SYSTEM_SPEC.md` §3.2 under `app/components/blocks/`, each
+exposing the typed variant axes named there and composed only from `ui-primitives` + `layout-grammar` primitives +
+tokens (+ the sub-blocks §3.2 names). Each block is a controlled, presentational composite.
+
+#### Scenario: All seventeen blocks exist and render from fixtures
+- GIVEN the change is implemented
+- WHEN each block is rendered with its fixture view-model
+- THEN `GigCard`, `ProfileCard`, `ClientCard`, `BannerCard`, `StatPanel`, `RequirementCard`, `CriteriaList`,
+  `TermsTabs`, `ApplyPanel`, `MessageBubble`, `ConversationItem`, `NotificationItem`, `MessagesPanel`, `ChatPanel`,
+  `SidebarNav`, `Topbar`, and `FilterBar` MUST each exist under `app/components/blocks/` and render its output
+
+#### Scenario: GigCard renders all six statuses across both layouts
+- GIVEN the `GigCard` block
+- WHEN it is rendered for each of the 6 statuses (`open`, `review`, `in-progress`, `verification`, `completed`,
+  `rejected`) in both `grid` and `list` layouts
+- THEN it MUST render each combination, composing StatusBadge (the status), Tag/CategoryTag, Rating, the budget in
+  `type/mono`, the deadline, and a "К проекту" Button — with no status or layout variant missing
+
+#### Scenario: Each block's documented variant axes render
+- GIVEN a block with a §3.2 variant axis (e.g. ProfileCard `{full, compact}`; MessageBubble `{in, out}`;
+  ConversationItem `{read, unread}`; MessagesPanel `{preview, full}`; SidebarNav role × `{expanded, collapsed}`;
+  FilterBar `{search-only, full}`; TermsTabs `{proposed, client}`; StatPanel `{single, grid}`)
+- WHEN each variant is requested
+- THEN the block MUST render that variant from its fixture
+
+#### Scenario: Sub-block composition follows §3.2
+- GIVEN the blocks that §3.2 defines as composing sub-blocks
+- WHEN their composition is inspected
+- THEN `MessagesPanel` MUST compose `ConversationItem`, `ChatPanel` MUST compose `MessageBubble` (+ a Composer), and
+  `SidebarNav`/`Topbar` MUST compose `ProfileCard` — as the defined vocabulary
+
+**Acceptance Criteria:**
+- All 17 blocks exist under `app/components/blocks/` and render every §3.2 variant from fixtures
+- GigCard covers 6 statuses × `{grid, list}`; §3.2 sub-block compositions are present
+
+---
+
+### Requirement: Typed View-Model Contracts (schema-independent, fixture-driven)
+Each block MUST declare a typed view-model exactly per `docs/DESIGN_SYSTEM_SPEC.md` §5, schema-independent (the data
+it displays, not Prisma tables), and MUST render from typed fixtures with no backend dependency.
+
+#### Scenario: View-models match §5 and are typed
+- GIVEN `app/components/blocks/view-models.ts`
+- WHEN the contracts are inspected
+- THEN each block's VM (`GigCardVM`, `ProfileCardVM`, `ClientCardVM`, `StatPanelVM`, `SidebarNavVM`, `TopbarVM`,
+  `FilterBarVM`, `MessageBubbleVM`, `ConversationItemVM`, `NotificationItemVM`, `MessagesPanelVM`, `ChatPanelVM`,
+  `RequirementCardVM`, `CriteriaListVM`, `TermsTabsVM`, `ApplyPanelVM`, `BannerCardVM`) MUST be defined with the §5
+  field names/types, using schema-independent scalar aliases (`Money`, `DateISO`, `ImageRef`, `IconRef`, `Status`,
+  `Category`)
+
+#### Scenario: A malformed view-model fails the type-checker
+- GIVEN a block typed by its VM
+- WHEN a fixture/usage supplies a VM missing a required field or with a wrong-typed field (e.g. a `GigCardVM`
+  without `status`, or `layout: "masonry"`)
+- THEN `tsc --noEmit` / `npm run build` MUST fail on it
+- AND the clean tree (fixtures matching the contracts) MUST type-check and build green
+
+#### Scenario: Blocks render from fixtures with no backend
+- GIVEN the blocks and `app/components/blocks/fixtures.ts`
+- WHEN a block is rendered in a test
+- THEN it MUST render purely from a fixture VM, and MUST NOT import Prisma, server actions, or `lib/*` data modules
+
+**Acceptance Criteria:**
+- Every block's VM matches §5 and type-checks; a malformed VM fails `tsc`
+- Blocks render from typed fixtures; no Prisma/server/`lib` imports in `app/components/blocks/`
+
+---
+
+### Requirement: Token Purity and Composition Purity (F2/F5)
+Blocks MUST express styling **only via canonical tokens** (zero hardcoded values) and MUST be composed only from
+primitives + layout primitives + tokens + the §3.2 sub-blocks — no raw styled markup, no route/server imports.
+
+#### Scenario: Blocks are token-pure
+- GIVEN the block source/output
+- WHEN it is inspected
+- THEN colour/spacing/radius/type/size MUST resolve to canonical token utilities only — no raw hex, `rgb()/hsl()`,
+  or raw `px` literal
+- AND `npm run lint:tokens` MUST pass with **no new baseline entries**
+
+#### Scenario: Blocks compose only the allowed kit modules
+- GIVEN a block file under `app/components/blocks/`
+- WHEN its imports are inspected
+- THEN it MUST import only from `@/app/components/primitives`, `@/app/components/layout`, sibling blocks
+  (`@/app/components/blocks/*`), the view-model/fixture modules, `react`, and `next/*` — and MUST NOT import app
+  routes, server actions, Prisma, or `lib/*`, nor contain `style=` raw styling or off-token `className` literals
+
+**Acceptance Criteria:**
+- No raw colour/px literals in `app/components/blocks/`; `lint:tokens` passes with an unchanged baseline file
+- Import-discipline check passes (only primitives/layout/blocks/tokens/fixtures/react/next); no raw styled markup
+
+---
+
+### Requirement: Real Assets and Residual Handling (F4)
+Icon/asset-bearing blocks MUST use the exported assets via the primitives' `Icon`/`ICON` registry, not redrawn
+glyphs; the known asset residuals MUST be flagged rather than re-drawn.
+
+#### Scenario: Icon-bearing blocks use exported assets
+- GIVEN SidebarNav (nav icons + logo), Topbar (bell/gear), NotificationItem (type icon), ChatPanel composer (send),
+  CriteriaList (met indicator)
+- WHEN their icon usage is inspected
+- THEN each MUST render via the primitives' `Icon`/`ICON` registry (exported `public/assets/design-system/*`), not
+  an inline redrawn glyph
+
+#### Scenario: Banner raster and attach residuals are flagged, not redrawn
+- GIVEN the cosmic banner raster (`docs/DESIGN_SPECS.md` §7.2) and the `attach` icon (§7.5) are absent from the
+  in-hand SVGs
+- WHEN BannerCard and ChatPanel are implemented
+- THEN BannerCard MUST render `art` as a slotted `ImageRef` (fixture/placeholder, not a redrawn illustration) and
+  ChatPanel's composer MUST ship an accessible `attach` fallback — both flagged as residuals (routed to Figma)
+
+**Acceptance Criteria:**
+- Icon-bearing blocks use exported assets via `Icon`/`ICON`
+- Banner `art` is a slot; ChatPanel `attach` has an accessible fallback; both residuals flagged, not redrawn
+
+---
+
+### Requirement: All-Variants Render Coverage and Deferred Fidelity
+The blocks MUST be verified deterministically by a render-test suite covering **every block in every variant** from
+fixtures, with the unit suite and build green, and the automated **F1 pixel-diff** explicitly deferred to
+`fidelity-harness`.
+
+#### Scenario: Render tests cover every block and variant
+- GIVEN the render-test suite (`__tests__/unit/components/domain-blocks.test.tsx`, jsdom)
+- WHEN `npm run test:unit` runs
+- THEN it MUST render each block in every documented variant from fixtures and assert the composed primitives/tokens/
+  assets are present (e.g. GigCard `review` → StatusBadge `status-review` + a "К проекту" Button; MessageBubble `out`
+  vs `in`; SidebarNav `collapsed` → Rail/icon-rail)
+- AND the overall unit suite MUST stay green
+
+#### Scenario: Build and composition lint stay green
+- GIVEN the new blocks
+- WHEN `npm run build` and `npm run lint:composition` run
+- THEN both MUST pass (blocks compile; the change adds no composed-screen violations)
+
+#### Scenario: F1 automated fidelity is deferred; legacy untouched
+- GIVEN `fidelity-harness` is not yet built and Phase 2 has not begun
+- WHEN the verification scope is inspected
+- THEN the change MUST verify F2/F3/F4/F5 now and explicitly defer the automated F1 pixel-diff (vs the reference
+  crops in `docs/design-system/reference-renders/`) to `fidelity-harness` (#9)
+- AND the legacy route UI (`MainNav`, pre-redesign pages) and the shell (`app/(protected)/layout.tsx`) MUST be
+  unchanged
+
+**Acceptance Criteria:**
+- Render tests pass for every block × variant from fixtures; `npm run build` + `npm run test:unit` +
+  `npm run lint:composition` green
+- F2/F3/F4/F5 enforced now; automated F1 pixel-diff deferred to `fidelity-harness`; legacy + shell untouched
+
+---
+
+<!-- Merged on archive from change: component-workbench (2026-06-14). Source delta retained in openspec/archive/component-workbench/specs/ui/spec.md -->
+
+## ADDED Requirements
+
+### Requirement: Living Catalog of Every System Entity
+The change MUST provide a browsable, in-app workbench under `app/workbench/`, driven by a typed registry, that
+documents every system entity with all its states: every token group, all 16 primitives, all 17 blocks, the 2
+templates, and the 6 layout primitives. The workbench MUST be a dev-only surface.
+
+#### Scenario: Workbench is browsable with per-kind sections
+- GIVEN the change is implemented
+- WHEN the workbench is opened in development
+- THEN there MUST be an index plus per-kind catalog sections (tokens, primitives, blocks, templates, layout, screens)
+  rendered from the typed registry
+
+#### Scenario: Every system entity has a catalog story with all states
+- GIVEN the catalog registry
+- WHEN its entries are inspected
+- THEN it MUST contain a story for every token group (colour, radius, spacing, type, shadow), all 16 primitives
+  (each rendered in every variant/state/size), all 17 blocks (each rendered in every variant from
+  `app/components/blocks/fixtures.ts`), the 2 templates (AppShell, AuthLayout), and the 6 layout primitives
+  (Stack, Grid, Split, Section, Panel, Rail)
+
+#### Scenario: Workbench is dev-only
+- GIVEN the workbench routes
+- WHEN `NODE_ENV` is `production`
+- THEN the workbench MUST NOT render (e.g. `notFound()` via a shared `app/workbench/layout.tsx`) — it is a dev
+  surface, not shipped UI
+
+**Acceptance Criteria:**
+- `app/workbench/` renders an index + per-kind sections from a typed registry
+- The registry covers all token groups, 16 primitives (all states), 17 blocks (all variants), 2 templates, 6 layout primitives; dev-only
+
+---
+
+### Requirement: Reference-Crop Mapping (fidelity baseline registry)
+Each catalog entry MUST map to a reference render that exists under `docs/design-system/reference-renders/`, and the
+registry MUST expose the `(entity → reference baseline → renderable story)` mapping that `fidelity-harness` (#9) will
+consume.
+
+#### Scenario: Each entry maps to an existing reference render
+- GIVEN the catalog registry
+- WHEN each entry's `reference` path is resolved
+- THEN it MUST point to a file that exists under `docs/design-system/reference-renders/` (e.g. primitives/tokens →
+  `components/library-full.png`; blocks/templates → `components/components-frames-full.png`; the sample screen →
+  `frames/specialist-dashboard.lossy.jpg`)
+
+#### Scenario: Registry is the baseline mapping for the fidelity harness
+- GIVEN the registry
+- WHEN its shape is inspected
+- THEN each entry MUST expose its `id`, `kind`, `reference`, and a renderable story — the triple `fidelity-harness`
+  (#9) iterates to produce per-entity crops + diffs (this change maps baselines; it does NOT diff)
+
+**Acceptance Criteria:**
+- Every registry entry's `reference` file exists; the registry exposes entity→baseline→story for #9
+- Per-entity crops and pixel-diffing are explicitly deferred to `fidelity-harness`
+
+---
+
+### Requirement: Screen Composition from Fixtures (pre-route)
+The workbench MUST assemble at least one sample screen from a template + slotted blocks + fixtures, marked
+`@composed-screen`, which passes the composition lint — proving screens compose from the kit before touching live
+routes.
+
+#### Scenario: A sample screen is composed from the kit + fixtures
+- GIVEN the workbench
+- WHEN the sample composition is inspected
+- THEN it MUST compose `AppShell` + domain blocks (e.g. SidebarNav, Topbar, BannerCard, GigCard·grid, MessagesPanel)
+  arranged via layout primitives, bound to `app/components/blocks/fixtures.ts` — with no backend/route/data wiring
+
+#### Scenario: The sample composed screen passes the composition lint
+- GIVEN the sample screen carries the `/* @composed-screen */` marker
+- WHEN `npm run lint:composition` runs
+- THEN it MUST PASS with the sample counted as a checked composed screen (≥ 1), i.e. the file imports only from
+  templates/blocks/primitives/layout/data and contains no `className=` or `style=` attribute
+
+#### Scenario: The sample screen renders from fixtures
+- GIVEN the sample composition component
+- WHEN it is rendered in a test
+- THEN it MUST render its blocks from fixtures (e.g. a GigCard "К проекту" CTA and the SidebarNav "Дашборд" item are
+  present) with no backend
+
+**Acceptance Criteria:**
+- A sample `@composed-screen` composes AppShell + blocks from fixtures; `lint:composition` PASSES with ≥1 checked
+- The sample screen renders from fixtures (render test)
+
+---
+
+### Requirement: Coverage and Build Verification
+A test MUST assert the registry covers every system entity (cross-checked against the kit barrels) and that every
+entry's reference exists; the catalog MUST build and the unit suite stay green.
+
+#### Scenario: Coverage test asserts complete entity coverage
+- GIVEN `__tests__/unit/components/workbench.test.tsx`
+- WHEN it runs
+- THEN it MUST assert the registry's primitive ids ⊇ the 16 primitives exported by `@/app/components/primitives` and
+  its block ids ⊇ the 17 blocks exported by `@/app/components/blocks`, plus the 2 templates and 6 layout primitives
+- AND it MUST assert every registry entry's `reference` file exists on disk
+
+#### Scenario: Catalog builds and suite stays green
+- GIVEN the workbench routes
+- WHEN `npm run build` and `npm run test:unit` run
+- THEN the build MUST pass (the catalog compiles) and the overall unit suite MUST stay green
+
+**Acceptance Criteria:**
+- Coverage test passes (registry ⊇ all kit entities, cross-checked vs barrels; all references exist)
+- `npm run build` + `npm run test:unit` green
+
+---
+
+### Requirement: Token-Purity, No-Storybook Scope, and Deferred Fidelity
+The workbench MUST be token-pure and built without a Storybook dependency, leaving the automated pixel-diff to
+`fidelity-harness` and all kit/legacy/route code unchanged.
+
+#### Scenario: Workbench is token-pure
+- GIVEN the workbench source under `app/workbench/`
+- WHEN it is inspected
+- THEN it MUST contain no raw hex/`rgb()`/`px` literals (swatches use token utility classes; resolved values, if
+  shown, come from the imported token module — not source literals)
+- AND `npm run lint:tokens` MUST pass with **no new baseline entries**
+
+#### Scenario: No Storybook dependency; kit/legacy/routes unchanged
+- GIVEN the change's diff and `package.json`
+- WHEN inspected
+- THEN no Storybook (or equivalent heavy catalog) dependency MUST be added; the catalog is in-app Next routes
+- AND no primitive/block/template/legacy file, `app/(protected)/layout.tsx`, or Phase 1 model MUST be changed
+
+#### Scenario: Automated pixel-diff deferred to fidelity-harness
+- GIVEN `fidelity-harness` (#9) is not built
+- WHEN the verification scope is inspected
+- THEN this change MUST map entities to reference baselines and verify coverage/build/token-purity/composition now,
+  and MUST explicitly defer the automated F1 pixel-diff to `fidelity-harness`
+
+**Acceptance Criteria:**
+- No raw literals in `app/workbench/`; `lint:tokens` passes with an unchanged baseline; no Storybook dependency
+- No kit/legacy/route/model changes; automated F1 pixel-diff deferred to `fidelity-harness`
+
+---
+
+<!-- Merged on archive from change: fidelity-harness (2026-06-15). Source delta retained in openspec/archive/fidelity-harness/specs/ui/spec.md -->
+
+## ADDED Requirements
+
+### Requirement: Calibrated Pixel-Diff Engine
+The change MUST provide a `pixelmatch`-based diff engine that computes a differing-pixel ratio against a calibrated
+threshold (≤ ~1%), with AA/colour tolerance and region masking, usable as a library and a CI-blocking CLI.
+
+#### Scenario: Known-good control passes
+- GIVEN a reference image and an identical candidate image
+- WHEN the engine diffs them at the calibrated threshold
+- THEN the differing-pixel ratio MUST be ≈ 0 (≤ `maxDiffRatio`) and the engine MUST report PASS (exit 0 via CLI)
+
+#### Scenario: Injected 4px offset fails
+- GIVEN a structured reference image and a candidate that is the same image shifted by 4px
+- WHEN the engine diffs them
+- THEN the differing-pixel ratio MUST exceed `maxDiffRatio` (~1%) and the engine MUST report FAIL (non-zero CLI exit)
+
+#### Scenario: Threshold, AA tolerance, and masking are configurable
+- GIVEN the engine's calibration config (`maxDiffRatio` ≤ 0.01, a pixelmatch colour `threshold`, `includeAA`, and a
+  list of mask rectangles)
+- WHEN a comparison is run with a masked region over an area that otherwise differs
+- THEN pixels inside the mask MUST NOT count toward the ratio (dynamic regions are ignorable)
+- AND the colour/AA tolerance MUST be applied so anti-aliased edge pixels do not inflate the ratio
+
+**Acceptance Criteria:**
+- The engine returns a differing-pixel ratio; control ≈ 0 (pass), 4px offset > threshold (fail)
+- Threshold (≤1%), AA/colour tolerance, and region masking are configurable; CLI exits non-zero on failure
+
+---
+
+### Requirement: 1440px Surface Capture vs Reference Renders
+The change MUST capture each catalogued surface at a 1440px viewport with seeded fixtures and run the diff engine vs
+the reference renders, producing artifacts. Per-screen ≤1%-vs-Figma enforcement is deferred to Phase 2.
+
+#### Scenario: Surfaces render at 1440px with seeded fixtures
+- GIVEN the Playwright fidelity capture and the dev-only `component-workbench`
+- WHEN it runs
+- THEN it MUST render each catalogued surface (the `/workbench/*` pages and the composed screen) at a 1440px viewport
+  with the seeded fixtures and capture a PNG per surface
+
+#### Scenario: Captures are diffed vs the reference renders into artifacts
+- GIVEN a captured surface and its mapped reference render (e.g. the composed screen vs
+  `frames/specialist-dashboard.lossy.jpg`)
+- WHEN the engine compares them
+- THEN it MUST produce a differing-pixel ratio and emit diff/side-by-side/overlay artifacts for review
+
+#### Scenario: Per-screen ≤1% enforcement is deferred and flagged
+- GIVEN the reference frames are lossy/draft (frames README), the font is a substitute, the raster art is unexported,
+  and the design is unlocked
+- WHEN the verification scope is inspected
+- THEN this change MUST NOT make the ≤1%-vs-Figma match a blocking assertion
+- AND it MUST explicitly defer per-screen ≤1% enforcement to Phase 2 (`compose-*`, design-lock-gated), capturing
+  real baselines then
+
+**Acceptance Criteria:**
+- A 1440px capture renders each surface with seeded fixtures and diffs vs the reference renders, emitting artifacts
+- ≤1%-vs-Figma enforcement is deferred to Phase 2 and flagged (not a blocking assertion here)
+
+---
+
+### Requirement: Diff Artifacts (side-by-side + 50%-overlay)
+The engine MUST emit human-reviewable artifacts for each comparison: a diff image, a side-by-side composite, and a
+50%-overlay.
+
+#### Scenario: Artifacts are emitted for a comparison
+- GIVEN a comparison of two images
+- WHEN the engine runs with an output directory
+- THEN it MUST write a diff image (highlighting differing pixels), a side-by-side composite (actual | expected), and
+  a 50%-overlay (actual blended 50% over expected) to that directory
+
+**Acceptance Criteria:**
+- diff + side-by-side + 50%-overlay artifacts are written to the output dir for a comparison
+
+---
+
+### Requirement: CI-Blocking Harness
+The harness MUST be CI-blocking: `npm run fidelity` MUST run the deterministic gates and exit non-zero on any
+failure, and the engine self-test MUST run in the unit suite, with the build and suite staying green.
+
+#### Scenario: Failure blocks (non-zero exit)
+- GIVEN a comparison whose differing-pixel ratio exceeds the threshold (or a generativity violation)
+- WHEN `npm run fidelity` runs
+- THEN it MUST exit non-zero (blocking CI)
+
+#### Scenario: Control passes (zero exit) and is in the suite
+- GIVEN a known-good control
+- WHEN `npm run fidelity` and `npm run test:unit` run
+- THEN `npm run fidelity` MUST exit 0 and the engine self-test (control passes / offset fails) MUST be part of the
+  unit suite, which MUST stay green
+- AND `npm run build` MUST pass and `npm run lint:tokens` MUST pass with no new baseline entries
+
+**Acceptance Criteria:**
+- `npm run fidelity` exits non-zero on failure, zero on a clean control; engine self-test runs in `test:unit`
+- `npm run build` + `npm run test:unit` + `npm run lint:tokens` (unchanged baseline) green
+
+---
+
+### Requirement: Generativity Scaffold
+The change MUST provide a generativity scaffold: a novel screen assembled purely from the kit, with an assertion of
+zero off-system values, that a planted off-token value fails. This scaffolds the `prove-extensibility-admin` (#29)
+proof.
+
+#### Scenario: A novel kit-only screen has zero off-system values
+- GIVEN an arbitrary screen (`app/workbench/screens/GenerativityProbe.tsx`, `@composed-screen`) assembled from
+  `AppShell` + existing blocks + fixtures — not one of the reference screens
+- WHEN `npm run lint:generativity` runs
+- THEN it MUST PASS: the screen imports only kit modules + fixtures, contains no `className`/`style`, and introduces
+  no off-token literal (it passes `lint:composition` + `lint:tokens`) — zero off-system values
+
+#### Scenario: A planted off-system value fails the gate
+- GIVEN an off-token literal (e.g. a raw hex) or an off-system `className`/import planted in the generativity probe
+- WHEN `npm run lint:generativity` runs
+- THEN it MUST FAIL (non-zero), identifying the off-system value
+
+#### Scenario: Scaffold is the basis for the admin generativity proof
+- GIVEN the generativity scaffold
+- WHEN its purpose is inspected
+- THEN it MUST be documented as the scaffold that `prove-extensibility-admin` (#29) extends to the full admin proof
+  (assemble admin screens from the kit with zero new system entities) — this change ships the scaffold, not the proof
+
+**Acceptance Criteria:**
+- A novel kit-only `@composed-screen` passes `lint:generativity` (zero off-system values)
+- A planted off-token/off-system value fails it; the scaffold is documented for `prove-extensibility-admin`
+
+---

@@ -198,7 +198,16 @@
       "PowerShell(Move-Item *)",
       "Bash(awk ' *)",
       "Bash(sed -i 's#const re = /<g clip-path=\"url\\\\\\\\\\(#\\([^\\)]+\\)\\\\\\\\\\)\"\\\\[\\\\^>\\\\]\\\\*>/g;#const re = /<g\\\\\\\\b[^>]*?clip-path=\"url\\\\\\\\\\(#\\([^\\)]+\\)\\\\\\\\\\)\"[^>]*>/g;#' scripts/design-system/slice-icons.js)",
-      "Bash(rm -f \"/c/Users/apiso/AppData/Local/Temp/gigly_render/icons-raw\"/icon-*.svg)"
+      "Bash(rm -f \"/c/Users/apiso/AppData/Local/Temp/gigly_render/icons-raw\"/icon-*.svg)",
+      "Bash(awk '/^### Requirement:/{name=$0; c=0} /^#### Scenario:/{c++} /^### Requirement:/{if\\(prev\\)print pc\" scenarios <- \"prev; prev=name; pc=0; next} {if\\(/^#### Scenario:/\\)pc++} END{print pc\" scenarios <- \"prev}' openspec/changes/derive-design-system/specs/ui/spec.md)",
+      "Bash(npx --no-install openspec --version)",
+      "Bash(awk '/^### Requirement:/{r=$0; c=0} /^#### Scenario:/{c++} /^### Requirement:/ && NR>1{} END{}' openspec/changes/design-token-engine/specs/ui/spec.md)",
+      "Bash(awk -F: '/Requirement/{if\\(name\\){print name\": \"cnt} name=$0; cnt=0} /Scenario/{cnt++} END{if\\(name\\)print name\": \"cnt}')",
+      "Bash(npm run *)",
+      "Bash(awk -F: '/Requirement/{if\\(name\\)print name\": \"c; name=$0; c=0} /Scenario/{c++} END{if\\(name\\)print name\": \"c}')",
+      "Bash(awk -F: '/Requirement/{if\\(n\\)print n\": \"c; n=$0; c=0} /Scenario/{c++} END{if\\(n\\)print n\": \"c}')",
+      "Bash(printf 'import { GigCard } from \"@/app/components/blocks\";\\\\nexport const X = <GigCard vm={{ id:\"1\", title:\"t\", category:\"design\", tags:[], status:\"open\", budget:\"1 \\\\\\\\u20bd\", deadlineDays:1, rating:{value:5,count:1,verified:true}, layout:\"masonry\" }} />;\\\\n')",
+      "Bash(npm i *)"
     ]
   }
 }

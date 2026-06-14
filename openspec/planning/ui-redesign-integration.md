@@ -352,15 +352,15 @@ Each screen is an **instance** = `AppShell` (or `AuthLayout`) + blocks + data. T
 ## Status
 
 **Phase 0 — The mechanism**
-- [ ] extract-svg-tokens-and-assets
-- [ ] derive-design-system
-- [ ] design-token-engine
-- [ ] typography-system
-- [ ] layout-grammar
-- [ ] ui-primitives
-- [ ] domain-blocks
-- [ ] component-workbench
-- [ ] fidelity-harness
+- [x] extract-svg-tokens-and-assets
+- [x] derive-design-system
+- [x] design-token-engine
+- [x] typography-system
+- [x] layout-grammar
+- [x] ui-primitives
+- [x] domain-blocks
+- [x] component-workbench
+- [x] fidelity-harness
 
 **Phase 1 — Data fulfilling block contracts**
 - [ ] ratings-reviews-model
@@ -386,6 +386,6 @@ Each screen is an **instance** = `AppShell` (or `AuthLayout`) + blocks + data. T
 - [ ] compose-settings
 - [ ] prove-extensibility-admin
 
-**Progress:** 0/29 changes completed
-**Started:** Not started (gated on Figma design lock + the 1:1 prerequisites: Dev Mode, fonts/licence, exported assets, fresh tokens)
+**Progress:** 9/29 changes completed — **Phase 0 (the mechanism) COMPLETE** (extract-svg-tokens-and-assets, derive-design-system, design-token-engine, typography-system, layout-grammar, ui-primitives, domain-blocks, component-workbench, fidelity-harness). Next: Phase 1 (additive data models fulfilling block view-model contracts) → Phase 2 (thin screen compositions; the deferred F1 ≤1%-vs-Figma enforcement runs here once the design locks).
+**Started:** 2026-06-14 — the paper/extraction/token-engine prerequisites are unblocked and in hand; pixel-fidelity phases remain gated on the Figma design lock + fonts/licence + exported assets
 **Completed:** Not completed

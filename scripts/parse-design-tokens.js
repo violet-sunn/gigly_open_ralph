@@ -135,6 +135,16 @@ if (tokens.font && tokens.font.typography) {
   console.log(`✓ Extracted ${Object.keys(fontWeightTokens).length} font weight tokens`);
 }
 
+// Extract font family tokens (typography-system binds these to the type roles)
+const fontFamilyTokens = {};
+if (tokens.font && tokens.font.family) {
+  const flatFamily = flattenObject(tokens.font.family);
+  for (const [key, token] of Object.entries(flatFamily)) {
+    if (typeof token.value === 'string') fontFamilyTokens[key] = token.value;
+  }
+  console.log(`✓ Extracted ${Object.keys(fontFamilyTokens).length} font family tokens`);
+}
+
 // Extract shadow tokens
 const shadowTokens = {};
 if (tokens.effect && tokens.effect.shadow) {
@@ -154,23 +164,67 @@ const spacingTokens = {};
 if (tokens.numbers && tokens.numbers.spacing) {
   const flatSpacing = flattenObject(tokens.numbers.spacing);
   for (const [key, token] of Object.entries(flatSpacing)) {
-    if (token.value && typeof token.value === 'number') {
+    // NOTE: use typeof (not truthiness) so a 0 value is not silently dropped.
+    if (typeof token.value === 'number') {
       spacingTokens[key] = `${token.value}px`;
     }
   }
   console.log(`✓ Extracted ${Object.keys(spacingTokens).length} spacing tokens`);
 }
 
-// Extract border radius tokens from numbers.corner
+// Extract border radius tokens from numbers.corner (tolerates string values like "50%")
 const borderRadiusTokens = {};
 if (tokens.numbers && tokens.numbers.corner) {
   const flatRadius = flattenObject(tokens.numbers.corner);
   for (const [key, token] of Object.entries(flatRadius)) {
-    if (token.value && typeof token.value === 'number') {
+    if (typeof token.value === 'number') {
       borderRadiusTokens[key] = `${token.value}px`;
+    } else if (typeof token.value === 'string') {
+      borderRadiusTokens[key] = token.value; // e.g. circular: "50%", or "9999px"
     }
   }
   console.log(`✓ Extracted ${Object.keys(borderRadiusTokens).length} border radius tokens`);
+}
+
+// Extract size tokens (fixed dimensions — control/icon/avatar)
+const sizeTokens = {};
+if (tokens.numbers && tokens.numbers.size) {
+  const flatSize = flattenObject(tokens.numbers.size);
+  for (const [key, token] of Object.entries(flatSize)) {
+    if (typeof token.value === 'number') sizeTokens[key] = `${token.value}px`;
+    else if (typeof token.value === 'string') sizeTokens[key] = token.value;
+  }
+  console.log(`✓ Extracted ${Object.keys(sizeTokens).length} size tokens`);
+}
+
+// Extract z-index tokens (unitless integers)
+const zIndexTokens = {};
+if (tokens.numbers && tokens.numbers.zIndex) {
+  const flatZ = flattenObject(tokens.numbers.zIndex);
+  for (const [key, token] of Object.entries(flatZ)) {
+    if (typeof token.value === 'number') zIndexTokens[key] = `${token.value}`;
+  }
+  console.log(`✓ Extracted ${Object.keys(zIndexTokens).length} z-index tokens`);
+}
+
+// Extract opacity tokens (unitless 0..1)
+const opacityTokens = {};
+if (tokens.numbers && tokens.numbers.opacity) {
+  const flatOpacity = flattenObject(tokens.numbers.opacity);
+  for (const [key, token] of Object.entries(flatOpacity)) {
+    if (typeof token.value === 'number') opacityTokens[key] = `${token.value}`;
+  }
+  console.log(`✓ Extracted ${Object.keys(opacityTokens).length} opacity tokens`);
+}
+
+// Extract gradient tokens (CSS gradient/recipe strings)
+const gradientTokens = {};
+if (tokens.gradient) {
+  const flatGradient = flattenObject(tokens.gradient);
+  for (const [key, token] of Object.entries(flatGradient)) {
+    if (typeof token.value === 'string') gradientTokens[key] = token.value;
+  }
+  console.log(`✓ Extracted ${Object.keys(gradientTokens).length} gradient tokens`);
 }
 
 console.log('\n📝 Generating output files...\n');
@@ -184,12 +238,17 @@ const jsOutput = `// Auto-generated design tokens
 
 module.exports = {
   colors: ${JSON.stringify(colorTokens, null, 2)},
+  fontFamily: ${JSON.stringify(fontFamilyTokens, null, 2)},
   fontSize: ${JSON.stringify(fontSizeTokens, null, 2)},
   lineHeight: ${JSON.stringify(lineHeightTokens, null, 2)},
   fontWeight: ${JSON.stringify(fontWeightTokens, null, 2)},
   boxShadow: ${JSON.stringify(shadowTokens, null, 2)},
   spacing: ${JSON.stringify(spacingTokens, null, 2)},
   borderRadius: ${JSON.stringify(borderRadiusTokens, null, 2)},
+  size: ${JSON.stringify(sizeTokens, null, 2)},
+  zIndex: ${JSON.stringify(zIndexTokens, null, 2)},
+  opacity: ${JSON.stringify(opacityTokens, null, 2)},
+  gradient: ${JSON.stringify(gradientTokens, null, 2)},
 };
 `;
 
@@ -211,6 +270,14 @@ if (Object.keys(colorTokens).length > 0) {
   cssOutput += '\n  /* Design Tokens - Colors */\n';
   for (const [key, value] of Object.entries(colorTokens)) {
     cssOutput += `  --${key}: ${value};\n`;
+  }
+}
+
+// Add font family variables
+if (Object.keys(fontFamilyTokens).length > 0) {
+  cssOutput += '\n  /* Design Tokens - Typography (Font Families) */\n';
+  for (const [key, value] of Object.entries(fontFamilyTokens)) {
+    cssOutput += `  --font-family-${key}: ${value};\n`;
   }
 }
 
@@ -260,6 +327,38 @@ if (Object.keys(borderRadiusTokens).length > 0) {
   }
 }
 
+// Add size variables
+if (Object.keys(sizeTokens).length > 0) {
+  cssOutput += '\n  /* Design Tokens - Sizes */\n';
+  for (const [key, value] of Object.entries(sizeTokens)) {
+    cssOutput += `  --size-${key}: ${value};\n`;
+  }
+}
+
+// Add z-index variables
+if (Object.keys(zIndexTokens).length > 0) {
+  cssOutput += '\n  /* Design Tokens - Z-Index */\n';
+  for (const [key, value] of Object.entries(zIndexTokens)) {
+    cssOutput += `  --z-${key}: ${value};\n`;
+  }
+}
+
+// Add opacity variables
+if (Object.keys(opacityTokens).length > 0) {
+  cssOutput += '\n  /* Design Tokens - Opacity */\n';
+  for (const [key, value] of Object.entries(opacityTokens)) {
+    cssOutput += `  --opacity-${key}: ${value};\n`;
+  }
+}
+
+// Add gradient variables
+if (Object.keys(gradientTokens).length > 0) {
+  cssOutput += '\n  /* Design Tokens - Gradients */\n';
+  for (const [key, value] of Object.entries(gradientTokens)) {
+    cssOutput += `  --gradient-${key}: ${value};\n`;
+  }
+}
+
 cssOutput += '}\n';
 
 const cssPath = path.join(__dirname, 'generated-tokens.css');
@@ -269,10 +368,15 @@ console.log('✓ Generated scripts/generated-tokens.css');
 console.log('\n✅ Token parsing complete!\n');
 console.log('Summary:');
 console.log(`  - ${Object.keys(colorTokens).length} color tokens`);
+console.log(`  - ${Object.keys(fontFamilyTokens).length} font family tokens`);
 console.log(`  - ${Object.keys(fontSizeTokens).length} font size tokens`);
 console.log(`  - ${Object.keys(lineHeightTokens).length} line height tokens`);
 console.log(`  - ${Object.keys(fontWeightTokens).length} font weight tokens`);
 console.log(`  - ${Object.keys(shadowTokens).length} shadow tokens`);
 console.log(`  - ${Object.keys(spacingTokens).length} spacing tokens`);
 console.log(`  - ${Object.keys(borderRadiusTokens).length} border radius tokens`);
+console.log(`  - ${Object.keys(sizeTokens).length} size tokens`);
+console.log(`  - ${Object.keys(zIndexTokens).length} z-index tokens`);
+console.log(`  - ${Object.keys(opacityTokens).length} opacity tokens`);
+console.log(`  - ${Object.keys(gradientTokens).length} gradient tokens`);
 console.log('');

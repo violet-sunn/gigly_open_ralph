@@ -60,3 +60,6 @@ memdb_*.db-shm
 
 # TypeScript build cache (added by cleanup)
 tsconfig.tsbuildinfo
+
+# fidelity-harness run artifacts (generated; Phase-2 baselines live elsewhere)
+docs/design-system/fidelity/out/

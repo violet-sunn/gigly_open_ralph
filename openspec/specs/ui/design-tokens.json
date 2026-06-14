@@ -1,0 +1,124 @@
+{
+  "_meta": {
+    "ssot": "docs/DESIGN_SYSTEM_SPEC.md",
+    "provenance": "docs/DESIGN_SPECS.md -> screens/tokens.svg, screens/frames.svg",
+    "generatedBy": "node scripts/parse-design-tokens.js -> scripts/generated-tokens.{js,css}",
+    "note": "Canonical semantic tokens only. No pre-redesign 'parody' values, no legacy-name shim. Values trace to the SVG substrate; names follow the DESIGN_SYSTEM_SPEC taxonomy (namespace/role -> nested namespace.role -> flattened namespace-role).",
+    "residual": "Exact font families/metrics + the SF Compact web licence are owned by `typography-system`; type tokens here express the scale structure only (anchor: 22px auth heading)."
+  },
+
+  "color-semantic": {
+    "surface": {
+      "level-0": { "value": "#01030e", "description": "Page / darkest background" },
+      "level-1": { "value": "#0e101a", "description": "Recessed surface (wells, inner fields)" },
+      "level-2": { "value": "#10121c", "description": "Card / input surface (dominant)" },
+      "level-3": { "value": "#1a1a24", "description": "Elevated surface (popovers, hover rows)" },
+      "level-3-hover": { "value": "#1a1d2a", "description": "Elevated hover variant" }
+    },
+    "text": {
+      "strong": { "value": "#ffffff", "description": "Primary text, active glyphs" },
+      "inverse": { "value": "#ffffff", "description": "Text on brand/coloured fills" },
+      "muted": { "value": "#8a8f99", "description": "Muted text & icon strokes (primary neutral)" },
+      "subtle": { "value": "#9fa0a4", "description": "De-emphasized text / progress track" }
+    },
+    "border": {
+      "default": { "value": "#3a3d45", "description": "Borders / dividers" }
+    },
+    "brand": {
+      "default": { "value": "#0088ff", "description": "Brand primary — CTAs, active, accents" },
+      "hover": { "value": "#4cacff", "description": "Brand light — hover / highlight" },
+      "pressed": { "value": "#0077e6", "description": "Brand dark — pressed" }
+    },
+    "status": {
+      "open": { "value": "#8a8f99", "description": "Открыт (neutral)" },
+      "review": { "value": "#f59e0b", "description": "На рассмотрении (amber)" },
+      "in-progress": { "value": "#3b82f6", "description": "В работе (blue) — distinct from brand" },
+      "verification": { "value": "#8b5cf6", "description": "На проверке (purple)" },
+      "completed": { "value": "#10b981", "description": "Завершён (green)" },
+      "rejected": { "value": "#ef4444", "description": "Отклонён (red)" }
+    },
+    "category": {
+      "marketing": { "value": "#0088ff", "description": "Маркетинг (blue)" },
+      "design": { "value": "#f45fb1", "description": "Дизайн (pink)" },
+      "programming": { "value": "#0cc671", "description": "Программирование (green)" },
+      "development": { "value": "#05c9e6", "description": "Разработка (teal)" },
+      "coding": { "value": "#f27c0d", "description": "Кодинг (orange)" }
+    }
+  },
+
+  "font": {
+    "_residual": "exact reference metrics + a licensed SF Compact / NKDy Mono remain capped (see docs/TYPOGRAPHY.md). typography-system bound dev-stage substitutes (Inter, JetBrains Mono) via the --font-sans/--font-mono contract.",
+    "family": {
+      "sans": { "value": "var(--font-sans), -apple-system, system-ui, Segoe UI, Roboto, sans-serif", "description": "Display/UI/body — Inter (dev-stage substitute for SF Compact)" },
+      "mono": { "value": "var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace", "description": "Monospace data — JetBrains Mono (dev-stage substitute for NKDy Mono)" }
+    },
+    "typography": {
+      "display": { "value": { "fontSize": 32, "lineHeight": 40, "fontWeight": 700 } },
+      "h1": { "value": { "fontSize": 22, "lineHeight": 28, "fontWeight": 700 } },
+      "h2": { "value": { "fontSize": 18, "lineHeight": 24, "fontWeight": 600 } },
+      "title": { "value": { "fontSize": 16, "lineHeight": 22, "fontWeight": 600 } },
+      "body": { "value": { "fontSize": 14, "lineHeight": 20, "fontWeight": 400 } },
+      "label": { "value": { "fontSize": 13, "lineHeight": 18, "fontWeight": 500 } },
+      "caption": { "value": { "fontSize": 12, "lineHeight": 16, "fontWeight": 400 } },
+      "mono": { "value": { "fontSize": 13, "lineHeight": 18, "fontWeight": 400 } }
+    }
+  },
+
+  "effect": {
+    "shadow": {
+      "none": { "value": { "offsetX": 0, "offsetY": 0, "radius": 0, "spread": 0, "color": "#00000000" } },
+      "card": { "value": { "offsetX": 0, "offsetY": 2, "radius": 8, "spread": 0, "color": "#00000029" } },
+      "popover": { "value": { "offsetX": 0, "offsetY": 8, "radius": 24, "spread": 0, "color": "#00000033" } }
+    }
+  },
+
+  "gradient": {
+    "brand-glow": {
+      "value": "linear-gradient(90deg, rgba(0, 136, 255, 0.10) 0%, rgba(0, 136, 255, 0.083) 11%, rgba(0, 136, 255, 0) 75%)",
+      "description": "Layered brand glow — SVGs contain no raw gradients; recipe from brand/default fill + opacity"
+    }
+  },
+
+  "numbers": {
+    "spacing": {
+      "0": { "value": 0 },
+      "1": { "value": 4 },
+      "2": { "value": 8 },
+      "3": { "value": 12 },
+      "4": { "value": 16 },
+      "5": { "value": 20 },
+      "6": { "value": 24 },
+      "8": { "value": 32 },
+      "10": { "value": 40 },
+      "12": { "value": 48 }
+    },
+    "corner": {
+      "xs": { "value": 2 },
+      "sm": { "value": 4 },
+      "md": { "value": 8 },
+      "lg": { "value": 12 },
+      "xl": { "value": 16 },
+      "pill": { "value": 18 },
+      "circular": { "value": "50%" }
+    },
+    "size": {
+      "control": { "value": 40 },
+      "icon": { "value": 16 },
+      "icon-rail": { "value": 20 },
+      "avatar-sm": { "value": 24 },
+      "avatar-lg": { "value": 32 }
+    },
+    "zIndex": {
+      "base": { "value": 0 },
+      "sticky": { "value": 100 },
+      "dropdown": { "value": 1000 },
+      "modal": { "value": 1100 },
+      "toast": { "value": 1200 }
+    },
+    "opacity": {
+      "disabled": { "value": 0.4 },
+      "subtle": { "value": 0.08 },
+      "overlay": { "value": 0.6 }
+    }
+  }
+}

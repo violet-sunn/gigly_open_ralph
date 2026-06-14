@@ -1,153 +1,115 @@
 /* Auto-generated design tokens */
 /* Source: openspec/specs/ui/design-tokens.json */
-/* Generated: 2026-03-21T22:06:44.661Z */
+/* Generated: 2026-06-14T13:18:10.836Z */
 /* To regenerate: node scripts/parse-design-tokens.js */
 
 :root {
 
   /* Design Tokens - Colors */
-  --text-neutral-strong: rgba(255, 255, 255, 1.00);
-  --text-neutral-inverted: rgba(38, 38, 38, 1.00);
-  --text-neutral-weak: rgba(178, 178, 178, 1.00);
-  --text-brand-default: rgba(19, 121, 243, 1.00);
-  --text-brand-hover: rgba(84, 163, 246, 1.00);
-  --text-brand-pressed: rgba(114, 183, 249, 1.00);
-  --text-success-default: rgba(67, 199, 143, 1.00);
-  --text-success-hover: rgba(94, 217, 162, 1.00);
-  --text-success-pressed: rgba(129, 233, 184, 1.00);
-  --text-warning-default: rgba(254, 154, 46, 1.00);
-  --text-warning-hover: rgba(255, 181, 88, 1.00);
-  --text-warning-pressed: rgba(253, 206, 136, 1.00);
-  --text-other-disabled: rgba(112, 112, 112, 1.00);
-  --text-other-link-default: rgba(255, 255, 255, 1.00);
-  --text-other-link-hover: rgba(84, 163, 246, 1.00);
-  --text-other-link-pressed: rgba(16, 18, 28, 1.00);
-  --text-danger-default: rgba(255, 149, 129, 1.00);
-  --text-danger-hover: rgba(255, 176, 161, 1.00);
-  --text-danger-pressed: rgba(255, 201, 189, 1.00);
-  --icon-neutral-strong: rgba(31, 41, 55, 1.00);
-  --icon-neutral-inverted: rgba(38, 38, 38, 1.00);
-  --icon-neutral-weak: rgba(178, 178, 178, 1.00);
-  --icon-neutral-weaker: rgba(107, 114, 128, 1.00);
-  --icon-brand-default: rgba(19, 121, 243, 1.00);
-  --icon-brand-hover: rgba(52, 143, 244, 1.00);
-  --icon-brand-pressed: rgba(114, 183, 249, 1.00);
-  --icon-success-default: rgba(19, 121, 243, 1.00);
-  --icon-success-hover: rgba(19, 121, 243, 1.00);
-  --icon-success-pressed: rgba(19, 121, 243, 1.00);
-  --icon-warning-default: rgba(254, 154, 46, 1.00);
-  --icon-warning-hover: rgba(255, 181, 88, 1.00);
-  --icon-warning-pressed: rgba(253, 206, 136, 1.00);
-  --icon-danger-default: rgba(255, 149, 129, 1.00);
-  --icon-danger-hover: rgba(255, 176, 161, 1.00);
-  --icon-danger-pressed: rgba(255, 201, 189, 1.00);
-  --icon-other-disabled: rgba(112, 112, 112, 1.00);
-  --bg-surface-level-0: rgba(1, 3, 14, 1.00);
-  --bg-surface-level-1: rgba(6, 8, 19, 1.00);
-  --bg-surface-level-2: rgba(16, 18, 28, 1.00);
-  --bg-success-strong-default: rgba(67, 199, 143, 1.00);
-  --bg-success-strong-hover: rgba(94, 217, 162, 1.00);
-  --bg-success-strong-pressed: rgba(129, 233, 184, 1.00);
-  --bg-success-weak-default: rgba(4, 67, 41, 1.00);
-  --bg-success-weak-hover: rgba(0, 78, 47, 1.00);
-  --bg-success-weak-pressed: rgba(0, 92, 56, 1.00);
-  --bg-warning-strong-default: rgba(245, 158, 11, 1.00);
-  --bg-warning-strong-hover: rgba(217, 119, 6, 1.00);
-  --bg-warning-strong-pressed: rgba(180, 83, 9, 1.00);
-  --bg-warning-weak-default: rgba(251, 191, 36, 1.00);
-  --bg-warning-weak-hover: rgba(245, 158, 11, 1.00);
-  --bg-warning-weak-pressed: rgba(217, 119, 6, 1.00);
-  --bg-danger-strong-default: rgba(255, 149, 129, 1.00);
-  --bg-danger-strong-hover: rgba(255, 176, 161, 1.00);
-  --bg-danger-strong-pressed: rgba(255, 201, 189, 1.00);
-  --bg-danger-weak-default: rgba(123, 0, 0, 1.00);
-  --bg-danger-weak-hover: rgba(141, 0, 0, 1.00);
-  --bg-danger-weak-pressed: rgba(165, 0, 0, 1.00);
-  --bg-gradient: rgba(255, 255, 255, 0.08);
-  --border-neutral-strong: rgba(36, 41, 53, 1.00);
-  --border-neutral-weak: rgba(36, 41, 53, 1.00);
-  --border-brand-default: rgba(2, 101, 220, 1.00);
-  --border-brand-hover: rgba(19, 121, 243, 1.00);
-  --border-brand-pressed: rgba(19, 121, 243, 1.00);
-  --border-success-default: rgba(67, 199, 143, 1.00);
-  --border-success-hover: rgba(94, 217, 162, 1.00);
-  --border-success-pressed: rgba(129, 233, 184, 1.00);
-  --border-warning-default: rgba(245, 158, 11, 1.00);
-  --border-warning-hover: rgba(217, 119, 6, 1.00);
-  --border-warning-pressed: rgba(180, 83, 9, 1.00);
-  --border-danger-default: rgba(255, 149, 129, 1.00);
-  --border-danger-hover: rgba(255, 176, 161, 1.00);
-  --border-danger-pressed: rgba(255, 201, 189, 1.00);
-  --border-other-disabled: rgba(112, 112, 112, 1.00);
-  --border-other-focusring: rgba(114, 183, 249, 1.00);
+  --surface-level-0: #01030e;
+  --surface-level-1: #0e101a;
+  --surface-level-2: #10121c;
+  --surface-level-3: #1a1a24;
+  --surface-level-3-hover: #1a1d2a;
+  --text-strong: #ffffff;
+  --text-inverse: #ffffff;
+  --text-muted: #8a8f99;
+  --text-subtle: #9fa0a4;
+  --border-default: #3a3d45;
+  --brand-default: #0088ff;
+  --brand-hover: #4cacff;
+  --brand-pressed: #0077e6;
+  --status-open: #8a8f99;
+  --status-review: #f59e0b;
+  --status-in-progress: #3b82f6;
+  --status-verification: #8b5cf6;
+  --status-completed: #10b981;
+  --status-rejected: #ef4444;
+  --category-marketing: #0088ff;
+  --category-design: #f45fb1;
+  --category-programming: #0cc671;
+  --category-development: #05c9e6;
+  --category-coding: #f27c0d;
+
+  /* Design Tokens - Typography (Font Families) */
+  --font-family-sans: var(--font-sans), -apple-system, system-ui, Segoe UI, Roboto, sans-serif;
+  --font-family-mono: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
 
   /* Design Tokens - Typography (Font Sizes) */
-  --font-size-headline-xxl: 3.5rem;
-  --font-size-headline-xl: 3rem;
-  --font-size-headline-lg: 2.5rem;
-  --font-size-headline-md: 2rem;
-  --font-size-headline-sm: 1.5rem;
-  --font-size-headline-xs: 1.25rem;
-  --font-size-body-lg: 1.25rem;
-  --font-size-body-md: 1rem;
-  --font-size-body-sm: 0.875rem;
-  --font-size-label-lg: 1.25rem;
-  --font-size-label-md: 1rem;
-  --font-size-label-sm: 0.875rem;
+  --font-size-display: 2rem;
+  --font-size-h1: 1.375rem;
+  --font-size-h2: 1.125rem;
+  --font-size-title: 1rem;
+  --font-size-body: 0.875rem;
+  --font-size-label: 0.8125rem;
+  --font-size-caption: 0.75rem;
+  --font-size-mono: 0.8125rem;
 
   /* Design Tokens - Typography (Line Heights) */
-  --line-height-headline-xxl: 3.5rem;
-  --line-height-headline-xl: 3rem;
-  --line-height-headline-lg: 2.75rem;
-  --line-height-headline-md: 2.25rem;
-  --line-height-headline-sm: 2rem;
-  --line-height-headline-xs: 1.5rem;
-  --line-height-body-lg: 1.75rem;
-  --line-height-body-md: 1.5rem;
-  --line-height-body-sm: 1.25rem;
-  --line-height-label-lg: 1.75rem;
-  --line-height-label-md: 1.5rem;
-  --line-height-label-sm: 1.25rem;
+  --line-height-display: 2.5rem;
+  --line-height-h1: 1.75rem;
+  --line-height-h2: 1.5rem;
+  --line-height-title: 1.375rem;
+  --line-height-body: 1.25rem;
+  --line-height-label: 1.125rem;
+  --line-height-caption: 1rem;
+  --line-height-mono: 1.125rem;
 
   /* Design Tokens - Typography (Font Weights) */
-  --font-weight-headline-xxl: 400;
-  --font-weight-headline-xl: 400;
-  --font-weight-headline-lg: 400;
-  --font-weight-headline-md: 400;
-  --font-weight-headline-sm: 400;
-  --font-weight-headline-xs: 400;
-  --font-weight-body-lg: 400;
-  --font-weight-body-md: 400;
-  --font-weight-body-sm: 400;
-  --font-weight-label-lg: 400;
-  --font-weight-label-md: 400;
-  --font-weight-label-sm: 400;
+  --font-weight-display: 700;
+  --font-weight-h1: 700;
+  --font-weight-h2: 600;
+  --font-weight-title: 600;
+  --font-weight-body: 400;
+  --font-weight-label: 500;
+  --font-weight-caption: 400;
+  --font-weight-mono: 400;
 
   /* Design Tokens - Effects (Shadows) */
-  --shadow-100: 0px 2px 8px 0px rgba(0, 0, 0, 0.12);
-  --shadow-200: 0px 4px 12px 0px rgba(0, 0, 0, 0.16);
-  --shadow-300: 0px 8px 16px 0px rgba(0, 0, 0, 0.12);
-  --shadow-400: 0px 8px 32px 0px rgba(0, 0, 0, 0.16);
+  --shadow-none: 0px 0px 0px 0px rgba(0, 0, 0, 0.00);
+  --shadow-card: 0px 2px 8px 0px rgba(0, 0, 0, 0.16);
+  --shadow-popover: 0px 8px 24px 0px rgba(0, 0, 0, 0.20);
 
   /* Design Tokens - Spacing */
-  --spacing-25: 2px;
-  --spacing-50: 4px;
-  --spacing-75: 6px;
-  --spacing-100: 8px;
-  --spacing-150: 12px;
-  --spacing-300: 24px;
-  --spacing-400: 32px;
-  --spacing-500: 40px;
-  --spacing-600: 48px;
-  --spacing-1000: 80px;
-  --spacing-base: 16px;
+  --spacing-0: 0px;
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+  --spacing-8: 32px;
+  --spacing-10: 40px;
+  --spacing-12: 48px;
 
   /* Design Tokens - Border Radius */
-  --radius-10: 10px;
-  --radius-20: 20px;
-  --radius-25: 25px;
-  --radius-50: 4px;
-  --radius-200: 16px;
-  --radius-round: 9999px;
-  --radius-base: 8px;
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-pill: 18px;
+  --radius-circular: 50%;
+
+  /* Design Tokens - Sizes */
+  --size-control: 40px;
+  --size-icon: 16px;
+  --size-icon-rail: 20px;
+  --size-avatar-sm: 24px;
+  --size-avatar-lg: 32px;
+
+  /* Design Tokens - Z-Index */
+  --z-base: 0;
+  --z-sticky: 100;
+  --z-dropdown: 1000;
+  --z-modal: 1100;
+  --z-toast: 1200;
+
+  /* Design Tokens - Opacity */
+  --opacity-disabled: 0.4;
+  --opacity-subtle: 0.08;
+  --opacity-overlay: 0.6;
+
+  /* Design Tokens - Gradients */
+  --gradient-brand-glow: linear-gradient(90deg, rgba(0, 136, 255, 0.10) 0%, rgba(0, 136, 255, 0.083) 11%, rgba(0, 136, 255, 0) 75%);
 }

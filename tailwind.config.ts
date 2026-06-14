@@ -14,84 +14,42 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Design tokens from design-tokens.json (auto-generated)
+        // Canonical design tokens from design-tokens.json (auto-generated).
+        // Names follow the DESIGN_SYSTEM_SPEC taxonomy: surface-*, text-*, border-*,
+        // brand-*, status-*, category-*.
         ...tokens.colors,
 
-        // Manual design system colors (backward compatibility)
-        navy: {
-          900: "#0A0E27", // Primary background
-          800: "#141937", // Card background (slightly lighter)
-          700: "#1E2447", // Hover states
-          600: "#2A3158", // Borders
-        },
-        blue: {
-          400: "#38BDF8", // Lighter accent
-          500: "#0EA5E9", // Primary accent
-          600: "#0284C7", // Hover state
-        },
-        gray: {
-          300: "#D1D5DB", // Light text
-          400: "#9CA3AF", // Placeholder text
-          500: "#6B7280", // Secondary text
-          600: "#4B5563", // Borders
-          700: "#374151", // Subtle borders
-          800: "#1F2937", // Dark elements
-        },
-        // Status colors
-        success: {
-          400: "#4ADE80",
-          500: "#22C55E",
-          600: "#16A34A",
-        },
-        warning: {
-          400: "#FBBF24",
-          500: "#F59E0B",
-          600: "#D97706",
-        },
-        error: {
-          400: "#F87171",
-          500: "#EF4444",
-          600: "#DC2626",
-        },
-        // Legacy colors (keep for backward compatibility)
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
-        card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
-        },
-        popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
-        },
-        primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
-        },
-        secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
-        },
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
-        },
-        accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
-        },
-        destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
-        },
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
+        // Token-backed base layer consumed by globals.css @apply (border-border,
+        // bg-background, text-foreground). NOT a parody palette — these point at
+        // canonical tokens so the @apply base layer compiles. The legacy navy/blue/
+        // gray/success/warning/error palettes were removed (parody; Phase 2 recomposes).
+        background: tokens.colors["surface-level-0"],
+        foreground: tokens.colors["text-strong"],
+        border: tokens.colors["border-default"],
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        // Canonical radius scale (xs/sm/md/lg/xl/pill/circular)
+        ...tokens.borderRadius,
+      },
+      spacing: {
+        // Canonical spacing scale + fixed size tokens (control/icon/avatar)
+        ...tokens.spacing,
+        ...tokens.size,
+      },
+      zIndex: {
+        ...tokens.zIndex,
+      },
+      opacity: {
+        ...tokens.opacity,
+      },
+      backgroundImage: {
+        // Token-based gradient/"glow" recipes
+        ...tokens.gradient,
+      },
+      fontFamily: {
+        // Bound by typography-system: font-sans -> --font-sans (Inter / SF Compact
+        // substitute), font-mono -> --font-mono (JetBrains Mono / NKDy Mono substitute)
+        ...tokens.fontFamily,
       },
       fontSize: {
         // Design tokens from design-tokens.json (auto-generated)

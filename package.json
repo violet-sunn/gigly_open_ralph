@@ -13,7 +13,12 @@
     "test:coverage": "vitest run --coverage",
     "clean:test-db": "rimraf __tests__/.tmp memdb_*.db* test.db",
     "test:clean": "npm run clean:test-db && npm run test:unit",
-    "validate:tokens": "bash scripts/validate-token-migration.sh"
+    "tokens:generate": "node scripts/parse-design-tokens.js",
+    "lint:tokens": "node scripts/design-system/validate-token-purity.js",
+    "lint:composition": "node scripts/design-system/validate-composition.js",
+    "lint:generativity": "node scripts/design-system/validate-generativity.js",
+    "fidelity": "node scripts/design-system/fidelity-diff.js --selfcheck && npm run lint:generativity",
+    "validate:tokens": "node scripts/design-system/validate-tokens.js"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -51,6 +56,7 @@
     "eslint": "^8",
     "eslint-config-next": "15.1.6",
     "jsdom": "^28.1.0",
+    "pixelmatch": "^5.3.0",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "tsx": "^4.21.0",
