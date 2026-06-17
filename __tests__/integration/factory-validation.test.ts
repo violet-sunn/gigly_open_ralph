@@ -277,40 +277,30 @@ describe('Factory Validation Compliance', () => {
 
   describe('Parallel Execution Safety', () => {
     it('creates 25 users in parallel without email collisions', async () => {
-      await withTestTransaction(async (tx) => {
-        // Create 25 users in parallel
-        const userPromises = Array.from({ length: 25 }, () => createTestUser(tx))
-        const users = await Promise.all(userPromises)
-
-        // Collect all emails
-        const emails = users.map(u => u.email)
-
-        // Verify all emails are unique
-        const uniqueEmails = new Set(emails)
-        expect(uniqueEmails.size).toBe(25)
-      })
-    })
+      // Use the worker client directly (auto-commit writes; the global beforeEach reset handles
+      // cleanup). 25 parallel writes inside one interactive rollback transaction was deadlock-prone
+      // on the libsql/SQLite adapter under full-suite load.
+      const userPromises = Array.from({ length: 25 }, () => createTestUser(prisma))
+      const users = await Promise.all(userPromises)
+      const uniqueEmails = new Set(users.map((u) => u.email))
+      expect(uniqueEmails.size).toBe(25)
+    }, 30000)
 
     it('creates 10 gigs with applications in parallel without violations', async () => {
-      await withTestTransaction(async (tx) => {
-        // Create 10 gigs with applications in parallel
-        const gigPromises = Array.from({ length: 10 }, async () => {
-          const gig = await createTestGig(tx)
-          const app = await createTestApplication(tx, { gigId: gig.id })
-          return { gig, app }
-        })
-
-        const results = await Promise.all(gigPromises)
-
-        // Verify all gigs and applications were created
-        expect(results).toHaveLength(10)
-        results.forEach(({ gig, app }) => {
-          expect(gig.id).toBeTruthy()
-          expect(app.id).toBeTruthy()
-          expect(app.gigId).toBe(gig.id)
-        })
+      // Worker client directly (see note above) — avoids the interactive-transaction deadlock.
+      const gigPromises = Array.from({ length: 10 }, async () => {
+        const gig = await createTestGig(prisma)
+        const app = await createTestApplication(prisma, { gigId: gig.id })
+        return { gig, app }
       })
-    })
+      const results = await Promise.all(gigPromises)
+      expect(results).toHaveLength(10)
+      results.forEach(({ gig, app }) => {
+        expect(gig.id).toBeTruthy()
+        expect(app.id).toBeTruthy()
+        expect(app.gigId).toBe(gig.id)
+      })
+    }, 30000)
   })
 
   describe('Override Functionality', () => {

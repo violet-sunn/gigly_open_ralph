@@ -19,7 +19,11 @@ The registration Server Action MUST hash passwords before storing them in the da
 ---
 
 ### Requirement: Registration Action with Session and Role
-The registration Server Action MUST accept a role, validate it, create a session, and redirect on success.
+The registration Server Action MUST accept a role, validate it, create a session, and redirect on success — and MUST
+**additively** (compose-auth-onboarding) (a) enforce a confirm-password match when a confirm-password is supplied, and
+(b) persist the supplied role-specific profile (`ClientProfile`/`SpecialistProfile`) in the same transaction as the
+`User`. The action signature, rate limiting, password hashing, password-strength validation, and role validation are
+preserved; behaviour for callers that supply only email/password/role (no confirm-password, no profile) is unchanged.
 
 #### Scenario: Redirect and auto-login after successful registration
 - GIVEN a valid registration submission with role "CLIENT" or "SPECIALIST"
@@ -30,87 +34,75 @@ The registration Server Action MUST accept a role, validate it, create a session
 #### Scenario: Registration with invalid role
 - GIVEN form data with an invalid role (e.g., "HACKER", "ADMIN", "USER")
 - WHEN `registerUser` is called
-- THEN it MUST return `{ error: 'Please select a role.' }`
-- AND no user MUST be created
+- THEN it MUST return an `{ error }` and no user MUST be created
+
+#### Scenario: Confirm-password mismatch is rejected (when supplied)
+- GIVEN a registration submission that includes a `confirmPassword` field
+- WHEN `confirmPassword` does not equal `password`
+- THEN `registerUser` MUST return an `{ error }` (e.g. «Пароли не совпадают.») AND no user MUST be created
+- AND WHEN no `confirmPassword` field is supplied (single-step callers), the check MUST be skipped (unchanged behaviour)
+
+#### Scenario: Step-3 profile is persisted with the user
+- GIVEN a registration submission that includes role-specific profile fields
+- WHEN the user is created
+- THEN the matching profile MUST be created in the same transaction — CLIENT → `ClientProfile` (companyName, inn,
+  contactPerson, phoneNumber); SPECIALIST → `SpecialistProfile` (displayName, position, specialization, experienceLevel,
+  techStack, timezone) — with free-text sanitized and dropdown values validated against the datasets
+  (`SPECIALIZATIONS`/`EXPERIENCE_LEVELS`/`TIMEZONES`; invalid coerced to `''`)
+- AND WHEN no profile fields are supplied, no profile MUST be created (unchanged behaviour)
 
 #### Scenario: Error returned on failure
 - GIVEN a registration submission that fails (e.g., duplicate email)
 - WHEN the Server Action catches the error
-- THEN it MUST return an object with an error message
-- AND the form MUST display that message to the user
+- THEN it MUST return an object with an error message AND the form MUST display that message
 
 **Acceptance Criteria:**
-- `registerUser` reads `formData.get('role')` and validates it is `"CLIENT"` or `"SPECIALIST"`
-- On success: `createSession()` is called with role, then `redirect('/dashboard')`
-- On failure: `{ error: string }` is returned
-- The `registerUser` function signature is compatible with `useActionState`
+- `registerUser` reads `formData.get('role')` and validates it is `"CLIENT"` or `"SPECIALIST"`; on success `createSession()` then `redirect('/dashboard')`; on failure `{ error: string }`; signature compatible with `useActionState`
+- Confirm-password mismatch (when supplied) → error, no user; absent → skipped (backward-compatible)
+- Role-specific profile (when supplied) persisted in the same transaction, dataset-validated; absent → no profile (backward-compatible)
+- Rate limiting, password hashing, and password-strength validation preserved
 
 ---
 
 ### Requirement: Registration Page UI Design
-The registration page MUST match the approved Figma design specifications while maintaining all existing authentication functionality.
+The registration page (`/register`) MUST be the kit-composed 3-step onboarding wizard (`RegisterWizard`,
+compose-auth-onboarding) — composed from `AuthLayout` + `StepIndicator` + `RoleCards` + form primitives, token-pure (no
+hardcoded hex/px literals) — replacing the prior single-step hardcoded-Figma page. It MUST preserve role preselection
+from `?role=`, the RU copy, the decorative checkerboard footer (the exported asset), responsiveness, and all existing
+authentication functionality (validation, rate limiting, session creation). Fidelity is measured against the references
+(auth/reg/reg-customer/reg-specialist), with F1 ≤1% deferred on the font-licence gate.
 
-#### Scenario: Registration page displays bilingual heading
+#### Scenario: Registration page is the composed 3-step wizard
 - GIVEN a user navigates to `/register`
 - WHEN the page renders
-- THEN the heading MUST display "Регистрация" (Russian)
-- AND the page MUST be accessible to English-speaking users through visual context
+- THEN it MUST render `<RegisterWizard>` inside `AuthLayout`, showing a `StepIndicator` with three steps (role →
+  credentials → role-specific profile), the heading «Регистрация», and the exported checkerboard footer
+  (`/assets/design-system/patterns/checkerboard.svg`) — composed from the kit, token-pure (no `className`/`style`/hex in
+  the screen)
 
-#### Scenario: Registration page uses exact Figma styling
-- GIVEN a user navigates to `/register`
+#### Scenario: Role pre-selection from query parameter
+- GIVEN a user navigates to `/register?role=SPECIALIST` (or `=CLIENT`)
 - WHEN the page renders
-- THEN the container MUST be 418px wide on desktop, 90vw on mobile
-- AND the container MUST have 25px border-radius
-- AND the container MUST have 40px padding on desktop, 20px on mobile
-- AND input fields MUST have #10121c background and #242935 border
-- AND input fields MUST have 20px border-radius and 20px padding
-- AND the submit button MUST be 50px height with #0088FF background
-- AND the submit button text MUST be "Зарегестрироватся" (Russian)
-- AND the secondary link text MUST be "Войти" (Russian)
+- THEN step 1 MUST pre-select that role; an absent/invalid `?role=` MUST start with no preselection (both roles
+  selectable)
 
-#### Scenario: Registration page displays decorative background pattern
-- GIVEN a user navigates to `/register`
-- WHEN the page renders
-- THEN a decorative checkerboard pattern MUST be visible at the bottom
-- AND the pattern MUST use #0088ff color at 0.3 opacity
-- AND the pattern MUST be 327px height and full width
-- AND the pattern MUST NOT interfere with form interaction
+#### Scenario: Role-specific profile step
+- GIVEN the wizard reaches step 3
+- WHEN the chosen role is CLIENT vs SPECIALIST
+- THEN it MUST present the company profile (`reg-customer`) vs the specialist profile (`reg-specialist`), the specialist
+  dropdowns bound to the datasets (`SPECIALIZATIONS`/`EXPERIENCE_LEVELS`/`TIMEZONES`)
 
-#### Scenario: Registration page pre-selects role from query parameter
-- GIVEN a user navigates to `/register?role=SPECIALIST`
+#### Scenario: Responsive
+- GIVEN a user views `/register` on a mobile viewport (< 768px)
 - WHEN the page renders
-- THEN the SPECIALIST role card MUST be pre-selected with blue border
-- AND the CLIENT role card MUST be visible but not selected
-- AND this behavior MUST match the existing implementation
-
-#### Scenario: Registration page shows both roles when no parameter provided
-- GIVEN a user navigates to `/register` without role parameter
-- WHEN the page renders
-- THEN both CLIENT and SPECIALIST role cards MUST be visible
-- AND neither card MUST be pre-selected
-- AND the user MUST be able to select either role
-- AND this behavior MUST match the existing implementation
-
-#### Scenario: Registration page is responsive on mobile
-- GIVEN a user views `/register` on a mobile device (viewport < 768px)
-- WHEN the page renders
-- THEN the container width MUST be 90vw
-- AND the container padding MUST be 20px
-- AND all form elements MUST remain functional and readable
-- AND the decorative pattern MUST scale appropriately
+- THEN the composed card MUST remain functional and readable and the footer MUST scale (the `AuthLayout` is responsive
+  via tokens)
 
 **Acceptance Criteria:**
-- Registration page at `/register` matches Figma design (node-id=4100-385)
-- Heading displays "Регистрация" in 22px font
-- Input fields use exact color values (#10121c, #242935) with 20px border-radius and padding
-- Submit button displays "Зарегестрироватся" with 50px height and #0088FF background
-- Secondary link displays "Войти" with rgba(0,136,255,0.24) background
-- Decorative checkerboard pattern renders at bottom (327px height, full width)
-- Role pre-selection from query parameter works correctly
-- Both role cards display when no parameter provided
-- Responsive design works on mobile viewports (90vw width, 20px padding)
-- All existing authentication functionality preserved (validation, rate limiting, session creation)
-- All existing E2E tests pass without modification
+- `/register` renders the F5-pure composed `RegisterWizard` (AuthLayout + StepIndicator + RoleCards + form primitives); token-pure (no hardcoded hex/px)
+- 3 steps with a `StepIndicator`; «Регистрация» heading; exported checkerboard footer renders; responsive
+- Role preselect from `?role=`; role-specific step 3 with dataset-bound dropdowns
+- All existing authentication functionality preserved (validation, rate limiting, session creation); fidelity vs the references with F1 ≤1% deferred on the font-licence gate
 
 ---
 

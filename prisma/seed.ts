@@ -693,6 +693,65 @@ async function main() {
   console.log(`Total SPECIALISTs: ${allSpecialists.length}`);
   console.log('');
 
+  // ========================================
+  // profile-evolution: enrich specialist profiles + work experience (idempotent)
+  // ========================================
+  const RU_CITIES = ['Москва', 'Санкт-Петербург', 'Новосибирск', 'Екатеринбург', 'Казань'];
+
+  // Fill the new identity/professional fields for profiles still at the default position (idempotent).
+  const profilesToEnrich = await prisma.specialistProfile.findMany({ where: { position: '' } });
+  for (let i = 0; i < profilesToEnrich.length; i++) {
+    const p = profilesToEnrich[i];
+    const levelLabel =
+      p.experienceLevel === 'SENIOR' ? 'Senior' : p.experienceLevel === 'MIDDLE' ? 'Middle' : '';
+    const mainTech = (p.techStack.split(',')[0] || 'Software').trim();
+    await prisma.specialistProfile.update({
+      where: { userId: p.userId },
+      data: {
+        position: `${levelLabel ? levelLabel + ' ' : ''}${mainTech} Developer`.trim(),
+        specialization: 'Fullstack',
+        location: RU_CITIES[i % RU_CITIES.length],
+        timezone: 'Europe/Moscow',
+        phoneNumber: `+7 900 ${String(100 + (i % 900))}-00-00`,
+        phoneVerified: i % 3 === 0, // a logical flag (no real SMS) — some seeded specialists verified
+      },
+    });
+  }
+
+  // Add 1–2 work-experience entries for specialists that have none (idempotent).
+  const profilesNeedingExp = await prisma.specialistProfile.findMany({
+    where: { workExperience: { none: {} } },
+  });
+  for (const p of profilesNeedingExp) {
+    const mainTech = (p.techStack.split(',')[0] || 'Software').trim();
+    await prisma.workExperience.createMany({
+      data: [
+        {
+          profileId: p.userId,
+          company: 'Яндекс',
+          title: `${mainTech} Developer`,
+          description: `Разработка и поддержка продуктов на ${mainTech}.`,
+          startYear: 2019,
+          endYear: 2022,
+          order: 0,
+        },
+        {
+          profileId: p.userId,
+          company: 'VK',
+          title: `Senior ${mainTech} Developer`,
+          description: 'Ведущий разработчик команды, менторинг и архитектура.',
+          startYear: 2022,
+          endYear: null,
+          order: 1,
+        },
+      ],
+    });
+  }
+  console.log(
+    `  ✓ profile-evolution: enriched ${profilesToEnrich.length} profiles, added experience to ${profilesNeedingExp.length}`
+  );
+  console.log('');
+
   console.log('');
 
   // ========================================
@@ -2291,6 +2350,59 @@ async function main() {
   console.log('');
 
   // ========================================
+  // terms-negotiation: sample proposed terms on a few PENDING applications (idempotent)
+  // ========================================
+  const pendingToPropose = await prisma.application.findMany({
+    where: { status: 'PENDING', proposedBudget: null },
+    include: { gig: true },
+    take: 3,
+  });
+  let proposalsSeeded = 0;
+  for (const app of pendingToPropose) {
+    if (!app.gig) continue;
+    const proposedBudget = Math.round(app.gig.budget * 1.15); // +15% counter (kopecks)
+    const baseDeadline = app.gig.deadlineDays > 0 ? app.gig.deadlineDays : 14;
+    const proposedDeadlineDays = Math.min(365, baseDeadline + 5);
+    await prisma.application.update({
+      where: { id: app.id },
+      data: { proposedBudget, proposedDeadlineDays },
+    });
+    proposalsSeeded++;
+  }
+  console.log(`  ✓ terms-negotiation: seeded ${proposalsSeeded} application proposals`);
+  console.log('');
+
+  // ========================================
+  // disputes-flow: sample disputes (idempotent)
+  // ========================================
+  const disputableGigs = await prisma.gig.findMany({
+    where: {
+      assignedSpecialistId: { not: null },
+      status: { in: ['IN_PROGRESS', 'REVIEW', 'COMPLETED'] },
+    },
+    take: 2,
+  });
+  let disputesSeeded = 0;
+  for (const g of disputableGigs) {
+    const openerId = g.assignedSpecialistId!;
+    const existing = await prisma.dispute.findUnique({
+      where: { gigId_openerId: { gigId: g.id, openerId } },
+    });
+    if (!existing) {
+      await prisma.dispute.create({
+        data: {
+          gigId: g.id,
+          openerId,
+          reason: 'Объём работ вырос по сравнению с первоначальным описанием задачи.',
+        },
+      });
+      disputesSeeded++;
+    }
+  }
+  console.log(`  ✓ disputes-flow: seeded ${disputesSeeded} disputes`);
+  console.log('');
+
+  // ========================================
   // Summary
   // ========================================
 
@@ -2342,6 +2454,103 @@ async function main() {
   console.log('');
 
   console.log(`Messages: ${totalMessages}`);
+  console.log('');
+
+  // ========================================
+  // Categories (the canonical five) + gig assignment
+  // ========================================
+  console.log('');
+  console.log('Creating categories...');
+
+  const SEED_CATEGORIES = [
+    { slug: 'marketing', name: 'Маркетинг', order: 0 },
+    { slug: 'design', name: 'Дизайн', order: 1 },
+    { slug: 'programming', name: 'Программирование', order: 2 },
+    { slug: 'development', name: 'Разработка', order: 3 },
+    { slug: 'coding', name: 'Кодинг', order: 4 },
+  ];
+  for (const c of SEED_CATEGORIES) {
+    await prisma.category.upsert({ where: { slug: c.slug }, update: { name: c.name, order: c.order }, create: c });
+  }
+  console.log(`  ✓ Upserted ${SEED_CATEGORIES.length} categories`);
+
+  const inferCategory = (tags: string): string => {
+    const t = (tags || '').toLowerCase();
+    if (/design|ui|ux|figma|дизайн/.test(t)) return 'design';
+    if (/docker|kubernet|devops|ci\/cd|playwright|test|automation/.test(t)) return 'coding';
+    if (/react|vue|angular|frontend|tailwind|next|flutter|mobile|swift|android/.test(t)) return 'development';
+    if (/python|go|node|java|backend|api|postgres|database|sql|rust|kotlin|php/.test(t)) return 'programming';
+    return 'marketing';
+  };
+  const uncategorized = await prisma.gig.findMany({ where: { categorySlug: null }, select: { id: true, tags: true } });
+  for (const g of uncategorized) {
+    await prisma.gig.update({ where: { id: g.id }, data: { categorySlug: inferCategory(g.tags) } });
+  }
+  console.log(`  ✓ Assigned categories to ${uncategorized.length} gigs`);
+
+  // Deadlines + stage counts for seeded gigs (idempotent — only the still-default ones)
+  const noDeadline = await prisma.gig.findMany({ where: { deadlineDays: 0 }, select: { id: true } });
+  let dIdx = 0;
+  for (const g of noDeadline) {
+    await prisma.gig.update({ where: { id: g.id }, data: { deadlineDays: 7 + (dIdx % 24), stageCount: 1 + (dIdx % 4) } });
+    dIdx++;
+  }
+  console.log(`  ✓ Assigned deadline/stages to ${noDeadline.length} gigs`);
+
+  // ========================================
+  // Sample Reviews (for COMPLETED / PAID gigs)
+  // ========================================
+  console.log('');
+  console.log('Creating sample reviews...');
+
+  const clientReviewComments = [
+    'Отличная работа, всё в срок и с высоким качеством. Рекомендую!',
+    'Профессиональный подход и чистый код. Будем работать снова.',
+    'Спасибо за качественное выполнение проекта и проактивную коммуникацию.',
+    'Всё сделано аккуратно и по ТЗ. Приятно иметь дело.',
+  ];
+  const specialistReviewComments = [
+    'Чёткое ТЗ и быстрый фидбэк — приятно работать. Спасибо!',
+    'Отзывчивый заказчик, все договорённости прозрачны.',
+    'Комфортное сотрудничество, рекомендую как заказчика.',
+    'Понятные требования и своевременная приёмка работы.',
+  ];
+
+  const reviewableGigs = await prisma.gig.findMany({
+    where: { status: { in: ['COMPLETED', 'PAID'] }, assignedSpecialistId: { not: null } },
+    select: { id: true, clientId: true, assignedSpecialistId: true },
+  });
+
+  let reviewCount = 0;
+  for (const gig of reviewableGigs) {
+    if (!gig.assignedSpecialistId) continue;
+    // client → specialist
+    await prisma.review.upsert({
+      where: { gigId_authorId: { gigId: gig.id, authorId: gig.clientId } },
+      update: {},
+      create: {
+        gigId: gig.id,
+        authorId: gig.clientId,
+        targetId: gig.assignedSpecialistId,
+        rating: 4 + Math.floor(Math.random() * 2), // 4–5
+        comment: pickRandom(clientReviewComments),
+      },
+    });
+    // specialist → client
+    await prisma.review.upsert({
+      where: { gigId_authorId: { gigId: gig.id, authorId: gig.assignedSpecialistId } },
+      update: {},
+      create: {
+        gigId: gig.id,
+        authorId: gig.assignedSpecialistId,
+        targetId: gig.clientId,
+        rating: 4 + Math.floor(Math.random() * 2), // 4–5
+        comment: pickRandom(specialistReviewComments),
+      },
+    });
+    reviewCount += 2;
+  }
+  console.log(`  ✓ Created/updated ${reviewCount} reviews across ${reviewableGigs.length} completed/paid gigs`);
   console.log('');
 
   console.log('🔑 Login Credentials:');

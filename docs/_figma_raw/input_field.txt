@@ -1,0 +1,427 @@
+metadata:
+  name: Gigly
+  components:
+    3124:2843:
+      id: 3124:2843
+      key: 525c91d4795569fc14999f3243d60cc987222ffb
+      name: state=Default
+      componentSetId: 3124:2858
+    2778:3201:
+      id: 2778:3201
+      key: 0091ceac4c5f6bdb30367e6c95d91dbb5470499d
+      name: icon / bootstrap / outline & logos / search
+    2778:2949:
+      id: 2778:2949
+      key: a13d43628486e4056d8f5a533c9161013aec4a45
+      name: icon / bootstrap / outline & logos / person-bounding-box
+    2778:3838:
+      id: 2778:3838
+      key: 675288bb2f4f7398a8b17c6dd8fdfb66059b61b4
+      name: icon / bootstrap / outline & logos / x-square
+    3134:2888:
+      id: 3134:2888
+      key: 971c6fcf8a57f271b9290a6dd499ddb5175b8981
+      name: state=input
+      componentSetId: 3124:2858
+    3124:2868:
+      id: 3124:2868
+      key: 9ff13e49c45625c9b68c2d2bf508e55a5f75ecf4
+      name: state=filled
+      componentSetId: 3124:2858
+  componentSets:
+    3124:2858:
+      id: 3124:2858
+      key: 8a0e412a548ccf28c42a5af4a8250ae61c1deb2a
+      name: input field
+      description: ''
+      propertyDefinitions:
+        icon L:
+          type: boolean
+          defaultValue: false
+        icon R:
+          type: boolean
+          defaultValue: true
+        label:
+          type: boolean
+          defaultValue: true
+        label txt:
+          type: text
+          defaultValue: Label
+        input text:
+          type: text
+          defaultValue: Введите ваши данные...
+        role:
+          type: boolean
+          defaultValue: false
+nodes:
+  - id: 3124:2858
+    name: input field
+    type: COMPONENT_SET
+    layout: layout_RBCLI4
+    strokes: fill_J5J5WN
+    strokeWeight: 1px
+    strokeDashes:
+      - 10
+      - 5
+    borderRadius: 5px
+    children:
+      - id: 3124:2843
+        name: state=Default
+        type: COMPONENT
+        layout: layout_1G0IC5
+        children:
+          - id: 3123:2829
+            name: label
+            type: FRAME
+            layout: layout_TB3V0O
+            componentPropertyReferences:
+              visible: label
+            children:
+              - id: 3123:2782
+                name: Label
+                type: TEXT
+                layout: layout_JWV9W1
+                text: Label
+                textStyle: style_ZYENCG
+                fills: fill_WIM8OC
+                componentPropertyReferences:
+                  text: label txt
+          - id: 3123:2780
+            name: input
+            type: FRAME
+            layout: layout_VQDXH8
+            strokes: fill_PPUW94
+            strokeWeight: 1px
+            borderRadius: 4px
+            children:
+              - id: 3124:2830
+                name: icon / bootstrap / outline & logos / search
+                type: IMAGE-SVG
+                layout: layout_WT35NY
+                fills: fill_IOLKDB
+                componentId: 2778:3201
+                componentPropertyReferences:
+                  visible: icon L
+              - id: 3179:3739
+                name: role
+                type: FRAME
+                layout: layout_WRPHO3
+                fills: color/surface/accent
+                strokes: fill_WIM8OC
+                strokeWeight: 0px 1px 0px 0px
+                componentPropertyReferences:
+                  visible: role
+                children:
+                  - id: 3179:3740
+                    name: icon / bootstrap / outline & logos / person-bounding-box
+                    type: IMAGE-SVG
+                    layout: layout_WT35NY
+                    fills: fill_IOLKDB
+                    componentId: 2778:2949
+              - id: 3179:3766
+                name: Frame 338
+                type: FRAME
+                layout: layout_S4EAKC
+                children:
+                  - id: 3124:2837
+                    name: input text
+                    type: TEXT
+                    layout: layout_1XQYBZ
+                    text: Введите ваши данные...
+                    textStyle: style_8L20O5
+                    fills: fill_ERF943
+                    componentPropertyReferences:
+                      text: input text
+              - id: 3124:2833
+                name: icon / bootstrap / outline & logos / x-square
+                type: IMAGE-SVG
+                layout: layout_WT35NY
+                fills: fill_IOLKDB
+                componentId: 2778:3838
+                componentPropertyReferences:
+                  visible: icon R
+      - id: 3134:2888
+        name: state=input
+        type: COMPONENT
+        layout: layout_1G0IC5
+        children:
+          - id: 3134:2889
+            name: label
+            type: FRAME
+            layout: layout_TB3V0O
+            componentPropertyReferences:
+              visible: label
+            children:
+              - id: 3134:2890
+                name: Label
+                type: TEXT
+                layout: layout_JWV9W1
+                text: Label
+                textStyle: style_ZYENCG
+                fills: fill_BWJ6ZF
+                componentPropertyReferences:
+                  text: label txt
+          - id: 3134:2891
+            name: input
+            type: FRAME
+            layout: layout_VQDXH8
+            strokes: fill_K1D6FU
+            strokeWeight: 1px
+            borderRadius: 4px
+            children:
+              - id: 3134:2892
+                name: icon / bootstrap / outline & logos / search
+                type: IMAGE-SVG
+                layout: layout_WT35NY
+                fills: fill_IOLKDB
+                componentId: 2778:3201
+                componentPropertyReferences:
+                  visible: icon L
+              - id: 3179:3752
+                name: role
+                type: FRAME
+                layout: layout_WRPHO3
+                fills: color/surface/accent
+                strokes: fill_WIM8OC
+                strokeWeight: 0px 1px 0px 0px
+                componentPropertyReferences:
+                  visible: role
+                children:
+                  - id: 3179:3753
+                    name: icon / bootstrap / outline & logos / person-bounding-box
+                    type: IMAGE-SVG
+                    layout: layout_WT35NY
+                    fills: fill_IOLKDB
+                    componentId: 2778:2949
+              - id: 3179:3767
+                name: Frame 338
+                type: FRAME
+                layout: layout_S4EAKC
+                children:
+                  - id: 3134:2893
+                    name: input text
+                    type: TEXT
+                    layout: layout_1XQYBZ
+                    text: ••••••••••••
+                    textStyle: style_8L20O5
+                    fills: fill_WIM8OC
+              - id: 3134:2894
+                name: icon / bootstrap / outline & logos / x-square
+                type: IMAGE-SVG
+                layout: layout_WT35NY
+                fills: fill_IOLKDB
+                componentId: 2778:3838
+                componentPropertyReferences:
+                  visible: icon R
+      - id: 3124:2868
+        name: state=filled
+        type: COMPONENT
+        layout: layout_1G0IC5
+        children:
+          - id: 3124:2869
+            name: label
+            type: FRAME
+            layout: layout_TB3V0O
+            componentPropertyReferences:
+              visible: label
+            children:
+              - id: 3124:2870
+                name: Label
+                type: TEXT
+                layout: layout_JWV9W1
+                text: Label
+                textStyle: style_ZYENCG
+                fills: fill_BWJ6ZF
+                componentPropertyReferences:
+                  text: label txt
+          - id: 3124:2871
+            name: input
+            type: FRAME
+            layout: layout_VQDXH8
+            borderRadius: 4px
+            children:
+              - id: 3124:2872
+                name: icon / bootstrap / outline & logos / search
+                type: IMAGE-SVG
+                layout: layout_WT35NY
+                fills: fill_IOLKDB
+                componentId: 2778:3201
+                componentPropertyReferences:
+                  visible: icon L
+              - id: 3179:3757
+                name: role
+                type: FRAME
+                layout: layout_WRPHO3
+                fills: color/surface/accent
+                strokes: fill_WIM8OC
+                strokeWeight: 0px 1px 0px 0px
+                componentPropertyReferences:
+                  visible: role
+                children:
+                  - id: 3179:3758
+                    name: icon / bootstrap / outline & logos / person-bounding-box
+                    type: IMAGE-SVG
+                    layout: layout_WT35NY
+                    fills: fill_IOLKDB
+                    componentId: 2778:2949
+              - id: 3179:3768
+                name: Frame 338
+                type: FRAME
+                layout: layout_S4EAKC
+                children:
+                  - id: 3124:2873
+                    name: input text
+                    type: TEXT
+                    layout: layout_1XQYBZ
+                    text: ••••••••••••
+                    textStyle: style_5BAR7U
+                    fills: fill_WIM8OC
+              - id: 3124:2874
+                name: icon / bootstrap / outline & logos / x-square
+                type: IMAGE-SVG
+                layout: layout_WT35NY
+                fills: fill_IOLKDB
+                componentId: 2778:3838
+                componentPropertyReferences:
+                  visible: icon R
+globalVars:
+  styles:
+    layout_RBCLI4:
+      mode: column
+      alignItems: stretch
+      gap: 10px
+      padding: 20px
+      sizing:
+        horizontal: fixed
+        vertical: hug
+      dimensions:
+        width: 1336
+    fill_J5J5WN:
+      - '#9747FF'
+    layout_1G0IC5:
+      mode: column
+      justifyContent: center
+      alignSelf: stretch
+      gap: 4px
+      sizing:
+        horizontal: fill
+        vertical: hug
+    layout_TB3V0O:
+      mode: row
+      alignItems: center
+      padding: 2px 12px
+      sizing:
+        horizontal: hug
+        vertical: hug
+    layout_JWV9W1:
+      mode: none
+      sizing:
+        horizontal: hug
+        vertical: hug
+    style_ZYENCG:
+      fontFamily: NKDuy Mono
+      fontStyle: Medium
+      fontWeight: 500
+      fontSize: 14
+      textAlignHorizontal: LEFT
+      textAlignVertical: TOP
+    fill_WIM8OC:
+      - '#FFFFFF'
+    layout_VQDXH8:
+      mode: row
+      alignItems: center
+      alignSelf: stretch
+      gap: 12px
+      padding: 6px 12px 6px 0px
+      sizing:
+        horizontal: fill
+        vertical: fixed
+      dimensions:
+        height: 40
+    fill_PPUW94:
+      - rgba(255, 255, 255, 0.2)
+    layout_WT35NY:
+      mode: none
+      sizing:
+        horizontal: fixed
+        vertical: fixed
+      dimensions:
+        width: 16
+        height: 16
+    fill_IOLKDB: []
+    layout_23TOS6:
+      mode: none
+      sizing: {}
+      locationRelativeToParent:
+        x: -0.0
+        y: 0
+      dimensions:
+        width: 16
+        height: 16
+    layout_WRPHO3:
+      mode: row
+      alignItems: center
+      gap: 12px
+      padding: 6px 12px
+      sizing:
+        horizontal: hug
+        vertical: fixed
+      dimensions:
+        height: 40
+    color/surface/accent:
+      - rgba(255, 255, 255, 0.05)
+    layout_P48M3U:
+      mode: none
+      sizing: {}
+      locationRelativeToParent:
+        x: 3
+        y: 3
+      dimensions:
+        width: 10
+        height: 10
+    layout_S4EAKC:
+      mode: row
+      justifyContent: center
+      alignItems: center
+      gap: 10px
+      padding: 0px 0px 0px 12px
+      sizing:
+        horizontal: fill
+        vertical: hug
+    layout_1XQYBZ:
+      mode: none
+      sizing:
+        horizontal: fill
+        vertical: hug
+    style_8L20O5:
+      fontFamily: NKDuy Mono
+      fontStyle: Regular
+      fontWeight: 400
+      fontSize: 14
+      lineHeight: 16px
+      textAlignHorizontal: LEFT
+      textAlignVertical: TOP
+    fill_ERF943:
+      - rgba(159, 160, 164, 0.7)
+    fill_BWJ6ZF:
+      - '#9FA0A4'
+    layout_Q5FLCF:
+      mode: none
+      sizing: {}
+      locationRelativeToParent:
+        x: 4.5
+        y: 4.5
+      dimensions:
+        width: 7
+        height: 7
+    fill_K1D6FU:
+      - '#0088FF'
+    style_5BAR7U:
+      fontFamily: NKDuy Mono
+      fontStyle: Medium
+      fontWeight: 500
+      fontSize: 16
+      lineHeight: 16px
+      textAlignHorizontal: LEFT
+      textAlignVertical: TOP
+

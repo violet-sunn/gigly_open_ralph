@@ -3,6 +3,13 @@
 **Created:** 2026-06-14 · **Source of truth:** `screens/tokens.svg`, `screens/frames.svg`
 **Produced by:** the `extract-svg-tokens-and-assets` change (Phase 0 #1 of the UI redesign plan).
 
+> **⚠ Superseded as source of truth (2026-06-17).** This SVG extraction was the interim substrate *before* Figma
+> MCP access. The authoritative design-token source is now the Figma **`tokens`** frame (`3870:7654`) — exported to
+> [`figma-tokens-export.json`](./figma-tokens-export.json), reconciled in [`DESIGN_SYSTEM_SPEC.md`](./DESIGN_SYSTEM_SPEC.md) §10,
+> and serialized into `openspec/specs/ui/design-tokens.json`. This file is **retained as the historical raw record**;
+> where its observed values disagree with Figma (notably `border` `#3a3d45`→`#5a6070`, the brand `#0099ff`/`#1379f3`
+> "duplicates" that are real tokens, and the path-outlined type with no metrics), **Figma wins**.
+
 This document records the **raw, observed** design-system substrate extracted directly from the two vector
 SVGs we already have. Every value here is traceable to a concrete SVG fill or coordinate (grep-verifiable).
 This is **not** a normalized/canonical token set — collapsing near-duplicates into canonical scales and

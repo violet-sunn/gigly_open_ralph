@@ -150,8 +150,9 @@ test.describe('Admin Users Pagination E2E', () => {
     await page.goto('/admin/users')
     await page.waitForLoadState('networkidle')
 
-    // Apply CLIENT role filter
-    await page.selectOption('select', { label: 'Client' })
+    // Apply CLIENT role filter (the kit Select primitive: open the trigger, pick the option)
+    await page.getByRole('button', { name: 'Фильтр по роли' }).click()
+    await page.getByRole('option', { name: 'CLIENT' }).click()
     await page.waitForURL(/role=CLIENT/)
 
     // Wait for filtered results to render (and pagination to appear/disappear)
@@ -170,8 +171,9 @@ test.describe('Admin Users Pagination E2E', () => {
     await page.waitForLoadState('networkidle')
     await expect(page).toHaveURL(/page=2/)
 
-    // Apply a filter
-    await page.selectOption('select', { label: 'Client' })
+    // Apply a filter (the kit Select primitive)
+    await page.getByRole('button', { name: 'Фильтр по роли' }).click()
+    await page.getByRole('option', { name: 'CLIENT' }).click()
     await page.waitForURL(/role=CLIENT/)
 
     // Verify pagination reset to page 1 (no page param in URL)
@@ -375,8 +377,9 @@ test.describe('Admin Gigs Pagination E2E', () => {
     await page.goto('/admin/gigs')
     await page.waitForLoadState('networkidle')
 
-    // Apply OPEN status filter
-    await page.selectOption('select', { label: 'Open' })
+    // Apply OPEN status filter (the kit Select primitive)
+    await page.getByRole('button', { name: 'Фильтр по статусу' }).click()
+    await page.getByRole('option', { name: 'OPEN', exact: true }).click()
     await page.waitForURL(/status=OPEN/)
 
     // Verify filtered results
@@ -404,8 +407,9 @@ test.describe('Admin Gigs Pagination E2E', () => {
     await page.waitForLoadState('networkidle')
     await expect(page).toHaveURL(/page=2/)
 
-    // Apply a filter
-    await page.selectOption('select', { label: 'Open' })
+    // Apply a filter (the kit Select primitive)
+    await page.getByRole('button', { name: 'Фильтр по статусу' }).click()
+    await page.getByRole('option', { name: 'OPEN', exact: true }).click()
     await page.waitForURL(/status=OPEN/)
 
     // Verify pagination reset to page 1 (no page param in URL)

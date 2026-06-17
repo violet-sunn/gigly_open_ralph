@@ -13,16 +13,17 @@ test.describe('Basic Navigation', () => {
     await expect(body).toBeVisible()
   })
 
-  test('can navigate to registration page', async ({ page }) => {
+  test('can navigate to registration page (composed wizard)', async ({ page }) => {
     // Navigate to registration page
     await page.goto('/register')
 
     // Verify we're on the registration page
     expect(page.url()).toContain('/register')
 
-    // Verify form elements exist
-    await expect(page.locator('input[name="email"]')).toBeVisible()
-    await expect(page.locator('input[name="password"]')).toBeVisible()
+    // The composed 3-step wizard: step 1 shows the heading + role cards (email/password are on step 2)
+    await expect(page.getByRole('heading', { name: 'Регистрация' })).toBeVisible()
+    await expect(page.getByTestId('role-client')).toBeVisible()
+    await expect(page.getByTestId('role-specialist')).toBeVisible()
   })
 
   test('can navigate to login page', async ({ page }) => {

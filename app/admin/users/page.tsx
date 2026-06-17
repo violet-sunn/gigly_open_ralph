@@ -1,18 +1,11 @@
-import Link from 'next/link'
-import { prisma } from '@/lib/prisma'
-import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
 import { Suspense } from 'react'
-import { SuspendUserForm } from './SuspendUserForm'
-import { UnsuspendUserForm } from './UnsuspendUserForm'
-import { UserFilters } from './UserFilters'
+import { getSession } from '@/lib/session'
+import { getAdminUsers } from '@/lib/view-models'
+import { AdminUsers } from './AdminUsers'
 import PaginationControls from '@/app/components/PaginationControls'
-import { BackButton } from '@/app/components/BackButton'
-import EmptyState from '@/app/components/onboarding/EmptyState'
-import { Breadcrumb } from '@/app/components/Breadcrumb'
 
 const PAGE_SIZE = 30
-
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
 
 export default async function AdminUsersPage(props: { searchParams: SearchParams }) {
@@ -21,239 +14,49 @@ export default async function AdminUsersPage(props: { searchParams: SearchParams
     redirect('/dashboard')
   }
 
-  const searchParams = await props.searchParams
-  const roleFilter = searchParams.role as string | undefined
-  const statusFilter = searchParams.status as string | undefined
+  const sp = await props.searchParams
+  const role = typeof sp.role === 'string' ? sp.role : undefined
+  const status = typeof sp.status === 'string' ? sp.status : undefined
 
-  // Extract and validate page parameter
-  const pageParam = typeof searchParams.page === 'string' ? searchParams.page : '1'
+  const pageParam = typeof sp.page === 'string' ? sp.page : '1'
   const parsedPage = parseInt(pageParam, 10)
   const page = Math.max(1, parsedPage || 1)
 
-  // Redirect if page parameter is invalid (< 1)
+  const withFilters = (p?: number) => {
+    const q = new URLSearchParams()
+    if (role) q.set('role', role)
+    if (status) q.set('status', status)
+    if (p) q.set('page', String(p))
+    const s = q.toString()
+    return `/admin/users${s ? `?${s}` : ''}`
+  }
+
   if (parsedPage < 1 || isNaN(parsedPage)) {
-    const redirectParams = new URLSearchParams()
-    if (roleFilter) redirectParams.set('role', roleFilter)
-    if (statusFilter) redirectParams.set('status', statusFilter)
-    const query = redirectParams.toString()
-    redirect(`/admin/users${query ? `?${query}` : ''}`)
+    redirect(withFilters())
   }
 
-  const where: any = {}
-  if (roleFilter && ['CLIENT', 'SPECIALIST', 'ADMIN'].includes(roleFilter)) {
-    where.role = roleFilter
-  }
-  if (statusFilter === 'suspended') {
-    where.suspended = true
-  } else if (statusFilter === 'active') {
-    where.suspended = false
+  const data = await getAdminUsers({ role, status, page })
+
+  if (page > data.totalPages && data.totalPages > 0) {
+    redirect(withFilters(data.totalPages))
   }
 
-  const hasActiveFilters = roleFilter || statusFilter
-
-  // Execute queries in parallel: fetch paginated users and total count
-  const [users, totalCount] = await Promise.all([
-    prisma.user.findMany({
-      where,
-      skip: (page - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
-      include: {
-        clientProfile: true,
-        specialistProfile: true
-      },
-      orderBy: { createdAt: 'desc' }
-    }),
-    prisma.user.count({ where })
-  ])
-
-  // Calculate total pages
-  const totalPages = Math.ceil(totalCount / PAGE_SIZE)
-
-  // Redirect if page exceeds total pages
-  if (page > totalPages && totalPages > 0) {
-    const redirectParams = new URLSearchParams()
-    if (roleFilter) redirectParams.set('role', roleFilter)
-    if (statusFilter) redirectParams.set('status', statusFilter)
-    redirectParams.set('page', totalPages.toString())
-    const query = redirectParams.toString()
-    redirect(`/admin/users${query ? `?${query}` : ''}`)
-  }
+  const from = (page - 1) * PAGE_SIZE + 1
+  const to = Math.min(page * PAGE_SIZE, data.totalCount)
 
   return (
-    <div className="min-h-screen bg-surface-level-0">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Breadcrumb items={[
-          { label: 'Admin', href: '/admin' },
-          { label: 'Users', current: true }
-        ]} />
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white">User Management</h1>
-          <p className="mt-2 text-neutral-strong">View and moderate user accounts</p>
-        </div>
-
-        <div className="bg-surface-level-1 border border-neutral-weak rounded-lg mb-6 p-6 shadow-md">
-          <UserFilters />
-        </div>
-
-        {totalCount > 0 && (
-          <p className="text-sm text-neutral-strong mb-4">
-            Showing {(page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, totalCount)} of {totalCount} users
-          </p>
-        )}
-
-        {/* Desktop Table View */}
-        <div className="hidden md:block bg-surface-level-1 border border-neutral-weak rounded-lg overflow-hidden shadow-md">
-          <table className="min-w-full divide-y divide-gray-700">
-            <thead className="bg-surface-level-0">
-              <tr>
-                <th className="px-8 py-4 text-left text-xs font-medium text-neutral-strong uppercase tracking-wider">
-                  Email
-                </th>
-                <th className="px-8 py-4 text-left text-xs font-medium text-neutral-strong uppercase tracking-wider">
-                  Role
-                </th>
-                <th className="px-8 py-4 text-left text-xs font-medium text-neutral-strong uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-8 py-4 text-left text-xs font-medium text-neutral-strong uppercase tracking-wider">
-                  Registered
-                </th>
-                <th className="px-8 py-4 text-left text-xs font-medium text-neutral-strong uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-surface-level-1 divide-y divide-gray-700">
-              {users.map((user) => (
-                <tr key={user.id}>
-                  <td className="px-8 py-4 whitespace-nowrap text-sm text-white">
-                    {user.email}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
-                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-500/10 text-blue-500">
-                      {user.role}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    {user.suspended ? (
-                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-error-500/10 text-error-400">
-                        Suspended
-                      </span>
-                    ) : (
-                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-success-500/10 text-success-400">
-                        Active
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-strong">
-                    {new Date(user.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    {user.suspended ? (
-                      <UnsuspendUserForm userId={user.id} />
-                    ) : (
-                      <SuspendUserForm userId={user.id} />
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {users.length === 0 && (
-            <div className="p-6">
-              {hasActiveFilters ? (
-                <EmptyState
-                  icon="🔍"
-                  heading="No Users Found"
-                  description="No users match your current filters. Try adjusting the role or status filters to see more results."
-                  primaryAction={{ label: "Clear Filters", href: "/admin/users" }}
-                />
-              ) : (
-                <EmptyState
-                  icon="👥"
-                  heading="No Users Yet"
-                  description="No users have registered yet. Once users sign up, they will appear here for moderation."
-                />
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Mobile Card View */}
-        <div className="md:hidden space-y-4">
-          {users.length === 0 ? (
-            <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-6 shadow-md">
-              {hasActiveFilters ? (
-                <EmptyState
-                  icon="🔍"
-                  heading="No Users Found"
-                  description="No users match your current filters. Try adjusting the role or status filters to see more results."
-                  primaryAction={{ label: "Clear Filters", href: "/admin/users" }}
-                />
-              ) : (
-                <EmptyState
-                  icon="👥"
-                  heading="No Users Yet"
-                  description="No users have registered yet. Once users sign up, they will appear here for moderation."
-                />
-              )}
-            </div>
-          ) : (
-            users.map((user) => (
-              <div key={user.id} className="bg-surface-level-1 border border-neutral-weak rounded-lg p-4 shadow-md">
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-sm font-medium text-white break-all">{user.email}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-500/10 text-blue-500">
-                      {user.role}
-                    </span>
-                    {user.suspended ? (
-                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-error-500/10 text-error-400">
-                        Suspended
-                      </span>
-                    ) : (
-                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-success-500/10 text-success-400">
-                        Active
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-xs text-neutral-weak">
-                    Registered: {new Date(user.createdAt).toLocaleDateString()}
-                  </div>
-                  <div className="pt-2">
-                    {user.suspended ? (
-                      <UnsuspendUserForm userId={user.id} />
-                    ) : (
-                      <SuspendUserForm userId={user.id} />
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-
-        {totalPages > 1 && (
-          <div className="mt-6">
-            <Suspense fallback={<div className="h-10" />}>
-              <PaginationControls
-                currentPage={page}
-                totalPages={totalPages}
-                totalCount={totalCount}
-              />
-            </Suspense>
-          </div>
-        )}
-
-        <div className="mt-8">
-          <Suspense fallback={null}>
-            <BackButton />
-          </Suspense>
-        </div>
-      </div>
-    </div>
+    <>
+      {data.totalCount > 0 && (
+        <p className="text-body font-body text-muted">
+          Showing {from}-{to} of {data.totalCount} users
+        </p>
+      )}
+      <AdminUsers rows={data.rows} />
+      {data.totalPages > 1 && (
+        <Suspense fallback={null}>
+          <PaginationControls currentPage={page} totalPages={data.totalPages} totalCount={data.totalCount} />
+        </Suspense>
+      )}
+    </>
   )
 }

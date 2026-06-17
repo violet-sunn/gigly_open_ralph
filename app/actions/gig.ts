@@ -6,6 +6,7 @@ import { getSession } from '@/lib/session'
 import { sanitizeInput } from '@/lib/sanitize'
 import { applicationRateLimiter, messageRateLimiter, getRateLimitError } from '@/lib/ratelimit'
 import { createNotification, createNotificationsBulk } from '@/lib/notifications'
+import { isCategorySlug } from '@/lib/categories'
 
 export async function createGig(
   prevState: { error?: string } | null,
@@ -49,6 +50,34 @@ export async function createGig(
   const serviceFee = Math.floor(budgetKopecks * 0.10)
   const totalAmount = budgetKopecks + serviceFee
 
+  // Optional category — must be one of the canonical five if supplied (safe-default: null when absent)
+  const category = (formData.get('category') as string) || null
+  if (category && !isCategorySlug(category)) {
+    return { error: 'Please choose a valid category.' }
+  }
+
+  // Optional deadline (Срок выполнения) — whole days 1–365; absent → 0 (unspecified, rendered gracefully)
+  let deadlineDays = 0
+  const deadlineRaw = formData.get('deadlineDays') as string | null
+  if (deadlineRaw != null && deadlineRaw !== '') {
+    const n = Number(deadlineRaw)
+    if (!Number.isInteger(n) || n < 1 || n > 365) {
+      return { error: 'Срок выполнения must be a whole number of days between 1 and 365.' }
+    }
+    deadlineDays = n
+  }
+
+  // Optional stage count (этапы) — whole number 1–50; absent → 1
+  let stageCount = 1
+  const stageRaw = formData.get('stageCount') as string | null
+  if (stageRaw != null && stageRaw !== '') {
+    const n = Number(stageRaw)
+    if (!Number.isInteger(n) || n < 1 || n > 50) {
+      return { error: 'Number of stages (этапы) must be a whole number between 1 and 50.' }
+    }
+    stageCount = n
+  }
+
   // Check if this is the user's first gig
   const user = await prisma.user.findUnique({
     where: { id: session.userId },
@@ -66,6 +95,9 @@ export async function createGig(
     serviceFee,
     totalAmount,
     tags,
+    categorySlug: category,
+    deadlineDays,
+    stageCount,
     clientId: session.userId,
   }
 
@@ -136,6 +168,26 @@ export async function applyToGig(
     return { error: 'Estimated effort is too long. Maximum 200 characters allowed.' }
   }
 
+  // Optional proposed terms (TermsTabs "Предложено"). Budget in roubles → kopecks; absent → null.
+  let proposedBudget: number | null = null
+  const pbRaw = formData.get('proposedBudget') as string | null
+  if (pbRaw != null && pbRaw !== '') {
+    const r = Number(pbRaw)
+    if (!Number.isFinite(r) || r <= 0) {
+      return { error: 'Proposed budget must be a positive number in roubles.' }
+    }
+    proposedBudget = Math.round(r * 100)
+  }
+  let proposedDeadlineDays: number | null = null
+  const pdRaw = formData.get('proposedDeadlineDays') as string | null
+  if (pdRaw != null && pdRaw !== '') {
+    const n = Number(pdRaw)
+    if (!Number.isInteger(n) || n < 1 || n > 365) {
+      return { error: 'Proposed срок must be a whole number of days between 1 and 365.' }
+    }
+    proposedDeadlineDays = n
+  }
+
   const gig = await prisma.gig.findUnique({ where: { id: gigId } })
   if (!gig) {
     return { error: 'This gig no longer exists or has been removed.' }
@@ -181,6 +233,8 @@ export async function applyToGig(
     approach,
     questions,
     estimatedEffort,
+    proposedBudget,
+    proposedDeadlineDays,
     coverLetter: '', // Legacy field, set to empty string
   }
 
@@ -272,6 +326,19 @@ export async function acceptApplication(
     },
   })
 
+  // Accept = agree to the application's terms: reconcile any proposed terms onto the gig (TermsTabs).
+  // Absent proposals (legacy/un-countered applications) leave the gig's terms unchanged.
+  const gigTerms: { budget?: number; serviceFee?: number; totalAmount?: number; deadlineDays?: number } = {}
+  if (application.proposedBudget != null) {
+    const budget = application.proposedBudget
+    gigTerms.budget = budget
+    gigTerms.serviceFee = Math.floor(budget * 0.10) // same 10% rule as createGig
+    gigTerms.totalAmount = budget + gigTerms.serviceFee
+  }
+  if (application.proposedDeadlineDays != null) {
+    gigTerms.deadlineDays = application.proposedDeadlineDays
+  }
+
   await prisma.$transaction([
     prisma.application.update({
       where: { id: applicationId },
@@ -282,6 +349,7 @@ export async function acceptApplication(
       data: {
         status: 'IN_PROGRESS',
         assignedSpecialistId: application.specialistId,
+        ...gigTerms,
       },
     }),
     prisma.application.updateMany({

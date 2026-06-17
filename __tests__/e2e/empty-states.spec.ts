@@ -1,4 +1,23 @@
 import { test, expect } from '@playwright/test'
+import { setE2ESession } from '../helpers/auth'
+import { PrismaClient } from '@prisma/client'
+import { PrismaLibSql } from '@prisma/adapter-libsql'
+
+/** Seed a SPECIALIST directly (the register form uses radio RoleCards now; setE2ESession is the modern path). */
+async function seedSpecialist(suffix: string) {
+  const prisma = new PrismaClient({ adapter: new PrismaLibSql({ url: 'file:./test.db' }) as any })
+  const email = `es-spec-${suffix}-${Date.now()}@example.com`
+  const spec = await prisma.user.create({
+    data: {
+      email,
+      password: 'x',
+      role: 'SPECIALIST',
+      specialistProfile: { create: { displayName: 'T', techStack: 'React', experienceLevel: 'SENIOR', bio: 'x' } },
+    },
+  })
+  await prisma.$disconnect()
+  return { id: spec.id, email }
+}
 
 test.describe('Empty States', () => {
   test.beforeEach(async ({ page }) => {
@@ -7,51 +26,32 @@ test.describe('Empty States', () => {
   })
 
   test.describe('SPECIALIST Empty States', () => {
-    test('shows empty state on gig browse page when no gigs exist', async ({ page }) => {
-      // Register as SPECIALIST
-      await page.goto('/register')
-      await page.fill('input[name="email"]', 'specialist@test.com')
-      await page.fill('input[name="password"]', 'Password123')
-      await page.selectOption('select[name="role"]', 'SPECIALIST')
-      await page.click('button[type="submit"]')
+    test('composed gig search renders the FilterBar and results count', async ({ page }) => {
+      const spec = await seedSpecialist('browse')
+      await setE2ESession(page, { id: spec.id, email: spec.email, role: 'SPECIALIST' })
 
-      // Navigate to gig browse page
+      // Navigate to gig browse page (composed from the kit — compose-gig-search)
       await page.goto('/gigs')
 
-      // Verify empty state appears
-      await expect(page.locator('text=📭')).toBeVisible()
-      await expect(page.locator('text=No Open Gigs Available')).toBeVisible()
-      await expect(page.locator('text=There are no open gigs at the moment')).toBeVisible()
-
-      // Verify CTA button exists and navigates correctly
-      const viewExamplesButton = page.locator('a:has-text("View Example Gigs")')
-      await expect(viewExamplesButton).toBeVisible()
-      await expect(viewExamplesButton).toHaveAttribute('href', '/gigs/examples')
+      // The composed screen renders the FilterBar + the "Найдено N" count.
+      await expect(page.locator('h2:has-text("Поиск гигов")')).toBeVisible()
+      await expect(page.getByRole('search')).toBeVisible()
+      await expect(page.getByText(/Найдено \d/)).toBeVisible()
     })
 
-    test('shows filtered empty state on gig browse page when no matches', async ({ page }) => {
-      // Register as SPECIALIST
-      await page.goto('/register')
-      await page.fill('input[name="email"]', 'specialist2@test.com')
-      await page.fill('input[name="password"]', 'Password123')
-      await page.selectOption('select[name="role"]', 'SPECIALIST')
-      await page.click('button[type="submit"]')
+    test('composed gig search shows Найдено 0 when filters match nothing', async ({ page }) => {
+      const spec = await seedSpecialist('nomatch')
+      await setE2ESession(page, { id: spec.id, email: spec.email, role: 'SPECIALIST' })
 
       // Navigate to gig browse page with filters that match nothing
       await page.goto('/gigs?search=nonexistentgig12345')
 
-      // Verify filtered empty state appears
-      await expect(page.locator('text=🔍')).toBeVisible()
-      await expect(page.locator('text=No Gigs Match Your Filters')).toBeVisible()
-      await expect(page.locator('text=Try adjusting your search criteria')).toBeVisible()
-
-      // Verify Clear Filters button exists
-      const clearFiltersButton = page.locator('a:has-text("Clear Filters")')
-      await expect(clearFiltersButton).toBeVisible()
-      await expect(clearFiltersButton).toHaveAttribute('href', '/gigs')
+      // The composed screen reflects the empty result set via the "Найдено 0" count.
+      await expect(page.getByRole('search')).toBeVisible()
+      await expect(page.getByText(/Найдено 0/)).toBeVisible()
     })
 
-    test('shows empty states on specialist dashboard tabs', async ({ page }) => {
+    test('shows the composed specialist dashboard with empty status tabs', async ({ page }) => {
       // Register as SPECIALIST
       await page.goto('/register')
       await page.fill('input[name="email"]', 'specialist3@test.com')
@@ -62,23 +62,17 @@ test.describe('Empty States', () => {
       // Navigate to dashboard
       await page.goto('/dashboard')
 
-      // Verify Active Work empty state
-      await expect(page.locator('text=🔍')).toBeVisible()
-      await expect(page.locator('text=No Active Work Yet')).toBeVisible()
-      await expect(page.locator('text=Browse available gigs and apply')).toBeVisible()
-
-      // Click Pending Applications tab
-      await page.click('button:has-text("Pending Applications")')
-      await expect(page.locator('text=📝')).toBeVisible()
-      await expect(page.locator('text=No Pending Applications')).toBeVisible()
-
-      // Click Archive tab
-      await page.click('button:has-text("Archive")')
-      await expect(page.locator('text=📦')).toBeVisible()
-      await expect(page.locator('text=No Archived Items')).toBeVisible()
+      // The dashboard is composed from the kit (BannerCard + Tabs + GigCard·grid + SearchPanel + MessagesPanel,
+      // compose-specialist-dashboard). With no gigs/applications the grid is empty, but the banner + the five
+      // status tabs still render.
+      await expect(page.getByText(/Находите интересные гиги/)).toBeVisible()
+      await expect(page.getByRole('tablist')).toBeVisible()
+      for (const label of ['Все', 'Заявки', 'В работе', 'На проверке', 'Завершённые']) {
+        await expect(page.getByRole('tab', { name: new RegExp(label) })).toBeVisible()
+      }
     })
 
-    test('shows messages empty state on specialist dashboard', async ({ page }) => {
+    test('shows the find-project search on the specialist dashboard', async ({ page }) => {
       // Register as SPECIALIST
       await page.goto('/register')
       await page.fill('input[name="email"]', 'specialist4@test.com')
@@ -89,10 +83,9 @@ test.describe('Empty States', () => {
       // Navigate to dashboard
       await page.goto('/dashboard')
 
-      // Verify messages empty state with SPECIALIST-specific text
-      await expect(page.locator('text=💬')).toBeVisible()
-      await expect(page.locator('text=No Messages Yet')).toBeVisible()
-      await expect(page.locator('text=Messages with clients will appear here once your applications are accepted')).toBeVisible()
+      // The composed dashboard surfaces the SearchPanel "Найти проект" action (the find-project entry point).
+      await expect(page.getByRole('search')).toBeVisible()
+      await expect(page.getByRole('button', { name: /Найти проект/ })).toBeVisible()
     })
   })
 

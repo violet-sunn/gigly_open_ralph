@@ -114,6 +114,8 @@ if (tokens['color-semantic']) {
 const fontSizeTokens = {};
 const lineHeightTokens = {};
 const fontWeightTokens = {};
+const letterSpacingTokens = {};
+const typographyFamilyAlias = {}; // role -> 'sans' | 'mono'; resolved to a stack after font.family is read
 
 if (tokens.font && tokens.font.typography) {
   const flatTypography = flattenObject(tokens.font.typography);
@@ -128,11 +130,20 @@ if (tokens.font && tokens.font.typography) {
       if (token.value.fontWeight) {
         fontWeightTokens[key] = token.value.fontWeight.toString();
       }
+      // letterSpacing in px — use typeof so a 0 value is not silently dropped.
+      if (typeof token.value.letterSpacing === 'number') {
+        letterSpacingTokens[key] = `${token.value.letterSpacing}px`;
+      }
+      // Remember which family alias (sans/mono) this role uses; resolved to a stack below.
+      if (typeof token.value.family === 'string') {
+        typographyFamilyAlias[key] = token.value.family;
+      }
     }
   }
   console.log(`✓ Extracted ${Object.keys(fontSizeTokens).length} font size tokens`);
   console.log(`✓ Extracted ${Object.keys(lineHeightTokens).length} line height tokens`);
   console.log(`✓ Extracted ${Object.keys(fontWeightTokens).length} font weight tokens`);
+  console.log(`✓ Extracted ${Object.keys(letterSpacingTokens).length} letter spacing tokens`);
 }
 
 // Extract font family tokens (typography-system binds these to the type roles)
@@ -141,6 +152,12 @@ if (tokens.font && tokens.font.family) {
   const flatFamily = flattenObject(tokens.font.family);
   for (const [key, token] of Object.entries(flatFamily)) {
     if (typeof token.value === 'string') fontFamilyTokens[key] = token.value;
+  }
+  // Map each type role to its family stack so `font-<role>` resolves (e.g. font-display -> mono).
+  for (const [role, alias] of Object.entries(typographyFamilyAlias)) {
+    if (fontFamilyTokens[alias] && !fontFamilyTokens[role]) {
+      fontFamilyTokens[role] = fontFamilyTokens[alias];
+    }
   }
   console.log(`✓ Extracted ${Object.keys(fontFamilyTokens).length} font family tokens`);
 }
@@ -242,6 +259,7 @@ module.exports = {
   fontSize: ${JSON.stringify(fontSizeTokens, null, 2)},
   lineHeight: ${JSON.stringify(lineHeightTokens, null, 2)},
   fontWeight: ${JSON.stringify(fontWeightTokens, null, 2)},
+  letterSpacing: ${JSON.stringify(letterSpacingTokens, null, 2)},
   boxShadow: ${JSON.stringify(shadowTokens, null, 2)},
   spacing: ${JSON.stringify(spacingTokens, null, 2)},
   borderRadius: ${JSON.stringify(borderRadiusTokens, null, 2)},
@@ -300,6 +318,14 @@ if (Object.keys(fontWeightTokens).length > 0) {
   cssOutput += '\n  /* Design Tokens - Typography (Font Weights) */\n';
   for (const [key, value] of Object.entries(fontWeightTokens)) {
     cssOutput += `  --font-weight-${key}: ${value};\n`;
+  }
+}
+
+// Add letter spacing variables
+if (Object.keys(letterSpacingTokens).length > 0) {
+  cssOutput += '\n  /* Design Tokens - Typography (Letter Spacing) */\n';
+  for (const [key, value] of Object.entries(letterSpacingTokens)) {
+    cssOutput += `  --tracking-${key}: ${value};\n`;
   }
 }
 
@@ -372,6 +398,7 @@ console.log(`  - ${Object.keys(fontFamilyTokens).length} font family tokens`);
 console.log(`  - ${Object.keys(fontSizeTokens).length} font size tokens`);
 console.log(`  - ${Object.keys(lineHeightTokens).length} line height tokens`);
 console.log(`  - ${Object.keys(fontWeightTokens).length} font weight tokens`);
+console.log(`  - ${Object.keys(letterSpacingTokens).length} letter spacing tokens`);
 console.log(`  - ${Object.keys(shadowTokens).length} shadow tokens`);
 console.log(`  - ${Object.keys(spacingTokens).length} spacing tokens`);
 console.log(`  - ${Object.keys(borderRadiusTokens).length} border radius tokens`);

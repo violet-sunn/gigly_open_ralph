@@ -4,15 +4,18 @@ import "@testing-library/jest-dom/vitest";
 
 import {
   Button,
+  IconButton,
   Input,
   PasswordInput,
   SearchInput,
   Select,
   Radio,
   Filter,
+  FilterGroup,
   Tabs,
   Toggle,
   Tag,
+  SpecialtyTag,
   CategoryTag,
   StatusBadge,
   Avatar,
@@ -49,6 +52,100 @@ describe("ui-primitives / Button — all variants + states", () => {
     expect(btn.className).toContain("disabled:opacity-disabled");
     expect(btn).toBeDisabled();
     expect(btn.className).toContain("h-control"); // size/control geometry
+  });
+
+  it("renders the danger variant token-pure (status-rejected, no raw hex)", () => {
+    const { container } = render(<Button variant="danger">Удалить</Button>);
+    const btn = container.firstElementChild as HTMLButtonElement;
+    expect(btn.className).toContain("text-status-rejected");
+    expect(btn.className).toContain("bg-status-rejected/20");
+    expect(btn.className).not.toMatch(/#[0-9a-f]{3,6}/i);
+  });
+
+  it("honours the size axis: md = 40h (h-control), sm = 32h (Tetriary)", () => {
+    const { container: md } = render(<Button size="md">md</Button>);
+    expect((md.firstElementChild as HTMLElement).className).toContain("h-control");
+    const { container: sm } = render(<Button size="sm">sm</Button>);
+    const smCls = (sm.firstElementChild as HTMLElement).className;
+    expect(smCls).toContain("h-8");
+    expect(smCls).not.toContain("h-control");
+  });
+});
+
+describe("ui-primitives / IconButton — button_icon (bg no/yes, counter, a11y)", () => {
+  it("renders square control geometry with the bg axis", () => {
+    const { container: no } = render(<IconButton icon="/x.svg" aria-label="no" bg="no" />);
+    const bNo = no.firstElementChild as HTMLButtonElement;
+    expect(bNo.className).toContain("h-control");
+    expect(bNo.className).toContain("w-control");
+    expect(bNo.className).toContain("rounded-sm");
+    expect(bNo.className).toContain("bg-transparent");
+
+    const { container: yes } = render(<IconButton icon="/x.svg" aria-label="yes" bg="yes" />);
+    expect((yes.firstElementChild as HTMLElement).className).toContain("bg-surface-level-2");
+  });
+
+  it("shows a brand counter badge only when counter is set; requires an accessible name", () => {
+    const { container: none } = render(<IconButton icon="/x.svg" aria-label="bell" />);
+    expect(screen.getByRole("button", { name: "bell" })).toBeInTheDocument();
+    expect(none.querySelector("span")).toBeNull();
+
+    const { container: badge } = render(<IconButton icon="/x.svg" aria-label="bell" counter={5} />);
+    const span = badge.querySelector("span")!;
+    expect(span.className).toContain("bg-brand-default");
+    expect(span.textContent).toBe("5");
+  });
+
+  it("fires onClick", () => {
+    let clicked = false;
+    render(<IconButton icon="/x.svg" aria-label="go" onClick={() => (clicked = true)} />);
+    screen.getByRole("button", { name: "go" }).click();
+    expect(clicked).toBe(true);
+  });
+});
+
+describe("ui-primitives / SpecialtyTag — Специальность (S / XS, tokened white fill)", () => {
+  it("renders brand-blue mono text on the surface/inverse token fill", () => {
+    const { container } = render(<SpecialtyTag>[Senior Frontend]</SpecialtyTag>);
+    const cls = (container.firstElementChild as HTMLElement).className;
+    expect(cls).toContain("text-brand-default");
+    expect(cls).toContain("bg-surface-inverse"); // tokened white, not #ffffff
+    expect(cls).toContain("font-mono");
+    expect(cls).not.toMatch(/#[0-9a-f]{3,6}/i);
+  });
+
+  it("S uses type/data, XS uses type/data-small", () => {
+    const { container: s } = render(<SpecialtyTag size="S">x</SpecialtyTag>);
+    expect((s.firstElementChild as HTMLElement).className).toContain("text-mono");
+    const { container: xs } = render(<SpecialtyTag size="XS">x</SpecialtyTag>);
+    expect((xs.firstElementChild as HTMLElement).className).toContain("text-mono-small");
+  });
+});
+
+describe("ui-primitives / FilterGroup — expand/collapse axis", () => {
+  it("expanded shows option rows; collapsed hides them; header reflects aria-expanded", () => {
+    const { rerender } = render(
+      <FilterGroup label="Стек" expanded>
+        <Filter label="React" checked />
+      </FilterGroup>,
+    );
+    expect(screen.getByRole("button", { name: /Стек/ })).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("radio", { name: /React/ })).toBeInTheDocument();
+
+    rerender(
+      <FilterGroup label="Стек" expanded={false}>
+        <Filter label="React" checked />
+      </FilterGroup>,
+    );
+    expect(screen.getByRole("button", { name: /Стек/ })).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("radio")).toBeNull();
+  });
+
+  it("fires onToggle when the header is activated", () => {
+    let toggled = false;
+    render(<FilterGroup label="Стек" onToggle={() => (toggled = true)}><Filter label="React" /></FilterGroup>);
+    screen.getByRole("button", { name: /Стек/ }).click();
+    expect(toggled).toBe(true);
   });
 });
 
@@ -124,6 +221,23 @@ describe("ui-primitives / Select — collapsed / expanded / disabled + option st
     render(<Select options={options} expanded disabled />);
     expect(screen.queryByRole("listbox")).toBeNull();
     expect(screen.getByRole("button")).toBeDisabled();
+  });
+
+  it("a disabled option is aria-disabled, de-emphasised, and non-selectable", () => {
+    let picked: string | null = null;
+    const opts = [
+      { value: "new", label: "Сначала новые" },
+      { value: "soon", label: "Скоро", disabled: true },
+    ];
+    render(<Select options={opts} value="new" expanded onSelect={(v) => (picked = v)} />);
+    const disabledOpt = screen.getByRole("option", { name: "Скоро" });
+    expect(disabledOpt).toHaveAttribute("aria-disabled", "true");
+    expect(disabledOpt.className).toContain("opacity-disabled");
+    disabledOpt.click();
+    expect(picked).toBeNull();
+    // an enabled option still selects
+    screen.getByRole("option", { name: "Сначала новые" }).click();
+    expect(picked).toBe("new");
   });
 });
 

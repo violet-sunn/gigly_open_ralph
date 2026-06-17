@@ -701,3 +701,192 @@ The Withdraw Application button MUST trigger a confirmation dialog before execut
 - Confirmation required before server action executes
 - Cancel button prevents action execution
 - Existing withdrawApplication server action logic unchanged
+
+---
+
+<!-- Merged on archive from change: gig-deadline-and-milestones (2026-06-15). Source delta retained in openspec/archive/gig-deadline-and-milestones/specs/gig/spec.md -->
+
+### Requirement: Gig Deadline and Stage-Count Fields
+The `Gig` model MUST gain `deadlineDays` (Int, default 0) and `stageCount` (Int, default 1), additively, fulfilling
+the GigCard/GigHeader deadline + "[N этап]" contract.
+
+#### Scenario: Fields exist with backward-compatible defaults
+- GIVEN the schema
+- WHEN the `Gig` model is inspected
+- THEN it MUST have `deadlineDays Int @default(0)` (0 = unspecified) and `stageCount Int @default(1)`
+- AND only these columns are added (no existing column changed); `npx prisma generate` MUST be run
+
+#### Scenario: Fields match the contract types
+- GIVEN `GigCardVM.deadlineDays: number` and the "[N этап]" stage count
+- WHEN a gig is read
+- THEN `gig.deadlineDays` MUST be a number (assignable to `GigCardVM['deadlineDays']`) and `gig.stageCount` MUST be a
+  positive integer (the stage count)
+
+**Acceptance Criteria:**
+- `Gig.deadlineDays Int @default(0)` + `Gig.stageCount Int @default(1)`; additive; client regenerated
+- Field types match the contract (`deadlineDays` → number; `stageCount` → the "[N этап]" count)
+
+---
+
+### Requirement: Create Inputs for Deadline and Stages
+`createGig` MUST accept optional, validated `deadlineDays` and `stageCount` inputs and persist them; absent inputs
+MUST fall back to the defaults.
+
+#### Scenario: createGig accepts valid deadline and stage count
+- GIVEN an authenticated client calling `createGig`
+- WHEN `deadlineDays` (a positive integer ≤ 365) and/or `stageCount` (an integer 1–50) are supplied
+- THEN the created gig MUST persist those values
+
+#### Scenario: createGig rejects invalid values
+- GIVEN `createGig`
+- WHEN `deadlineDays` is non-positive / non-integer / > 365, or `stageCount` is < 1 / non-integer / > 50
+- THEN it MUST be rejected with a clear error and the gig MUST NOT be created
+
+#### Scenario: Inputs are optional (backward-compatible)
+- GIVEN `createGig` called without `deadlineDays`/`stageCount` (the existing behaviour)
+- WHEN the gig is created
+- THEN it MUST succeed unchanged with `deadlineDays = 0` and `stageCount = 1` (the defaults)
+
+**Acceptance Criteria:**
+- `createGig` accepts + validates optional `deadlineDays` (1–365) and `stageCount` (1–50); persists them
+- Absent → defaults (0 / 1); invalid → error; existing callers/tests unaffected
+
+---
+
+### Requirement: Gig Deadline and Stages — Backward-Compatible Defaults and Verification
+Legacy gigs MUST remain graceful under the new fields, and the change MUST be additive with the suite green.
+
+#### Scenario: Legacy gigs are graceful
+- GIVEN a gig created without the new fields (e.g. directly, or before this change)
+- WHEN it is read
+- THEN `deadlineDays` MUST be `0` and `stageCount` MUST be `1` (the defaults), and the gig MUST remain queryable with
+  no error — Phase-2 GigCard renders `deadlineDays = 0` gracefully (omit/"—")
+
+#### Scenario: Seed assigns the fields idempotently
+- GIVEN `prisma/seed.ts`
+- WHEN it runs (or re-runs)
+- THEN it MUST assign realistic `deadlineDays`/`stageCount` to seeded gigs without duplicating on re-run
+
+#### Scenario: Additive — suite green, no UI change
+- GIVEN the change
+- WHEN `npm run build` and `npm run test:unit` run
+- THEN they MUST pass with no change to other fields/flows (incl. the `gig-creation` tests), and `npm run
+  lint:tokens` + `npm run lint:composition` MUST stay green (no UI change)
+
+**Acceptance Criteria:**
+- Legacy/no-input gigs default to `0` / `1` and stay queryable; seed assigns idempotently
+- `npm run build` + `npm run test:unit` green; additive; no UI changes
+
+### Requirement: Application Proposed-Terms Fields
+The `Application` model MUST carry `proposedBudget` (Int?, kopecks) and `proposedDeadlineDays` (Int?), additively,
+fulfilling the specialist side ("Предложено") of the `TermsTabs` contract (`docs/DESIGN_SYSTEM_SPEC.md` §5).
+
+#### Scenario: Fields exist as optional (backward-compatible)
+- GIVEN the schema
+- WHEN the `Application` model is inspected
+- THEN it MUST have `proposedBudget Int?` and `proposedDeadlineDays Int?` (both nullable — `null` = no counter)
+- AND only these columns are added; existing applications migrate to `null`; `npx prisma generate` MUST be run
+
+#### Scenario: Proposed budget is stored in kopecks
+- GIVEN `Gig.budget` is stored in kopecks
+- WHEN `proposedBudget` is persisted
+- THEN it MUST be stored in the same unit (kopecks), so it can be assigned to `Gig.budget` directly on accept
+
+**Acceptance Criteria:**
+- `Application.proposedBudget Int?` + `proposedDeadlineDays Int?`; additive; existing rows → `null`; `proposedBudget` in kopecks
+
+### Requirement: Apply With Proposed Terms
+`applyToGig` MUST accept optional, validated `proposedBudget` and `proposedDeadlineDays` inputs and persist them;
+absent inputs MUST fall back to `null`.
+
+#### Scenario: applyToGig persists valid proposed terms
+- GIVEN an authenticated specialist applying to an OPEN gig
+- WHEN `proposedBudget` (a positive number of roubles) and/or `proposedDeadlineDays` (a whole number 1–365) are supplied
+- THEN the created application MUST persist `proposedBudget` (converted roubles → kopecks) and/or `proposedDeadlineDays`
+
+#### Scenario: applyToGig rejects invalid proposed terms
+- GIVEN `applyToGig`
+- WHEN `proposedBudget` is non-positive / non-numeric, or `proposedDeadlineDays` is < 1 / non-integer / > 365
+- THEN it MUST be rejected with a clear error and no application created
+
+#### Scenario: Proposed terms are optional (backward-compatible)
+- GIVEN `applyToGig` called without proposed terms (the existing behaviour)
+- WHEN the application is created
+- THEN it MUST succeed unchanged with `proposedBudget = null` and `proposedDeadlineDays = null`; the existing
+  approach/questions/effort validation is unchanged
+
+**Acceptance Criteria:**
+- `applyToGig` accepts + validates optional `proposedBudget` (positive → kopecks) and `proposedDeadlineDays` (1–365)
+- Absent → `null`; invalid → error; existing application callers/tests unaffected
+
+### Requirement: TermsTabs View-Model Helper (both tabs)
+`lib/terms.ts` MUST expose `getTermsTabs(applicationId)` returning the `TermsTabsVM` shape with **both** tabs
+populated, server-only and contract-typed.
+
+#### Scenario: Both tabs are returned with Бюджет and Срок rows
+- GIVEN an application on a gig
+- WHEN `getTermsTabs(applicationId)` is called
+- THEN it MUST return `{ proposed, client }` where `client` = `[{ label: 'Бюджет', value: «gig.budget formatted ₽» },
+  { label: 'Срок', value: 'N дней' }]` and `proposed` = the same two rows using `proposedBudget ?? gig.budget` and
+  `proposedDeadlineDays ?? gig.deadlineDays`
+- AND the result MUST be assignable to `TermsTabsVM` (types imported `import type` — no runtime UI coupling)
+
+#### Scenario: An un-countered application shows the client's terms on both tabs
+- GIVEN an application with `proposedBudget = null` and `proposedDeadlineDays = null`
+- WHEN `getTermsTabs` is called
+- THEN `proposed` MUST equal `client` (the fallback) — never an empty array
+
+#### Scenario: A counter is reflected on the proposed tab
+- GIVEN an application whose `proposedBudget`/`proposedDeadlineDays` differ from the gig's
+- WHEN `getTermsTabs` is called
+- THEN the `proposed` rows MUST reflect the proposed values and the `client` rows MUST reflect the gig's values
+
+**Acceptance Criteria:**
+- `getTermsTabs` returns both tabs (Бюджет + Срок) in the `TermsTabsVM` shape; `proposed` falls back to client terms when not countered
+- Server-only; `TermsTabsVM`/`TermRow` imported `import type`
+
+### Requirement: Accept Application Reconciles Proposed Terms
+`acceptApplication` MUST reconcile the accepted application's proposed terms onto the gig within its existing
+transaction, while preserving every existing behaviour.
+
+#### Scenario: Accepting an application with proposed terms updates the gig
+- GIVEN a client accepting a PENDING application that has `proposedBudget` and/or `proposedDeadlineDays`
+- WHEN `acceptApplication` runs
+- THEN the gig MUST be updated with `budget = proposedBudget` (and `serviceFee`/`totalAmount` recalculated at 10% via
+  `Math.floor(budget * 0.10)`) and/or `deadlineDays = proposedDeadlineDays`
+- AND the gig MUST still transition `OPEN → IN_PROGRESS`, assign the specialist, auto-reject other PENDING
+  applications, and send notifications (unchanged)
+
+#### Scenario: Accepting an application with no proposed terms leaves the gig terms unchanged
+- GIVEN a client accepting an application with `proposedBudget = null` and `proposedDeadlineDays = null`
+- WHEN `acceptApplication` runs
+- THEN the gig's `budget`/`serviceFee`/`totalAmount`/`deadlineDays` MUST be unchanged, and the accept MUST behave
+  exactly as before
+
+#### Scenario: The lifecycle transitions and reject are preserved
+- GIVEN the change
+- WHEN the gig lifecycle (`OPEN → IN_PROGRESS → REVIEW → COMPLETED → PAID`) and `rejectApplication` are exercised
+- THEN they MUST be unchanged — only the accept step additionally reconciles proposed terms
+
+**Acceptance Criteria:**
+- `acceptApplication` reconciles proposed terms onto the gig within its transaction (budget/fee/total and/or deadline)
+- No-proposal accept leaves gig terms unchanged; status transition, assignment, auto-reject, notifications, and `rejectApplication` preserved
+
+### Requirement: Proposed-Terms Seed and Additive Verification
+Sample proposals MUST be seeded idempotently, and the change MUST be additive with the suite green.
+
+#### Scenario: Seed sets sample proposed terms idempotently
+- GIVEN `prisma/seed.ts`
+- WHEN it runs (or re-runs)
+- THEN it MUST set `proposedBudget`/`proposedDeadlineDays` on a few seeded PENDING applications without duplicating on
+  re-run (only when still `null`)
+
+#### Scenario: Additive — suite green, no UI change
+- GIVEN the change
+- WHEN `npm run build` and `npm run test:unit` run
+- THEN they MUST pass with no change to other fields/flows (incl. the `gig-creation`/`gig-lifecycle`/application
+  tests), and `npm run lint:tokens` + `npm run lint:composition` MUST stay green (no UI change)
+
+**Acceptance Criteria:**
+- Seed sets sample proposals idempotently; no `resetTestDatabase` change needed (no new table)
+- `npm run build` + `npm run test:unit` green; additive; no UI changes

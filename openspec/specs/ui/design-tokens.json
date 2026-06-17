@@ -1,39 +1,44 @@
 {
   "_meta": {
     "ssot": "docs/DESIGN_SYSTEM_SPEC.md",
-    "provenance": "docs/DESIGN_SPECS.md -> screens/tokens.svg, screens/frames.svg",
+    "provenance": "Figma 'tokens' frame (file Drp803tesW5fIuA2Y21JVx, node 3870:7654) via MCP get_variable_defs, merged with profile frame 2860:2103 for effects/alpha/H1-H2. Raw export: docs/figma-tokens-export.json. Earlier values were traced from the screens/tokens.svg substitute; this revision reconciles them to the Figma source.",
     "generatedBy": "node scripts/parse-design-tokens.js -> scripts/generated-tokens.{js,css}",
-    "note": "Canonical semantic tokens only. No pre-redesign 'parody' values, no legacy-name shim. Values trace to the SVG substrate; names follow the DESIGN_SYSTEM_SPEC taxonomy (namespace/role -> nested namespace.role -> flattened namespace-role).",
-    "residual": "Exact font families/metrics + the SF Compact web licence are owned by `typography-system`; type tokens here express the scale structure only (anchor: 22px auth heading)."
+    "note": "Canonical semantic tokens. Names follow the DESIGN_SYSTEM_SPEC taxonomy (namespace/role -> nested namespace.role -> flattened namespace-role); values are Figma variables. Status/category keep the SSOT semantic names (Figma drift: new->open, testing->verification). Alpha tints are stored as rgba() so the parser's hex->rgba pass is a no-op and JSON<->generated stay in sync.",
+    "reconciled": "2026-06-17 — fixed border.default (was #3a3d45=Figma text/disabled -> #5a6070=Figma border/strong) and brand.hover (was #4cacff=color/primary/hover -> #0099ff=Figma brand/hover; the old light tint preserved as brand.highlight). Added text.disabled, brand.highlight, brand.dark-600, accent.pink, overlay.*, effect.shadow.focus/md, effect.backdrop.*, gradient.status-completed-glow, spacing 16(=64px), corner.full. Typography rewritten to real Figma metrics + per-role family + letterSpacing.",
+    "residual": "Exact font FILES (SF Compact / NKDy Mono web licence) remain owned by typography-system; font.family still binds dev-stage substitutes (Inter, JetBrains Mono) via the --font-sans/--font-mono contract. Type tokens here now carry the real Figma metrics + which family (sans/mono) each role uses."
   },
 
   "color-semantic": {
     "surface": {
-      "level-0": { "value": "#01030e", "description": "Page / darkest background" },
-      "level-1": { "value": "#0e101a", "description": "Recessed surface (wells, inner fields)" },
-      "level-2": { "value": "#10121c", "description": "Card / input surface (dominant)" },
-      "level-3": { "value": "#1a1a24", "description": "Elevated surface (popovers, hover rows)" },
-      "level-3-hover": { "value": "#1a1d2a", "description": "Elevated hover variant" }
+      "level-0": { "value": "#01030e", "description": "Page / darkest background (Figma surface/primary)" },
+      "level-1": { "value": "#0e101a", "description": "Recessed surface — wells, inner fields (Figma surface/tetriary)" },
+      "level-2": { "value": "#10121c", "description": "Card / input surface, dominant (Figma surface/secondary)" },
+      "level-3": { "value": "#1a1a24", "description": "Elevated surface — gig card base (Figma 'gig bg')" },
+      "level-3-hover": { "value": "#1a1d2a", "description": "Elevated hover variant (Figma surface/elevated)" },
+      "inverse": { "value": "#ffffff", "description": "White chip surface — specialty tag (Figma Специальность white fill); the surface mirror of text/inverse" }
     },
     "text": {
-      "strong": { "value": "#ffffff", "description": "Primary text, active glyphs" },
+      "strong": { "value": "#ffffff", "description": "Primary text, active glyphs (Figma text/primary)" },
       "inverse": { "value": "#ffffff", "description": "Text on brand/coloured fills" },
-      "muted": { "value": "#8a8f99", "description": "Muted text & icon strokes (primary neutral)" },
-      "subtle": { "value": "#9fa0a4", "description": "De-emphasized text / progress track" }
+      "muted": { "value": "#8a8f99", "description": "Muted text & icon strokes (Figma text/secondary)" },
+      "subtle": { "value": "#9fa0a4", "description": "De-emphasized text / progress track (raw in designs; not a Figma variable)" },
+      "disabled": { "value": "#3a3d45", "description": "Disabled text (Figma text/disabled — previously mislabeled as border.default)" }
     },
     "border": {
-      "default": { "value": "#3a3d45", "description": "Borders / dividers" }
+      "default": { "value": "#5a6070", "description": "Borders / dividers (Figma border/strong) — corrected from #3a3d45" }
     },
     "brand": {
-      "default": { "value": "#0088ff", "description": "Brand primary — CTAs, active, accents" },
-      "hover": { "value": "#4cacff", "description": "Brand light — hover / highlight" },
-      "pressed": { "value": "#0077e6", "description": "Brand dark — pressed" }
+      "default": { "value": "#0088ff", "description": "Brand primary — CTAs, active, accents (Figma brand/default)" },
+      "hover": { "value": "#0099ff", "description": "Brand hover, +1 lightness step (Figma brand/hover) — corrected from #4cacff" },
+      "pressed": { "value": "#0077e6", "description": "Brand pressed/active, darker (Figma brand/active)" },
+      "highlight": { "value": "#4cacff", "description": "Light brand tint — link hover / highlight (Figma color/primary/hover); was previously brand.hover" },
+      "dark-600": { "value": "#1379f3", "description": "Dark-theme brand 600 step (Figma dark/brand/600)" }
     },
     "status": {
-      "open": { "value": "#8a8f99", "description": "Открыт (neutral)" },
+      "open": { "value": "#8a8f99", "description": "Открыт (neutral) — Figma status 'new'" },
       "review": { "value": "#f59e0b", "description": "На рассмотрении (amber)" },
       "in-progress": { "value": "#3b82f6", "description": "В работе (blue) — distinct from brand" },
-      "verification": { "value": "#8b5cf6", "description": "На проверке (purple)" },
+      "verification": { "value": "#8b5cf6", "description": "На проверке (purple) — Figma status 'testing'" },
       "completed": { "value": "#10b981", "description": "Завершён (green)" },
       "rejected": { "value": "#ef4444", "description": "Отклонён (red)" }
     },
@@ -43,39 +48,61 @@
       "programming": { "value": "#0cc671", "description": "Программирование (green)" },
       "development": { "value": "#05c9e6", "description": "Разработка (teal)" },
       "coding": { "value": "#f27c0d", "description": "Кодинг (orange)" }
+    },
+    "accent": {
+      "pink": { "value": "#ff2d55", "description": "Accent pink — gig company avatar fill (Figma Accents/Pink)" }
+    },
+    "overlay": {
+      "fill": { "value": "rgba(255, 255, 255, 0.05)", "description": "5% white subtle fill over dark surfaces (Figma ФОН 1 #ffffff0d)" },
+      "line": { "value": "rgba(255, 255, 255, 0.08)", "description": "8% white hairline — gig card contour (Figma Контур #ffffff14)" },
+      "line-strong": { "value": "rgba(255, 255, 255, 0.2)", "description": "20% white frame border — job card (Figma frame stroke #ffffff33)" },
+      "header": { "value": "rgba(255, 255, 255, 0.01)", "description": "1% white glass header fill (Figma BG/Header 1 #ffffff03)" }
     }
   },
 
   "font": {
-    "_residual": "exact reference metrics + a licensed SF Compact / NKDy Mono remain capped (see docs/TYPOGRAPHY.md). typography-system bound dev-stage substitutes (Inter, JetBrains Mono) via the --font-sans/--font-mono contract.",
+    "_residual": "exact reference font FILES + a licensed SF Compact / NKDy Mono remain capped (docs/TYPOGRAPHY.md). typography-system binds dev-stage substitutes (Inter, JetBrains Mono) via the --font-sans/--font-mono contract. Each type role below now records its Figma family: sans = primary (SF Compact / Inter), mono = accent (NKDuy Mono / JetBrains).",
     "family": {
-      "sans": { "value": "var(--font-sans), -apple-system, system-ui, Segoe UI, Roboto, sans-serif", "description": "Display/UI/body — Inter (dev-stage substitute for SF Compact)" },
-      "mono": { "value": "var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace", "description": "Monospace data — JetBrains Mono (dev-stage substitute for NKDy Mono)" }
+      "sans": { "value": "var(--font-sans), -apple-system, system-ui, Segoe UI, Roboto, sans-serif", "description": "UI/body 'primary' — SF Compact (dev sub: Inter)" },
+      "mono": { "value": "var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace", "description": "Display/data 'accent' — NKDuy Mono (dev sub: JetBrains Mono)" }
     },
     "typography": {
-      "display": { "value": { "fontSize": 32, "lineHeight": 40, "fontWeight": 700 } },
-      "h1": { "value": { "fontSize": 22, "lineHeight": 28, "fontWeight": 700 } },
-      "h2": { "value": { "fontSize": 18, "lineHeight": 24, "fontWeight": 600 } },
-      "title": { "value": { "fontSize": 16, "lineHeight": 22, "fontWeight": 600 } },
-      "body": { "value": { "fontSize": 14, "lineHeight": 20, "fontWeight": 400 } },
-      "label": { "value": { "fontSize": 13, "lineHeight": 18, "fontWeight": 500 } },
-      "caption": { "value": { "fontSize": 12, "lineHeight": 16, "fontWeight": 400 } },
-      "mono": { "value": { "fontSize": 13, "lineHeight": 18, "fontWeight": 400 } }
+      "display": { "value": { "fontSize": 32, "lineHeight": 37, "fontWeight": 600, "letterSpacing": -0.5, "family": "mono" }, "description": "Figma Heading/H1 — page title (НКDuy Mono)" },
+      "h1": { "value": { "fontSize": 24, "lineHeight": 29, "fontWeight": 500, "letterSpacing": -0.3, "family": "mono" }, "description": "Figma Heading/H2 — section heading" },
+      "h2": { "value": { "fontSize": 18, "lineHeight": 23, "fontWeight": 600, "letterSpacing": 0, "family": "sans" }, "description": "Figma Heading/H3 — card titles" },
+      "title": { "value": { "fontSize": 16, "lineHeight": 22, "fontWeight": 600, "letterSpacing": 0, "family": "sans" }, "description": "Retained — no Figma named style at 16px" },
+      "body": { "value": { "fontSize": 15, "lineHeight": 19, "fontWeight": 400, "letterSpacing": 0, "family": "sans" }, "description": "Figma Body/Default" },
+      "label": { "value": { "fontSize": 13, "lineHeight": 15, "fontWeight": 500, "letterSpacing": 0.3, "family": "sans" }, "description": "Figma Label/Default" },
+      "label-bioname": { "value": { "fontSize": 13, "lineHeight": 15, "fontWeight": 600, "letterSpacing": 0.3, "family": "sans" }, "description": "Figma Label/Bioname — semibold label" },
+      "caption": { "value": { "fontSize": 11, "lineHeight": 11, "fontWeight": 400, "letterSpacing": 0.2, "family": "sans" }, "description": "Figma Caption/Default" },
+      "mono": { "value": { "fontSize": 14, "lineHeight": 17, "fontWeight": 400, "letterSpacing": 0, "family": "mono" }, "description": "Figma Data/Default — numeric/data (NKDuy Mono)" },
+      "mono-small": { "value": { "fontSize": 12, "lineHeight": 13, "fontWeight": 400, "letterSpacing": 0, "family": "mono" }, "description": "Figma Data/Small — small numeric/data" }
     }
   },
 
   "effect": {
     "shadow": {
       "none": { "value": { "offsetX": 0, "offsetY": 0, "radius": 0, "spread": 0, "color": "#00000000" } },
-      "card": { "value": { "offsetX": 0, "offsetY": 2, "radius": 8, "spread": 0, "color": "#00000029" } },
-      "popover": { "value": { "offsetX": 0, "offsetY": 8, "radius": 24, "spread": 0, "color": "#00000033" } }
+      "focus": { "value": { "offsetX": 0, "offsetY": 0, "radius": 0, "spread": 2, "color": "#0088ff66" }, "description": "Figma Shadow/focus — 2px brand focus ring (40% brand)" },
+      "card": { "value": { "offsetX": 0, "offsetY": 2, "radius": 8, "spread": 0, "color": "#00000029" }, "description": "Soft card elevation (SSOT scale)" },
+      "md": { "value": { "offsetX": 0, "offsetY": 4, "radius": 12, "spread": 0, "color": "#00000066" }, "description": "Figma Shadow/md — gig card drop shadow (40% black)" },
+      "popover": { "value": { "offsetX": 0, "offsetY": 8, "radius": 24, "spread": 0, "color": "#00000033" }, "description": "Popover/dropdown elevation (SSOT scale)" }
+    },
+    "backdrop": {
+      "_note": "Backdrop-filter recipes (not box-shadows). Documentation-only — applied in components via Tailwind backdrop-blur utilities; the parser does not emit these.",
+      "glass": { "value": "backdrop-blur(16px); box-shadow: 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06), inset 0 0 0 1px rgba(255,255,255,0.08)", "description": "Figma 'glass' — blurred surface + drop shadow + 2 inner highlights" },
+      "blur-bg": { "value": "backdrop-blur(100px)", "description": "Figma Blur/BG — heavy ambient background blur" }
     }
   },
 
   "gradient": {
     "brand-glow": {
       "value": "linear-gradient(90deg, rgba(0, 136, 255, 0.10) 0%, rgba(0, 136, 255, 0.083) 11%, rgba(0, 136, 255, 0) 75%)",
-      "description": "Layered brand glow — SVGs contain no raw gradients; recipe from brand/default fill + opacity"
+      "description": "Layered brand glow — brand/default fill + opacity ramp"
+    },
+    "status-completed-glow": {
+      "value": "radial-gradient(closest-side, rgba(16, 185, 129, 0.5) 0%, rgba(16, 185, 129, 0.1) 50%, rgba(16, 185, 129, 0) 100%)",
+      "description": "Figma status/completed/bg RADIAL — green glow behind a completed gig card"
     }
   },
 
@@ -90,7 +117,8 @@
       "6": { "value": 24 },
       "8": { "value": 32 },
       "10": { "value": 40 },
-      "12": { "value": 48 }
+      "12": { "value": 48 },
+      "16": { "value": 64, "description": "Figma spacing/4xl" }
     },
     "corner": {
       "xs": { "value": 2 },
@@ -99,6 +127,7 @@
       "lg": { "value": 12 },
       "xl": { "value": 16 },
       "pill": { "value": 18 },
+      "full": { "value": 9999, "description": "Fully rounded (Figma radius/full sentinel 6666)" },
       "circular": { "value": "50%" }
     },
     "size": {

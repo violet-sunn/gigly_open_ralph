@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 
@@ -8,6 +8,10 @@ import {
   ClientCard,
   BannerCard,
   StatPanel,
+  DisputeList,
+  DisputeDetail,
+  ToggleList,
+  DataTable,
   RequirementCard,
   CriteriaList,
   TermsTabs,
@@ -28,6 +32,10 @@ import {
   clientCardFixture,
   bannerCardFixture,
   statPanelFixture,
+  disputeListFixture,
+  disputeListEmptyFixture,
+  disputeDetailFixture,
+  disputeDetailResolvedFixture,
   requirementCardFixture,
   criteriaListFixture,
   termsTabsFixture,
@@ -110,6 +118,77 @@ describe("domain-blocks / ClientCard, StatPanel, BannerCard, RequirementCard, Cr
     const { container } = render(<CriteriaList vm={criteriaListFixture} />);
     expect(container.querySelectorAll('img[src*="verified"]').length).toBe(2); // 2 met
     expect(container.querySelectorAll('.rounded-circular.border').length).toBe(1); // 1 unmet
+  });
+});
+
+describe("domain-blocks / DisputeList + DisputeDetail", () => {
+  it("DisputeList renders a row per dispute (gig · opener · status), each linking to the detail", () => {
+    const { container } = render(<DisputeList vm={disputeListFixture} />);
+    expect(screen.getByText("Лендинг для финтех-стартапа")).toBeInTheDocument();
+    expect(screen.getByText("Иван Петров")).toBeInTheDocument();
+    const links = container.querySelectorAll('a[href^="/disputes/"]');
+    expect(links.length).toBe(2);
+    expect(links[0].getAttribute("href")).toBe("/disputes/d1");
+  });
+
+  it("DisputeList renders an empty state when there are no disputes", () => {
+    render(<DisputeList vm={disputeListEmptyFixture} />);
+    expect(screen.getByText("Споров нет")).toBeInTheDocument();
+  });
+
+  it("DisputeDetail renders gig, opener (ClientCard), reason and status; resolution only when resolved", () => {
+    const { unmount } = render(<DisputeDetail vm={disputeDetailFixture} />);
+    expect(screen.getByText("Лендинг для финтех-стартапа")).toBeInTheDocument();
+    expect(screen.getByText("Иван Петров")).toBeInTheDocument(); // opener via ClientCard
+    expect(screen.getByText("Причина")).toBeInTheDocument();
+    expect(screen.queryByText("Решение")).toBeNull(); // open → no resolution shown
+    unmount();
+
+    render(<DisputeDetail vm={disputeDetailResolvedFixture} />);
+    expect(screen.getByText("Решение")).toBeInTheDocument();
+    expect(screen.getByText(/Спор разрешён в пользу заказчика/)).toBeInTheDocument();
+  });
+});
+
+describe("domain-blocks / DataTable", () => {
+  it("renders a semantic table (header + a row per record) with slotted cells", () => {
+    const { container } = render(
+      <DataTable
+        columns={["Email", "Роль"]}
+        rows={[
+          { id: "a", cells: ["ivan@example.com", "SPECIALIST"] },
+          { id: "b", cells: ["ooo@example.com", "CLIENT"] },
+        ]}
+      />,
+    );
+    expect(container.querySelector("table")).not.toBeNull();
+    expect(container.querySelectorAll("thead th").length).toBe(2);
+    expect(container.querySelectorAll("tbody tr").length).toBe(2);
+    expect(screen.getByText("ivan@example.com")).toBeInTheDocument();
+  });
+
+  it("renders an empty state when there are no rows", () => {
+    render(<DataTable columns={["Email"]} rows={[]} empty="Нет записей" />);
+    expect(screen.getByText("Нет записей")).toBeInTheDocument();
+  });
+});
+
+describe("domain-blocks / ToggleList", () => {
+  it("renders a labelled toggle row per item with its on/off state and fires onToggle", () => {
+    const items = [
+      { key: "a", label: "Отклики", checked: true },
+      { key: "b", label: "Сообщения", checked: false },
+    ];
+    const onToggle = vi.fn();
+    const { container } = render(<ToggleList items={items} onToggle={onToggle} />);
+    expect(screen.getByText("Отклики")).toBeInTheDocument();
+    expect(screen.getByText("Сообщения")).toBeInTheDocument();
+    const switches = container.querySelectorAll('[role="switch"]');
+    expect(switches.length).toBe(2);
+    expect(switches[0].getAttribute("aria-checked")).toBe("true");
+    expect(switches[1].getAttribute("aria-checked")).toBe("false");
+    (switches[1] as HTMLButtonElement).click();
+    expect(onToggle).toHaveBeenCalledWith("b");
   });
 });
 

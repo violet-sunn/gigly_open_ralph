@@ -3933,6 +3933,245 @@ match it.
 
 ---
 
+<!-- Merged on archive from change: reconcile-design-tokens-from-figma (2026-06-17). Source delta retained in openspec/archive/reconcile-design-tokens-from-figma/specs/ui/spec.md -->
+
+## ADDED Requirements
+
+### Requirement: Screen-Level Blue Reconciliation
+The system MUST account for every blue observed in the Figma component/screen designs against the token
+palette, leaving no unaccounted near-duplicate. The role/specialty blue `#006ccb` (job-experience role
+text, node `3088:3896`) MUST be resolved to a recorded decision — either normalized to an existing brand
+token or sanctioned as a new semantic token — and MUST NOT survive as a raw, untokened literal.
+
+#### Scenario: The three blues are each mapped to a token
+- GIVEN `#0088ff` (brand/default), `#4cacff` (brand/highlight), and `#006ccb` (role/specialty text)
+- WHEN the token palette and the reconciliation log are inspected
+- THEN `#0088ff` MUST map to `color-semantic.brand.default` and `#4cacff` to `color-semantic.brand.highlight`
+- AND `#006ccb` MUST be recorded as either normalized to an existing brand token (recommended: `brand.default`)
+  or added as a new semantic token (e.g. `brand.link`)
+- AND the chosen resolution MUST be written to the reconciliation log with its rationale
+
+#### Scenario: No unaccounted blue remains a raw literal target
+- GIVEN the recorded decision for `#006ccb`
+- WHEN `design-tokens.json` is inspected
+- THEN `#006ccb` MUST NOT appear as an orphan value with no semantic name UNLESS the decision sanctioned it
+  as a named token
+- AND if normalized, the log MUST state which token the JobExperienceCard role text will bind to (so the
+  later block change has a token target, not a hex)
+
+### Requirement: Non-Token Font Family Decision
+The three font families seen raw in the Figma designs — `Vremena Grotesk`, `IBM Plex Sans`, and `Inter` —
+MUST be resolved to a recorded decision, since the token model binds only two families (`font.family.sans`
+= SF Compact, `font.family.mono` = NKDuy Mono). Each MUST be either added as a family token or mapped to an
+existing family token; the decision and its rationale MUST be recorded.
+
+#### Scenario: Each non-token family has a recorded resolution
+- GIVEN `Vremena Grotesk` (message/notification/value text), `IBM Plex Sans` (embedded gig titles + file chip),
+  and `Inter` (attention-card emoji markers)
+- WHEN the reconciliation log is inspected
+- THEN each family MUST have an explicit resolution — "add family token" OR "map to `font.family.sans`/`mono`"
+- AND `Inter` MUST be noted as already the dev-stage substitute for `font.family.sans` (not a third family in code)
+- AND the recommended resolution (map Vremena/IBM Plex to existing families for MVP, flag for designer
+  confirmation) MUST be recorded unless the designer confirms intentional distinct families
+
+#### Scenario: No new family token is added without a recorded justification
+- GIVEN the recommended "no new family tokens for MVP" decision
+- WHEN `design-tokens.json` `font.family` is inspected
+- THEN it MUST contain only the justified families (expected: `sans`, `mono` unchanged)
+- AND any added family token MUST carry a description citing the designer confirmation that motivated it
+
+### Requirement: Category Hue Binding Confirmation
+Because the tag/Category hues exist in Figma only as component-variant fills (raw hex, not bound variables),
+the five-hue `category.*` mapping in the SSOT MUST be confirmed against the Figma component fills and the
+`marketing #0088ff` vs `Blue #4cacff` ambiguity resolved, with the result recorded.
+
+#### Scenario: The five category hues are confirmed against component fills
+- GIVEN `category.marketing #0088ff`, `category.design #f45fb1`, `category.programming #0cc671`,
+  `category.development #05c9e6`, `category.coding #f27c0d`
+- WHEN compared against the `tag`/`Category` component-variant fills in `docs/figma-components-export.md`
+  / `docs/figma-component-audit.md`
+- THEN each category token value MUST equal its corresponding component fill OR a divergence MUST be logged
+- AND the `marketing #0088ff` vs `Blue #4cacff` ambiguity MUST be resolved in the log (recommended:
+  `marketing = #0088ff` brand; `#4cacff` is the highlight tint used for the "Стек" Blue tag label, not a category)
+
+### Requirement: Reconciliation Decision Log
+Every decision made by token reconciliation MUST be recorded in a durable, human-readable reconciliation log so the
+later block/screen changes inherit token targets rather than re-deriving values.
+
+#### Scenario: The log records each residual decision
+- GIVEN the reconciliation resolves the third blue, the three non-token families, and the category-hue confirmation
+- WHEN the reconciliation log (in `docs/DESIGN_SYSTEM_SPEC.md` or `docs/TOKEN_RECONCILIATION.md`) is inspected
+- THEN it MUST contain a dated entry for each decision with: the observed raw value(s), the decision, the
+  rationale, and the token target (where applicable)
+- AND it MUST cite the originating import doc(s) (`docs/figma-screens-export.md`, `docs/figma-components-export.md`)
+
+### Requirement: Generated Pipeline Stays in Sync With the Reconciled SSOT
+After any token edit, `scripts/generated-tokens.{js,css}` MUST be regenerated from `design-tokens.json` and
+remain byte-in-sync (ignoring the timestamp line), and token validation MUST assert this so a hand-edit or
+stale generation is caught.
+
+#### Scenario: Regeneration is a no-op diff when no token changed
+- GIVEN a reconciliation that adds/normalizes no tokens (the common case)
+- WHEN `node scripts/parse-design-tokens.js` is run
+- THEN `scripts/generated-tokens.{js,css}` MUST be unchanged except for the `Generated:` timestamp line
+
+#### Scenario: A token edit propagates and stays in sync
+- GIVEN a decision that DOES add/normalize a token (e.g. a sanctioned `brand.link`)
+- WHEN the parser is re-run and `npm run build` executes
+- THEN both generated files MUST reflect the edit, the build MUST pass, and the token validation test MUST
+  assert the generated outputs match the JSON
+
+#### Scenario: Token-purity lint stays green and still catches new literals
+- GIVEN the existing baseline-then-tighten token-purity lint
+- WHEN `npm run lint:tokens` (or the build) runs after the reconciliation
+- THEN it MUST pass on the baselined codebase
+- AND it MUST still fail on a planted, non-baselined off-token literal (e.g. `color: #006ccb`)
+
+---
+
+<!-- Merged on archive from change: add-missing-primitives (2026-06-17). Source delta retained in openspec/archive/add-missing-primitives/specs/ui/spec.md -->
+
+## ADDED Requirements
+
+### Requirement: Icon Button Primitive
+An `IconButton` primitive MUST exist (`app/components/primitives/IconButton.tsx`), modelling Figma `button_icon`
+(`3828:11151`). It MUST be square `size/control` (40×40), `radius/sm`, hold a `size/icon-rail` (20) icon, and
+expose a typed `bg` axis (`no` | `yes`), the interaction states Default/Hover/Active, and an optional counter
+badge. It MUST be token-pure (no raw hex/px) and carry an accessible label.
+
+#### Scenario: Renders both bg variants with correct geometry
+- GIVEN `<IconButton bg="yes">` and `<IconButton bg="no">`
+- WHEN each renders
+- THEN both MUST be 40×40 (`h-control w-control`) with `radius/sm` and a 20px icon
+- AND `bg="yes"` MUST use the `surface/level-2` token fill; `bg="no"` MUST be transparent
+- AND hover/active MUST resolve to surface-token classes (no raw literals)
+
+#### Scenario: Optional counter badge
+- GIVEN `<IconButton counter={5}>`
+- WHEN it renders
+- THEN a badge MUST appear top-right using the `brand/default` token fill and an inverse-text token
+- AND when `counter` is absent, no badge renders
+
+#### Scenario: Accessible and token-pure
+- GIVEN any `IconButton`
+- WHEN it renders
+- THEN it MUST expose an accessible name (`aria-label`, required by the type)
+- AND the token-purity lint MUST report zero new off-token literals for the file
+
+#### Scenario: Genuine icon-only controls are refactored
+- GIVEN the blocks that faked an icon-only control via `Button variant=ghost` + a bare `Icon`
+- WHEN they are inspected after the change
+- THEN the four icon-only edit affordances (`ProfileHeader`, `CategoryTags`, `ExperienceList`, `TagList`) MUST use `IconButton`
+- AND controls that are NOT the `button_icon` atom — a brand-filled CTA (ChatPanel send), a text fallback
+  (ChatPanel «Файл»), and text logout buttons (`SidebarNav`/`SidebarNavLive` «Выйти») — MUST remain `Button`, not `IconButton`
+
+### Requirement: Specialty Tag Primitive
+A `SpecialtyTag` primitive MUST exist, modelling Figma `Специальность` (`3435:5794`): a chip with brand-blue
+**mono** text (`type/data` family `mono`) on a white fill, with `S` and `XS` size tiers (`type/data` → `type/data-small`).
+It MUST be token-pure; the white fill MUST be expressed via the `surface/inverse` token, not a raw literal.
+
+#### Scenario: Renders brand-blue mono text on a tokened white fill
+- GIVEN `<SpecialtyTag size="S">[Senior Frontend Engineer]</SpecialtyTag>`
+- WHEN it renders
+- THEN the text MUST use the `brand/default` colour token and the `mono` family at the `type/data` step
+- AND the fill MUST be the `surface/inverse` token (`bg-surface-inverse`), not `#ffffff`
+- AND padding MUST use `space/sm` (8) horizontally
+
+#### Scenario: Both size tiers
+- GIVEN `size="S"` and `size="XS"`
+- WHEN each renders
+- THEN `S` MUST use `type/data` (14) and `XS` MUST use `type/data-small` (12)
+- AND the typed API MUST reject any size outside `{S, XS}`
+
+#### Scenario: Token-pure
+- GIVEN the `SpecialtyTag` file
+- WHEN the token-purity lint runs
+- THEN it MUST report zero new off-token literals
+
+### Requirement: Button Size Tiers and Danger Variant
+The `Button` primitive MUST gain a `Tetriary` 32px size tier and a `danger` variant, modelling Figma `Button`
+(`3149:3432`: Tetriary `3179:4001`, session-delete `3152:3486`), without changing the existing
+`primary|secondary|ghost|link` behaviour or the default `md` (40h) size.
+
+#### Scenario: Size axis is real (not a dead union)
+- GIVEN `<Button size="sm">` and `<Button size="md">`
+- WHEN each renders
+- THEN `sm` MUST be 32px tall (the Tetriary tier) and `md` MUST remain 40px (`size/control`)
+- AND the typed `size` union MUST include both and reject any other value
+- AND existing `md` consumers MUST render unchanged
+
+#### Scenario: Danger variant is token-pure
+- GIVEN `<Button variant="danger">`
+- WHEN it renders
+- THEN it MUST use the `status/rejected` token for text and a tinted fill (`status-rejected` at reduced alpha)
+  with a `border/default` border — NO raw `#FF383C`/`#ef4444` literal
+- AND the iOS-red ↔ `status/rejected` delta MUST be recorded in the reconciliation log (§10.2)
+
+#### Scenario: Variant union extended without regressions
+- GIVEN the `ButtonVariant` union
+- WHEN inspected
+- THEN it MUST include `danger` alongside the existing four
+- AND existing Button render tests MUST stay green
+
+### Requirement: Filter Group Expand/Collapse Axis
+The filter primitives MUST support the `Expand` axis from Figma `Filter` (`2826:2529`, Expand=yes `3904:6136`):
+a `FilterGroup` that shows a header and expands/collapses its `Filter` option rows. It MUST be token-pure and
+keyboard-operable.
+
+#### Scenario: Expanded shows options, collapsed hides them
+- GIVEN a `FilterGroup` with `expanded={true}` then `expanded={false}`
+- WHEN each renders
+- THEN expanded MUST render its `Filter` option rows; collapsed MUST hide them
+- AND the header MUST expose `aria-expanded` reflecting the state
+
+#### Scenario: Composes existing Filter rows
+- GIVEN the group
+- WHEN it renders its options
+- THEN each option MUST be the existing `Filter` (Radio + label + optional count) primitive — not a re-implementation
+- AND the token-purity lint MUST report zero new off-token literals
+
+#### Scenario: Toggle is controllable
+- GIVEN an `onToggle` handler
+- WHEN the header is activated (click / Enter / Space)
+- THEN `onToggle` MUST fire so the parent can flip `expanded`
+
+### Requirement: Select Option Disabled State
+`Select` MUST support a per-option `disabled` state, modelling Figma `dropdown/item` Disabled (`3907:6167`).
+A disabled option MUST be visually de-emphasised (the `opacity/disabled` token), non-selectable, and marked for
+assistive tech.
+
+#### Scenario: Disabled option is non-interactive
+- GIVEN a `SelectOption` with `disabled: true` in an expanded `Select`
+- WHEN the option renders and is clicked
+- THEN it MUST NOT fire `onSelect`
+- AND it MUST carry `aria-disabled="true"`
+- AND it MUST use the `opacity/disabled` token for de-emphasis (no raw opacity literal)
+
+#### Scenario: Enabled options unaffected
+- GIVEN a mix of enabled and disabled options
+- WHEN the list renders
+- THEN enabled options MUST still select on click and show the selected/hover states
+- AND the `SelectOption` type MUST accept an optional `disabled?: boolean`
+
+### Requirement: New Primitives Are Catalogued and Token-Validated
+Every primitive/axis added by this change MUST appear in the workbench catalog with all its states, MUST have
+render/state tests, and MUST keep the token pipeline green.
+
+#### Scenario: Workbench shows all new states
+- GIVEN `app/workbench/primitives/page.tsx` (via the catalog registry)
+- WHEN it renders
+- THEN it MUST include `IconButton` (bg no/yes, +counter), `SpecialtyTag` (S/XS), `Button` (sm tier + danger),
+  the Filter expand group, and a disabled `Select` option
+
+#### Scenario: Render tests and lints pass
+- GIVEN `__tests__/unit/components/ui-primitives.test.tsx` extended for the new primitives
+- WHEN `npm run test:unit`, `npm run lint:tokens`, and `npm run validate:tokens` run
+- THEN the new render/state tests MUST pass, the token-purity lint MUST report no new off-token literals,
+  and the generated outputs MUST stay in sync with the JSON (the added `surface/inverse` token included)
+- AND `npm run build` MUST pass
+
+---
+
 <!-- Merged on archive from change: typography-system (2026-06-14). Source delta retained in openspec/archive/typography-system/specs/ui/spec.md -->
 
 ## ADDED Requirements
@@ -4750,3 +4989,1185 @@ proof.
 - A planted off-token/off-system value fails it; the scaffold is documented for `prove-extensibility-admin`
 
 ---
+
+## ADDED Requirements (compose-shell-cutover — Phase 2 shell)
+
+> The first Phase-2 screen composition: `app/(protected)/layout.tsx` composes the `AppShell` template +
+> `SidebarNav`/`Topbar` blocks (via live wrappers) with role-based RU nav, live counts, logout, and notifications,
+> replacing the legacy `MainNav`. Verified by E2E (`__tests__/e2e/shell-cutover.spec.ts`), F3 logical parity, F5
+> composition purity, the full unit suite, and the fidelity harness. F1 per-screen ≤1% is design-lock/font-gated (see
+> the verification requirement).
+
+### Requirement: Protected Layout Composes the AppShell
+`app/(protected)/layout.tsx` MUST compose `AppShell` + `SidebarNav` + `Topbar` (replacing `MainNav`) as a
+composition-pure screen (F5): it MUST carry the `@composed-screen` marker, import only kit (`templates`/`blocks`/
+`layout`/`primitives`) + `lib`/`actions`, contain no `className`/`style`/raw markup, and render every existing
+protected route inside the shell's content region.
+
+#### Scenario: The layout is a composed screen and all protected routes render in it
+- GIVEN `app/(protected)/layout.tsx`
+- WHEN it and a protected route (`/dashboard`, `/gigs`, `/gigs/new`, `/gigs/[id]`, `/profile`, …) are inspected/rendered
+- THEN the layout MUST compose `<AppShell sidebar topbar>{children}</AppShell>` (F5-pure, `MainNav` unused), and the
+  page MUST render inside the shell content region
+
+**Acceptance Criteria:**
+- `app/(protected)/layout.tsx` composes `AppShell`+`SidebarNav`+`Topbar` (F5-pure, `@composed-screen`); `MainNav` retired
+- Every existing protected route renders within the shell
+
+### Requirement: Exact RU Navigation Per Role (F3)
+The sidebar MUST show the exact RU navigation per role.
+
+#### Scenario: CLIENT and SPECIALIST navigation
+- GIVEN an authenticated user
+- WHEN the sidebar renders
+- THEN a CLIENT MUST see, in order, **Дашборд** (`/dashboard`), **Мои гиги**, **Чаты** (`/chats`), **Финансы**
+  (`/finances`), **Споры** (`/disputes`); a SPECIALIST MUST see those plus **Поиск** (`/gigs`)
+- AND items for not-yet-built routes (`/chats`, `/finances`, `/disputes`) are present per F3, pointing at their
+  canonical hrefs (built by their own Phase-2 changes)
+
+**Acceptance Criteria:**
+- Exact RU items/order per role (CLIENT 5 items; SPECIALIST + Поиск); verified live by E2E
+
+### Requirement: Live Counts and Active State
+The shell MUST reflect live data: nav counts (open/assigned gigs, unread notifications) computed server-side, and the
+active nav item for the current route (computed from `usePathname` in a client wrapper).
+
+#### Scenario: Counts and active state
+- GIVEN the layout (server) computes counts and the client wrapper reads the pathname
+- WHEN the sidebar renders on a route
+- THEN nav counts MUST reflect real data and the current route's item MUST be marked active
+
+**Acceptance Criteria:**
+- Live counts + active state (pathname-driven); verified live by E2E (Поиск active on `/gigs`)
+
+### Requirement: Preserved Behaviour (auth, logout, notifications, a11y, desktop-only)
+The cutover MUST preserve the protected layout's existing behaviour: the no-session redirect (`getSession()` →
+`/login`), logout (the `logoutUser` form, the button being `type="submit"`), the interactive `NotificationBell`, the
+skip-link target `#main-content` (the focusable `<main>` provided by `AppShell`), and it MUST be desktop-only (no
+mobile hamburger).
+
+#### Scenario: Guard, logout, notifications, a11y
+- GIVEN the shell
+- WHEN exercised
+- THEN an unauthenticated request MUST redirect to `/login`; logout MUST submit `logoutUser` and redirect; the
+  `NotificationBell` MUST be present; `#main-content`/skip-link MUST exist; no mobile menu is rendered
+
+**Acceptance Criteria:**
+- No-session redirect, `logoutUser` logout (submit button), `NotificationBell`, `#main-content`/skip-link preserved; desktop-only — verified live by E2E
+
+### Requirement: Additive Live-Wiring Block Slots
+`SidebarNav` MUST gain an optional `logout` slot and `Topbar` an optional `notifications` slot, additively: with no
+slot they render the presentational defaults (fixtures/workbench unaffected); the live wrappers (`SidebarNavLive`/
+`TopbarLive`) inject the `logoutUser` form + `NotificationBell` through them.
+
+#### Scenario: Optional slots, presentational by default
+- GIVEN the blocks
+- WHEN no slot is passed (fixtures) vs the live wrappers passing slots
+- THEN the no-slot render MUST be unchanged (composition lint/workbench unaffected), and the slotted render MUST show
+  the supplied interactive nodes
+
+**Acceptance Criteria:**
+- `SidebarNav.logout?` + `Topbar.notifications?` optional slots; additive; live wrappers inject logout + notifications
+
+### Requirement: Shell Verification and Deferred F1
+The cutover MUST pass the buildable Fidelity DoD (F3 + F5) and the functional/E2E suite; the F1 per-screen ≤1%
+pixel-diff is achieved only once external prerequisites land.
+
+#### Scenario: Buildable + functional verification (enforced)
+- GIVEN the change
+- WHEN `lint:composition` (F5), `lint:tokens`, `npm run build`, `npm run test:unit`, `npm run fidelity`, and the
+  shell E2E (`__tests__/e2e/shell-cutover.spec.ts`) run
+- THEN they MUST pass — composition-pure layout, exact RU nav per role (F3), no unit regressions, and the live shell
+  renders with working logout + auth guard
+
+#### Scenario: F1 shell pixel-fidelity — run, chrome faithful, ≤1% deferred
+- GIVEN the live shell captured at 1440px and diffed vs the screenshot reference (`scripts/design-system/
+  fidelity-diff.js`)
+- WHEN the artifacts (diff / side-by-side / 50%-overlay) are reviewed
+- THEN the shell **chrome** (sidebar nav + topbar) MUST be visually faithful to the reference; the automated ≤1%
+  threshold is NOT yet met (the diff is dominated by the **substitute font** — SF Compact unlicensed — and the
+  **uncomposed page bodies**, which are composed by their own `compose-*` changes). The ≤1% gate is reached once the
+  font is licensed and the bodies are composed — both outside this change.
+
+**Acceptance Criteria:**
+- F5 + F3 + `build` + `test:unit` + `npm run fidelity` + shell E2E green
+- F1 diff run; shell chrome visually faithful; ≤1% deferred to the font licence + per-screen body composition
+
+## ADDED Requirements (compose-client-dashboard — Phase 2 screen)
+
+> The CLIENT `/dashboard` body composed from the kit (`BannerCard` + `Tabs` + `GigCard·grid` + `CreateGigCTA` +
+> `MessagesPanel`) inside the layout's `AppShell`, bound to real data (completion %, gigs, messages). Verified by E2E
+> (`__tests__/e2e/compose-client-dashboard.spec.ts`), F3 tab parity, F5 composition purity, mapper unit tests, build,
+> the full unit suite, and a visual fidelity review. F1 ≤1% deferred (substitute font + cosmic banner raster).
+
+### Requirement: CLIENT Dashboard Composed from Blocks
+The CLIENT `/dashboard` body MUST be a composition-pure `@composed-screen` (`ClientDashboard`) composing `BannerCard`
++ `Tabs` + `GigCard·grid` + `CreateGigCTA` + `MessagesPanel` via layout primitives only (no `className`/`style`/raw
+markup; imports only kit/`lib`/`actions`/`react`/`next`), rendered by the dashboard page for `role === 'CLIENT'`.
+
+#### Scenario: Composed CLIENT dashboard
+- GIVEN a CLIENT loads `/dashboard`
+- THEN the page MUST build the data server-side and render `<ClientDashboard>` (inside the shell) composing the five
+  blocks; the no-session redirect MUST be preserved and the SPECIALIST branch MUST be unchanged
+
+**Acceptance Criteria:**
+- `ClientDashboard` is an F5-pure `@composed-screen` composing the five blocks; the page renders it for CLIENT; SPECIALIST branch untouched
+
+### Requirement: CLIENT Dashboard Real Data Binding
+The dashboard MUST bind real data via server-only, contract-typed mappers: `toGigCardVM` (gig → `GigCardVM`, status to
+the design `Status`, `categorySlug` → `Category`, budget → `Money`, deadline, rating) and `getClientDashboard` (profile
+completion %, the client's gigs as `GigCardVM`s + status tab counts, recent messages → `MessagesPanelVM`).
+
+#### Scenario: Real completion %, gigs, messages
+- GIVEN `getClientDashboard(userId)`
+- THEN it MUST return the completion %, the client's gigs as `GigCardVM`s (+ tab counts), and messages as a
+  `MessagesPanelVM` — assignable to the view-model contracts (imported `import type`); gig status maps `PAID→completed`
+
+**Acceptance Criteria:**
+- `toGigCardVM` + `getClientDashboard` (contract-typed); completion %, gigs, messages are real; status mapped to the design `Status`
+
+### Requirement: CreateGigCTA Block
+The `CreateGigCTA` block MUST exist — a token-pure primary action (`Button`-token-styled `Link`) + label → href —
+with a fixture and a barrel export.
+
+#### Scenario: CreateGigCTA is a token-pure kit block
+- GIVEN `app/components/blocks/CreateGigCTA.tsx`
+- THEN it MUST render a primary-styled `Link` (via `BUTTON_BASE`/`BUTTON_VARIANT`) → href, be token-pure, and be
+  exported from the blocks barrel with a fixture
+
+**Acceptance Criteria:**
+- `CreateGigCTA` token-pure block (primary action + label → href); fixture + barrel export
+
+### Requirement: CLIENT Dashboard Functional Parity (gig links, create flow, status tabs)
+The composed dashboard MUST be functional and match the design's logical parity.
+
+#### Scenario: Gig links, create flow, status tabs
+- GIVEN the composed CLIENT dashboard
+- THEN a `GigCard` MUST open `/gigs/[id]`; `CreateGigCTA` (and the banner CTA) MUST open `/gigs/new`; and the `Tabs`
+  (Все / В работе / На проверке / Завершённые, with real counts) MUST filter the `GigCard·grid` by status (F3)
+
+**Acceptance Criteria:**
+- `GigCard` → `/gigs/[id]`; `CreateGigCTA`/banner → `/gigs/new`; tabs filter the grid (RU labels + real counts, F3)
+
+### Requirement: CLIENT Dashboard Verification and Deferred F1
+The change MUST pass F3 + F5 + the functional/E2E suite; the F1 ≤1% pixel-diff is produced but deferred.
+
+#### Scenario: Buildable + functional verification (enforced)
+- GIVEN the change
+- WHEN `lint:composition` (F5), `lint:tokens`, `npm run build`, `npm run test:unit`, the mapper unit tests, and the
+  CLIENT dashboard E2E run
+- THEN they MUST pass — the body is composition-pure, the blocks/tabs match the design (F3), gig links + the create
+  flow work, and the existing tests stay green
+
+#### Scenario: F1 diff produced; ≤1% deferred
+- GIVEN the live CLIENT dashboard captured at 1440px and diffed vs `screens/customer-dashboard.jpg`
+- THEN the composed layout MUST be visually faithful (overlay reviewed); the automated ≤1% threshold is NOT yet met —
+  dominated by the **substitute font** (SF Compact unlicensed) and the **cosmic banner raster** (BannerCard `art`,
+  unexported), not a composition defect; ≤1% is reached once the font is licensed and the raster exported
+
+**Acceptance Criteria:**
+- F5 + F3 + `build` + `test:unit` + mapper units + CLIENT dashboard E2E green
+- F1 diff produced; composed layout visually faithful; ≤1% deferred to the font licence + banner-raster export
+
+## ADDED Requirements (compose-specialist-dashboard — Phase 2 screen)
+
+> The SPECIALIST `/dashboard` body composed from the kit (`BannerCard` + `Tabs` + `GigCard·grid` + `SearchPanel` +
+> `MessagesPanel`) inside the layout's `AppShell`, bound to real data — completion %, the specialist's applications +
+> assigned gigs across the **exact five status tabs** (Все / Заявки / В работе / На проверке / Завершённые, with
+> counts), and messages. Verified by E2E (`__tests__/e2e/compose-specialist-dashboard.spec.ts`, 4/4), F3 tab parity, F5
+> composition purity, the `getSpecialistDashboard` mapper unit test, build, and the full unit suite (867). F1 ≤1%
+> deferred (substitute font + cosmic banner raster; diff ratio 0.1895). Reconciliation: legacy English 3-tab
+> (Active/Pending/Archive) → the five RU tabs; rejected/withdrawn applications surface under **Все** only
+> (`status: 'rejected'`); PENDING-application cards reflect the pending state (`review` / «На рассмотрении»).
+
+### Requirement: SPECIALIST Dashboard Composed from Blocks
+The SPECIALIST `/dashboard` body MUST be a composition-pure `@composed-screen` (`SpecialistDashboard`) composing
+`BannerCard` + `SearchPanel` + `Tabs` + `GigCard·grid` + `MessagesPanel` via layout primitives only (no
+`className`/`style`/raw markup; imports only kit/`lib`/`actions`/`react`/`next`), rendered by the dashboard page for
+`role === 'SPECIALIST'`.
+
+#### Scenario: Composed SPECIALIST dashboard
+- GIVEN a SPECIALIST loads `/dashboard`
+- THEN the page MUST build the data server-side and render `<SpecialistDashboard>` (inside the shell) composing the
+  five blocks, replacing the bespoke markup + the removed `SpecialistDashboardTabs`; the no-session redirect MUST be
+  preserved and the CLIENT branch + unknown-role fallback MUST be unchanged
+
+**Acceptance Criteria:**
+- `SpecialistDashboard` is an F5-pure `@composed-screen` composing the five blocks; the page renders it for SPECIALIST; CLIENT branch + unknown-role fallback untouched; legacy `SpecialistDashboardTabs` removed
+
+### Requirement: SPECIALIST Dashboard Exact Status Tabs with Counts
+The dashboard `Tabs` MUST be exactly the design's five, in order, with live counts, mapped to the existing
+application/gig states.
+
+#### Scenario: The five tabs map to the existing states
+- GIVEN the specialist's applications and assigned gigs
+- THEN the `Tabs` MUST be exactly **Все · Заявки · В работе · На проверке · Завершённые** (in order, with counts), where
+  Заявки = `PENDING` applications · В работе = assigned `IN_PROGRESS` · На проверке = assigned `REVIEW` · Завершённые =
+  assigned `COMPLETED`/`PAID` · Все = all cards; selecting a tab MUST show only that tab's `GigCard`s (F3)
+
+**Acceptance Criteria:**
+- Tabs are exactly Все/Заявки/В работе/На проверке/Завершённые (RU, ordered) with live counts mapped to PENDING applications + assigned IN_PROGRESS/REVIEW/COMPLETED·PAID + all
+
+### Requirement: SPECIALIST Dashboard Real Data Binding
+The dashboard MUST bind real data via the server-only, contract-typed `getSpecialistDashboard` mapper, which reuses
+`toGigCardVM`. It fetches the specialist's applications (full gig) + assigned gigs, maps each to a `GigCardVM` tagged
+with a `tabKey`, builds the five-tab counts, computes profile completion %, and returns recent messages as a
+`MessagesPanelVM`.
+
+#### Scenario: Mapper returns completion %, tagged cards, counts, messages
+- GIVEN `getSpecialistDashboard(userId)`
+- THEN it MUST return the completion %, the applications + assigned gigs as `GigCardVM`s (each with a `tabKey`), the
+  five-tab counts, and messages as a `MessagesPanelVM` — assignable to the view-model contracts (imported `import
+  type`); PENDING-application cards map to `review`, rejected/withdrawn to `rejected` (tabKey `archive`)
+
+**Acceptance Criteria:**
+- `getSpecialistDashboard` (contract-typed, reuses `toGigCardVM`); completion %, `tabKey` cards, counts, messages are real; the block view-model contracts (`app/components/blocks/view-models.ts`) are unchanged (new types in `lib/view-models.ts`)
+
+### Requirement: SearchPanel Block
+The `SearchPanel` block MUST exist — a token-pure composition of the `SearchInput` primitive + a primary "Найти
+проект" action, presentational via an `onSubmit(query)` callback — with a fixture and a barrel export.
+
+#### Scenario: SearchPanel is a token-pure kit block over SearchInput
+- GIVEN `app/components/blocks/SearchPanel.tsx`
+- THEN it MUST compose `SearchInput` + a primary action, be token-pure, expose `onSubmit(query)`, and be exported from
+  the blocks barrel with a fixture
+
+**Acceptance Criteria:**
+- `SearchPanel` token-pure block (SearchInput + "Найти проект" action, `onSubmit(query)`); fixture + barrel export
+
+### Requirement: SPECIALIST Dashboard Functional Parity (gig links, find-project)
+The composed dashboard MUST be functional and match the design's logical parity.
+
+#### Scenario: Gig links and the find-project search
+- GIVEN the composed SPECIALIST dashboard
+- THEN a `GigCard` MUST open `/gigs/[id]`; the `SearchPanel` submit (and the "Найти проект" action) MUST navigate to
+  `/gigs` (carrying the query, e.g. `/gigs?q=…`); and the `Tabs` MUST filter the grid by `tabKey` (F3)
+
+**Acceptance Criteria:**
+- `GigCard` → `/gigs/[id]`; `SearchPanel` submit → `/gigs?q=…`; tabs filter the grid by `tabKey` (RU labels + counts, F3)
+
+### Requirement: SPECIALIST Dashboard Verification and Deferred F1
+The change MUST pass F3 + F5 + the functional/E2E suite; the F1 ≤1% pixel-diff is produced but deferred.
+
+#### Scenario: Buildable + functional verification (enforced)
+- GIVEN the change
+- WHEN `lint:composition` (F5), `lint:tokens`, `npm run build`, `npm run test:unit`, the mapper unit test, and the
+  SPECIALIST dashboard E2E run
+- THEN they MUST pass — the body is composition-pure, the five tabs match the design exactly (F3), gig links + the
+  find-project flow work, and the existing tests stay green
+
+#### Scenario: F1 diff produced; ≤1% deferred
+- GIVEN the live SPECIALIST dashboard captured at 1440px and diffed vs `screens/specialist-dashboard.jpg`
+- THEN the composed layout MUST be visually faithful (overlay reviewed; ratio 0.1895); the automated ≤1% threshold is
+  NOT yet met — dominated by the **substitute font** (SF Compact unlicensed) and the **cosmic banner raster**
+  (BannerCard `art`, unexported), not a composition defect; ≤1% is reached once the font is licensed and the raster
+  exported
+
+**Acceptance Criteria:**
+- F5 + F3 + `build` + `test:unit` + mapper unit test + SPECIALIST dashboard E2E green
+- F1 diff produced; composed layout visually faithful; ≤1% deferred to the font licence + banner-raster export
+
+## ADDED Requirements (compose-gig-search — Phase 2 screen)
+
+> The SPECIALIST `/gigs` browse/search screen composed from the kit (`FilterBar` + `ViewToggle` + `GigCard·(grid/list)`
+> + a "Найдено N" `ResultCount`) inside the layout's `AppShell`, **preserving** the existing OPEN-gig query (search /
+> tags / budget / sort / pagination, SPECIALIST-only, page-validation redirects, gig-link filter preservation) and
+> **adding** the design's **category** filter, **Рейтинг** (gig-owner aggregate) filter, and **grid⇄list** view — all
+> URL-param-driven. Verified by E2E (`__tests__/e2e/compose-gig-search.spec.ts`, 5/5), the preserved gig-browse
+> integration tests (28/28 + `gig-browse-access` 10/10), the `getGigSearch`/`toBrowseGigCardVM` mapper unit test (3/3),
+> F5 composition purity, build, and the full unit suite (870). F1 ≤1% deferred (substitute font; grid 0.1164 / list
+> 0.0993). Reconciliation: design FilterBar = search + category + sort + Рейтинг + view; tag/budget remain honored via
+> URL (server query unchanged) for deep links + integration tests; Рейтинг = the gig owner (client) aggregate rating.
+
+### Requirement: Gig Search Composed from Blocks
+The `/gigs` body MUST be a composition-pure `@composed-screen` (`GigSearch`) composing `FilterBar` + `ViewToggle` (via
+`FilterBar`) + `GigCard·(grid/list)` + a "Найдено N" `ResultCount`, via layout primitives only (no
+`className`/`style`/raw markup; imports only kit/`lib`/`actions`/`react`/`next`), rendered by the `/gigs` page for
+SPECIALIST users.
+
+#### Scenario: Composed gig search
+- GIVEN a SPECIALIST loads `/gigs`
+- THEN the page MUST build the data server-side and render `<GigSearch>` (inside the shell) composing the FilterBar +
+  result count + GigCard grid/list, replacing the bespoke header + `GigBrowseClient`/`GigFilters`; the SPECIALIST-only
+  redirect (CLIENT → `/dashboard?error=…`) MUST be preserved
+
+**Acceptance Criteria:**
+- `GigSearch` is an F5-pure `@composed-screen` composing FilterBar + ViewToggle + GigCard·(grid/list) + "Найдено N"; rendered for SPECIALIST; SPECIALIST-only redirect preserved; bespoke browse markup + `GigFilters` removed
+
+### Requirement: Preserved Search / Tag / Budget / Sort / Pagination
+The composition MUST preserve the existing OPEN-gig query and pagination behaviour exactly (URL-state, 25/page,
+page-validation redirects, gig-link filter preservation); their semantics MUST NOT change.
+
+#### Scenario: Query + pagination unchanged
+- GIVEN the existing `search`/`tags`/`minBudget`/`maxBudget`/`sort`/`page` URL params
+- THEN the OPEN-gig `where`/`orderBy`, the 25-per-page parallel `findMany`+`count`, the page-validation redirects, and
+  `PaginationControls` MUST behave as before; a `GigCard` MUST open `/gigs/[id]?from=browse&…` preserving the filters
+
+**Acceptance Criteria:**
+- search/tag/budget/sort/pagination preserved (the gig-browse integration tests stay green); gig links preserve filters
+
+### Requirement: Added Category, Рейтинг, View Toggle, and Result Count
+The composition MUST add the design's category filter, rating filter, grid⇄list toggle, and RU result count, all
+URL-param-driven.
+
+#### Scenario: Category / Рейтинг / view / count
+- GIVEN the composed FilterBar + ResultCount
+- THEN choosing a category MUST filter by `categorySlug` (`category` param, validated); choosing a min-rating MUST
+  filter by the gig **owner (client)** aggregate rating (`minRating` via `review.groupBy`); toggling the view MUST
+  render `GigCard`s in grid (`Grid`, `layout: 'grid'`) or list (`Stack`, `layout: 'list'`) per a `view` param; and a RU
+  **"Найдено N"** count MUST be shown
+
+**Acceptance Criteria:**
+- Category filter (5 categories), Рейтинг filter (client aggregate via groupBy), grid⇄list `ViewToggle`, "Найдено N" — all URL-driven (F3)
+
+### Requirement: Functional FilterBar Block
+The `FilterBar` block MUST drive the filter/search UI — a controlled `SearchInput` (`onSearch`) + category/sort/Рейтинг
+`Select`s + `ViewToggle`, each emitting a typed callback — additively (optional props; the `search-only`/`full`
+fixtures + workbench usage keep working) and token-pure.
+
+#### Scenario: FilterBar emits typed changes
+- GIVEN `app/components/blocks/FilterBar.tsx`
+- THEN it MUST expose `onSearch`/`onCategory`/`onSort`/`onRating`/`onViewChange` callbacks driving the composed screen's
+  URL state, with the legacy `vm.filters` Select rendered only when non-empty; new props optional, token-pure
+
+**Acceptance Criteria:**
+- `FilterBar` extended to drive search + category/sort/rating selects + view toggle (typed callbacks), additive + backward compatible, token-pure
+
+### Requirement: Browse Data Binding via Contract-Typed Mappers
+The screen MUST bind real data via server-only, contract-typed mappers reusing `toGigCardVM`: `toBrowseGigCardVM`
+(overrides `rating` with the gig owner's aggregate via `getRatingForUser(clientId)` + sets `clientName`) and
+`getGigSearch` (cards / `FilterBarVM` / count / page / totalPages / view).
+
+#### Scenario: Browse cards show the client rating + name
+- GIVEN an OPEN gig
+- THEN `toBrowseGigCardVM(gig, layout)` MUST reuse `toGigCardVM` and show the gig owner's rating + `clientName`; and
+  `getGigSearch` MUST return the cards, `FilterBarVM`, count, pagination, and view — `import type` the VMs; the block
+  view-model contract (`app/components/blocks/view-models.ts`) MUST be unchanged
+
+**Acceptance Criteria:**
+- `toBrowseGigCardVM` (client rating + `clientName`, reuses `toGigCardVM`) + `getGigSearch`; block view-model contract unchanged (screen-data types in `lib/view-models.ts`)
+
+### Requirement: Gig Search Verification and Deferred F1
+The change MUST pass F3 + F5 + the functional/E2E suite; the F1 ≤1% pixel-diff is produced (both layouts) but deferred.
+
+#### Scenario: Buildable + functional verification (enforced)
+- GIVEN the change
+- WHEN `lint:composition` (F5), `lint:tokens`, `npm run build`, `npm run test:unit`, and the gig-search E2E run
+- THEN they MUST pass — the body is composition-pure, search/filter/sort/pagination/view match (F3), gig links work, and
+  the preserved gig-browse integration tests stay green
+
+#### Scenario: F1 diff produced in both layouts; ≤1% deferred
+- GIVEN the live `/gigs` captured at 1440px in grid and list and diffed vs `screens/specialist-gig-search.jpg`
+- THEN the composed layouts MUST be visually faithful; the automated ≤1% threshold is NOT yet met — dominated by the
+  **substitute font** (SF Compact unlicensed), not a composition defect; ≤1% is reached once the font is licensed
+
+**Acceptance Criteria:**
+- F5 + F3 + `build` + `test:unit` + gig-search E2E green; gig-browse integration tests green
+- F1 diff produced in both layouts (grid 0.1164 / list 0.0993); composed layouts visually faithful; ≤1% deferred to the font licence
+
+## ADDED Requirements (compose-gig-detail-apply — Phase 2 screen)
+
+> The `/gigs/[id]` gig-detail screen composed from the kit (`GigHeader` + `RequirementCard·grid` + `CriteriaList` +
+> `ClientCard` + `TermsTabs` + `ApplyPanel` + `ChatPanel`) inside the layout's `AppShell`, binding real data via
+> `getGigDetail` and **preserving every functional flow** for all roles (apply/withdraw; owner applications +
+> accept/reject; submit/approve/pay; messaging; admin moderation; example/closed/not-found) by wiring the **unchanged 8
+> server actions** directly (`useActionState` + `<form action>`). Verified by E2E
+> (`__tests__/e2e/compose-gig-detail-apply.spec.ts`, 5/5 — apply → owner-accept → submit → messaging → example), the
+> `getGigDetail` mapper unit test (4/4), the preserved gig-lifecycle integration tests (25), F5 composition purity,
+> build, and the full unit suite (874). F1 ≤1% deferred (substitute font; ratio 0.1034). Two gap-fill blocks added:
+> `GigHeader` (+ additive `GigHeaderVM`) and `Notice` (token-styled notices). The bespoke `[id]/*` form components are
+> superseded; the page (server) renders the `Breadcrumb` + `<GigDetail>`.
+
+### Requirement: Gig Detail Composed from Blocks
+The `/gigs/[id]` body MUST be a composition-pure `@composed-screen` (`GigDetail`) composing `GigHeader` +
+`RequirementCard·grid` + `CriteriaList` + `ClientCard` + `TermsTabs` + `ApplyPanel` + `ChatPanel` via layout primitives
+only (no `className`/`style`/raw styled markup; imports only kit/`lib`/`actions`/`react`/`next` — NOT the bespoke
+`[id]/*` form components), rendered by the `/gigs/[id]` page.
+
+#### Scenario: Composed gig detail
+- GIVEN a user loads `/gigs/[id]`
+- THEN the page MUST build the data via `getGigDetail` and render `<GigDetail>` (inside the shell) + the `Breadcrumb`;
+  the no-session redirect, the not-found branch, and `markNotificationAsRead` for authorized viewers MUST be preserved
+
+**Acceptance Criteria:**
+- `GigDetail` is an F5-pure `@composed-screen` composing the seven blocks; the page renders it + breadcrumb; redirect + not-found + notification preserved; bespoke `[id]/*` forms superseded
+
+### Requirement: Gig Detail Real Data Binding
+The screen MUST bind real data via the server-only, contract-typed `getGigDetail(gigId, viewer)` mapper: `GigHeaderVM`,
+`RequirementCardVM[]` (filled goal/deliverables/constraints), `CriteriaListVM` (from `acceptanceCriteria`),
+`ClientCardVM` (owner + `getRatingForUser(clientId)`), `TermsTabsVM` (proposed = the viewer's application counter,
+falling back to the gig's; client = the gig's), `ChatPanelVM` (messages thread), `ApplyPanelVM`, plus the role +
+lifecycle state. Returns `null` for a missing gig.
+
+#### Scenario: Mapper returns the block VMs + role/lifecycle state
+- GIVEN `getGigDetail(gigId, viewer)`
+- THEN it MUST return the seven block VMs + `isOwner`/`isAssignedSpecialist`/`viewerApplication`/`applications`/
+  `lifecycle`/`messaging`/`moderations`; assignable to the view-model contracts (`import type`); the block contract
+  gains **only** the additive `GigHeaderVM` (screen-data types live in `lib/view-models.ts`)
+
+**Acceptance Criteria:**
+- `getGigDetail` (contract-typed) returns the seven block VMs + role/lifecycle flags; null for a missing gig; block contract gained only `GigHeaderVM`
+
+### Requirement: GigHeader and Notice Blocks (composition-gap fills)
+The `GigHeader` block (detail header: title + `StatusBadge` + budget + deadline + `CategoryTag` + tags + date, from
+`GigHeaderVM`) and the `Notice` block (token-styled notices/errors) MUST be implemented token-pure, with fixtures and
+barrel exports.
+
+#### Scenario: GigHeader + Notice are token-pure kit blocks
+- GIVEN `app/components/blocks/GigHeader.tsx` and `app/components/blocks/Notice.tsx`
+- THEN both MUST be token-pure (primitives + layout + tokens), exported from the blocks barrel; `GigHeaderVM` is added
+  additively to the block view-model contract
+
+**Acceptance Criteria:**
+- `GigHeader` (+ additive `GigHeaderVM`) + `Notice` blocks, token-pure, with fixture + barrel exports
+
+### Requirement: Preserved Flows Wired to the Existing Actions
+The composition MUST preserve every flow for all roles by wiring the existing server actions directly (no semantics
+change): apply (`applyToGig`) + withdraw (`withdrawApplication`); owner applications + accept/reject
+(`acceptApplication`/`rejectApplication`); submit (`submitWork`); approve (`approveWork`); mark-as-paid (`markAsPaid`);
+gig-scoped messaging (`sendMessage`, gated on assignment + not closed/paid). Admin moderation, example, closed-by-admin,
+and not-found states MUST render.
+
+#### Scenario: The lifecycle walk + messaging + states
+- GIVEN the composed gig detail
+- WHEN a SPECIALIST applies, the owner accepts (→ IN_PROGRESS), the assigned specialist submits (→ REVIEW), the owner
+  approves (→ COMPLETED) and marks paid (→ PAID), and messages are sent once assigned
+- THEN each MUST work via its wired action; example gigs MUST show the no-apply notice; the lifecycle **semantics**
+  (transitions, authorization) MUST be unchanged (the gig-lifecycle/application/messaging tests stay green)
+
+**Acceptance Criteria:**
+- All 8 actions wired + working (`useActionState` + `<form action>`); owner applications + accept/reject; messaging gating; example/closed/not-found; lifecycle semantics unchanged
+
+### Requirement: Gig Detail Verification and Deferred F1
+The change MUST pass F3 + F5 + the functional/E2E suite; the F1 ≤1% pixel-diff is produced but deferred.
+
+#### Scenario: Buildable + functional verification (enforced)
+- GIVEN the change
+- WHEN `lint:composition` (F5), `lint:tokens`, `npm run build`, `npm run test:unit`, the mapper unit test, and the
+  gig-detail E2E run
+- THEN they MUST pass — the body is composition-pure, every role's flows/states match (F3), the lifecycle walk +
+  messaging work, and the existing lifecycle/application/messaging tests stay green
+
+#### Scenario: F1 diff produced; ≤1% deferred
+- GIVEN the live SPECIALIST `/gigs/[id]` captured at 1440px and diffed vs `screens/specialist-gig.jpg`
+- THEN the composed layout MUST be visually faithful (ratio 0.1034); the automated ≤1% threshold is NOT yet met —
+  dominated by the **substitute font** (SF Compact unlicensed), not a composition defect; ≤1% is reached once the font
+  is licensed
+
+**Acceptance Criteria:**
+- F5 + F3 + `build` + `test:unit` + mapper unit test + gig-detail E2E green; existing lifecycle/application/messaging tests green
+- F1 diff produced (ratio 0.1034); composed layout visually faithful; ≤1% deferred to the font licence
+
+## ADDED Requirements (compose-profile — Phase 2 screen)
+
+> The `/profile` screen (own + the `/profile/[userId]` public view) composed from the kit (`ProfileHeader` + `StatPanel`
+> + `TagList(Стек)` + `CategoryTags(Избранные)` + `ExperienceList(Опыт)` + `GigCard·list(Реализованные)`) inside the
+> layout's `AppShell`, binding real data via `getProfile` (the profile-evolution fields, the tech stack, the five
+> categories with the user's favorites marked, the bio + `WorkExperience`, the COMPLETED/PAID realized gigs, and the
+> aggregate rating — no hardcoded rating) and **preserving the edit flow** (`/profile/edit` + the unchanged
+> `updateProfile` action). Verified by E2E (`__tests__/e2e/compose-profile.spec.ts`, 3/3 — composed render · public
+> read-only · edit round-trip), the `getProfile` mapper unit test (4/4), the preserved profile integration tests
+> (profile-evolution 12 + profile-sanitization 8), F5 composition purity, build, and the full unit suite (878). F1 ≤1%
+> deferred (substitute font + the mock's avatar raster; ratio 0.1471). Four gap-fill blocks added: `ProfileHeader`,
+> `TagList`, `CategoryTags`, `ExperienceList` (+ additive `TagListVM`/`CategoryTagsVM`/`ExperienceListVM` and an optional
+> `ProfileHeaderVM.online`). The bespoke profile bodies (own + public) are superseded; the superseded bespoke-markup
+> pilot `profile-specialist-ui-tokens.spec.ts` is removed (its token-surface intent now guaranteed by the F2/F5 lints).
+
+### Requirement: Profile Composed from Blocks
+The `/profile` body (and the `/profile/[userId]` public view) MUST be a composition-pure `@composed-screen` (`Profile`)
+composing `ProfileHeader` + `StatPanel` + `TagList` + `CategoryTags` + `ExperienceList` + `GigCard·list` via layout
+primitives only (no `className`/`style`/raw styled markup; imports only kit/`lib`/`actions`/`react`/`next`), shared by
+both pages.
+
+#### Scenario: Composed profile
+- GIVEN a user loads `/profile` or `/profile/[userId]`
+- THEN each page MUST build the data via `getProfile` and render `<Profile>` (inside the shell) — the own page with
+  `isOwner` + the `Breadcrumb`, the public page with `isOwner={false}`; the no-session redirect, the self→`/profile`
+  redirect on the public route, and the not-set-up / not-found `Notice` (when `getProfile` returns `null`) MUST be
+  preserved
+
+**Acceptance Criteria:**
+- `Profile` is an F5-pure `@composed-screen` composing the six blocks; both pages render it (own with `isOwner`, public read-only); redirect + self-redirect + not-set-up/not-found preserved; bespoke profile bodies superseded
+
+### Requirement: Profile Real Data Binding
+The screen MUST bind real data via the server-only, contract-typed `getProfile(targetUserId, viewer)` mapper. For a
+SPECIALIST: `ProfileHeaderVM` (avatar / name / role tag / phone-verified / member-since from `createdAt`), `TagListVM`
+(techStack split), `CategoryTagsVM` (the five canonical categories with the user's `favoriteCategories` marked),
+`ExperienceListVM` (bio + ordered `WorkExperience`, period «2021 — Наст. время» for a null endYear), `realized:
+GigCardVM[]` (COMPLETED/PAID assigned gigs), the aggregate `rating` (via `getRatingForUser`, not hardcoded), and
+`isOwner`. For a CLIENT: the company header + stats. Returns `null` for a missing user / unset profile.
+
+#### Scenario: Mapper returns the block VMs + role state
+- GIVEN `getProfile(targetUserId, viewer)`
+- THEN it MUST return the block VMs + `rating` + `isOwner` (SPECIALIST: header/stack/categories/experience/realized;
+  CLIENT: header/stats); assignable to the view-model contracts (`import type`); `null` for a missing/unset profile;
+  the block contract gains only the additive `TagListVM`/`CategoryTagsVM`/`ExperienceListVM` (screen-data types live in
+  `lib/view-models.ts`)
+
+**Acceptance Criteria:**
+- `getProfile` (contract-typed) returns the block VMs + rating + `isOwner`; the real aggregate rating; null for missing/unset; reuses `getRatingForUser`/`CATEGORIES`/`toGigCardVM`
+
+### Requirement: Profile Blocks (composition-gap fills)
+The four blocks named by this composition but absent from the kit MUST be implemented token-pure, each with a fixture
+and a barrel export: `ProfileHeader` (avatar + name + role tag + phone-verified badge + member-since + inline stats +
+optional owner edit affordance), `TagList` (titled `Tag` list), `CategoryTags` (the five `CategoryTag`s with favorites
+emphasised), `ExperienceList` (bio + work-experience entries).
+
+#### Scenario: The four blocks are token-pure kit blocks
+- GIVEN `app/components/blocks/{ProfileHeader,TagList,CategoryTags,ExperienceList}.tsx`
+- THEN each MUST be token-pure (primitives + layout + tokens), exported from the blocks barrel, with a fixture;
+  `TagListVM`/`CategoryTagsVM`/`ExperienceListVM` are added additively to the block view-model contract (`ProfileHeaderVM`
+  already exists; any change to it is additive)
+
+**Acceptance Criteria:**
+- Four token-pure blocks + three additive VMs (+ optional `ProfileHeaderVM.online`) + fixtures + barrel exports; `lint:tokens` (F2) passes
+
+### Requirement: Preserved Edit Flow
+The composition MUST preserve the profile edit flow without changing the edit form or the `updateProfile` action.
+
+#### Scenario: Owner edits the profile
+- GIVEN the profile owner viewing `/profile`
+- WHEN they use the `ProfileHeader` edit affordance
+- THEN it MUST navigate to `/profile/edit`, where the existing `ProfileEditForm` (driving the unchanged `updateProfile`
+  action) saves and round-trips back to the composed `/profile`; the public `[userId]` view MUST NOT show any edit
+  affordance
+
+**Acceptance Criteria:**
+- Edit affordance → `/profile/edit`; `ProfileEditForm` + `updateProfile` unchanged; save round-trips; public view read-only
+
+### Requirement: Profile Verification and Deferred F1
+The change MUST pass F3 + F5 + the functional/E2E suite; the F1 ≤1% pixel-diff is produced but deferred.
+
+#### Scenario: Buildable + functional verification (enforced)
+- GIVEN the change
+- WHEN `lint:composition` (F5), `lint:tokens`, `npm run build`, `npm run test:unit`, the mapper unit test, and the
+  profile E2E run
+- THEN they MUST pass — the body is composition-pure, the IA matches the mock (header/stack/categories/experience/
+  realized) (F3), the composed render + edit round-trip + public read-only view work, and the existing profile/
+  `updateProfile` integration tests stay green
+
+#### Scenario: F1 diff produced; ≤1% deferred
+- GIVEN the live SPECIALIST `/profile` captured at 1440px and diffed vs `screens/specialist-progile.jpg`
+- THEN the composed layout MUST be visually faithful (ratio 0.1471); the automated ≤1% threshold is NOT yet met —
+  dominated by the **substitute font** (SF Compact unlicensed) + the mock's avatar raster, not a composition defect; ≤1%
+  is reached once the font is licensed and the avatar asset is exported
+
+**Acceptance Criteria:**
+- F5 + F3 + `build` + `test:unit` + mapper unit test + profile E2E green; existing profile/`updateProfile` tests green
+- F1 diff produced (ratio 0.1471); composed layout visually faithful; ≤1% deferred to the font licence + avatar export
+
+## ADDED Requirements (compose-chats — Phase 2 screen)
+
+> The new `/chats` inbox composed from the kit (`ConversationItem·list` + a search + `ChatHeader` + `ChatPanel` with
+> `MessageBubble·thread` + composer) inside the layout's `AppShell`, over the existing gig-scoped `Message` model —
+> conversations bound via `getConversations`, the selected thread via `getChatThread` (URL-driven `?gig=<id>`), **unread
+> derived from `Notification.lastReadAt`**, opening a conversation marking it read, and the sidebar «Чаты» count wired
+> to `getUnreadChatCount`. Sending reuses the **unchanged** `sendMessage` (which redirects to `/gigs/<id>` — the same
+> conversation). Verified by E2E (`__tests__/e2e/compose-chats.spec.ts`, 4/4 — inbox · open-thread · send · search), the
+> mapper unit tests (`chats-vm.test.ts`, 7/7), the preserved messaging integration tests (25) + the gig-detail E2E (5,
+> per-gig messaging intact), F5 composition purity, build, and the full unit suite (885). F1 ≤1% deferred (substitute
+> font + avatar rasters; ratio 0.1786). One gap-fill block added: `ChatHeader` (+ `ChatHeaderVM`); the `ChatPanel`
+> (optional header + day separators), `ConversationItem` (subtitle), and `MessageBubbleVM` (date) changes are additive
+> (the gig-detail caller is unchanged). No data model is added; messaging semantics are unchanged.
+
+### Requirement: Chats Composed from Blocks
+The `/chats` body MUST be a composition-pure `@composed-screen` (`Chats`) composing `ConversationItem·list` + a search +
+`ChatHeader` + `ChatPanel` (with `MessageBubble·thread` + composer) via layout primitives only (no `className`/`style`/
+raw styled markup; imports only kit/`lib`/`actions`/`react`/`next`), rendered by the `/chats` page with URL-driven
+(`?gig=<id>`) conversation selection.
+
+#### Scenario: Composed chats inbox
+- GIVEN a user loads `/chats` (optionally `/chats?gig=<id>`)
+- THEN the page MUST build the inbox via `getConversations` and, when `?gig` is present and the viewer is authorized, the
+  thread via `getChatThread`, rendering `<Chats>` inside the shell; the no-session redirect MUST be preserved, and an
+  empty/zero-state MUST render when there are no conversations or none is selected
+
+**Acceptance Criteria:**
+- `Chats` is an F5-pure `@composed-screen` composing the inbox + thread blocks; the page renders it with `?gig` selection; redirect + empty-state preserved
+
+### Requirement: Inbox and Thread Real Data Binding
+The screen MUST bind real data via server-only, contract-typed `getConversations` and `getChatThread` mappers over the
+gig-scoped `Message` model. `getConversations(viewer)` returns one `ConversationItemVM` per gig the viewer participates
+in (CLIENT: own gigs with an assigned specialist; SPECIALIST: assigned gigs) that has ≥1 message — counterparty name,
+gig title (subtitle), last-message preview, time, and `unread` (messages from others after the viewer's
+`Notification.lastReadAt`), sorted by last message desc. `getChatThread(gigId, viewer)` returns `{ header: ChatHeaderVM,
+chat: ChatPanelVM }` (thread with direction per viewer + day-date + receipts; counterparty header) or `null` when the
+viewer is not the gig owner / assigned specialist.
+
+#### Scenario: Mappers return the conversation list and the authorized thread
+- GIVEN `getConversations(viewer)` and `getChatThread(gigId, viewer)`
+- THEN the list MUST carry per-gig conversations (name/subtitle/preview/timestamp/unread, ordered by last message) and
+  the thread MUST carry the in/out bubbles (+ day separators) + the counterparty `ChatHeader`; `getChatThread` MUST
+  return `null` for a non-participant or a missing gig; both reuse `getRatingForUser` + the `lastReadAt` rule
+
+**Acceptance Criteria:**
+- `getConversations` returns per-gig conversations + unread; `getChatThread` returns thread + header, `null` for unauthorized/missing
+
+### Requirement: ChatHeader Block and Additive Chat Enhancements
+The `ChatHeader` block MUST be implemented token-pure (Avatar + counterparty name + verified + Rating + presence) with a
+fixture + barrel export; and the `ChatPanel` (optional header + day separators), `ConversationItem` (optional subtitle),
+and `MessageBubbleVM` (optional `date`) changes MUST be additive and backward-compatible.
+
+#### Scenario: ChatHeader + additive enhancements
+- GIVEN `app/components/blocks/ChatHeader.tsx` and the chat blocks/contracts
+- THEN `ChatHeader` MUST be a token-pure exported block with `ChatHeaderVM`; WHEN the additive props are absent the
+  blocks MUST render exactly as before (the gig-detail `ChatPanel` is unaffected); WHEN `MessageBubbleVM.date` changes
+  between consecutive bubbles a token-styled day separator MUST render, WHEN `ChatPanelVM.header` is present it MUST
+  render above the thread, and WHEN `ConversationItemVM.subtitle` is present it MUST render under the name
+
+**Acceptance Criteria:**
+- `ChatHeader` token-pure block + `ChatHeaderVM` + fixture + export; `ChatPanel`/`ConversationItem`/`MessageBubbleVM` changes additive; `lint:tokens` passes
+
+### Requirement: Unread, Mark-Read, and the Sidebar «Чаты» Count
+Unread MUST be derived from `Notification.lastReadAt`; opening a conversation MUST mark it read; the sidebar «Чаты»
+count MUST reflect the unread-conversation count.
+
+#### Scenario: Opening clears unread and the count matches the inbox
+- GIVEN a conversation with messages from the other party after the viewer's `lastReadAt`
+- WHEN the viewer opens it (`/chats?gig=<id>`)
+- THEN the page MUST call `markNotificationAsRead(gigId)` so the conversation's `unread` clears; and the protected
+  layout's `chats` nav count MUST use `getUnreadChatCount` (gigs with unread messages), matching the inbox badges
+
+**Acceptance Criteria:**
+- Unread from `Notification.lastReadAt`; opening calls `markNotificationAsRead`; the sidebar «Чаты» count uses `getUnreadChatCount`
+
+### Requirement: Preserved Messaging Wired to the Existing Action
+Sending MUST use the existing `sendMessage` action (no semantics change), and per-gig (gig-detail) messaging MUST stay
+intact.
+
+#### Scenario: Send from the thread; gig-detail messaging unaffected
+- GIVEN the selected conversation's composer
+- WHEN the viewer submits a message
+- THEN it MUST call `sendMessage` (the `content` field + a hidden `gigId`) via `useActionState` + `<form action>`; the
+  message MUST be sent and visible (the action redirects to `/gigs/<id>` — the same conversation); the gig-detail
+  per-gig `ChatPanel` MUST keep working (the block changes are additive)
+
+**Acceptance Criteria:**
+- `sendMessage` wired directly; messaging semantics unchanged; gig-detail per-gig messaging works (its E2E + the messaging integration tests stay green)
+
+### Requirement: Chats Verification and Deferred F1
+The change MUST pass F3 + F5 + the functional/E2E suite; the F1 ≤1% pixel-diff is produced but deferred.
+
+#### Scenario: Buildable + functional verification (enforced)
+- GIVEN the change
+- WHEN `lint:composition` (F5), `lint:tokens`, `npm run build`, `npm run test:unit`, the mapper unit tests, and the
+  chats E2E run
+- THEN they MUST pass — the body is composition-pure, the IA matches the mock (list + thread + composer) (F3), the
+  inbox/open-thread/mark-read/send/search flows work, and the existing messaging integration tests stay green
+
+#### Scenario: F1 diff produced; ≤1% deferred
+- GIVEN the live `/chats` captured at 1440px and diffed vs `screens/specialist-chats.jpg`
+- THEN the composed layout MUST be visually faithful (ratio 0.1786); the automated ≤1% threshold is NOT yet met —
+  dominated by the **substitute font** + avatar rasters, not a composition defect; ≤1% is reached once the font is
+  licensed and avatars are exported
+
+**Acceptance Criteria:**
+- F5 + F3 + `build` + `test:unit` + mapper unit tests + chats E2E green; existing messaging tests + gig-detail E2E green
+- F1 diff produced (ratio 0.1786); composed layout visually faithful; ≤1% deferred to the font licence + avatars
+
+## ADDED Requirements (compose-finances — Phase 2 screen)
+
+> The new `/finances` screen composed from the kit (`AppShell + StatPanel + LedgerTable`) inside the layout's
+> `AppShell`, over the **logical** `finances-ledger` data layer (`lib/finances.ts`) — bound via the `getFinances`
+> aggregator (reusing `getFinanceStats` + `getLedger`, no re-derivation, per-role amounts), with an empty state and an
+> explicit «логические суммы, без реальных платежей» framing (the `project.md` Escrow/Payments MVP boundary). Read-only
+> (no writes/actions). Verified by E2E (`__tests__/e2e/compose-finances.spec.ts`, 3/3 — ledger+stats+framing · empty
+> state · «Финансы» nav active), the mapper unit tests (`finances-vm.test.ts`, 3/3 — CLIENT `totalAmount`, SPECIALIST
+> `budget`, empty), the preserved `finances-ledger` tests (7), F5 composition purity, build, and the full unit suite
+> (888). One gap-fill block added: `LedgerTable` (its `LedgerTableVM` contract pre-existed). **F1 is flagged-missing** —
+> there is no `Финансы` reference frame in `/screens` (a frame is requested); the screen is composed from the kit with
+> F5/F3 enforced. No data model is added; `lib/finances` semantics are unchanged.
+
+### Requirement: Finances Composed from Blocks
+The `/finances` body MUST be a composition-pure `@composed-screen` (`Finances`) composing `StatPanel` + `LedgerTable`
+(plus a token-styled logical-amounts framing) via layout primitives only (no `className`/`style`/raw styled markup;
+imports only kit/`lib`/`react`/`next`), rendered by the `/finances` page.
+
+#### Scenario: Composed finances screen
+- GIVEN an authenticated user loads `/finances`
+- THEN the page MUST build the data via `getFinances` and render `<Finances>` (inside the shell); the no-session
+  redirect MUST be preserved, and the sidebar «Финансы» nav item MUST be active on `/finances`
+
+**Acceptance Criteria:**
+- `Finances` is an F5-pure `@composed-screen` composing `StatPanel` + `LedgerTable` + framing; redirect preserved; «Финансы» nav item active
+
+### Requirement: Finances Real Data Binding via getFinances
+The screen MUST bind real data through a server-only, contract-typed `getFinances` aggregator over `lib/finances` (no
+re-derivation): `{ stats: StatPanelVM, ledger: LedgerTableVM }` where the ledger entries are the viewer's PAID gigs
+(newest first) with the summed balance, and the stats reflect realized/pending/count, using per-role amounts (CLIENT
+`totalAmount`, SPECIALIST `budget`).
+
+#### Scenario: Stats + ledger reflect PAID gigs
+- GIVEN `getFinances(viewer)`
+- THEN it MUST return `{ stats, ledger }` by reusing `getFinanceStats` + `getLedger`; the ledger reflects the viewer's
+  PAID gigs + balance; amounts are per-role; assignable to the view-model contracts (`import type`)
+
+**Acceptance Criteria:**
+- `getFinances` returns `{ stats, ledger }` from `lib/finances`; reflects PAID gigs + balance; per-role amounts
+
+### Requirement: LedgerTable Block (composition-gap fill)
+The `LedgerTable` block MUST be implemented (named by this composition; its `LedgerTableVM` contract pre-existed but no
+block implemented it).
+
+#### Scenario: LedgerTable is a token-pure kit block with an empty state
+- GIVEN `app/components/blocks/LedgerTable.tsx`
+- THEN it MUST render the ledger from a `LedgerTableVM` — a header + one row per entry (date · label · `StatusBadge` ·
+  amount in mono) + a summed balance, and an **empty state** when `entries` is empty — be token-pure, have a fixture,
+  and be exported from the blocks barrel
+
+**Acceptance Criteria:**
+- `LedgerTable` token-pure block (entries + balance + empty state) + fixture + barrel export; `lint:tokens` passes
+
+### Requirement: Logical-Amounts Framing and Empty State
+The screen MUST make the MVP escrow boundary visible and handle the no-payments case.
+
+#### Scenario: Framing + empty state
+- GIVEN the `/finances` screen
+- THEN it MUST display an explicit framing that amounts are logical with no real payments (e.g. «Суммы логические, без
+  реальных платежей»), consistent with `project.md`'s Escrow / Payments (MVP) boundary; and WHEN the user has no PAID
+  gigs the `LedgerTable` MUST render its empty state (e.g. «Пока нет операций»)
+
+**Acceptance Criteria:**
+- The logical-amounts framing is present; the empty state renders for users with no realized payments
+
+### Requirement: Finances Verification and Flagged-Missing F1
+The change MUST pass F3 + F5 + the functional/E2E suite; F1 is flagged-missing (no `Финансы` reference frame).
+
+#### Scenario: Buildable + functional verification (enforced)
+- GIVEN the change
+- WHEN `lint:composition` (F5), `lint:tokens`, `npm run build`, `npm run test:unit`, the mapper unit tests, and the
+  finances E2E run
+- THEN they MUST pass — the body is composition-pure, the IA matches the intended composition (stats + ledger + empty
+  state + framing) (F3), the screen reflects the ledger, and the existing `finances-ledger` tests stay green
+
+#### Scenario: F1 flagged-missing
+- GIVEN there is no `Финансы` full-screen reference frame in `/screens`
+- THEN F1 ≤1% MUST NOT be run (no reference); the screen is composed from the kit with F5 enforced; the missing-mock
+  fact MUST be recorded (a frame is requested) and F1 deferred until a frame lands
+
+**Acceptance Criteria:**
+- F5 + F3 + `build` + `test:unit` + mapper unit tests + finances E2E green; existing `finances-ledger` tests green
+- F1 flagged-missing (no `Финансы` frame); composed from blocks; F5 still enforced
+
+## ADDED Requirements (compose-disputes — Phase 2 screen)
+
+> The new `/disputes` screen (list + detail) composed from the kit (`AppShell + DisputeList + DisputeDetail`) inside the
+> layout's `AppShell`, over the `disputes-flow` data layer (`lib/disputes.ts` + `app/actions/dispute.ts`) — bound via
+> the `getDisputes` (role-scoped list) + `getDispute` (authorization-enforced detail) aggregators (reusing
+> `getDisputeList` + `getDisputeDetail`, no re-derivation), with an **open-dispute entry from a gig**, an **admin resolve
+> view**, and an **empty state**. The resolve/open action wiring is **inlined into the composed client screens**
+> (`DisputeView` for resolve, `GigDetail` for open) — mirroring the existing `GigDetail` pattern, because the
+> composition linter forbids a `@composed-screen` from importing a sibling non-kit island file — reusing the existing
+> `resolveDispute`/`openDispute` actions (no new action). Two gap-fill blocks added: `DisputeList` (its `DisputeListVM`
+> contract pre-existed) + `DisputeDetail` (its `DisputeDetailVM` contract was materialized here). Verified by E2E
+> (`__tests__/e2e/compose-disputes.spec.ts`, 6/6 — open-from-gig→lists · admin resolve→«Завершён»+resolution ·
+> participant read-only · non-participant→not-found · empty state · «Споры» nav active), the mapper unit tests
+> (`disputes-vm.test.ts`, 3/3 — ADMIN-all/participant-scoped · detail authorization · status mapping), the block render
+> tests (+3), the preserved `disputes-flow` + admin-moderation tests, F5 composition purity, build, and the full unit
+> suite (894). **F1 is flagged-missing** — there is no `Споры` reference frame in `/screens` (a frame is requested); the
+> screen is composed from the kit with F5/F3/authorization enforced. No data model is added; `lib/disputes` /
+> `app/actions/dispute` semantics are unchanged; the existing admin moderation (suspend/close/logs) is untouched.
+
+### Requirement: Disputes Composed from Blocks
+The `/disputes` (list) and `/disputes/[id]` (detail) bodies MUST be composition-pure `@composed-screen`s (`Disputes`
+composing `DisputeList`; `DisputeView` composing `DisputeDetail` plus, for an ADMIN viewer, the inlined resolve view)
+via layout primitives only (no `className`/`style`/raw styled markup; imports only kit/`lib`/`react`/`next`/
+`@/app/actions`), rendered by the `/disputes` pages.
+
+#### Scenario: Composed disputes screens
+- GIVEN an authenticated user loads `/disputes` or `/disputes/{id}`
+- THEN the pages MUST build the data via `getDisputes` / `getDispute` and render `<Disputes>` / `<DisputeView>` (inside
+  the shell); the no-session redirect MUST be preserved; the detail page MUST render not-found when `getDispute` returns
+  `null`; and the sidebar «Споры» nav item MUST be active on `/disputes`
+
+**Acceptance Criteria:**
+- `Disputes` / `DisputeView` are F5-pure `@composed-screen`s composing `DisputeList` / `DisputeDetail`; redirect preserved; non-existent/unauthorized detail → not-found; «Споры» nav item active
+
+### Requirement: Disputes Real Data Binding via getDisputes / getDispute
+The screens MUST bind real data through server-only, contract-typed `getDisputes` / `getDispute` aggregators over
+`lib/disputes` (no re-derivation), scoped by role and enforcing detail authorization: `getDisputes(viewer)` →
+`{ disputes: DisputeListVM, isAdmin }` (ADMIN → all; non-admin → only disputes where the viewer is a participant —
+opener, or the gig's client / assigned specialist — newest first, status-mapped); `getDispute(id, viewer)` →
+`DisputeDetailVM | null` (null when the dispute is missing OR the viewer is neither ADMIN nor a participant).
+
+#### Scenario: Scoped list + authorized detail
+- GIVEN `getDisputes(viewer)` and `getDispute(id, viewer)`
+- THEN the list MUST reflect the role scope (ADMIN all / participant own) and the detail MUST return the
+  `DisputeDetailVM` for an ADMIN or a participant and `null` otherwise — both by reusing `lib/disputes` (`import type`)
+
+**Acceptance Criteria:**
+- `getDisputes` → `{ disputes, isAdmin }` (ADMIN all / participant scoped); `getDispute` → `DisputeDetailVM | null` (null for non-participant); both reuse `lib/disputes`
+
+### Requirement: DisputeList + DisputeDetail Blocks (composition-gap fill)
+The `DisputeList` and `DisputeDetail` blocks MUST be implemented (both named by this composition; `DisputeListVM`
+pre-existed, `DisputeDetailVM` is materialized here).
+
+#### Scenario: DisputeList + DisputeDetail are token-pure kit blocks
+- GIVEN `app/components/blocks/DisputeList.tsx` and `app/components/blocks/DisputeDetail.tsx` and
+  `app/components/blocks/view-models.ts`
+- THEN `view-models.ts` MUST export `DisputeDetailVM { id; gig; opener; reason; status: Status; resolution;
+  resolvedBy?: string | null }` (type-only); `DisputeList` MUST render the list from a `DisputeListVM` (a header + one
+  row per dispute — gig · opener · `StatusBadge` — each linking to the detail) with an **empty state** when empty; and
+  `DisputeDetail` MUST render the detail (gig · `StatusBadge` · opener paired with `ClientCard` · reason ·
+  resolution-when-resolved) — both token-pure, with a fixture, and exported from the blocks barrel
+
+**Acceptance Criteria:**
+- `DisputeList` (rows + empty state, linking to detail) + `DisputeDetail` (detail + `ClientCard`) token-pure blocks + fixtures + barrel exports; `DisputeDetailVM` materialized; `lint:tokens` passes
+
+### Requirement: Open-Dispute Entry, Admin Resolve View, and Authorization
+The screen MUST provide the open-dispute entry from a gig and the admin resolve view, reusing the existing actions, with
+authorization respected.
+
+#### Scenario: Open-dispute entry + admin resolve view
+- GIVEN the gig detail screen for a participant on a gig with an assigned specialist, and the dispute detail screen
+- THEN the gig screen MUST surface an open-dispute entry (a reason + submit) wired to the existing `openDispute` action
+  (hidden from non-participants), and the dispute detail MUST present the admin resolve view (a `RESOLVED`/`REJECTED`
+  choice + a required resolution note) wired to the existing `resolveDispute` action for an ADMIN viewer while showing
+  a non-admin participant the dispute's status **read-only** (no resolve control) — no new server action
+
+**Acceptance Criteria:**
+- Open-dispute entry on the gig detail for participants (specialist assigned) over the existing `openDispute`; hidden from non-participants
+- Admin resolve view over the existing `resolveDispute` for ADMIN; read-only status for participants; no new server action
+
+### Requirement: Disputes Verification and Flagged-Missing F1
+The change MUST pass F3 + F5 + the functional/E2E/authorization suite; F1 is flagged-missing (no `Споры` reference
+frame).
+
+#### Scenario: Buildable + functional verification (enforced)
+- GIVEN the change
+- WHEN `lint:composition` (F5), `lint:tokens`, `npm run build`, `npm run test:unit`, the mapper unit tests, and the
+  disputes E2E run
+- THEN they MUST pass — the bodies are composition-pure, the IA matches the intended composition (list + detail + admin
+  resolve + empty state) (F3), open/list/resolve render, authorization is respected (non-participant → not-found;
+  resolve is admin-only), and the existing `disputes-flow` + admin moderation tests stay green
+
+#### Scenario: F1 flagged-missing
+- GIVEN there is no `Споры`/`Disputes` full-screen reference frame in `/screens`
+- THEN F1 ≤1% MUST NOT be run (no reference); the screen is composed from the kit with F5 enforced; the missing-mock
+  fact MUST be recorded (a frame is requested) and F1 deferred until a frame lands
+
+**Acceptance Criteria:**
+- F5 + F3 + `build` + `test:unit` + mapper unit tests + disputes E2E green; existing `disputes-flow` + moderation tests green; authorization respected
+- F1 flagged-missing (no `Споры` frame); composed from blocks; F5 still enforced
+
+## ADDED Requirements (compose-auth-onboarding — Phase 2 screen)
+
+> The `/auth` entry and `/register` flow recomposed into a **3-step registration wizard** from the kit (`AuthLayout` +
+> `StepIndicator` + `RoleCards` + form primitives), replacing the pre-redesign hex-laden pages. Steps: role →
+> credentials (email + password + confirm-password, client-side match check) → role-specific profile (the `reg-customer`
+> company fields vs the `reg-specialist` fields with dropdowns bound to `SPECIALIZATIONS`/`EXPERIENCE_LEVELS`/
+> `TIMEZONES`). Submitting calls the **kept** `registerUser` (additively extended to persist the profile + enforce
+> confirm-password — see the `authentication` spec). Two gap-fills added: `StepIndicator` (primitive) + `RoleCards`
+> (block, replacing the legacy hex RoleCard); the `AuthLayout` template + the exported checkerboard footer
+> (`public/assets/design-system/patterns/checkerboard.svg`) pre-existed. The F5 wizard keeps multi-step fields submitting
+> via the `hidden` attribute and carries `Select` values via hidden inputs (the `GigDetail`/`DisputeView` inline-client
+> pattern). Verified by E2E (`compose-auth-onboarding.spec.ts` 5/5 + the updated auth suite — 7 files, 60/60 — role
+> preselect · confirm-mismatch · register→/dashboard · footer asset) + integration (`register-onboarding.test.ts` 6/6 —
+> profile persisted, mismatch→no user, dataset coercion, single-step backward-compat) + F5 + token purity + build + the
+> 900-test unit suite. **All four references exist** (`auth`/`reg`/`reg-customer`/`reg-specialist`) → composed to match;
+> **F1 ≤1% is deferred** on the global font-licence gate (per `__tests__/e2e/fidelity.spec.ts`). `loginUser`, the
+> session/redirect contract, `/login`, and the legacy auth components are unchanged.
+
+### Requirement: Auth Onboarding Composed from Blocks
+The `/register` body MUST be a composition-pure `@composed-screen` (`RegisterWizard`) composing `AuthLayout` +
+`StepIndicator` + `RoleCards` + form primitives, and `/auth` MUST likewise be recomposed from the kit — both via layout
+primitives only (no `className`/`style`/raw styled markup or hex literals; imports only kit/`lib`/`react`/`next`/
+`@/app/actions`).
+
+#### Scenario: Register is a composed wizard
+- GIVEN `app/register/RegisterWizard.tsx`
+- THEN it MUST carry the `@composed-screen` marker, compose `AuthLayout` + `StepIndicator` + `RoleCards` + form
+  primitives (`Input`/`PasswordInput`/`Select`) via layout primitives, import only kit/`lib`/`react`/`next`/
+  `@/app/actions`, and contain **no** `className=`/`style=`/hex literals
+
+#### Scenario: The pages render the composed auth screens
+- GIVEN `app/register/page.tsx` and `app/auth/page.tsx`
+- WHEN a user loads `/register` or `/auth`
+- THEN `/register` MUST render `<RegisterWizard>` (reading `?role=` for preselect) and `/auth` MUST render a
+  kit-composed entry (`AuthLayout` + `RoleCards` + «Войти»/«Зарегистрироваться» buttons routing to `/login?role=` /
+  `/register?role=`) — both inside `AuthLayout`, with the exported checkerboard footer rendered
+
+**Acceptance Criteria:**
+- `RegisterWizard` is an F5-pure `@composed-screen` (AuthLayout + StepIndicator + RoleCards + form primitives); `/auth` recomposed from the kit; no className/style/hex
+- The pages render the composed screens; the exported checkerboard footer renders
+
+### Requirement: Three-Step Wizard with Role-Specific Profile Step
+The wizard MUST present **3 steps** — role → credentials → role-specific profile — with a `StepIndicator`, and step 3
+MUST differ by role (the `reg-customer` company profile vs the `reg-specialist` profile) with dropdowns bound to the
+datasets.
+
+#### Scenario: Three steps with a step indicator
+- GIVEN the `/register` wizard
+- THEN a `StepIndicator` MUST show three steps (role · credentials · profile); step 1 MUST present `RoleCards`
+  («Профиль Компании» / «Профиль специалиста»); step 2 MUST present email + password + a **confirm-password** field with
+  a client-side match check; and Next/Back navigation MUST move between steps
+
+#### Scenario: Step 3 is role-specific with dropdown datasets
+- GIVEN step 3
+- WHEN the chosen role is CLIENT
+- THEN it MUST present the company profile (companyName · inn · contactPerson · phoneNumber)
+- AND WHEN the chosen role is SPECIALIST
+- THEN it MUST present the specialist profile (displayName · position · techStack) with **dropdowns** for specialization
+  (`SPECIALIZATIONS`), experience level (`EXPERIENCE_LEVELS`), and timezone (`TIMEZONES`)
+
+#### Scenario: Role preselect from the query parameter
+- GIVEN `/register?role=SPECIALIST` (or `=CLIENT`)
+- THEN step 1 MUST preselect that role; an absent/invalid `?role=` MUST start with no preselection
+
+**Acceptance Criteria:**
+- 3 steps (role → credentials → profile) with a `StepIndicator`; confirm-password with a client-side match check
+- Step 3 role-specific (CLIENT company fields vs SPECIALIST fields + dropdowns from the datasets); `?role=` preselects step 1
+
+### Requirement: StepIndicator + RoleCards (composition-gap fill)
+The `StepIndicator` primitive and the `RoleCards` block MUST be implemented (both named by this composition; neither
+existed token-pure — a legacy hex `RoleCard` is replaced).
+
+#### Scenario: StepIndicator is a token-pure primitive
+- GIVEN `app/components/primitives/StepIndicator.tsx`
+- THEN it MUST render N labelled steps with the completed/current/upcoming state, be token-pure (no raw hex/px), and be
+  exported from the primitives barrel
+
+#### Scenario: RoleCards is a token-pure controlled block
+- GIVEN `app/components/blocks/RoleCards.tsx`
+- THEN it MUST render the two role options («Профиль Компании»/«Профиль специалиста») with role icons and a selected
+  state via a controlled `{ value, onSelect }` interface, be token-pure, have a fixture, and be exported from the blocks
+  barrel
+
+**Acceptance Criteria:**
+- `StepIndicator` token-pure primitive (done/current/upcoming) + barrel export
+- `RoleCards` token-pure controlled block (two roles + selected state + icons) + fixture + barrel export; `lint:tokens` passes
+
+### Requirement: Auth Onboarding Verification and Fidelity (references exist)
+The change MUST pass F3 + F5 + the functional/E2E suite; F1 references exist → composed to match, ≤1% deferred on the
+font-licence gate.
+
+#### Scenario: Buildable + functional verification (enforced)
+- GIVEN the change
+- WHEN `lint:composition` (F5), `lint:tokens`, `npm run build`, `npm run test:unit`, the registration integration
+  tests, the new auth-onboarding E2E, and the updated existing auth E2E run
+- THEN they MUST pass — the wizard body is composition-pure, the IA matches the intended composition (3 steps + role
+  cards + credentials + role-specific profile) (F3), register → `/dashboard` works with the profile persisted, and the
+  existing single-step `registerUser`/`loginUser` tests stay green
+
+#### Scenario: F1 references exist → composed to match, ≤1% deferred
+- GIVEN the reference frames `screens/auth.jpg`, `screens/reg.jpg`, `screens/reg-customer.jpg`,
+  `screens/reg-specialist.jpg` exist
+- THEN the wizard MUST be composed to match the references' step/field IA (F3 + F5 enforced); **F1 ≤1% MUST NOT be
+  asserted** — it is deferred on the global font-licence gate (per `__tests__/e2e/fidelity.spec.ts`); the fidelity
+  apparatus runs and the deferral is recorded
+
+**Acceptance Criteria:**
+- F5 + F3 + `build` + `test:unit` + registration integration tests + auth-onboarding E2E + updated auth E2E green; existing auth tests green
+- F1 references exist → composed to match; ≤1% deferred (font gate), apparatus runs, deferral recorded
+
+## ADDED Requirements (compose-settings — Phase 2 screen)
+
+> The new `/settings` screen composed from the kit (`AppShell` + a language `Select` + a notification `Toggle`·list + a
+> delete DangerAction) inside the layout's `AppShell`, over the `account-preferences` data layer (`lib/preferences.ts` +
+> `app/actions/settings.ts`), reached from the **Topbar gear**. Bound via the `getSettings` aggregator (reusing
+> `getPreferences` + the session email, no re-derivation); the language `Select` (RU default, «Русский»/«English» over
+> `LOCALES`) + the notification `ToggleList` (Отклики/Изменения статуса/Сообщения) save via the kept `updatePreferences`,
+> and «Удалить аккаунт» is a reveal-to-confirm DangerAction (type your account email → the kept `deleteAccount`:
+> wrong/blank → rejected, correct → FK-safe teardown + session destroy + redirect to `/`). One gap-fill block added:
+> `ToggleList` (labelled toggle rows over the `Toggle` primitive). The Topbar gear is wired via an additive optional
+> `gearHref` (`TopbarLive` passes `/settings`; absent → plain icon, unchanged). Values carry to the actions via hidden
+> inputs (the `DisputeView` pattern). Verified by E2E (`compose-settings.spec.ts` 4/4 — gear entry · read prefs RU-default
+> + toggles · toggle+Save persists · delete-confirm wrong→rejected/correct→teardown+`/`) + the `getSettings` unit test
+> (2/2) + the `ToggleList` render test + F5 + token purity + build + the 902-test unit suite (preserved
+> `account-preferences` 7/7). **There is no `Настройки` full-screen reference frame** → screen-level F1 ≤1% is not run;
+> **F1 holds at the component level** (the library-faithful `Select`/`Toggle`, validated in ui-primitives / the fidelity
+> harness). No data model is added; `lib/preferences`/`app/actions/settings` semantics, the sidebar nav, and the shell
+> (beyond the gear link) are unchanged.
+
+### Requirement: Settings Composed from Blocks
+The `/settings` body MUST be a composition-pure `@composed-screen` (`Settings`) composing a language `Select` + a
+notification `ToggleList` + an inline DangerAction via layout primitives only (no `className`/`style`/raw styled markup;
+imports only kit/`lib`/`react`/`next`/`@/app/actions`), inside the layout's `AppShell`.
+
+#### Scenario: Settings is a composed screen
+- GIVEN `app/(protected)/settings/Settings.tsx`
+- THEN it MUST carry the `@composed-screen` marker, compose `Select` + `ToggleList` + the inline DangerAction via
+  Section/Stack, import only the allowed prefixes, and contain **no** `className=`/`style=`/raw styled markup
+
+#### Scenario: The page renders it
+- GIVEN `app/(protected)/settings/page.tsx`
+- WHEN an authenticated user loads `/settings`
+- THEN the page MUST build the data server-side (`getSettings`) and render `<Settings>` (inside the shell); the
+  no-session redirect MUST be preserved
+
+**Acceptance Criteria:**
+- `Settings` is an F5-pure `@composed-screen` composing `Select` + `ToggleList` + the DangerAction; the page renders it; no-session redirect preserved
+
+### Requirement: Settings Real Data Binding via getSettings
+The screen MUST bind real data through a server-only, contract-typed `getSettings` aggregator over `lib/preferences`,
+with no re-derivation.
+
+#### Scenario: Preferences reflect the stored values
+- GIVEN `getSettings(viewer)`
+- THEN it MUST return `{ prefs, email }` by reusing `getPreferences(viewer.userId)` — the language `Select` reflects the
+  stored `locale` (defaulting to RU) and the `ToggleList` reflects the three stored notification booleans; the `email`
+  is the viewer's (for the delete confirm)
+
+**Acceptance Criteria:**
+- `getSettings` returns `{ prefs, email }` from `lib/preferences`; reflects stored prefs (RU default); contract-typed (`import type`)
+
+### Requirement: Read and Update Preferences
+The screen MUST let the user view and change their language + notification preferences via the kept `updatePreferences`
+action.
+
+#### Scenario: Update language + notifications
+- GIVEN the `/settings` screen bound to the user's prefs
+- WHEN the user changes the language `Select` (RU default; over `LOCALES`) and/or toggles a notification category and
+  saves
+- THEN it MUST submit to `updatePreferences` (locale validated against `LOCALES`; toggles as `'true'`/`'false'`), the
+  partial-safe update MUST persist, and the saved state MUST be reflected (a confirmation on success, an error notice on
+  failure)
+
+**Acceptance Criteria:**
+- Language `Select` (RU default) + notification `ToggleList` bound to the stored prefs; Save → `updatePreferences`; persisted + reflected; invalid locale rejected
+
+### Requirement: Delete-Account DangerAction
+The screen MUST present a destructive «Удалить аккаунт» action that confirms via the account email and calls the kept
+`deleteAccount`.
+
+#### Scenario: Confirm-to-delete
+- GIVEN the `/settings` screen
+- WHEN the user activates «Удалить аккаунт»
+- THEN it MUST reveal a confirm step requiring the user to type their account email, wired to `deleteAccount`; a wrong
+  (or blank) email MUST be rejected with no deletion; the correct email MUST delete the account (FK-safe teardown),
+  destroy the session, and redirect to `/`
+
+**Acceptance Criteria:**
+- «Удалить аккаунт» reveal-to-confirm over the existing `deleteAccount` (email-gated); wrong email → rejected, no deletion; correct email → teardown + session destroy + redirect to `/`; no new action
+
+### Requirement: ToggleList Block (composition-gap fill) and Gear Entry
+The `ToggleList` block MUST be implemented (the `Toggle` primitive exists but no block lists labelled toggles), and the
+Topbar gear MUST be the settings entry.
+
+#### Scenario: ToggleList is a token-pure kit block
+- GIVEN `app/components/blocks/ToggleList.tsx`
+- THEN it MUST render a labelled toggle list from `{ items: { key; label; checked }[]; onToggle }` — one row per item
+  (label + a `Toggle`) — be token-pure, have a fixture, and be exported from the blocks barrel
+
+#### Scenario: The Topbar gear links to /settings
+- GIVEN the Topbar (the profile/avatar gear)
+- WHEN the live topbar renders
+- THEN the gear MUST be a link to `/settings` (an additive `gearHref` on the `Topbar` block; `TopbarLive` passes
+  `/settings`); when no `gearHref` is supplied the gear MUST render unchanged (plain icon)
+
+**Acceptance Criteria:**
+- `ToggleList` token-pure block (labelled rows + `Toggle`) + fixture + barrel export; `lint:tokens` passes
+- The Topbar gear links to `/settings` (additive, opt-in); the route is reachable
+
+### Requirement: Settings Verification and Component-Level Fidelity
+The change MUST pass F3 + F5 + the functional/E2E suite; F1 is component-level (no full-screen frame).
+
+#### Scenario: Buildable + functional verification (enforced)
+- GIVEN the change
+- WHEN `lint:composition` (F5), `lint:tokens`, `npm run build`, `npm run test:unit`, the `getSettings` unit test, and
+  the settings E2E run
+- THEN they MUST pass — the body is composition-pure, the IA matches the intended composition (language · notifications ·
+  danger) (F3), read/update prefs + delete-account confirm + the gear entry work, and the existing `account-preferences`
+  tests stay green
+
+#### Scenario: F1 component-level
+- GIVEN there is no `Настройки` full-screen reference frame in `/screens`
+- THEN screen-level F1 ≤1% MUST NOT be run (no reference); **F1 at the component level MUST hold** — the screen composes
+  the library-faithful `Select` + `Toggle` primitives (validated against their library component crops), and the new
+  `ToggleList` only arranges the `Toggle`; F5 stays enforced and the missing full-screen frame MUST be recorded
+
+**Acceptance Criteria:**
+- F5 + F3 + `build` + `test:unit` + `getSettings` unit test + settings E2E green; existing `account-preferences` tests green
+- F1 component-level satisfied (library `Select`/`Toggle`); screen-level F1 not run (no full-screen `Настройки` frame); composed from the kit; F5 still enforced
+
+## ADDED Requirements (prove-extensibility-admin — Phase 2, the generativity proof #29)
+
+> The **GENERATIVITY ACCEPTANCE** (the final Phase-2 change): the mock-less admin moderation screens (`/admin`,
+> `/admin/users`, `/admin/gigs`) rebuilt **purely from the kit** (`AppShell` + existing blocks/primitives), proving the
+> design system is generative and that its extensibility process is honest. The admin layout was cut over from the
+> legacy `MainNav` to the `AppShell` (+ an admin `SidebarNav`/`Topbar`); the screens are F5-pure `@composed-screen`s
+> binding `getAdminDashboard`/`getAdminUsers`/`getAdminGigs` (which reuse the existing query/pagination/filter logic
+> verbatim), composed from `StatPanel` + a Select filter + the new `DataTable` + `StatusBadge`/`Tag` + inline
+> reveal-to-confirm moderation forms over the **kept** `suspendUser`/`unsuspendUser`/`closeGig`. **ZERO new tokens/
+> primitives and ZERO bespoke styling**: exactly **one** gap was surfaced — a generic `DataTable` block (already
+> anticipated in `DESIGN_SYSTEM_SPEC.md §3.2`) — implemented **on-system** (token-pure semantic table) and recorded
+> there. The generativity gate (`lint:generativity`) was extended to assert the admin screens assemble with **zero
+> off-system values**. Verified by the gate + F5 + token purity + build + the 905-test unit suite + the preserved admin
+> integration tests (56/56) + the admin E2E (16/16 — moderation workflow + pagination + filters). The five legacy
+> off-system admin islands were deleted. **No full-screen F1** (admin has no mock) — the acceptance is generativity +
+> F5 + F3 + behavior preservation. No data model / moderation / query / pagination semantics changed; the protected
+> shell is unchanged.
+
+### Requirement: Admin Screens Composed Purely from the Kit
+The admin screens (`/admin`, `/admin/users`, `/admin/gigs`) MUST each be a composition-pure `@composed-screen` assembled
+**only** from `AppShell` + existing blocks/primitives + the one newly-added `DataTable` block — with **no** bespoke
+styling and **no** off-system value; the admin layout MUST be the `AppShell` (+ admin `SidebarNav`/`Topbar`), replacing
+`MainNav`.
+
+#### Scenario: Each admin screen is a kit-only composed screen
+- GIVEN `app/admin/AdminDashboard.tsx`, `app/admin/users/AdminUsers.tsx`, `app/admin/gigs/AdminGigs.tsx` and
+  `app/admin/layout.tsx`
+- THEN each screen MUST carry `@composed-screen`, import only kit/`lib`/`react`/`next`/`@/app/actions`, compose existing
+  blocks/primitives + the `DataTable`, and contain **no** `className=`/`style=`/off-token literal; AND the layout MUST
+  render `AppShell` (+ an admin `SidebarNav`/`Topbar`, active item highlighted), preserving the `getSession` + ADMIN
+  guard
+
+**Acceptance Criteria:**
+- The three admin screens are F5-pure `@composed-screen`s from `AppShell` + existing kit + the one new `DataTable`; no className/style/hex; the layout is `AppShell` (admin nav), replacing `MainNav`
+
+### Requirement: One Logged System Addition (DataTable), Zero Bespoke Styling
+The change MUST introduce **ZERO new tokens, ZERO new primitives, and ZERO bespoke styling**; the **only** permitted
+system addition is a generic, token-pure `DataTable` block, logged to the design-system spec.
+
+#### Scenario: DataTable is a token-pure generic block, logged
+- GIVEN `app/components/blocks/DataTable.tsx` and `docs/DESIGN_SYSTEM_SPEC.md`
+- THEN `DataTable` MUST render a generic **semantic** table from `{ columns; rows: { id; cells: ReactNode[] }; empty }`
+  with an empty state — token-pure (no new token/primitive/off-token literal), with a fixture + barrel export — AND
+  §3.2 MUST record it as the one gap surfaced by the generativity proof (added on-system); `lint:tokens` MUST pass with
+  no new off-token literal
+
+**Acceptance Criteria:**
+- Exactly one system addition (`DataTable`), token-pure + fixture + barrel export + logged to `DESIGN_SYSTEM_SPEC.md` §3.2; zero new tokens/primitives and zero bespoke styling; `lint:tokens` passes
+
+### Requirement: Admin Behavior Preserved
+The change MUST preserve all admin behavior, reusing the moderation actions and the query/pagination/filter logic.
+
+#### Scenario: Access, filtering, pagination, moderation
+- GIVEN the admin screens
+- WHEN a non-admin loads any `/admin*` route → they MUST be redirected to `/dashboard`
+- AND WHEN an ADMIN filters (role/status/closed) and pages (30/page) → the filtered/paginated rows MUST render (invalid/
+  over-range page → the existing redirects), reusing the existing `where`/`skip`/`take` logic
+- AND WHEN they suspend/unsuspend a user or close a gig → the kept `suspendUser`/`unsuspendUser`/`closeGig` MUST run
+  (with moderation logging) and the row state MUST update; empty states MUST render when there are no rows
+
+**Acceptance Criteria:**
+- Non-admin → `/dashboard`; filtering + pagination (30/page, redirects) preserved; suspend/unsuspend/close via the kept actions (+ logging); empty states; existing admin integration tests green
+
+### Requirement: Generativity Gate Extended to the Admin Proof
+The generativity gate MUST assert the admin screens assemble from the kit with zero off-system values.
+
+#### Scenario: lint:generativity covers the admin screens
+- GIVEN `scripts/design-system/validate-generativity.js`
+- WHEN `npm run lint:generativity` runs
+- THEN it MUST assert the admin screens (`AdminDashboard`/`AdminUsers`/`AdminGigs`) exist and are `@composed-screen`s,
+  and MUST run the composition + token-purity lints over them — passing only when they carry **zero off-system values**
+  (the existing probe check retained)
+
+**Acceptance Criteria:**
+- `lint:generativity` asserts the admin screens are kit-only composed screens with zero off-system values
+
+### Requirement: Generativity Acceptance Verification
+The change MUST pass the generativity gate + F5 + F3 + the functional/E2E suite; no full-screen F1 is run (no mock).
+
+#### Scenario: Buildable + functional verification (enforced)
+- GIVEN the change
+- WHEN `lint:generativity`, `lint:composition` (F5), `lint:tokens`, `npm run build`, `npm run test:unit`, and the admin
+  E2E run
+- THEN they MUST pass — the admin screens are composition-pure and assemble from the kit with zero off-system values,
+  the IA matches the intended composition (stats / users-table / gigs-table) (F3), all admin behavior is preserved, and
+  the existing admin integration tests stay green; full-screen F1 MUST NOT be run (no mock), and the one `DataTable`
+  addition MUST be logged
+
+**Acceptance Criteria:**
+- `lint:generativity` + F5 + F3 + `build` + `test:unit` + admin E2E green; existing admin integration tests green
+- No full-screen F1 (no mock); the proof is generativity + behavior preservation; the `DataTable` addition logged

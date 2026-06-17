@@ -1,0 +1,139 @@
+{
+  "_meta": {
+    "source": "Figma — Gigly file (Drp803tesW5fIuA2Y21JVx), section \"tokens\" node 3870:7654",
+    "url": "https://www.figma.com/design/Drp803tesW5fIuA2Y21JVx/Gigly?node-id=3870-7654",
+    "method": "Figma MCP get_variable_defs, merged across node 3870:7654 (tokens section) and node 2860:2103 (Профиль/specialist) so frame-only semantics (effects, alpha tints, gradients, H1/H2 type) are included.",
+    "extractedAt": "2026-06-17",
+    "scope": "Bound Figma VARIABLES only. Values used raw in designs without a variable binding (e.g. text #9fa0a4, control 40px, icon 16/20px, category hex via component variants) are NOT Figma variables and are listed under _rawNotUsedAsVariables for reconciliation.",
+    "purpose": "Authoritative token export to reconcile against openspec/specs/ui/design-tokens.json (whose values were traced from an SVG substitute). NOT wired into the pipeline — review artifact.",
+    "leafFormat": "Mirrors design-tokens.json: { value, description }. 8-digit hex carries alpha (parser converts to rgba)."
+  },
+
+  "color-semantic": {
+    "surface": {
+      "primary":  { "value": "#01030e", "figma": "surface/primary",   "ssot": "surface.level-0", "description": "Page / darkest background" },
+      "tetriary": { "value": "#0e101a", "figma": "surface/tetriary",  "ssot": "surface.level-1", "description": "Recessed surface (wells, inner fields)" },
+      "secondary":{ "value": "#10121c", "figma": "surface/secondary", "ssot": "surface.level-2", "description": "Card / input surface (dominant)" },
+      "gig-bg":   { "value": "#1a1a24", "figma": "gig bg / GIG/COMPLETED", "ssot": "surface.level-3", "description": "Gig card base / elevated surface" },
+      "elevated": { "value": "#1a1d2a", "figma": "surface/elevated",  "ssot": "surface.level-3-hover", "description": "Elevated hover variant" }
+    },
+    "text": {
+      "primary":  { "value": "#ffffff", "figma": "text/primary, text/neutral/strong", "ssot": "text.strong / text.inverse", "description": "Primary text / on-brand text" },
+      "secondary":{ "value": "#8a8f99", "figma": "text/secondary", "ssot": "text.muted", "description": "Muted text & icon strokes" },
+      "disabled": { "value": "#3a3d45", "figma": "text/disabled", "ssot": "(none — same hex is currently mislabeled as border.default)", "description": "Disabled text" }
+    },
+    "border": {
+      "strong": { "value": "#5a6070", "figma": "border/strong", "ssot": "(none — current border.default is #3a3d45 = Figma text/disabled)", "description": "Borders / dividers (opaque)" }
+    },
+    "brand": {
+      "default": { "value": "#0088ff", "figma": "brand/default, Color, color/surface/primary-alias", "ssot": "brand.default", "description": "Brand primary — CTAs, active, accents" },
+      "hover":   { "value": "#0099ff", "figma": "brand/hover", "ssot": "(none — current brand.hover is #4cacff = Figma color/primary/hover)", "description": "Brand hover (+1 lightness step)" },
+      "active":  { "value": "#0077e6", "figma": "brand/active", "ssot": "brand.pressed", "description": "Brand pressed/active (darker)" },
+      "primary-hover": { "value": "#4cacff", "figma": "color/primary/hover", "ssot": "brand.hover", "description": "Light brand — highlight / link hover / Стек 'Blue' tag" },
+      "dark-600": { "value": "#1379f3", "figma": "dark/brand/600", "ssot": "(none)", "description": "Dark-theme brand 600 step" }
+    },
+    "accent": {
+      "pink": { "value": "#ff2d55", "figma": "Accents/Pink", "ssot": "(none)", "description": "Accent pink — gig company avatar fill" }
+    },
+    "status-text": {
+      "_note": "Figma 'status/*/text' = the badge TEXT colour. For review/in-progress/testing/completed/rejected the text colour equals the status accent; for 'new' the text is white over a neutral accent. Current SSOT models the ACCENT colour as color-semantic.status.* (open #8a8f99). Names drift: Figma new→ssot open, Figma testing→ssot verification.",
+      "new":         { "value": "#ffffff", "figma": "status/new/text",         "ssot": "status.open (accent #8a8f99)", "description": "Открыт — white text on neutral" },
+      "review":      { "value": "#f59e0b", "figma": "status/review/text",      "ssot": "status.review", "description": "На рассмотрении (amber)" },
+      "in-progress": { "value": "#3b82f6", "figma": "status/in progress/text", "ssot": "status.in-progress", "description": "В работе (blue, distinct from brand)" },
+      "testing":     { "value": "#8b5cf6", "figma": "status/testing/text",     "ssot": "status.verification", "description": "На проверке (purple)" },
+      "completed":   { "value": "#10b981", "figma": "status/completed/text",   "ssot": "status.completed", "description": "Завершён (green)" },
+      "rejected":    { "value": "#ef4444", "figma": "status/rejected/text",    "ssot": "status.rejected", "description": "Отклонён (red)" }
+    }
+  },
+
+  "color-alpha": {
+    "_note": "Translucent white fills / strokes layered over dark surfaces (8-digit hex = alpha). None of these are in the current SSOT.",
+    "fon-1":       { "value": "#ffffff0d", "figma": "ФОН 1",        "description": "5% white — subtle fill (tag/status bg, panel base)" },
+    "kontur":      { "value": "#ffffff14", "figma": "Контур",       "description": "8% white — hairline contour (gig card border)" },
+    "frame-stroke":{ "value": "#ffffff33", "figma": "frame stroke", "description": "20% white — frame border (job-experience card)" },
+    "header-bg":   { "value": "#ffffff03", "figma": "BG/Header 1",  "description": "1% white — glass header fill" }
+  },
+
+  "font": {
+    "family": {
+      "accent":  { "value": "NKDuy Mono",  "figma": "font/family/accent",  "ssot": "font.family.mono (dev sub: JetBrains Mono)", "description": "Display/mono accent — H1, H2, Data/* roles" },
+      "primary": { "value": "SF Compact",  "figma": "font/family/primary", "ssot": "font.family.sans (dev sub: Inter)", "description": "UI/body — H3, Body, Label, Caption roles" }
+    },
+    "weight": {
+      "regular":  { "value": 400, "figma": "font/weight/regular" },
+      "medium":   { "value": 500, "figma": "font/weight/medium" },
+      "semibold": { "value": 600, "figma": "font/weight/semibold" }
+    },
+    "typography": {
+      "_note": "REAL Figma metrics incl. per-role family + letterSpacing. Current SSOT type scale was structural-only (anchor 22px) and differs — see reconciliation.",
+      "h1":           { "value": { "fontSize": 32, "lineHeight": 37, "fontWeight": 600, "letterSpacing": -0.5, "family": "accent" }, "figma": "Heading/H1/Default" },
+      "h2":           { "value": { "fontSize": 24, "lineHeight": 29, "fontWeight": 500, "letterSpacing": -0.3, "family": "accent" }, "figma": "Heading/H2/Default" },
+      "h3":           { "value": { "fontSize": 18, "lineHeight": 23, "fontWeight": 600, "letterSpacing": 0,    "family": "primary" }, "figma": "Heading/H3/Заголовки карточек" },
+      "body":         { "value": { "fontSize": 15, "lineHeight": 19, "fontWeight": 400, "letterSpacing": 0,    "family": "primary" }, "figma": "Body/Default" },
+      "label":        { "value": { "fontSize": 13, "lineHeight": 15, "fontWeight": 500, "letterSpacing": 0.3,  "family": "primary" }, "figma": "Label/Default" },
+      "label-bioname":{ "value": { "fontSize": 13, "lineHeight": 15, "fontWeight": 600, "letterSpacing": 0.3,  "family": "primary" }, "figma": "Label/Bioname" },
+      "caption":      { "value": { "fontSize": 11, "lineHeight": 11, "fontWeight": 400, "letterSpacing": 0.2,  "family": "primary" }, "figma": "Caption/Default" },
+      "data":         { "value": { "fontSize": 14, "lineHeight": 17, "fontWeight": 400, "letterSpacing": 0,    "family": "accent" }, "figma": "Data/Default (mono)" },
+      "data-small":   { "value": { "fontSize": 12, "lineHeight": 13, "fontWeight": 400, "letterSpacing": 0,    "family": "accent" }, "figma": "Data/Small (mono)" }
+    }
+  },
+
+  "effect": {
+    "shadow": {
+      "focus": { "value": { "offsetX": 0, "offsetY": 0, "radius": 0, "spread": 2, "color": "#0088ff66" }, "figma": "Shadow/focus", "ssot": "(none — focus ring done via Tailwind ring utils)", "description": "2px brand focus ring (40% brand)" },
+      "md":    { "value": { "offsetX": 0, "offsetY": 4, "radius": 12, "spread": 0, "color": "#00000066" }, "figma": "Shadow/md", "ssot": "≈ effect.shadow.card but different (card is 0/2/8 #00000029)", "description": "Card drop shadow (40% black)" }
+    },
+    "glass": {
+      "value": "backdrop-blur(16px); box-shadow: 0 4px 24px #00000066, inset 0 1px 0 #ffffff0f, inset 0 0 0 1px #ffffff14",
+      "figma": "glass",
+      "ssot": "(none)",
+      "description": "Glass surface — bg blur 16 + drop shadow + 2 inner highlights"
+    },
+    "blur-bg": { "value": "backdrop-blur(100px)", "figma": "Blur/BG", "ssot": "(none)", "description": "Heavy background blur (ambient panels)" }
+  },
+
+  "gradient": {
+    "status-completed-glow": {
+      "value": "radial-gradient(closest-side, rgba(16,185,129,0.5) 0%, rgba(16,185,129,0.1) 50%, rgba(16,185,129,0) 100%)",
+      "figma": "status/completed/bg RADIAL 1 #10b98180, 2 #10b9811a, 3 #10b98100",
+      "ssot": "(none — current gradient is only brand-glow)",
+      "description": "Green completed-gig glow behind the gig card"
+    }
+  },
+
+  "numbers": {
+    "spacing": {
+      "_note": "Figma uses t-shirt names; current SSOT uses a numeric step scale. Mapping in description.",
+      "0":   { "value": 0,  "figma": "spacing/0",   "ssot": "spacing.0" },
+      "xs":  { "value": 4,  "figma": "spacing/xs",  "ssot": "spacing.1" },
+      "sm":  { "value": 8,  "figma": "spacing/sm",  "ssot": "spacing.2" },
+      "sm2": { "value": 12, "figma": "spacing/sm2", "ssot": "spacing.3" },
+      "md":  { "value": 16, "figma": "spacing/md",  "ssot": "spacing.4" },
+      "lg":  { "value": 24, "figma": "spacing/lg",  "ssot": "spacing.6" },
+      "xl":  { "value": 32, "figma": "spacing/xl",  "ssot": "spacing.8" },
+      "3xl": { "value": 48, "figma": "spacing/3xl", "ssot": "spacing.12" },
+      "4xl": { "value": 64, "figma": "spacing/4xl", "ssot": "(none — SSOT tops out at 48)" }
+    },
+    "corner": {
+      "lt":   { "value": 2,    "figma": "radius/lt",   "ssot": "corner.xs" },
+      "sm":   { "value": 4,    "figma": "radius/sm",   "ssot": "corner.sm" },
+      "md":   { "value": 8,    "figma": "radius/md",   "ssot": "corner.md" },
+      "lg":   { "value": 12,   "figma": "radius/lg",   "ssot": "corner.lg" },
+      "full": { "value": 6666, "figma": "radius/full", "ssot": "corner.pill 18 / circular 50% (different model)", "description": "Fully rounded sentinel" }
+    },
+    "size": {
+      "avatar-sm": { "value": 24, "figma": "avatar/size/sm", "ssot": "size.avatar-sm" },
+      "avatar-md": { "value": 32, "figma": "avatar/size/md", "ssot": "size.avatar-lg (name drift md→lg)" }
+    }
+  },
+
+  "_rawNotUsedAsVariables": {
+    "_note": "Seen in designs but NOT bound to a Figma variable in the queried frames — confirm before treating as tokens.",
+    "text-subtle": "#9fa0a4 (current ssot text.subtle; raw in designs)",
+    "control-height": "40px (current size.control; raw)",
+    "icon": "16px / 20px icon & icon-rail (current size.icon / size.icon-rail; raw)",
+    "category-palette": "marketing #0088ff (or #4cacff Blue), design #f45fb1, programming #0cc671, development #05c9e6, coding #f27c0d — exist as tag/Category component variant fills, not named variables",
+    "header-blur": "50px (designs use backdrop-blur 50, half the Blur/BG=100 variable)",
+    "card-blur": "8px (gig card uses 8, not the glass=16 variable)"
+  }
+}

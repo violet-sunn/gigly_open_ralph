@@ -192,14 +192,50 @@ const primitiveEntries: CatalogEntry[] = [
     title: "Button",
     reference: REF.library,
     Story: () => (
+      <Stack gap={3}>
+        <Row>
+          <P.Button variant="primary">Primary</P.Button>
+          <P.Button variant="secondary">Secondary</P.Button>
+          <P.Button variant="ghost">Ghost</P.Button>
+          <P.Button variant="link">Link</P.Button>
+          <P.Button variant="danger">Удалить аккаунт</P.Button>
+          <P.Button variant="primary" disabled>
+            Disabled
+          </P.Button>
+        </Row>
+        <Row>
+          <P.Button variant="primary" size="sm">
+            Tetriary (sm)
+          </P.Button>
+          <P.Button variant="secondary" size="sm">
+            sm
+          </P.Button>
+        </Row>
+      </Stack>
+    ),
+  },
+  {
+    id: "IconButton",
+    kind: "primitive",
+    title: "IconButton (button_icon: bg no/yes + counter)",
+    reference: REF.frames,
+    Story: () => (
       <Row>
-        <P.Button variant="primary">Primary</P.Button>
-        <P.Button variant="secondary">Secondary</P.Button>
-        <P.Button variant="ghost">Ghost</P.Button>
-        <P.Button variant="link">Link</P.Button>
-        <P.Button variant="primary" disabled>
-          Disabled
-        </P.Button>
+        <P.IconButton icon={P.ICON.gear} aria-label="bg no" bg="no" />
+        <P.IconButton icon={P.ICON.gear} aria-label="bg yes" bg="yes" />
+        <P.IconButton icon={P.ICON.bell} aria-label="with counter" bg="yes" counter={5} />
+      </Row>
+    ),
+  },
+  {
+    id: "SpecialtyTag",
+    kind: "primitive",
+    title: "SpecialtyTag (Специальность: S / XS)",
+    reference: REF.frames,
+    Story: () => (
+      <Row>
+        <P.SpecialtyTag size="S">[Senior Frontend Engineer]</P.SpecialtyTag>
+        <P.SpecialtyTag size="XS">[Senior Frontend Engineer]</P.SpecialtyTag>
       </Row>
     ),
   },
@@ -251,7 +287,7 @@ const primitiveEntries: CatalogEntry[] = [
       <Row>
         <P.Select options={[{ value: "new", label: "Сначала новые" }, { value: "budget", label: "По бюджету" }]} value="new" />
         <P.Select options={[{ value: "new", label: "Сначала новые" }]} disabled placeholder="disabled" />
-        <P.Select options={[{ value: "new", label: "Сначала новые" }, { value: "budget", label: "По бюджету" }]} value="new" expanded />
+        <P.Select options={[{ value: "new", label: "Сначала новые" }, { value: "budget", label: "По бюджету" }, { value: "soon", label: "Скоро (недоступно)", disabled: true }]} value="new" expanded />
       </Row>
     ),
   },
@@ -271,12 +307,19 @@ const primitiveEntries: CatalogEntry[] = [
   {
     id: "Filter",
     kind: "primitive",
-    title: "Filter",
+    title: "Filter (rows + expand group)",
     reference: REF.library,
     Story: () => (
-      <Stack gap={2}>
-        <P.Filter label="React" checked count={42} />
-        <P.Filter label="Python" count={18} />
+      <Stack gap={3}>
+        <Stack gap={2}>
+          <P.Filter label="React" checked count={42} />
+          <P.Filter label="Python" count={18} />
+        </Stack>
+        <P.FilterGroup label="Стек" expanded>
+          <P.Filter label="React" checked count={42} />
+          <P.Filter label="Python" count={18} />
+        </P.FilterGroup>
+        <P.FilterGroup label="Категория (свёрнуто)" />
       </Stack>
     ),
   },
@@ -407,6 +450,19 @@ const primitiveEntries: CatalogEntry[] = [
       </Stack>
     ),
   },
+  {
+    id: "StepIndicator",
+    kind: "primitive",
+    title: "StepIndicator",
+    reference: REF.library,
+    Story: () => (
+      <Stack gap={3}>
+        <P.StepIndicator steps={["Роль", "Доступ", "Профиль"]} current={0} />
+        <P.StepIndicator steps={["Роль", "Доступ", "Профиль"]} current={1} />
+        <P.StepIndicator steps={["Роль", "Доступ", "Профиль"]} current={2} />
+      </Stack>
+    ),
+  },
 ];
 
 // ---- blocks (all variants, from fixtures) ------------------------------
@@ -462,6 +518,7 @@ const blockEntries: CatalogEntry[] = [
   },
   { id: "RequirementCard", kind: "block", title: "RequirementCard", reference: REF.frames, Story: () => <B.RequirementCard vm={F.requirementCardFixture} /> },
   { id: "CriteriaList", kind: "block", title: "CriteriaList", reference: REF.frames, Story: () => <B.CriteriaList vm={F.criteriaListFixture} /> },
+  { id: "DataTable", kind: "block", title: "DataTable (generativity-proof addition)", reference: REF.library, Story: () => <B.DataTable columns={F.dataTableFixture.columns} rows={F.dataTableFixture.rows} /> },
   {
     id: "TermsTabs",
     kind: "block",

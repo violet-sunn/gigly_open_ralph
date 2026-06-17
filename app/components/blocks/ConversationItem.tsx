@@ -19,6 +19,7 @@ export function ConversationItem({ vm, onOpen }: { vm: ConversationItemVM; onOpe
       <Avatar src={vm.avatar || undefined} initials={initials(vm.name)} size="sm" />
       <Stack gap={1} className="min-w-0 flex-1">
         <span className={cx("truncate text-label text-strong", unread ? "font-h2" : "font-label")}>{vm.name}</span>
+        {vm.subtitle && <span className="truncate text-caption font-caption text-subtle">{vm.subtitle}</span>}
         <span className="truncate text-caption font-caption text-muted">{vm.preview}</span>
       </Stack>
       <Stack gap={1} align="end">

@@ -1,8 +1,9 @@
 # Gigly Design System Spec — the canonical SYSTEM (SSOT)
 
-**Created:** 2026-06-14 · **Status:** canonical
+**Created:** 2026-06-14 · **Status:** canonical · **Reconciled to Figma:** 2026-06-17
 **Produced by:** the `derive-design-system` change (Phase 0 #2 of the UI redesign plan).
-**Raw-substrate provenance:** [`docs/DESIGN_SPECS.md`](./DESIGN_SPECS.md) → `screens/tokens.svg`, `screens/frames.svg`.
+**Authoritative source:** the Figma **`tokens`** frame (file `Drp803tesW5fIuA2Y21JVx`, node `3870:7654`) — exported to [`docs/figma-tokens-export.json`](./figma-tokens-export.json), serialized into `openspec/specs/ui/design-tokens.json`.
+**Original substrate (superseded):** [`docs/DESIGN_SPECS.md`](./DESIGN_SPECS.md) → `screens/tokens.svg`, `screens/frames.svg` — the interim source before Figma MCP access. Where it and Figma disagree, **Figma wins**; the §1/§8 values below are corrected to Figma and the deltas are logged in **§10**.
 
 > **This document is the single source of truth (SSOT) for the Gigly design system.** It is the canonical
 > blueprint every later phase implements against — `design-token-engine` serializes its taxonomy, `layout-grammar`
@@ -59,18 +60,21 @@ six-digit fills + `white` from `DESIGN_SPECS.md §2`.
 | `text/inverse` | `white` | `white` | Text on brand/coloured fills |
 | `text/muted` | `#8a8f99` | `#8a8f99` (699) | Muted text & icon strokes (primary neutral) |
 | `text/subtle` | `#9fa0a4` | `#9fa0a4` (306) | De-emphasized text / progress track — *kept distinct* (see §8 RC-2) |
-| `border/default` | `#3a3d45` | `#3a3d45` (14) | Borders / dividers |
+| `text/disabled` | `#3a3d45` | Figma `text/disabled` | Disabled text — **corrected**: this hex was previously mislabeled `border/default` (§10) |
+| `border/default` | `#5a6070` | Figma `border/strong` | Borders / dividers — **corrected** from `#3a3d45` (§10) |
 
 ### Brand ramp (blue)
-| Token | Canonical hex | Observed fill (count) | Role |
+| Token | Canonical hex | Source | Role |
 |---|---|---|---|
-| `brand/default` | `#0088ff` | `#0088ff` (215) | Brand primary — CTAs, active, accents |
-| `brand/hover` | `#4cacff` | `#4cacff` (40) | Brand light — hover / highlight |
-| `brand/pressed` | `#0077e6` | `#0077e6` (13) | Brand dark — pressed |
+| `brand/default` | `#0088ff` | Figma `brand/default` | Brand primary — CTAs, active, accents |
+| `brand/hover` | `#0099ff` | Figma `brand/hover` | Brand hover, +1 lightness step — **corrected** from `#4cacff` (§10) |
+| `brand/pressed` | `#0077e6` | Figma `brand/active` | Brand dark — pressed |
+| `brand/highlight` | `#4cacff` | Figma `color/primary/hover` | Light brand tint — link hover / highlight (was previously `brand/hover`) |
+| `brand/dark-600` | `#1379f3` | Figma `dark/brand/600` | Dark-theme brand 600 step |
 | `brand/subtle` | `#0088ff` @ low opacity | (derived) | Tint background for selected/focus (via `opacity/*`) |
 
-Collapsed into `brand/default` (accidental near-duplicates, 1–2 occurrences each): `#1379f3` (2), `#0099ff` (1) —
-see §8 RC-3.
+**Figma reverses RC-3:** `#0099ff` and `#1379f3` were previously collapsed into `brand/default` as "accidental
+near-duplicates"; Figma defines them as the real `brand/hover` and `dark/brand/600`. See §8 RC-3 (superseded) + §10.
 
 ### Status set (the 6 gig statuses)
 | Token | Canonical hex | Observed fill (count) | Status (RU) |
@@ -98,6 +102,20 @@ see §8 RC-3.
 
 **Coverage:** all 22 distinct six-digit fills + `white` are accounted for above (mapped to a canonical token, or
 collapsed/promoted with a §8 entry). No observed fill is dropped; no canonical hex is absent from the SVGs.
+
+### Overlay tints (translucent white — from Figma; the outlined SVGs carried no alpha)
+Layered fills/strokes over dark surfaces. Stored as `rgba()` so the token pipeline's hex→rgba pass is a no-op.
+| Token | Value | Source | Role |
+|---|---|---|---|
+| `overlay/fill` | `rgba(255,255,255,0.05)` | Figma ФОН 1 `#ffffff0d` | Subtle fill — tag/status bg, panel base |
+| `overlay/line` | `rgba(255,255,255,0.08)` | Figma Контур `#ffffff14` | Hairline contour — gig card border |
+| `overlay/line-strong` | `rgba(255,255,255,0.2)` | Figma frame stroke `#ffffff33` | Frame border — job-experience card |
+| `overlay/header` | `rgba(255,255,255,0.01)` | Figma BG/Header 1 `#ffffff03` | Glass header fill |
+
+### Accent
+| Token | Canonical hex | Source | Role |
+|---|---|---|---|
+| `accent/pink` | `#ff2d55` | Figma Accents/Pink | Accent pink — gig company avatar fill |
 
 ## 1.2 Radius scale
 
@@ -151,26 +169,31 @@ Observed one-offs `17 / 20 / 21 / 24 / 30 / 47` are each addressed in §8 (RC-8)
 
 ## 1.4 Type scale
 
-The SVG text is **outlined to paths** (zero `font-family` refs — `DESIGN_SPECS.md §7.3`), so this section defines
-the type scale's **structure** (named roles, relative size/weight/line-height) — *not* the exact font decision.
+Figma exposes the real text styles (size, line-height, weight, letter-spacing, per-role family). Each role maps to
+a Figma style; the family axis is `sans` (**SF Compact**, the "primary" UI/body face) or `mono` (**NKDuy Mono**,
+the "accent" display/data face). The SVG text was outlined to paths (`DESIGN_SPECS.md §7.3`), so these metrics
+could not be recovered from the substrate — they come from Figma.
 
-| Role token | Rel. size | Weight | Line-height | Use |
-|---|---|---|---|---|
-| `type/display` | xxl | bold | tight | Hero / banner headline |
-| `type/h1` | xl | bold | tight | Page title |
-| `type/h2` | lg | semibold | tight | Section heading |
-| `type/title` | md+ | semibold | snug | Card / panel title |
-| `type/body` | md | regular | normal | Body copy |
-| `type/label` | sm | medium | snug | Form labels, nav items, buttons |
-| `type/caption` | xs | regular | snug | Metadata, counts, timestamps |
-| `type/mono` | sm | regular | normal | Monospace data (`300 400 ₽`, codes) |
+| Role token | Size px | LH px | Weight | Tracking | Family | Figma style · use |
+|---|---|---|---|---|---|---|
+| `type/display` | 32 | 37 | 600 | -0.5 | mono | Heading/H1 — page title |
+| `type/h1` | 24 | 29 | 500 | -0.3 | mono | Heading/H2 — section heading |
+| `type/h2` | 18 | 23 | 600 | 0 | sans | Heading/H3 — card titles |
+| `type/title` | 16 | 22 | 600 | 0 | sans | *(retained — no Figma style at 16px)* panel title |
+| `type/body` | 15 | 19 | 400 | 0 | sans | Body/Default — body copy |
+| `type/label` | 13 | 15 | 500 | 0.3 | sans | Label/Default — labels, nav, buttons |
+| `type/label-bioname` | 13 | 15 | 600 | 0.3 | sans | Label/Bioname — semibold label |
+| `type/caption` | 11 | 11 | 400 | 0.2 | sans | Caption/Default — metadata, counts |
+| `type/mono` | 14 | 17 | 400 | 0 | mono | Data/Default — tabular data (`30 000 ₽`) |
+| `type/mono-small` | 12 | 13 | 400 | 0 | mono | Data/Small — small data |
 
-- **Families:** **SF Compact** (display/UI), **NKDy Mono** (mono data). Named here as intent only.
-- **Measurable provenance:** the **22px auth heading** used in `login-page-redesign` is recorded as a concrete
-  anchor for `type/h1`/`type/title` calibration.
-- **Residual flagged forward → `typography-system`:** the exact font files, glyph metrics, and the **SF Compact
-  web-embedding licence** are an inherited residual from `DESIGN_SPECS.md §7.3` — the *scale* is defined here; the
-  *font decision/licence* is resolved in `typography-system`. See §8 RC-9.
+- **Families:** `sans` = SF Compact covers h2/title/body/label/label-bioname/caption; `mono` = NKDuy Mono covers
+  display/h1/mono/mono-small. **Display & section headings are set in the mono/accent face**, matching the screens
+  (uppercase "ПРОФИЛЬ" page title, "Стек"/"Опыт" section headings).
+- **Supersedes the earlier "structure-only" scale** (the `22px` auth-heading anchor is retired; `type/h1` is now
+  the real 24px Figma Heading/H2).
+- **Residual → `typography-system` (RC-9, now narrowed):** only the **font files + SF Compact web licence** remain
+  capped; the scale metrics + per-role families + tracking are sourced from Figma and serialized into the token JSON.
 
 ---
 
@@ -191,18 +214,22 @@ serialize into the token JSON — namespace names are stable and each leaf has e
 | Namespace | Covers | Source scale |
 |---|---|---|
 | `surface/*` | `level-0`, `level-1`, `level-2`, `level-3`, `level-3-hover` | §1.1 surface ramp |
-| `text/*` | `strong`, `inverse`, `muted`, `subtle` | §1.1 text/neutral |
-| `border/*` | `default` (+ `subtle`/`strong` derived as needed) | §1.1 border |
-| `brand/*` | `default`, `hover`, `pressed`, `subtle` | §1.1 brand ramp |
+| `text/*` | `strong`, `inverse`, `muted`, `subtle`, `disabled` | §1.1 text/neutral |
+| `border/*` | `default` (`#5a6070`) | §1.1 border |
+| `brand/*` | `default`, `hover`, `pressed`, `highlight`, `dark-600`, `subtle` | §1.1 brand ramp |
+| `overlay/*` | `fill`, `line`, `line-strong`, `header` (translucent white) | §1.1 overlay tints |
+| `accent/*` | `pink` | §1.1 accent |
 | `status/*` | `open`, `review`, `in-progress`, `verification`, `completed`, `rejected` | §1.1 status set (6) |
 | `category/*` | `marketing`, `design`, `programming`, `development`, `coding` | §1.1 category set (5) |
-| `space/*` | `0,1,2,3,4,5,6,8,10,12` | §1.3 spacing |
-| `radius/*` | `xs`, `sm`, `md`, `lg`, `xl`, `pill`, `circular` | §1.2 radius |
-| `type/*` | `display`, `h1`, `h2`, `title`, `body`, `label`, `caption`, `mono` | §1.4 type |
+| `space/*` | `0,1,2,3,4,5,6,8,10,12,16` | §1.3 spacing |
+| `radius/*` | `xs`, `sm`, `md`, `lg`, `xl`, `pill`, `full`, `circular` | §1.2 radius |
+| `type/*` | `display`, `h1`, `h2`, `title`, `body`, `label`, `label-bioname`, `caption`, `mono`, `mono-small` (each: size/lh/weight/tracking/family) | §1.4 type |
 | `size/*` | `control`, `icon`, `icon-rail`, `avatar-sm`, `avatar-lg` | §1.3 size tokens |
-| `shadow/*` | `none`, `card`, `popover` (elevation; SVGs show flat fills — defined as a structural slot) | derived |
+| `shadow/*` | `none`, `focus`, `card`, `md`, `popover` | §1.1 / Figma effects |
+| `backdrop/*` | `glass`, `blur-bg` (backdrop-filter recipes — documentation; not token utilities) | Figma effects |
+| `gradient/*` | `brand-glow`, `status-completed-glow` | Figma / derived |
 | `z/*` | `base`, `sticky`, `dropdown`, `modal`, `toast` | structural |
-| `opacity/*` | `disabled` (~0.4), `subtle` (~0.08–0.12 for tints), `overlay` | structural |
+| `opacity/*` | `disabled` (0.4), `subtle` (0.08), `overlay` (0.6) | structural |
 
 Every canonical value from §1 maps to exactly one semantic name above; the 6 statuses and 5 categories are each
 named. `shadow/*`, `z/*`, `opacity/*` are structural namespaces declared so the engine has stable slots even where
@@ -275,6 +302,16 @@ Each block lists its variant axes and the primitives it composes.
 | **RoleCard** | `{client, specialist}` × `{default, selected}` | icon + label + Radio |
 | **CreateGigCTA** | `default` | Button (primary) + label |
 | **DangerAction** | `default` | Button (destructive) + confirm |
+
+> **System additions from the generativity proof (`prove-extensibility-admin`, #29).** The admin moderation screens
+> (`/admin`, `/admin/users`, `/admin/gigs` — mock-less) were rebuilt **purely from the kit**, surfacing exactly **one**
+> genuine gap the spec had already anticipated here under "Mapping / admin entities": the generic **`DataTable`** block.
+> It was implemented **on-system** — a token-pure semantic table composed from tokens + the `Panel` layout primitive,
+> with `{ columns, rows: { id, cells: ReactNode[] }, empty }` (cells slot `StatusBadge`/`Tag`/text/inline action forms)
+> — with **no new token, no new primitive, and no off-token literal** (the generativity gate `lint:generativity` asserts
+> the admin screens carry zero off-system values). `LedgerTable` remains its specialization. No other block/primitive/
+> token was added: the proof confirms the system is generative (it expresses a screen it was never designed for) and
+> that its extensibility process is honest (the one gap is built on-system + recorded here, never patched in a screen).
 
 ---
 
@@ -477,17 +514,17 @@ Complete log of every deviation surfaced in §§1–7. Each entry: **observed de
 |---|---|---|---|
 | RC-1 | Surface near-pair `#1a1a24` (28) vs `#1a1d2a` (24) | **promote-to-variant** — co-occur as elevated vs hover | `surface/level-3` + `surface/level-3-hover` |
 | RC-2 | Neutral near-pair `#8a8f99` (699) vs `#9fa0a4` (306) | **keep distinct** — different roles (muted text vs subtle/track) | `text/muted` + `text/subtle` |
-| RC-3 | Brand blues `#1379f3` (2), `#0099ff` (1) | **normalize** — accidental near-dups, 1–2 occurrences | collapsed into `brand/default` `#0088ff` |
+| RC-3 | Brand blues `#1379f3` (2), `#0099ff` (1) | **SUPERSEDED by Figma (§10)** — not dups; real tokens | `brand/dark-600` `#1379f3`, `brand/hover` `#0099ff` |
 | RC-4 | Status-blue `#3b82f6` vs brand-blue `#0088ff` | **keep distinct** — distinct roles, must not collapse | `status/in-progress` ≠ `brand/default` |
 | RC-5 | Green pair `#10b981` (status) vs `#0cc671` (category) | **keep distinct (two roles)**; `#0cc671`-as-completed is the accidental dup | `status/completed` `#10b981` + `category/programming` `#0cc671` |
 | RC-5b | Red pair `#ef4444` (10) vs `#ff383c` (4) | **normalize** — same role, near-dup | collapsed into `status/rejected` `#ef4444` |
 | RC-6 | Radius cluster `2/2.5` and `3/3.5/4/4.5/5` and `11/12/13` | **normalize (snap)** | `2.5→radius/xs`; `3/3.5/4/4.5/5→radius/sm`; `11/13→radius/lg` |
 | RC-7 | Avatar `rx=12` (24px) / `rx=16` (32px) | **normalize** — circular = half-dimension, not fixed px | `radius/circular` (incidentally equals `lg`/`xl`) |
 | RC-8 | Spacing one-offs `17 / 20 / 21 / 24 / 30 / 47` | **normalize (snap to base-4)** | `17→space/4`; `20/21→space/5`; `24→space/6`; `30→space/8`; `47→space/12` |
-| RC-9 | Type outlined to paths; no font metrics/licence | **flag-for-designer (forward)** | residual → `typography-system` (SF Compact + NKDy Mono files + web licence) |
+| RC-9 | Type outlined to paths; no font metrics/licence | **resolved (scale) via Figma (§10)**; licence still flagged | scale metrics §1.4; font files + SF Compact licence residual → `typography-system` |
 | RC-10 | `eye` (reveal), `attach` (composer) icons absent from SVGs | **flag (asset residual)** | request from Figma (`DESIGN_SPECS.md §7.5`) — not re-drawn |
 | RC-11 | Raster banner art not in SVGs (`<image>` nodes) | **flag (asset residual)** | export from Figma (`DESIGN_SPECS.md §7.2`); BannerCard `art` slot |
-| RC-12 | `shadow/*` — flat fills in SVGs, no elevation values | **flag (structural slot)** | namespace declared; values set when a source provides them |
+| RC-12 | `shadow/*` — flat fills in SVGs, no elevation values | **resolved via Figma (§10)** | `shadow/focus` + `shadow/md` from Figma; `backdrop/glass` + `blur-bg` documented |
 
 **Completeness:** every near-duplicate colour pair, every radius snap, every spacing one-off, and every asset/font
 residual is addressed above. No observed deviation is left unaddressed; no screen one-off is enshrined as a
@@ -507,6 +544,86 @@ screenshot-specific special case.
 
 ---
 
-*Provenance: every value in this document traces to [`docs/DESIGN_SPECS.md`](./DESIGN_SPECS.md) and through it to a
-grep-verifiable fill/`rx`/coordinate in `screens/tokens.svg` / `screens/frames.svg`. This SSOT supersedes any
-individual screenshot where they conflict.*
+---
+
+# 10. Figma Reconciliation (2026-06-17)
+
+When Figma MCP access became available, the canonical values were re-sourced from the Figma **`tokens`** frame
+(`3870:7654`, exported to [`docs/figma-tokens-export.json`](./figma-tokens-export.json)). The SVG substrate
+(`DESIGN_SPECS.md`) was an interim stand-in; **where they disagree, Figma is authoritative.** Deltas applied to §1/§2/§8:
+
+**Corrections (value was wrong):**
+- `border/default` `#3a3d45` → **`#5a6070`** (Figma `border/strong`). The old hex is the real **`text/disabled`** (added).
+- `brand/hover` `#4cacff` → **`#0099ff`** (Figma `brand/hover`). The old light tint is preserved as **`brand/highlight`**.
+
+**Reversed reconciliation decisions:**
+- **RC-3** collapsed `#0099ff`/`#1379f3` as accidental brand duplicates. Figma defines them as **`brand/hover`** and **`brand/dark-600`** — both restored as real tokens.
+
+**New tokens (Figma defines; the outlined SVGs lacked them):** `accent/pink` `#ff2d55`; `overlay/{fill,line,line-strong,header}`
+(translucent whites); `shadow/focus` + `shadow/md`; `backdrop/glass` + `backdrop/blur-bg`; `gradient/status-completed-glow`;
+`space/16` (64px); `radius/full`.
+
+**Type scale (RC-9):** the structure-only placeholder scale is replaced by real Figma metrics (size/lh/weight/tracking)
++ per-role family (`sans` SF Compact / `mono` NKDuy Mono), plus roles `type/label-bioname` and `type/mono-small`.
+Only the font *files* + SF Compact web licence remain capped (`typography-system`).
+
+**Unchanged (already matched Figma):** the full surface ramp, `brand/default`/`pressed`, all 6 statuses, all 5
+categories, the spacing/radius/size scales, and §3–§7 (component vocabulary, layout grammar, view-model contracts,
+screen maps, generativity) — none of which depend on the corrected values.
+
+## 10.1 Screen-level reconciliation (2026-06-17, change `reconcile-design-tokens-from-figma`)
+
+The §10 pass re-sourced the **`tokens` frame**. A subsequent import of the **18 composites + 14 screens**
+([`docs/figma-components-export.md`](./figma-components-export.md), [`docs/figma-screens-export.md`](./figma-screens-export.md))
+surfaced three values that live **raw in component/screen designs and were never Figma variables**, so the §10
+token re-source could not see them. Each is resolved here; later block/screen changes inherit these token targets.
+
+- **RC-S1 — third blue `#006ccb` → normalize to `brand/default` `#0088ff` (no new token).** The job-experience
+  role text on `Профиль/specialist` (node `3088:3896`) used `#006ccb`, distinct from `brand/default #0088ff`,
+  `brand/highlight #4cacff`, and the `Специальность` atom's `#0088ff`. It is an accidental near-duplicate of the
+  brand/link blue, not a sanctioned tier. **Decision:** the JobExperienceCard role text and the specialty/role tag
+  both bind **`brand/default`**; `#006ccb` is not added as a token. *(If the designer confirms it is intentional,
+  add `brand/link #006ccb` and update this entry.)* All three blues now map: `#0088ff`→`brand/default`,
+  `#4cacff`→`brand/highlight`, `#006ccb`→`brand/default` (normalized).
+
+- **RC-S2 — non-token font families `Vremena Grotesk` / `IBM Plex Sans` / `Inter` → no new family tokens (MVP).**
+  Seen raw in message/notification bodies + gig price/term values (Vremena), embedded gig titles + the file chip
+  (IBM Plex), and attention-card emoji markers (Inter). The model binds only `font/family/sans` (SF Compact) and
+  `font/family/mono` (NKDuy Mono). **Decision:** treat Vremena Grotesk and IBM Plex Sans as **designer placeholders**
+  — map that text to **`font/family/sans`** (titles/data to existing roles) for the MVP; **`Inter` is already the
+  dev-stage substitute for `sans`**, not a third family in code. **Flagged for designer confirmation**; revisit and
+  add a family token only if a distinct family is confirmed intentional. The SF Compact / NKDuy Mono web licence
+  remains the only type cap (owned by `typography-system`).
+
+- **RC-S3 — category hues confirmed against component fills (no change).** The five `category/*` tokens
+  (`marketing #0088ff`, `design #f45fb1`, `programming #0cc671`, `development #05c9e6`, `coding #f27c0d`) equal the
+  `tag`/`Category` component-variant fills recorded in the import docs. The export's `marketing #0088ff` **vs**
+  `Blue #4cacff` ambiguity is resolved: **`marketing = #0088ff` (brand)**; `#4cacff` is **`brand/highlight`**, the
+  tint used for the "Стек" Blue tag *label*, not a category. Note the Figma hues are raw component fills (not bound
+  variables), so this mapping is the authoritative binding by confirmation.
+
+*Pipeline note:* the §10 reconcile edited `design-tokens.json` and regenerated `scripts/generated-tokens.{js,css}`
+but those edits were **uncommitted** in the working tree (last commit 2026-06-14); RC-S1–S3 add **no token changes**,
+so regeneration is a no-op beyond the timestamp and the §10 reconcile should be committed alongside this change.
+
+## 10.2 Primitive-layer token decisions (2026-06-17, change `add-missing-primitives`)
+
+Adding the missing primitives surfaced two token decisions:
+
+- **RC-P1 — danger Button variant → reuse `status/rejected` (no new token).** The Figma session-delete button uses
+  an iOS-red (`Colors/Red`) text + a 20% red tint; the palette has no `accents/red` (the nearest is
+  `status/rejected`). **Decision:** the `danger` Button variant binds `status-rejected` (`bg-status-rejected/20`,
+  `text-status-rejected`, `border/default`) — token-pure, no near-duplicate red minted. The iOS-red ↔
+  status-rejected hue delta is accepted; revisit only if the designer confirms a distinct destructive red.
+- **RC-P2 — added `surface/inverse` (`#ffffff`) token.** The `Специальность` specialty chip is a **white** chip on
+  the dark profile; the surface ramp is all-dark. Per the generativity principle (a real gap is added to the
+  system), a `surface/inverse` token was added to `design-tokens.json` (the surface mirror of `text/inverse`),
+  regenerated into `scripts/generated-tokens.{js,css}` (33 colours), and consumed by `SpecialtyTag` as
+  `bg-surface-inverse` — no raw `#ffffff` literal. Cited from `docs/figma-screens-export.md` / `figma-components-export.md`.
+
+---
+
+*Provenance: §3–§7 trace to the SVG substrate ([`docs/DESIGN_SPECS.md`](./DESIGN_SPECS.md)); the §1/§2 token values
+are sourced from the Figma `tokens` frame ([`docs/figma-tokens-export.json`](./figma-tokens-export.json)) and
+serialized into `openspec/specs/ui/design-tokens.json`. This SSOT supersedes any individual screenshot where they
+conflict; where the SVG substrate and Figma disagree, Figma wins (§10).*

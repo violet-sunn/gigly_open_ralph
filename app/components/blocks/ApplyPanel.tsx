@@ -36,7 +36,7 @@ export function ApplyPanel({ vm, onSubmit }: ApplyPanelProps) {
             )}
           </Stack>
         ))}
-        <Button variant="primary" onClick={onSubmit}>
+        <Button type="submit" variant="primary" onClick={onSubmit}>
           {vm.submitLabel}
         </Button>
       </Stack>

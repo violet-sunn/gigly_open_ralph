@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Icon, ICON, Input, Button } from "@/app/components/primitives";
 import { Stack } from "@/app/components/layout/Stack";
 import { Rail } from "@/app/components/layout/Rail";
@@ -35,7 +36,7 @@ function NavMenuItem({ item, collapsed }: { item: SidebarNavItemVM; collapsed: b
  * NavMenuItem(+count) + logo + ProfileCard + SupportCard + LogoutControl (sub-pieces internal).
  * collapsed → the Rail layout primitive (icon-rail). Token-pure; nav driven by the VM.
  */
-export function SidebarNav({ vm }: { vm: SidebarNavVM }) {
+export function SidebarNav({ vm, logout }: { vm: SidebarNavVM; logout?: ReactNode }) {
   const nav = (
     <Stack gap={1}>
       {vm.items.map((item) => (
@@ -67,7 +68,7 @@ export function SidebarNav({ vm }: { vm: SidebarNavVM }) {
         </Stack>
       </Panel>
       <ProfileCard variant="compact" vm={vm.profile} />
-      <Button variant="ghost">Выйти</Button>
+      {logout ?? <Button variant="ghost">Выйти</Button>}
     </Stack>
   );
 }

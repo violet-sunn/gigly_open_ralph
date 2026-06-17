@@ -1,0 +1,113 @@
+metadata:
+  name: Gigly
+  components:
+    3367:3915:
+      id: 3367:3915
+      key: e857674f5bbb59d32ec5e8830444b682c92c9cb2
+      name: Property=Смена статуса, USER=SPECIALIST
+      componentSetId: 3367:3916
+    3392:5067:
+      id: 3392:5067
+      key: 7ff023f5af52a8f90e6b0d25213a3b31078472c6
+      name: Gig/SPECIALIST/в работе/attention block
+    2862:2667:
+      id: 2862:2667
+      key: 111c34bfd4a8db72a9c06a3123e6c3bf3c8bd688
+      name: Property=Primary, State=Default
+      componentSetId: 3149:3432
+    2778:2931:
+      id: 2778:2931
+      key: 9bb04655843f997d8f1d34ca97862c76d3d91f3d
+      name: icon / bootstrap / outline & logos / pencil
+    3367:3917:
+      id: 3367:3917
+      key: 62227c5570b736a94e214b4bd8192df432b6e3ae
+      name: Property=Новое сообщение, USER=SPECIALIST
+      componentSetId: 3367:3916
+    3398:7361:
+      id: 3398:7361
+      key: 1e2c10689eda9b216a40cb74794bbb6b7fcdfc14
+      name: Message/attention block
+    2931:2314:
+      id: 2931:2314
+      key: dc09fb462cad5a10a01e6a4d940e23b8ea95a34f
+      name: size for=gig, USER=COMPANY
+      componentSetId: 2931:2365
+    3367:4225:
+      id: 3367:4225
+      key: 167b14bc99fad540f45938941fa6b60b8d8e3824
+      name: Property=Приближается дедлайн, USER=SPECIALIST
+      componentSetId: 3367:3916
+    3367:4249:
+      id: 3367:4249
+      key: aa94e6694d5487f169cda4215b69018f3fe873cc
+      name: Property=Заявка принята, USER=SPECIALIST
+      componentSetId: 3367:3916
+    3367:4273:
+      id: 3367:4273
+      key: c5efe50c45d74e41d861fcb5b55a2f9005a24362
+      name: Property=Заявка отклонена, USER=SPECIALIST
+      componentSetId: 3367:3916
+    3016:9216:
+      id: 3016:9216
+      key: f4bb5a7cd26b30bb32decbfc3b230ae6283b96c4
+      name: Gig/В работе/full
+    3367:4297:
+      id: 3367:4297
+      key: 5018affc5d77def6943709333f8bdb0f9862e130
+      name: Property=Получена оплата, USER=SPECIALIST
+      componentSetId: 3367:3916
+    3398:7497:
+      id: 3398:7497
+      key: 69ffae81179c65836fd813875088c2e15a380399
+      name: Gig/На рассмотрении/full
+    3429:5253:
+      id: 3429:5253
+      key: 733a40a166f52fd5a70f61bd784c7c4b053a1055
+      name: Property=Нет ответа, USER=COMPANY
+      componentSetId: 3367:3916
+    3429:5265:
+      id: 3429:5265
+      key: 08bb629baa19e2ed8a971bd72d6293be6cd72de0
+      name: Property=Новое сообщение, USER=COMPANY
+      componentSetId: 3367:3916
+    3429:5277:
+      id: 3429:5277
+      key: 8721b9e67a67ab86a855140d06251c4577439b3a
+      name: Property=Нет заявок, USER=COMPANY
+      componentSetId: 3367:3916
+    3429:5290:
+      id: 3429:5290
+      key: 4e281a03838b8f13fc3047388a14afeddb35f4a1
+      name: Property=Ждёт проверки, USER=COMPANY
+      componentSetId: 3367:3916
+    3429:5314:
+      id: 3429:5314
+      key: 5a45f370c37ad76f57854164f6475a547855717c
+      name: Property=Получена оплата, USER=COMPANY
+      componentSetId: 3367:3916
+    3429:5302:
+      id: 3429:5302
+      key: 5c3ac9a07df5699681ec532d187af66353cc39f6
+      name: Property=Заявка отклонена, USER=COMPANY
+      componentSetId: 3367:3916
+  componentSets:
+    3367:3916:
+      id: 3367:3916
+      key: 7899184d010107557fa602b011b4ea691ec6b13a
+      name: attention card
+      description: ''
+    3149:3432:
+      id: 3149:3432
+      key: 45076608556c8fbc1f4afebc3d30e4a7b457da7a
+      name: Button
+      description: ''
+    2931:2365:
+      id: 2931:2365
+      key: f32e929994988abb5879088b2e121eff45cd91b0
+      name: bio
+      description: ''
+nodes: []
+globalVars:
+  styles: {}
+

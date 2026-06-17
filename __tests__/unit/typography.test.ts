@@ -27,9 +27,10 @@ describe("typography-system", () => {
     }
   });
 
-  it("keeps the measurable anchor: h1 == 22px (1.375rem)", () => {
-    // 22px / 16 = 1.375rem — the auth-heading anchor from DESIGN_SYSTEM_SPEC §1.4
-    expect(gen.fontSize.h1).toBe("1.375rem");
+  it("matches the reconciled Figma type scale: h1 == 24px (1.5rem)", () => {
+    // §10/RC-9 (Figma reconciliation): the structure-only 22px placeholder anchor was
+    // replaced by the real Figma metric — h1 (Figma Heading/H2) = 24px / 16 = 1.5rem.
+    expect(gen.fontSize.h1).toBe("1.5rem");
   });
 
   it("mono family resolves to monospace, text family to sans-serif", () => {

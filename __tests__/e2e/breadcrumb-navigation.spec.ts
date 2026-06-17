@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { loginAsSpecialist, loginAsClient, loginAsAdmin } from './helpers/auth'
+import { loginAsSpecialist, loginAsClient, loginAsAdmin } from '../helpers/auth'
 
 test.describe('Breadcrumb Navigation', () => {
   test.describe('Gig Detail Page Breadcrumbs', () => {

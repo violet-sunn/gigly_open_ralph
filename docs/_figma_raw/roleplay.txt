@@ -1,0 +1,197 @@
+metadata:
+  name: Gigly
+  components:
+    3179:3658:
+      id: 3179:3658
+      key: 95bc65b3e47f888ed331e754dfe5f6539d03e5c5
+      name: State=Default
+      componentSetId: 3179:3687
+    2778:2949:
+      id: 2778:2949
+      key: a13d43628486e4056d8f5a533c9161013aec4a45
+      name: icon / bootstrap / outline & logos / person-bounding-box
+    3179:3688:
+      id: 3179:3688
+      key: d7a151c7686833bee67678c4b16990ffdea43011
+      name: State=hover
+      componentSetId: 3179:3687
+  componentSets:
+    3179:3687:
+      id: 3179:3687
+      key: 916df16530bc27b527e3cfb5baf8fb5f52519352
+      name: roleplay
+      description: ''
+nodes:
+  - id: 3179:3687
+    name: roleplay
+    type: COMPONENT_SET
+    layout: layout_WRIM1C
+    strokes: fill_FQ1S1Y
+    strokeWeight: 1px
+    strokeDashes:
+      - 10
+      - 5
+    borderRadius: 5px
+    children:
+      - id: 3179:3658
+        name: State=Default
+        type: COMPONENT
+        layout: layout_BQ9KD9
+        borderRadius: 4px
+        children:
+          - id: 3179:3638
+            name: icon
+            type: FRAME
+            layout: layout_RB7MS7
+            fills: color/surface/accent
+            strokes: fill_5RE4DM
+            strokeWeight: 0px 1px 0px 0px
+            children:
+              - id: 3179:3642
+                name: icon / bootstrap / outline & logos / person-bounding-box
+                type: IMAGE-SVG
+                layout: layout_6LGNNM
+                fills: fill_SNX9DI
+                componentId: 2778:2949
+          - id: 3179:3647
+            name: role
+            type: FRAME
+            layout: layout_HO4NJ5
+            fills: color/surface/accent
+            children:
+              - id: 3179:3650
+                name: input text
+                type: TEXT
+                layout: layout_R7CPIV
+                text: Специалист
+                textStyle: style_ZIC2K5
+                fills: fill_5RE4DM
+      - id: 3179:3688
+        name: State=hover
+        type: COMPONENT
+        layout: layout_BQ9KD9
+        fills: fill_FRG5TK
+        strokes: fill_DUFUV8
+        strokeWeight: 1px
+        borderRadius: 4px
+        children:
+          - id: 3179:3689
+            name: icon
+            type: FRAME
+            layout: layout_RB7MS7
+            fills: color/surface/accent
+            strokes: fill_5RE4DM
+            strokeWeight: 0px 1px 0px 0px
+            children:
+              - id: 3179:3690
+                name: icon / bootstrap / outline & logos / person-bounding-box
+                type: IMAGE-SVG
+                layout: layout_6LGNNM
+                fills: fill_SNX9DI
+                componentId: 2778:2949
+          - id: 3179:3691
+            name: role
+            type: FRAME
+            layout: layout_HO4NJ5
+            fills: color/surface/accent
+            children:
+              - id: 3179:3692
+                name: input text
+                type: TEXT
+                layout: layout_R7CPIV
+                text: Специалист
+                textStyle: style_ZIC2K5
+                fills: fill_5RE4DM
+globalVars:
+  styles:
+    layout_WRIM1C:
+      mode: column
+      alignItems: stretch
+      gap: 20px
+      padding: 20px
+      sizing:
+        horizontal: fixed
+        vertical: hug
+      dimensions:
+        width: 1336
+    fill_FQ1S1Y:
+      - '#9747FF'
+    layout_BQ9KD9:
+      mode: row
+      alignItems: center
+      alignSelf: stretch
+      sizing:
+        horizontal: fill
+        vertical: fixed
+      dimensions:
+        height: 40
+    layout_RB7MS7:
+      mode: row
+      alignItems: center
+      gap: 12px
+      padding: 6px 12px
+      sizing:
+        horizontal: hug
+        vertical: fixed
+      dimensions:
+        height: 40
+    color/surface/accent:
+      - rgba(255, 255, 255, 0.05)
+    fill_5RE4DM:
+      - '#FFFFFF'
+    layout_6LGNNM:
+      mode: none
+      sizing:
+        horizontal: fixed
+        vertical: fixed
+      dimensions:
+        width: 16
+        height: 16
+    fill_SNX9DI: []
+    layout_7VPLF8:
+      mode: none
+      sizing: {}
+      locationRelativeToParent:
+        x: 0
+        y: 0
+      dimensions:
+        width: 16
+        height: 16
+    layout_6Z2U63:
+      mode: none
+      sizing: {}
+      locationRelativeToParent:
+        x: 3
+        y: 3
+      dimensions:
+        width: 10
+        height: 10
+    layout_HO4NJ5:
+      mode: row
+      alignItems: center
+      gap: 12px
+      padding: 6px 12px
+      sizing:
+        horizontal: fill
+        vertical: fixed
+      dimensions:
+        height: 40
+    layout_R7CPIV:
+      mode: none
+      sizing:
+        horizontal: fill
+        vertical: hug
+    style_ZIC2K5:
+      fontFamily: NKDuy Mono
+      fontStyle: Medium
+      fontWeight: 500
+      fontSize: 16
+      lineHeight: 16px
+      textAlignHorizontal: LEFT
+      textAlignVertical: TOP
+    fill_FRG5TK:
+      - rgba(19, 121, 243, 0.3)
+      - '#01030E'
+    fill_DUFUV8:
+      - '#0088FF'
+

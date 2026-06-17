@@ -5,16 +5,24 @@
  */
 import type {
   GigCardVM,
+  GigHeaderVM,
   ProfileCardVM,
   ProfileHeaderVM,
+  TagListVM,
+  CategoryTagsVM,
+  ExperienceListVM,
   ClientCardVM,
   StatPanelVM,
+  LedgerTableVM,
+  DisputeListVM,
+  DisputeDetailVM,
   BannerCardVM,
   RequirementCardVM,
   CriteriaListVM,
   TermsTabsVM,
   ApplyPanelVM,
   MessageBubbleVM,
+  ChatHeaderVM,
   ConversationItemVM,
   NotificationItemVM,
   MessagesPanelVM,
@@ -45,6 +53,16 @@ export const gigCardFixtures: GigCardVM[] = STATUSES.flatMap((status, i) =>
 );
 export const gigCardFixture: GigCardVM = gigCardFixtures[0];
 
+export const gigHeaderFixture: GigHeaderVM = {
+  title: "Лендинг для финтех-стартапа",
+  status: "open",
+  budget: "300 400 ₽",
+  deadlineDays: 14,
+  category: "design",
+  tags: ["React", "TypeScript"],
+  postedAt: "12 июня 2026",
+};
+
 export const profileCardFixture: ProfileCardVM = {
   avatar: "",
   name: "Анна Смирнова",
@@ -66,6 +84,48 @@ export const profileHeaderFixture: ProfileHeaderVM = {
   ],
 };
 
+export const tagListFixture: TagListVM = {
+  title: "Стек",
+  tags: [
+    { label: "Python" },
+    { label: "Parsing" },
+    { label: "Anti-captcha" },
+    { label: "Node.js" },
+    { label: "WebSocket" },
+    { label: "Профилирование" },
+  ],
+};
+
+export const categoryTagsFixture: CategoryTagsVM = {
+  title: "Избранные категории",
+  categories: [
+    { slug: "marketing", label: "Маркетинг", favorite: true },
+    { slug: "design", label: "Дизайн", favorite: true },
+    { slug: "programming", label: "Программирование", favorite: true },
+    { slug: "development", label: "Разработка", favorite: false },
+    { slug: "coding", label: "Кодинг", favorite: false },
+  ],
+};
+
+export const experienceListFixture: ExperienceListVM = {
+  title: "Опыт",
+  bio: "Специализируюсь на создании сложных SPA и высоконагруженных интерфейсов. Глубоко понимаю экосистему React.",
+  entries: [
+    {
+      company: "Yandex",
+      title: "Senior Frontend Developer",
+      period: "2021 — Наст. время",
+      description: "Разработка интерфейсов облачной платформы Yandex Cloud. Оптимизация консоли управления.",
+    },
+    {
+      company: "Вконтакте",
+      title: "Middle Frontend Developer",
+      period: "2018 — 2021",
+      description: 'Работа над разделом "Сообщества". Внедрение дизайн-системы VKUI.',
+    },
+  ],
+};
+
 export const clientCardFixture: ClientCardVM = {
   avatar: "",
   name: "ООО Ромашка",
@@ -84,12 +144,78 @@ export const statPanelFixture: StatPanelVM = {
   ],
 };
 
+export const ledgerTableFixture: LedgerTableVM = {
+  entries: [
+    { date: "2026-04-01T10:00:00.000Z", label: "Лендинг для финтех-стартапа", amount: "300 400 ₽", status: "completed" },
+    { date: "2026-03-18T10:00:00.000Z", label: "Миграция на PostgreSQL", amount: "180 000 ₽", status: "completed" },
+  ],
+  balance: "480 400 ₽",
+};
+
+export const ledgerTableEmptyFixture: LedgerTableVM = {
+  entries: [],
+  balance: "0 ₽",
+};
+
+export const disputeListFixture: DisputeListVM = {
+  disputes: [
+    { id: "d1", gig: "Лендинг для финтех-стартапа", status: "open", opener: "Иван Петров" },
+    { id: "d2", gig: "Миграция на PostgreSQL", status: "completed", opener: "ООО Ромашка" },
+  ],
+};
+
+export const disputeListEmptyFixture: DisputeListVM = {
+  disputes: [],
+};
+
+export const toggleListFixture: { key: string; label: string; checked: boolean }[] = [
+  { key: "notifyApplications", label: "Отклики", checked: true },
+  { key: "notifyStatusChanges", label: "Изменения статуса", checked: true },
+  { key: "notifyMessages", label: "Сообщения", checked: false },
+];
+
+export const dataTableFixture: { columns: string[]; rows: { id: string; cells: string[] }[] } = {
+  columns: ["Email", "Роль", "Статус"],
+  rows: [
+    { id: "u1", cells: ["ivan@example.com", "SPECIALIST", "Активен"] },
+    { id: "u2", cells: ["ooo@example.com", "CLIENT", "Заблокирован"] },
+  ],
+};
+
+export const disputeDetailFixture: DisputeDetailVM = {
+  id: "d1",
+  gig: "Лендинг для финтех-стартапа",
+  opener: "Иван Петров",
+  reason: "Объём работ значительно вырос относительно исходного описания задачи.",
+  status: "open",
+  resolution: "",
+  resolvedBy: null,
+};
+
+export const roleCardsFixture: { value: "CLIENT" | "SPECIALIST" | null } = { value: "CLIENT" };
+
+export const disputeDetailResolvedFixture: DisputeDetailVM = {
+  id: "d2",
+  gig: "Миграция на PostgreSQL",
+  opener: "ООО Ромашка",
+  reason: "Работа не соответствует согласованным критериям приёмки.",
+  status: "completed",
+  resolution: "Спор разрешён в пользу заказчика; бюджет возвращён.",
+  resolvedBy: "admin@gigly.ru",
+};
+
 export const bannerCardFixture: BannerCardVM = {
   headline: "Найдите сильного специалиста за часы, а не недели",
   body: "Структурированные гиги и проверенные Middle+/Senior специалисты.",
   cta: { label: "Создать гиг", href: "/gigs/new" },
   // art: residual (cosmic raster, §7.2) — left undefined → token glow placeholder renders.
 };
+
+export const createGigCtaFixture = { label: "Создать гиг", href: "/gigs/new" };
+
+export const searchPanelFixture = { placeholder: "Найти проект", actionLabel: "Найти проект" };
+
+export const resultCountFixture = { count: 42, label: "Найдено" };
 
 export const requirementCardFixture: RequirementCardVM = {
   title: "Определение готовности",
@@ -126,13 +252,21 @@ export const applyPanelFixture: ApplyPanelVM = {
 };
 
 export const messageBubbleFixtures: MessageBubbleVM[] = [
-  { direction: "in", author: "ООО Ромашка", timestamp: "10:24", body: "Здравствуйте! Когда сможете приступить?" },
-  { direction: "out", author: "Анна Смирнова", timestamp: "10:26", body: "Привет! Готова начать завтра.", readState: "read" },
+  { direction: "in", author: "ООО Ромашка", timestamp: "10:24", body: "Здравствуйте! Когда сможете приступить?", date: "1 апреля 2026 г." },
+  { direction: "out", author: "Анна Смирнова", timestamp: "10:26", body: "Привет! Готова начать завтра.", readState: "read", date: "1 апреля 2026 г." },
 ];
 
+export const chatHeaderFixture: ChatHeaderVM = {
+  avatar: "",
+  name: "Vercel",
+  verified: true,
+  rating: { value: 5, count: 45, verified: true },
+  presence: "был(-а) недавно",
+};
+
 export const conversationItemFixtures: ConversationItemVM[] = [
-  { id: "c1", avatar: "", name: "ООО Ромашка", preview: "Когда сможете приступить?", timestamp: "10:24", unread: 2 },
-  { id: "c2", avatar: "", name: "Иван Петров", preview: "Спасибо, всё отлично!", timestamp: "вчера", unread: 0 },
+  { id: "c1", avatar: "", name: "ООО Ромашка", subtitle: "Лендинг для финтех-стартапа", preview: "Когда сможете приступить?", timestamp: "10:24", unread: 2 },
+  { id: "c2", avatar: "", name: "Иван Петров", subtitle: "Миграция на PostgreSQL", preview: "Спасибо, всё отлично!", timestamp: "вчера", unread: 0 },
 ];
 
 export const notificationItemFixtures: NotificationItemVM[] = [
@@ -148,6 +282,7 @@ export const messagesPanelFixture: MessagesPanelVM = {
 export const chatPanelFixture: ChatPanelVM = {
   thread: messageBubbleFixtures,
   composer: { canAttach: true },
+  header: chatHeaderFixture,
 };
 
 const clientNav = (collapsed: boolean): SidebarNavVM => ({

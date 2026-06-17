@@ -45,6 +45,13 @@ class InMemoryRateLimiter {
     | { success: true }
     | { success: false; reset: number }
   > {
+    // Test-only bypass: E2E runs against the real dev server (the limiter is mocked only in vitest), where a single
+    // run legitimately performs many registrations/logins. `DISABLE_RATE_LIMIT` is set ONLY by the E2E webServer env
+    // (never in production) so the in-memory window does not make registration/login E2E flaky.
+    if (process.env.DISABLE_RATE_LIMIT === 'true') {
+      return { success: true }
+    }
+
     const now = Date.now()
     const windowStart = now - this.window
 

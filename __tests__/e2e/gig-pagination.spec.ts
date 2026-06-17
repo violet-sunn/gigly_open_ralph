@@ -88,7 +88,7 @@ test.describe('Gig Pagination E2E', () => {
 
     // Verify we're on page 1
     await expect(page).toHaveURL('/gigs')
-    await expect(page.locator('text=Showing 1-25 of 60 gigs')).toBeVisible()
+    await expect(page.locator('text=Найдено 60')).toBeVisible()
 
     // Verify pagination controls are visible
     await expect(page.locator('nav[aria-label="Pagination"]')).toBeVisible()
@@ -97,7 +97,7 @@ test.describe('Gig Pagination E2E', () => {
     await page.click('a[aria-label="Next page"]')
     await page.waitForURL(/page=2/)
     await expect(page).toHaveURL(/page=2/)
-    await expect(page.locator('text=Showing 26-50 of 60 gigs')).toBeVisible()
+    await expect(page.locator('text=Найдено 60')).toBeVisible()
 
     // Verify page 2 is active
     await expect(page.locator('[aria-current="page"]')).toHaveText('2')
@@ -106,13 +106,13 @@ test.describe('Gig Pagination E2E', () => {
     await page.click('a[aria-label="Next page"]')
     await page.waitForURL(/page=3/)
     await expect(page).toHaveURL(/page=3/)
-    await expect(page.locator('text=Showing 51-60 of 60 gigs')).toBeVisible()
+    await expect(page.locator('text=Найдено 60')).toBeVisible()
 
     // Click Previous button
     await page.click('a[aria-label="Previous page"]')
     await page.waitForURL(/page=2/)
     await expect(page).toHaveURL(/page=2/)
-    await expect(page.locator('text=Showing 26-50 of 60 gigs')).toBeVisible()
+    await expect(page.locator('text=Найдено 60')).toBeVisible()
   })
 
   test('should navigate directly to a specific page via URL', async ({ page }) => {
@@ -122,7 +122,7 @@ test.describe('Gig Pagination E2E', () => {
 
     // Verify we're on page 2
     await expect(page).toHaveURL(/page=2/)
-    await expect(page.locator('text=Showing 26-50 of 60 gigs')).toBeVisible()
+    await expect(page.locator('text=Найдено 60')).toBeVisible()
     await expect(page.locator('[aria-current="page"]')).toHaveText('2')
   })
 
@@ -135,7 +135,7 @@ test.describe('Gig Pagination E2E', () => {
     await page.click('a[aria-label="Go to page 3"]')
     await page.waitForURL(/page=3/)
     await expect(page).toHaveURL(/page=3/)
-    await expect(page.locator('text=Showing 51-60 of 60 gigs')).toBeVisible()
+    await expect(page.locator('text=Найдено 60')).toBeVisible()
     await expect(page.locator('[aria-current="page"]')).toHaveText('3')
   })
 
@@ -146,7 +146,7 @@ test.describe('Gig Pagination E2E', () => {
 
     // Should redirect to last valid page (page 3)
     await expect(page).toHaveURL(/page=3/)
-    await expect(page.locator('text=Showing 51-60 of 60 gigs')).toBeVisible()
+    await expect(page.locator('text=Найдено 60')).toBeVisible()
 
     // Try to navigate to page 0
     await page.goto('/gigs?page=0')
@@ -154,30 +154,25 @@ test.describe('Gig Pagination E2E', () => {
 
     // Should redirect to page 1
     await expect(page).toHaveURL('/gigs')
-    await expect(page.locator('text=Showing 1-25 of 60 gigs')).toBeVisible()
+    await expect(page.locator('text=Найдено 60')).toBeVisible()
   })
 
   test('should preserve filters when paginating', async ({ page }) => {
-    // Navigate to gig browse page
-    await page.goto('/gigs')
+    // Apply the React tag filter via URL (tag filtering is URL-driven; the server query is preserved)
+    await page.goto('/gigs?tags=React')
     await page.waitForLoadState('networkidle')
 
-    // Apply React tag filter
-    await page.check('input[type="checkbox"]', { force: true })
-    await page.click('button:has-text("Apply Filters")')
-    await page.waitForURL(/tags=React/)
-
     // Verify filtered results (30 React gigs)
-    await expect(page.locator('text=Showing 1-25 of 30 gigs')).toBeVisible()
+    await expect(page.locator('text=Найдено 30')).toBeVisible()
 
     // Navigate to page 2
     await page.click('a[aria-label="Next page"]')
     await page.waitForURL(/page=2/)
 
-    // Verify URL includes both filter and page params
+    // Verify URL includes both filter and page params (PaginationControls preserves every query param)
     await expect(page).toHaveURL(/tags=React/)
     await expect(page).toHaveURL(/page=2/)
-    await expect(page.locator('text=Showing 26-30 of 30 gigs')).toBeVisible()
+    await expect(page.locator('text=Найдено 30')).toBeVisible()
   })
 
   test('should reset to page 1 when filters change', async ({ page }) => {
@@ -186,14 +181,14 @@ test.describe('Gig Pagination E2E', () => {
     await page.waitForLoadState('networkidle')
     await expect(page).toHaveURL(/page=2/)
 
-    // Apply a filter
-    await page.check('input[type="checkbox"]', { force: true })
-    await page.click('button:has-text("Apply Filters")')
-    await page.waitForURL(/tags=React/)
+    // Change a filter via the composed FilterBar search → the screen drops `page` (resets to page 1)
+    await page.getByRole('searchbox').fill('Test Gig 05')
+    await page.getByRole('searchbox').press('Enter')
+    await page.waitForURL(/search=/)
 
     // Verify pagination reset to page 1 (no page param in URL)
     await expect(page).not.toHaveURL(/page=/)
-    await expect(page.locator('text=Showing 1-25 of 30 gigs')).toBeVisible()
+    await expect(page.locator('text=Найдено 1')).toBeVisible()
   })
 
   test('should support browser back/forward navigation', async ({ page }) => {
@@ -211,18 +206,18 @@ test.describe('Gig Pagination E2E', () => {
     await page.goBack()
     await page.waitForLoadState('networkidle')
     await expect(page).toHaveURL(/page=2/)
-    await expect(page.locator('text=Showing 26-50 of 60 gigs')).toBeVisible()
+    await expect(page.locator('text=Найдено 60')).toBeVisible()
 
     await page.goBack()
     await page.waitForLoadState('networkidle')
     await expect(page).toHaveURL('/gigs')
-    await expect(page.locator('text=Showing 1-25 of 60 gigs')).toBeVisible()
+    await expect(page.locator('text=Найдено 60')).toBeVisible()
 
     // Use browser forward button
     await page.goForward()
     await page.waitForLoadState('networkidle')
     await expect(page).toHaveURL(/page=2/)
-    await expect(page.locator('text=Showing 26-50 of 60 gigs')).toBeVisible()
+    await expect(page.locator('text=Найдено 60')).toBeVisible()
   })
 
   test('should disable Previous button on first page and Next button on last page', async ({ page }) => {

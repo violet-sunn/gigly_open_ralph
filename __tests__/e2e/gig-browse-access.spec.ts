@@ -200,7 +200,7 @@ test.describe('Gig Browse Access Control E2E', () => {
 
     // Verify page loads successfully
     await expect(page).toHaveURL(/\/gigs(\?|$)/)
-    await expect(page.locator('h2:has-text("Open Gigs")')).toBeVisible()
+    await expect(page.locator('h2:has-text("Поиск гигов")')).toBeVisible()
 
     // Verify both regular and example gigs are displayed
     await expect(page.locator(`text=${regularGig.title}`)).toBeVisible()
@@ -227,7 +227,7 @@ test.describe('Gig Browse Access Control E2E', () => {
 
     // Verify can navigate between both pages
     await expect(page).toHaveURL(/\/gigs(\?|$)/)
-    await expect(page.locator('h2:has-text("Open Gigs")')).toBeVisible()
+    await expect(page.locator('h2:has-text("Поиск гигов")')).toBeVisible()
   })
 
   test('Unauthenticated user redirected to login', async ({ page }) => {

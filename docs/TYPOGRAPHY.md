@@ -1,8 +1,9 @@
 # Typography — font licence decision & type layer
 
 **Created:** 2026-06-14 · **Owner change:** `typography-system` (Phase 0 #4)
-**Provenance:** `docs/DESIGN_SYSTEM_SPEC.md` §1.4 / RC-9, `docs/DESIGN_SPECS.md` §7.3 (the SVG text is outlined to
-paths — zero `font-family` references, so the redesign's fonts are unrecoverable from source artifacts).
+**Provenance:** `docs/DESIGN_SYSTEM_SPEC.md` §1.4 / §10 (type scale re-sourced from the Figma `tokens` frame,
+2026-06-17), `docs/DESIGN_SPECS.md` §7.3 (the SVG text is outlined to paths — fonts unrecoverable from the SVG
+substrate, which is *why* Figma is now the source for the metrics).
 
 > **Type-axis fidelity is CAPPED (dev stage).** The redesign's intended fonts are **not web-embeddable**, so the
 > app ships the closest freely-licensed substitutes. Pixel-exact type awaits a licensed font (see *Swap-in path*).
@@ -22,12 +23,17 @@ decision rather than left blocking.
 
 | Token | Substitute | Licence | Why it's the closest resemblance |
 |---|---|---|---|
-| `font/sans` (`--font-sans`) | **Inter** | SIL OFL 1.1 | Purpose-built as a free, metrics-close alternative to Apple's San Francisco; near-equivalent x-height, humanist-grotesque proportions, and UI legibility at small sizes. Covers display / h1 / h2 / title / body / label / caption. |
-| `font/mono` (`--font-mono`) | **JetBrains Mono** | SIL OFL 1.1 | Free, widely-available monospace with a clean, slightly-condensed rhythm suitable for the redesign's tabular data (`300 400 ₽`, codes) in place of NKDy Mono. |
+| `font/sans` (`--font-sans`) | **Inter** | SIL OFL 1.1 | Free, metrics-close alternative to Apple's San Francisco; near-equivalent x-height, humanist-grotesque proportions, UI legibility at small sizes. Covers the **sans** roles: h2 / title / body / label / label-bioname / caption. |
+| `font/mono` (`--font-mono`) | **JetBrains Mono** | SIL OFL 1.1 | Free monospace with a clean, slightly-condensed rhythm. Covers the **mono/accent** roles — per Figma this is not just tabular data but the **display / h1** headings too (NKDuy Mono display face), plus mono / mono-small (`30 000 ₽`, codes). |
 
 Both are **self-hosted** as `woff2` under `app/fonts/` (with OFL licence text committed alongside) and loaded via
 `next/font/local` for **deterministic, offline-safe builds**. Weights shipped: Inter 400/500/600/700 (matching the
-`type/*` weight tokens); JetBrains Mono 400.
+sans `type/*` weights); JetBrains Mono 400.
+
+> **Residual (Figma reconciliation, 2026-06-17):** display/section headings now use the **mono/accent** face at
+> weights **500/600** (Figma Heading/H1 600, H2 500), but only JetBrains Mono **400** is currently shipped — those
+> headings render at 400 (or browser-synthesized weight) until JetBrains Mono 500/600 `woff2` are added to
+> `app/fonts.ts`, or the licensed NKDuy Mono lands. Closing this needs no token/contract change.
 
 ## 3. Binding to the type tokens
 
@@ -37,8 +43,10 @@ Both are **self-hosted** as `woff2` under `app/fonts/` (with OFL licence text co
 - `app/fonts.ts` loads the substitutes via `next/font/local` (`variable: --font-sans / --font-mono`,
   `display: 'swap'`, `adjustFontFallback: 'Arial'`); `app/layout.tsx` applies the variables on `<html>` and sets
   `font-sans` as the default body family.
-- The existing `type/*` size/weight/line-height tokens (from `design-token-engine`) are applied through the roles,
-  so a role yields **family + size + weight + line-height** together. Mono data uses `font-mono`.
+- The `type/*` tokens (re-sourced from Figma, 2026-06-17) carry **size + line-height + weight + letter-spacing +
+  per-role family** (`sans`/`mono`). The parser emits `fontSize` / `lineHeight` / `fontWeight` / `letterSpacing`
+  groups plus a per-role `fontFamily` entry, so `text-display font-display tracking-display` yields the full style
+  (mono/accent face, 32px, 600, −0.5px). Headings (display/h1) and data (mono/mono-small) resolve `font-mono`.
 
 ## 4. No layout shift (CLS)
 
@@ -72,6 +80,7 @@ These are **dev-stage approximations**. Precise per-glyph deltas and the per-scr
 
 ## 7. Scope note
 
-This layer binds **families** only; the type **scale** (sizes/weights/line-heights) was shipped by
-`design-token-engine`. No components/screens are restyled here (the pre-launch app inherits the new family
-globally). The pixel fidelity gate is `fidelity-harness`.
+This layer binds **font files** (the licence decision + substitutes) only. The type **scale** — sizes, weights,
+line-heights, letter-spacing, and per-role family assignment — is owned by the token engine and was reconciled to
+the real Figma metrics on 2026-06-17 (`DESIGN_SYSTEM_SPEC.md` §1.4 / §10). No components/screens are restyled here
+(the pre-launch app inherits the families globally). The pixel fidelity gate is `fidelity-harness`.

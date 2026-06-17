@@ -1,6 +1,6 @@
 /* Auto-generated design tokens */
 /* Source: openspec/specs/ui/design-tokens.json */
-/* Generated: 2026-06-14T13:18:10.836Z */
+/* Generated: 2026-06-17T17:03:37.975Z */
 /* To regenerate: node scripts/parse-design-tokens.js */
 
 :root {
@@ -11,14 +11,18 @@
   --surface-level-2: #10121c;
   --surface-level-3: #1a1a24;
   --surface-level-3-hover: #1a1d2a;
+  --surface-inverse: #ffffff;
   --text-strong: #ffffff;
   --text-inverse: #ffffff;
   --text-muted: #8a8f99;
   --text-subtle: #9fa0a4;
-  --border-default: #3a3d45;
+  --text-disabled: #3a3d45;
+  --border-default: #5a6070;
   --brand-default: #0088ff;
-  --brand-hover: #4cacff;
+  --brand-hover: #0099ff;
   --brand-pressed: #0077e6;
+  --brand-highlight: #4cacff;
+  --brand-dark-600: #1379f3;
   --status-open: #8a8f99;
   --status-review: #f59e0b;
   --status-in-progress: #3b82f6;
@@ -30,44 +34,78 @@
   --category-programming: #0cc671;
   --category-development: #05c9e6;
   --category-coding: #f27c0d;
+  --accent-pink: #ff2d55;
+  --overlay-fill: rgba(255, 255, 255, 0.05);
+  --overlay-line: rgba(255, 255, 255, 0.08);
+  --overlay-line-strong: rgba(255, 255, 255, 0.2);
+  --overlay-header: rgba(255, 255, 255, 0.01);
 
   /* Design Tokens - Typography (Font Families) */
   --font-family-sans: var(--font-sans), -apple-system, system-ui, Segoe UI, Roboto, sans-serif;
   --font-family-mono: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-family-display: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-family-h1: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-family-h2: var(--font-sans), -apple-system, system-ui, Segoe UI, Roboto, sans-serif;
+  --font-family-title: var(--font-sans), -apple-system, system-ui, Segoe UI, Roboto, sans-serif;
+  --font-family-body: var(--font-sans), -apple-system, system-ui, Segoe UI, Roboto, sans-serif;
+  --font-family-label: var(--font-sans), -apple-system, system-ui, Segoe UI, Roboto, sans-serif;
+  --font-family-label-bioname: var(--font-sans), -apple-system, system-ui, Segoe UI, Roboto, sans-serif;
+  --font-family-caption: var(--font-sans), -apple-system, system-ui, Segoe UI, Roboto, sans-serif;
+  --font-family-mono-small: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
 
   /* Design Tokens - Typography (Font Sizes) */
   --font-size-display: 2rem;
-  --font-size-h1: 1.375rem;
+  --font-size-h1: 1.5rem;
   --font-size-h2: 1.125rem;
   --font-size-title: 1rem;
-  --font-size-body: 0.875rem;
+  --font-size-body: 0.9375rem;
   --font-size-label: 0.8125rem;
-  --font-size-caption: 0.75rem;
-  --font-size-mono: 0.8125rem;
+  --font-size-label-bioname: 0.8125rem;
+  --font-size-caption: 0.6875rem;
+  --font-size-mono: 0.875rem;
+  --font-size-mono-small: 0.75rem;
 
   /* Design Tokens - Typography (Line Heights) */
-  --line-height-display: 2.5rem;
-  --line-height-h1: 1.75rem;
-  --line-height-h2: 1.5rem;
+  --line-height-display: 2.3125rem;
+  --line-height-h1: 1.8125rem;
+  --line-height-h2: 1.4375rem;
   --line-height-title: 1.375rem;
-  --line-height-body: 1.25rem;
-  --line-height-label: 1.125rem;
-  --line-height-caption: 1rem;
-  --line-height-mono: 1.125rem;
+  --line-height-body: 1.1875rem;
+  --line-height-label: 0.9375rem;
+  --line-height-label-bioname: 0.9375rem;
+  --line-height-caption: 0.6875rem;
+  --line-height-mono: 1.0625rem;
+  --line-height-mono-small: 0.8125rem;
 
   /* Design Tokens - Typography (Font Weights) */
-  --font-weight-display: 700;
-  --font-weight-h1: 700;
+  --font-weight-display: 600;
+  --font-weight-h1: 500;
   --font-weight-h2: 600;
   --font-weight-title: 600;
   --font-weight-body: 400;
   --font-weight-label: 500;
+  --font-weight-label-bioname: 600;
   --font-weight-caption: 400;
   --font-weight-mono: 400;
+  --font-weight-mono-small: 400;
+
+  /* Design Tokens - Typography (Letter Spacing) */
+  --tracking-display: -0.5px;
+  --tracking-h1: -0.3px;
+  --tracking-h2: 0px;
+  --tracking-title: 0px;
+  --tracking-body: 0px;
+  --tracking-label: 0.3px;
+  --tracking-label-bioname: 0.3px;
+  --tracking-caption: 0.2px;
+  --tracking-mono: 0px;
+  --tracking-mono-small: 0px;
 
   /* Design Tokens - Effects (Shadows) */
   --shadow-none: 0px 0px 0px 0px rgba(0, 0, 0, 0.00);
+  --shadow-focus: 0px 0px 0px 2px rgba(0, 136, 255, 0.40);
   --shadow-card: 0px 2px 8px 0px rgba(0, 0, 0, 0.16);
+  --shadow-md: 0px 4px 12px 0px rgba(0, 0, 0, 0.40);
   --shadow-popover: 0px 8px 24px 0px rgba(0, 0, 0, 0.20);
 
   /* Design Tokens - Spacing */
@@ -81,6 +119,7 @@
   --spacing-8: 32px;
   --spacing-10: 40px;
   --spacing-12: 48px;
+  --spacing-16: 64px;
 
   /* Design Tokens - Border Radius */
   --radius-xs: 2px;
@@ -89,6 +128,7 @@
   --radius-lg: 12px;
   --radius-xl: 16px;
   --radius-pill: 18px;
+  --radius-full: 9999px;
   --radius-circular: 50%;
 
   /* Design Tokens - Sizes */
@@ -112,4 +152,5 @@
 
   /* Design Tokens - Gradients */
   --gradient-brand-glow: linear-gradient(90deg, rgba(0, 136, 255, 0.10) 0%, rgba(0, 136, 255, 0.083) 11%, rgba(0, 136, 255, 0) 75%);
+  --gradient-status-completed-glow: radial-gradient(closest-side, rgba(16, 185, 129, 0.5) 0%, rgba(16, 185, 129, 0.1) 50%, rgba(16, 185, 129, 0) 100%);
 }

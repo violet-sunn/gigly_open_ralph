@@ -24,6 +24,12 @@ interface AppShellProps {
 export function AppShell({ sidebar, topbar, collapsed = false, children }: AppShellProps) {
   return (
     <div className="flex min-h-screen bg-surface-level-0 text-foreground" data-shell-state={collapsed ? "collapsed" : "expanded"}>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-surface-level-2 focus:px-4 focus:py-2 focus:text-strong"
+      >
+        Перейти к основному содержимому
+      </a>
       {collapsed ? (
         <aside className="shrink-0 bg-surface-level-1 border-r border-border" aria-label="Sidebar">
           <Rail>{sidebar}</Rail>

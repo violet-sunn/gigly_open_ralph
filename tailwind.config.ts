@@ -75,6 +75,10 @@ export default {
         semibold: "600",
         bold: "700",
       },
+      letterSpacing: {
+        // Per-role tracking from design-tokens.json (auto-generated): tracking-display, -h1, etc.
+        ...tokens.letterSpacing,
+      },
       boxShadow: {
         // Design tokens from design-tokens.json (auto-generated)
         ...tokens.boxShadow,

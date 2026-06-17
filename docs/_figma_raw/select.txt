@@ -1,0 +1,227 @@
+metadata:
+  name: Gigly
+  components:
+    3152:3666:
+      id: 3152:3666
+      key: f02c2d1b6408fd1f16f0c6095a3612892049ec8f
+      name: State=Default
+      componentSetId: 3195:4537
+    2778:1593:
+      id: 2778:1593
+      key: b2525abccc3bd49a2bc8752f1fffa336648c96fe
+      name: icon / bootstrap / outline & logos / chevron-down
+    3195:4538:
+      id: 3195:4538
+      key: 7e9877311109d732e978d09a3df981c258ba2a2a
+      name: State=chosen
+      componentSetId: 3195:4537
+  componentSets:
+    3195:4537:
+      id: 3195:4537
+      key: a3c8db28af8f9531f5922ddde2a7507290dbe7f8
+      name: select
+      description: ''
+      propertyDefinitions:
+        Label:
+          type: boolean
+          defaultValue: false
+        Label txt:
+          type: text
+          defaultValue: Label
+nodes:
+  - id: 3195:4537
+    name: select
+    type: COMPONENT_SET
+    layout: layout_KSUVGO
+    strokes: fill_ZW76S1
+    strokeWeight: 1px
+    strokeDashes:
+      - 10
+      - 5
+    borderRadius: 5px
+    children:
+      - id: 3152:3666
+        name: State=Default
+        type: COMPONENT
+        layout: layout_ONV1KY
+        borderRadius: 4px
+        children:
+          - id: 3195:4456
+            name: label
+            type: FRAME
+            layout: layout_5ULEHZ
+            componentPropertyReferences:
+              visible: Label
+            children:
+              - id: 3195:4457
+                name: Label
+                type: TEXT
+                layout: layout_0R0TEO
+                text: Label
+                textStyle: style_LE5YNH
+                fills: fill_ASEWK6
+                componentPropertyReferences:
+                  text: Label txt
+          - id: 3195:4463
+            name: field
+            type: FRAME
+            layout: layout_O4NH1P
+            strokes: fill_9VHABN
+            strokeWeight: 1px
+            borderRadius: 4px
+            children:
+              - id: 3152:3660
+                name: text
+                type: TEXT
+                layout: layout_TRNOOB
+                text: Русский
+                textStyle: style_LVQC56
+                fills: fill_07IV2H
+              - id: 3152:3662
+                name: icon / bootstrap / outline & logos / chevron-down
+                type: IMAGE-SVG
+                layout: layout_QJBDPZ
+                fills: fill_XJHYKY
+                componentId: 2778:1593
+      - id: 3195:4538
+        name: State=chosen
+        type: COMPONENT
+        layout: layout_ONV1KY
+        borderRadius: 4px
+        children:
+          - id: 3195:4539
+            name: label
+            type: FRAME
+            layout: layout_5ULEHZ
+            componentPropertyReferences:
+              visible: Label
+            children:
+              - id: 3195:4540
+                name: Label
+                type: TEXT
+                layout: layout_0R0TEO
+                text: Label
+                textStyle: style_LE5YNH
+                fills: fill_ASEWK6
+                componentPropertyReferences:
+                  text: Label txt
+          - id: 3195:4541
+            name: field
+            type: FRAME
+            layout: layout_O4NH1P
+            strokes: fill_IPQ4JX
+            strokeWeight: 1px
+            borderRadius: 4px
+            children:
+              - id: 3195:4542
+                name: text
+                type: TEXT
+                layout: layout_TRNOOB
+                text: Русский
+                textStyle: style_71FUJP
+                fills: fill_ASEWK6
+              - id: 3195:4543
+                name: icon / bootstrap / outline & logos / chevron-down
+                type: IMAGE-SVG
+                layout: layout_QJBDPZ
+                fills: fill_XJHYKY
+                componentId: 2778:1593
+globalVars:
+  styles:
+    layout_KSUVGO:
+      mode: column
+      alignItems: stretch
+      gap: 10px
+      padding: 20px
+      sizing:
+        horizontal: fixed
+        vertical: hug
+      dimensions:
+        width: 1336
+    fill_ZW76S1:
+      - '#9747FF'
+    layout_ONV1KY:
+      mode: column
+      alignSelf: stretch
+      gap: 4px
+      sizing:
+        horizontal: fill
+        vertical: hug
+    layout_5ULEHZ:
+      mode: row
+      alignItems: center
+      padding: 2px 12px
+      sizing:
+        horizontal: hug
+        vertical: hug
+    layout_0R0TEO:
+      mode: none
+      sizing:
+        horizontal: hug
+        vertical: hug
+    style_LE5YNH:
+      fontFamily: NKDuy Mono
+      fontStyle: Medium
+      fontWeight: 500
+      fontSize: 14
+      textAlignHorizontal: LEFT
+      textAlignVertical: TOP
+    fill_ASEWK6:
+      - '#FFFFFF'
+    layout_O4NH1P:
+      mode: row
+      alignItems: center
+      alignSelf: stretch
+      gap: 12px
+      padding: 6px 12px
+      sizing:
+        horizontal: fill
+        vertical: fixed
+      dimensions:
+        height: 40
+    fill_9VHABN:
+      - rgba(255, 255, 255, 0.2)
+    layout_TRNOOB:
+      mode: none
+      sizing:
+        horizontal: fill
+        vertical: hug
+    style_LVQC56:
+      fontFamily: NKDuy Mono
+      fontStyle: Regular
+      fontWeight: 400
+      fontSize: 14
+      lineHeight: 16px
+      textAlignHorizontal: LEFT
+      textAlignVertical: TOP
+    fill_07IV2H:
+      - rgba(159, 160, 164, 0.7)
+    layout_QJBDPZ:
+      mode: none
+      sizing:
+        horizontal: fixed
+        vertical: fixed
+      dimensions:
+        width: 16
+        height: 16
+    fill_XJHYKY: []
+    layout_XKIYV4:
+      mode: none
+      sizing: {}
+      locationRelativeToParent:
+        x: 1.5
+        y: 4.5
+      dimensions:
+        width: 13
+        height: 7
+    fill_IPQ4JX:
+      - '#0088FF'
+    style_71FUJP:
+      fontFamily: NKDuy Mono
+      fontStyle: Medium
+      fontWeight: 500
+      fontSize: 16
+      lineHeight: 16px
+      textAlignHorizontal: LEFT
+      textAlignVertical: TOP
+

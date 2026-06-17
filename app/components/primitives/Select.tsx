@@ -4,6 +4,8 @@ import { Icon } from "./Icon";
 export interface SelectOption {
   value: string;
   label: string;
+  /** Disabled option (Figma dropdown/item Disabled) — de-emphasised, non-selectable. */
+  disabled?: boolean;
 }
 
 interface SelectProps {
@@ -57,15 +59,21 @@ export function Select({
         >
           {options.map((o) => {
             const isSelected = o.value === value;
+            const isDisabled = o.disabled === true;
             return (
               <li
                 key={o.value}
                 role="option"
                 aria-selected={isSelected}
-                onClick={() => onSelect?.(o.value)}
+                aria-disabled={isDisabled || undefined}
+                onClick={isDisabled ? undefined : () => onSelect?.(o.value)}
                 className={cx(
-                  "cursor-pointer px-3 py-2 text-label font-label",
-                  isSelected ? "bg-brand-default/10 text-brand-default" : "text-strong hover:bg-surface-level-3-hover",
+                  "px-3 py-2 text-label font-label",
+                  isDisabled
+                    ? "cursor-default opacity-disabled text-strong"
+                    : isSelected
+                      ? "cursor-pointer bg-brand-default/10 text-brand-default"
+                      : "cursor-pointer text-strong hover:bg-surface-level-3-hover",
                 )}
               >
                 {o.label}

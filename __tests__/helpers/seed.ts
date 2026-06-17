@@ -240,10 +240,18 @@ export function generateRussianEffort(): string {
 // ============================================================================
 
 /**
- * Generate unique email for test users
+ * Generate unique email for test users.
+ *
+ * Uses a synchronous monotonic counter (incremented at call time, before any await) so concurrent
+ * Promise.all() user creations never collide. The previous `Date.now()` + short-random suffix
+ * (~4 chars of entropy) collided under parallelism — that flake is what
+ * `factory-validation > Parallel Execution Safety` intermittently caught.
  */
+let emailSequence = 0
 function generateUniqueEmail(): string {
-  return `test-${Date.now()}-${Math.random().toString(36).substring(7)}@example.com`
+  emailSequence += 1
+  const rand = Math.random().toString(36).slice(2, 12)
+  return `test-${Date.now()}-${process.pid}-${emailSequence}-${rand}@example.com`
 }
 
 /**

@@ -16,26 +16,52 @@ export function cx(...parts: Array<string | false | null | undefined>): string {
 }
 
 // ---- shared typed unions (the system's vocabulary) ----------------------
-export type ButtonVariant = "primary" | "secondary" | "ghost" | "link";
-export type ControlSize = "md";
+export type ButtonVariant = "primary" | "secondary" | "ghost" | "link" | "danger";
+/** Control sizes: md = size/control (40h, default) · sm = Tetriary tier (32h). */
+export type ControlSize = "md" | "sm";
 export type InputState = "default" | "focus" | "filled" | "disabled" | "error";
 export type Status = "open" | "review" | "in-progress" | "verification" | "completed" | "rejected";
 export type Category = "marketing" | "design" | "programming" | "development" | "coding";
 export type AvatarSize = "sm" | "lg";
 export type View = "grid" | "list";
+/** Icon-button background axis (Figma button_icon: BG no|yes). */
+export type IconButtonBg = "no" | "yes";
 
-// ---- Button (variant × state) -------------------------------------------
-/** Base: standard control geometry (size/control = 40h, radius/md); disabled via opacity token. */
+// ---- Button (variant × state × size) ------------------------------------
+/** Base: radius/md, label type, focus ring; disabled via opacity token. Geometry is per-size. */
 export const BUTTON_BASE =
-  "inline-flex items-center justify-center gap-2 h-control rounded-md px-4 text-label font-label transition-colors " +
+  "inline-flex items-center justify-center gap-2 rounded-md font-label transition-colors " +
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-default " +
   "disabled:opacity-disabled disabled:pointer-events-none";
+
+/** Size tiers: md = size/control (40h, px-4) · sm = Tetriary (32h, px-3). Both use type/label. */
+export const BUTTON_SIZE: Record<ControlSize, string> = {
+  md: "h-control px-4 text-label",
+  sm: "h-8 px-3 text-label",
+};
 
 export const BUTTON_VARIANT: Record<ButtonVariant, string> = {
   primary: "bg-brand-default text-inverse hover:bg-brand-hover active:bg-brand-pressed",
   secondary: "bg-surface-level-2 text-strong border border-border hover:bg-surface-level-3 active:bg-surface-level-3",
   ghost: "bg-transparent text-strong hover:bg-surface-level-2 active:bg-surface-level-3",
   link: "bg-transparent text-brand-default underline hover:text-brand-hover active:text-brand-pressed",
+  // danger: destructive (session-delete). Tinted status-rejected fill + status-rejected text on a
+  // border/default frame. Token-pure; the Figma iOS-red vs status-rejected delta is logged in
+  // DESIGN_SYSTEM_SPEC §10.1 (no near-duplicate `accents/red` token minted).
+  danger: "bg-status-rejected/20 text-status-rejected border border-border hover:bg-status-rejected/30",
+};
+
+// ---- IconButton (Figma button_icon: square 40×40, radius/sm, icon-rail glyph) --------
+/** Base: square size/control, radius/sm, centered; icon at size/icon-rail. Disabled via opacity token. */
+export const ICON_BUTTON_BASE =
+  "relative inline-flex h-control w-control items-center justify-center rounded-sm transition-colors " +
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-default " +
+  "disabled:opacity-disabled disabled:pointer-events-none";
+
+/** BG axis: yes = surface/level-2 fill · no = transparent. Hover/active lift one surface step. */
+export const ICON_BUTTON_BG: Record<IconButtonBg, string> = {
+  yes: "bg-surface-level-2 hover:bg-surface-level-3 active:bg-surface-level-3-hover",
+  no: "bg-transparent hover:bg-surface-level-2 active:bg-surface-level-3",
 };
 
 // ---- Input family (shared base, no horizontal padding so callers control insets) ----

@@ -59,7 +59,7 @@ export default async function ExampleGigsPage() {
             {exampleGigs.map((gig) => (
               <li key={gig.id}>
                 <Link
-                  href={`/dashboard/gigs/${gig.id}?from=examples`}
+                  href={`/gigs/${gig.id}?from=examples`}
                   className="block bg-surface-level-1 border border-neutral-weak rounded-lg p-8 hover:bg-surface-level-2 hover:border-neutral-strong transition-colors duration-200 shadow-md"
                 >
                   <div className="flex justify-between items-start">

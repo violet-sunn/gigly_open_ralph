@@ -65,6 +65,15 @@ export interface GigCardVM {
   isCurrent?: boolean;
   layout: "grid" | "list";
 }
+export interface GigHeaderVM {
+  title: string;
+  status: Status;
+  budget: Money;
+  deadlineDays: number;
+  category: Category;
+  tags: string[];
+  postedAt: DateISO;
+}
 export interface ProfileHeaderVM {
   avatar: ImageRef;
   name: string;
@@ -72,7 +81,21 @@ export interface ProfileHeaderVM {
   verified: boolean;
   memberSince: DateISO;
   location?: string;
+  online?: boolean;
   stats: StatVM[];
+}
+export interface TagListVM {
+  title: string; // «Стек»
+  tags: { label: string; color?: Category }[];
+}
+export interface CategoryTagsVM {
+  title: string; // «Избранные категории»
+  categories: { slug: Category; label: string; favorite: boolean }[];
+}
+export interface ExperienceListVM {
+  title: string; // «Опыт»
+  bio?: string;
+  entries: { company: string; title?: string; period: string; description?: string }[];
 }
 export interface ProfileCardVM {
   avatar: ImageRef;
@@ -88,6 +111,22 @@ export interface ClientCardVM {
 }
 export interface StatPanelVM {
   stats: StatVM[];
+}
+export interface LedgerTableVM {
+  entries: { date: DateISO; label: string; amount: Money; status: Status }[];
+  balance: Money;
+}
+export interface DisputeListVM {
+  disputes: { id: string; gig: string; status: Status; opener: string }[];
+}
+export interface DisputeDetailVM {
+  id: string;
+  gig: string;
+  opener: string;
+  reason: string;
+  status: Status;
+  resolution: string;
+  resolvedBy?: string | null;
 }
 
 // ---- Navigation & shell -------------------------------------------------
@@ -121,6 +160,15 @@ export interface MessageBubbleVM {
   timestamp: DateISO;
   body: string;
   readState?: "sent" | "read";
+  /** Long-form day label (e.g. «1 апреля 2026 г.») — ChatPanel inserts a day separator when it changes. */
+  date?: DateISO;
+}
+export interface ChatHeaderVM {
+  avatar: ImageRef;
+  name: string;
+  verified: boolean;
+  rating?: RatingVM;
+  presence?: string; // «был(-а) недавно»
 }
 export interface ConversationItemVM {
   id: string;
@@ -129,6 +177,8 @@ export interface ConversationItemVM {
   preview: string;
   timestamp: DateISO;
   unread: number;
+  /** Optional secondary line under the name (e.g. the gig title). */
+  subtitle?: string;
 }
 export interface NotificationItemVM {
   id: string;
@@ -143,6 +193,8 @@ export interface MessagesPanelVM {
 export interface ChatPanelVM {
   thread: MessageBubbleVM[];
   composer: { canAttach: boolean };
+  /** Optional thread header (counterparty) rendered above the thread. */
+  header?: ChatHeaderVM;
 }
 
 // ---- Gig detail & onboarding -------------------------------------------

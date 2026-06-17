@@ -29,6 +29,8 @@ export default defineConfig({
       SESSION_SECRET: 'test-secret-key-for-jwt-signing-min-32-chars',
       UPSTASH_REDIS_REST_URL: 'http://localhost:8079',
       UPSTASH_REDIS_REST_TOKEN: 'test-token',
+      // E2E runs many registrations/logins in one server process; the in-memory limiter would otherwise trip.
+      DISABLE_RATE_LIMIT: 'true',
     },
   },
 })

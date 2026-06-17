@@ -150,11 +150,22 @@ export async function resetTestDatabase(): Promise<void> {
   const prisma = getTestPrismaClient()
 
   // Delete in FK-safe order.
+  // Dispute references ModerationLog (resolutionLogId), Gig, and User — delete it first.
+  await prisma.dispute.deleteMany()
+  await prisma.review.deleteMany()
   await prisma.notification.deleteMany()
   await prisma.message.deleteMany()
   await prisma.application.deleteMany()
   await prisma.moderationLog.deleteMany()
   await prisma.gig.deleteMany()
+
+  // Category is referenced by Gig.categorySlug (deleted above) and the favorites m-n join
+  // (cascades on user/category delete) — delete after gigs, before users.
+  await prisma.category.deleteMany()
+
+  // WorkExperience references SpecialistProfile (profileId → userId); delete it before the profiles
+  // so SQLite FK enforcement stays happy (onDelete: Cascade is the backstop).
+  await prisma.workExperience.deleteMany()
 
   // Profiles have onDelete: Cascade from User, but delete explicitly to keep
   // ordering clear for SQLite FK enforcement.

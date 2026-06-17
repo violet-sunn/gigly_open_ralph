@@ -14,7 +14,7 @@ test.describe('Auth Landing Page', () => {
 
     // Verify buttons are visible and disabled
     const loginButton = page.getByRole('button', { name: 'Войти' });
-    const registerButton = page.getByRole('button', { name: 'Зарегестрироватся' });
+    const registerButton = page.getByRole('button', { name: 'Зарегистрироваться' });
     await expect(loginButton).toBeVisible();
     await expect(registerButton).toBeVisible();
     await expect(loginButton).toBeDisabled();
@@ -30,7 +30,7 @@ test.describe('Auth Landing Page', () => {
 
     // Verify buttons are enabled
     const loginButton = page.getByRole('button', { name: 'Войти' });
-    const registerButton = page.getByRole('button', { name: 'Зарегестрироватся' });
+    const registerButton = page.getByRole('button', { name: 'Зарегистрироваться' });
     await expect(loginButton).toBeEnabled();
     await expect(registerButton).toBeEnabled();
   });
@@ -44,7 +44,7 @@ test.describe('Auth Landing Page', () => {
 
     // Verify buttons are enabled
     const loginButton = page.getByRole('button', { name: 'Войти' });
-    const registerButton = page.getByRole('button', { name: 'Зарегестрироватся' });
+    const registerButton = page.getByRole('button', { name: 'Зарегистрироваться' });
     await expect(loginButton).toBeEnabled();
     await expect(registerButton).toBeEnabled();
   });
@@ -104,7 +104,7 @@ test.describe('Auth Landing Page', () => {
     await page.getByText('Профиль специалиста').click();
 
     // Click register button
-    const registerButton = page.getByRole('button', { name: 'Зарегестрироватся' });
+    const registerButton = page.getByRole('button', { name: 'Зарегистрироваться' });
     await registerButton.click();
 
     // Verify navigation to /register?role=SPECIALIST
@@ -120,7 +120,7 @@ test.describe('Auth Landing Page', () => {
     await page.getByText('Профиль Компании').click();
 
     // Click register button
-    const registerButton = page.getByRole('button', { name: 'Зарегестрироватся' });
+    const registerButton = page.getByRole('button', { name: 'Зарегистрироваться' });
     await registerButton.click();
 
     // Verify navigation to /register?role=CLIENT
@@ -142,7 +142,7 @@ test.describe('Auth Landing Page', () => {
 
     // Verify buttons are visible
     const loginButton = page.getByRole('button', { name: 'Войти' });
-    const registerButton = page.getByRole('button', { name: 'Зарегестрироватся' });
+    const registerButton = page.getByRole('button', { name: 'Зарегистрироваться' });
     await expect(loginButton).toBeVisible();
     await expect(registerButton).toBeVisible();
 
