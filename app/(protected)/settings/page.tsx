@@ -9,7 +9,7 @@ export default async function SettingsPage() {
     redirect('/login')
   }
 
-  const data = await getSettings({ userId: session.userId, email: session.email })
+  const data = await getSettings({ userId: session.userId, email: session.email, sid: session.sid })
 
   return <Settings {...data} />
 }

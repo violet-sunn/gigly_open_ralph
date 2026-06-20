@@ -77,7 +77,7 @@ describe('Gig Authorization Tests', () => {
       try {
         await createGig(null, formData)
       } catch (error: any) {
-        expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+        expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
       }
     })
 

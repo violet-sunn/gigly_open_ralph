@@ -34,6 +34,13 @@ describe('getSettings', () => {
     expect(data.prefs.notifyApplications).toBe(true)
     expect(data.prefs.notifyStatusChanges).toBe(true)
     expect(data.prefs.notifyMessages).toBe(true)
+    // reconcile-settings — the new prefs default true
+    expect(data.prefs.notifyPayments).toBe(true)
+    expect(data.prefs.showRatingInProfile).toBe(true)
+    expect(data.prefs.showOnlineStatus).toBe(true)
+    // a new user with no Session rows → empty «Активные сессии» list
+    expect(Array.isArray(data.sessions)).toBe(true)
+    expect(data.sessions).toHaveLength(0)
   })
 
   it('reflects stored preference changes', async () => {

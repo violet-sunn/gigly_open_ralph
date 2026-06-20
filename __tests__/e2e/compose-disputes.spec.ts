@@ -116,17 +116,20 @@ test.beforeAll(async () => {
 })
 
 test.describe('compose-disputes — composed disputes screen', () => {
-  test('open-dispute entry from a gig creates a dispute and it appears in /disputes', async ({ page }) => {
+  test('open-dispute entry from a gig → the dedicated «Открыть спор» screen → creates a dispute', async ({ page }) => {
     await setE2ESession(page, { id: clientId, email: clientEmail, role: 'CLIENT' })
     await page.goto(`/gigs/${gigForOpenId}`)
 
-    // The open-dispute entry (reused ApplyPanel) — fill the reason and submit.
-    await page.locator('textarea[name="reason"]').fill('Спор по гигу: задача расширилась без согласования.')
+    // The gig-detail «Открыть спор» now links to the dedicated screen (reconcile-disputes-flow).
+    await page.getByRole('button', { name: 'Открыть спор' }).click()
+    await expect(page).toHaveURL(new RegExp(`/disputes/new\\?gig=${gigForOpenId}`))
+
+    // The disputeNew screen: a reason is preselected (CheckField); fill the description + submit.
+    await page.locator('textarea[name="description"]').fill('Спор по гигу: задача расширилась без согласования.')
     await page.getByRole('button', { name: 'Открыть спор' }).click()
 
-    // openDispute redirects to the SAME gig URL (no URL change to wait on) — wait for the action POST + redirect + RSC
-    // to fully settle before navigating away, so the dispute commits (goto would otherwise cancel the in-flight POST).
-    await page.waitForLoadState('networkidle')
+    // openDispute redirects to the gig — wait for it so the action commits before navigating away.
+    await page.waitForURL('**/gigs/**')
 
     // the dispute now lists on /disputes.
     await page.goto('/disputes')
@@ -147,7 +150,8 @@ test.describe('compose-disputes — composed disputes screen', () => {
     // the detail now shows the resolved status + resolution.
     await page.goto(`/disputes/${disputeResolveId}`)
     await expect(page.getByText('Завершён')).toBeVisible()
-    await expect(page.getByText('Спор разрешён в пользу заказчика; бюджет возвращён.')).toBeVisible()
+    // The resolution now appears in both the «Решение» section and the moderator timeline entry → assert the first.
+    await expect(page.getByText('Спор разрешён в пользу заказчика; бюджет возвращён.').first()).toBeVisible()
   })
 
   test('a participant sees their dispute read-only — no resolve control', async ({ page }) => {

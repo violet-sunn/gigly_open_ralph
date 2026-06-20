@@ -103,16 +103,20 @@ test.describe('compose-gig-detail-apply — composed gig detail', () => {
     await expect(page.getByRole('button', { name: 'Отозвать отклик' })).toBeVisible()
   })
 
-  test('the owner sees the application and accepts it (→ В работе)', async ({ page }) => {
+  test('the owner sees the fee breakdown + the «Смотреть отклики» link → accepts on the applications screen (→ В работе)', async ({ page }) => {
     await setE2ESession(page, { id: ownerId, email: ownerEmail, role: 'CLIENT' })
     await page.goto(`/gigs/${gigAcceptId}`)
 
-    await expect(page.getByText(/Отклики: 1/)).toBeVisible()
-    await expect(page.getByText('Тест Спец')).toBeVisible() // ProfileCard
     await expect(page.getByText('Сервисный сбор (10%)')).toBeVisible() // company-only fee breakdown (ConditionsPanel)
+    // The owner applicant list now lives on the dedicated «Отклики» screen (build-applications-screen).
+    await page.getByRole('button', { name: /Смотреть отклики/ }).click()
+    await expect(page).toHaveURL(new RegExp(`/gigs/${gigAcceptId}/applications`))
+    await expect(page.getByText('Тест Спец')).toBeVisible() // ApplicantCard
     await page.getByRole('button', { name: 'Принять' }).click()
 
-    await expect(page.getByText('В работе').first()).toBeVisible() // status after accept (GigHeader badge + ConditionsPanel Статус)
+    // acceptApplication redirects back to the gig detail, now IN_PROGRESS.
+    await expect(page).toHaveURL(new RegExp(`/gigs/${gigAcceptId}$`))
+    await expect(page.getByText('В работе').first()).toBeVisible()
   })
 
   test('the assigned specialist submits work (→ На проверке)', async ({ page }) => {

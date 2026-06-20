@@ -52,6 +52,10 @@ describe('account-preferences — read/update', () => {
       notifyApplications: true,
       notifyStatusChanges: true,
       notifyMessages: true,
+      // reconcile-settings — the prototype's «оплаты» notification + the ПРИВАТНОСТЬ toggles (default on)
+      notifyPayments: true,
+      showRatingInProfile: true,
+      showOnlineStatus: true,
     })
   })
 

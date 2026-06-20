@@ -5,7 +5,7 @@ import { useActionState, useState } from "react";
 import { Section } from "@/app/components/layout/Section";
 import { Stack } from "@/app/components/layout/Stack";
 import { Select } from "@/app/components/primitives";
-import { DisputeDetail, ApplyPanel, Notice } from "@/app/components/blocks";
+import { DisputeDetail, ApplyPanel, CheckField, Notice } from "@/app/components/blocks";
 import { resolveDispute } from "@/app/actions/dispute";
 import type { DisputeDetailVM } from "@/app/components/blocks/view-models";
 
@@ -16,6 +16,13 @@ const STATUS_OPTIONS = [
   { value: "REJECTED", label: "Отклонить" },
 ];
 
+// The moderator verdict (DATA-MODEL) — submitted as `verdict`; resolveDispute prefixes it onto the resolution.
+const VERDICT_OPTIONS = [
+  { key: "specialist", label: "В пользу специалиста" },
+  { key: "company", label: "В пользу заказчика" },
+  { key: "split_50", label: "Частичный возврат 50%" },
+];
+
 /**
  * Admin resolve view — the inline client wiring over the EXISTING `resolveDispute` action (no new action), reusing
  * ApplyPanel for the resolution note + the Select primitive for the outcome (carried via a hidden input). Mirrors the
@@ -24,12 +31,15 @@ const STATUS_OPTIONS = [
 function ResolveAction({ disputeId }: { disputeId: string }) {
   const [state, action] = useActionState<ActionState, FormData>(resolveDispute as never, null);
   const [status, setStatus] = useState("RESOLVED");
+  const [verdict, setVerdict] = useState("specialist");
   const [open, setOpen] = useState(false);
   return (
     <form action={action}>
       <Stack gap={3}>
         <input type="hidden" name="disputeId" value={disputeId} />
         <input type="hidden" name="status" value={status} />
+        <input type="hidden" name="verdict" value={verdict} />
+        <CheckField vm={{ options: VERDICT_OPTIONS, value: verdict }} onChange={setVerdict} />
         <Select
           options={STATUS_OPTIONS}
           value={status}

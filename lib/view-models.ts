@@ -3,7 +3,8 @@ import { getRatingForUser } from '@/lib/reviews'
 import { CATEGORIES } from '@/lib/categories'
 import { getLedger, getFinanceStats } from '@/lib/finances'
 import { getDisputeList, getDisputeDetail } from '@/lib/disputes'
-import { getPreferences, type Preferences } from '@/lib/preferences'
+import { getPreferences, DEFAULT_PREFERENCES, type Preferences } from '@/lib/preferences'
+import { formatUserAgent } from '@/lib/user-agent'
 import { getRecentMessages } from '@/app/actions/message'
 import { getNotificationDisplayText, getNotificationIcon } from '@/lib/notification-utils'
 import type {
@@ -33,6 +34,8 @@ import type {
   ConditionsPanelVM,
   ChatPanelVM,
   ApplyPanelVM,
+  SessionRowVM,
+  ApplicantCardVM,
   Status,
   Category,
 } from '@/app/components/blocks/view-models'
@@ -460,6 +463,72 @@ export interface GigDetailApplication {
   status: string
   rating: { value: number; count: number; verified: boolean }
   createdAt: string
+}
+
+// ---- Company «Отклики» screen (build-applications-screen) ------------------
+
+/** Application status → its display label + Status tone (mirrors the gig-detail APP_STATUS map). */
+const APPLICATION_STATUS: Record<string, { label: string; tone: Status }> = {
+  PENDING: { label: 'На рассмотрении', tone: 'review' },
+  ACCEPTED: { label: 'Принят', tone: 'completed' },
+  REJECTED: { label: 'Отклонён', tone: 'rejected' },
+  WITHDRAWN: { label: 'Отозван', tone: 'rejected' },
+}
+
+export interface GigApplicationsData {
+  gigId: string
+  title: string
+  count: number
+  /** The accepted applicant's name when the gig is assigned (drives the «Назначен …» success notice). */
+  assignedName?: string
+  applicants: ApplicantCardVM[]
+}
+
+/**
+ * The company «Отклики» screen data (build-applications-screen) — the gig-scoped applicants list. **Owner-gated**:
+ * returns null unless the viewer is the CLIENT who owns the gig (the page then redirects). Reuses the gig-detail
+ * applicant assembly (name/level/rating/tags/approach/questions/estimate) mapped to ApplicantCardVM. Server-only.
+ */
+export async function getGigApplications(
+  gigId: string,
+  viewer: { userId: string; role: string },
+): Promise<GigApplicationsData | null> {
+  const gig = await prisma.gig.findUnique({
+    where: { id: gigId },
+    include: {
+      assignedSpecialist: { include: { specialistProfile: true } },
+      applications: {
+        include: { specialist: { include: { specialistProfile: true } } },
+        orderBy: { createdAt: 'desc' },
+      },
+    },
+  })
+  if (!gig) return null
+  if (!(viewer.role === 'CLIENT' && gig.clientId === viewer.userId)) return null // owner-gated
+
+  const applicants: ApplicantCardVM[] = await Promise.all(
+    gig.applications.map(async (a) => ({
+      id: a.id,
+      name: a.specialist.specialistProfile?.displayName || a.specialist.email,
+      level: a.specialist.specialistProfile?.experienceLevel || undefined,
+      verified: false,
+      rating: await getRatingForUser(a.specialistId),
+      tags: a.specialist.specialistProfile?.techStack
+        ? a.specialist.specialistProfile.techStack.split(',').map((t) => t.trim()).filter(Boolean)
+        : [],
+      approach: a.approach || undefined,
+      questions: a.questions || undefined,
+      estimate: a.estimatedEffort || undefined,
+      status: APPLICATION_STATUS[a.status] ?? { label: a.status, tone: 'open' as Status },
+      pending: a.status === 'PENDING',
+    })),
+  )
+
+  const assignedName = gig.assignedSpecialistId
+    ? gig.assignedSpecialist?.specialistProfile?.displayName || gig.assignedSpecialist?.email || undefined
+    : undefined
+
+  return { gigId: gig.id, title: gig.title, count: gig.applications.length, assignedName, applicants }
 }
 
 export interface GigDetailData {
@@ -1017,22 +1086,47 @@ export async function getDispute(
 export interface SettingsData {
   prefs: Preferences
   email: string
+  /** «Активные сессии» (reconcile-settings) — the viewer's sessions, current marked `active`. */
+  sessions: SessionRowVM[]
+}
+
+/** Relative «last active» label for a session row (e.g. «только что», «5 мин назад», «3 ч назад», «2 дн назад»). */
+function relativeTime(d: Date): string {
+  const mins = Math.max(0, Math.floor((Date.now() - new Date(d).getTime()) / 60000))
+  if (mins < 1) return 'только что'
+  if (mins < 60) return `${mins} мин назад`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours} ч назад`
+  return `${Math.floor(hours / 24)} дн назад`
 }
 
 /**
- * Assemble the /settings data (compose-settings): the user's account preferences (locale + notification toggles) + the
- * viewer's email (for the delete-account confirm). A thin aggregator over the account-preferences data layer
- * (lib/preferences) — no re-derivation, no writes. Falls back to the schema defaults if the user row is missing.
- * Server-only; the Preferences shape imported `import type`.
+ * The viewer's active sessions → SessionRowVM[] (reconcile-settings). The current session (its id === the JWT `sid`)
+ * renders `active`; the others render `Default` with a terminate action. Title = the device parsed from the user-agent;
+ * description = the relative last-active time. Location is intentionally omitted (no geo backend — not fabricated).
  */
-export async function getSettings(viewer: { userId: string; email: string }): Promise<SettingsData> {
-  const prefs = (await getPreferences(viewer.userId)) ?? {
-    locale: 'ru',
-    notifyApplications: true,
-    notifyStatusChanges: true,
-    notifyMessages: true,
-  }
-  return { prefs, email: viewer.email }
+export async function getActiveSessions(userId: string, currentSid?: string): Promise<SessionRowVM[]> {
+  const rows = await prisma.session.findMany({ where: { userId }, orderBy: { lastActiveAt: 'desc' } })
+  return rows.map((s) => ({
+    id: s.id,
+    title: formatUserAgent(s.userAgent),
+    description: relativeTime(s.lastActiveAt),
+    state: (s.id === currentSid ? 'active' : 'Default') as SessionRowVM['state'],
+  }))
+}
+
+/**
+ * Assemble the /settings data (reconcile-settings): the user's account preferences (locale + notification + privacy
+ * toggles) + the viewer's email (for the delete-account confirm) + the «Активные сессии» list. A thin aggregator over
+ * lib/preferences + the Session backend — no re-derivation. Falls back to the default preferences if the user row is
+ * missing. Server-only.
+ */
+export async function getSettings(viewer: { userId: string; email: string; sid?: string }): Promise<SettingsData> {
+  const [prefs, sessions] = await Promise.all([
+    getPreferences(viewer.userId),
+    getActiveSessions(viewer.userId, viewer.sid),
+  ])
+  return { prefs: prefs ?? DEFAULT_PREFERENCES, email: viewer.email, sessions }
 }
 
 // ---- Admin (prove-extensibility-admin) ------------------------------------

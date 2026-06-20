@@ -76,7 +76,7 @@ describe('Gig Creation Tests', () => {
         try {
           await createGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 
@@ -322,7 +322,7 @@ describe('Gig Creation Tests', () => {
         try {
           await createGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 
@@ -357,7 +357,7 @@ describe('Gig Creation Tests', () => {
         try {
           await createGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 
@@ -474,7 +474,7 @@ describe('Gig Creation Tests', () => {
         try {
           await createGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 
@@ -512,7 +512,7 @@ describe('Gig Creation Tests', () => {
         try {
           await createGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 
@@ -551,7 +551,7 @@ describe('Gig Creation Tests', () => {
         try {
           await createGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 
@@ -587,7 +587,7 @@ describe('Gig Creation Tests', () => {
         try {
           await createGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 
@@ -740,7 +740,7 @@ describe('Gig Creation Tests', () => {
         try {
           await createGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 
@@ -778,7 +778,7 @@ describe('Gig Creation Tests', () => {
         try {
           await createGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 
@@ -816,7 +816,7 @@ describe('Gig Creation Tests', () => {
         try {
           await createGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 
@@ -859,7 +859,7 @@ describe('Gig Creation Tests', () => {
         try {
           await createGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 
@@ -896,7 +896,7 @@ describe('Gig Creation Tests', () => {
         try {
           await createGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 
@@ -932,7 +932,7 @@ describe('Gig Creation Tests', () => {
         try {
           await createGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 
@@ -974,7 +974,7 @@ describe('Gig Creation Tests', () => {
         try {
           await createGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 
@@ -1011,7 +1011,7 @@ describe('Gig Creation Tests', () => {
         try {
           await createGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 
@@ -1048,7 +1048,7 @@ describe('Gig Creation Tests', () => {
         try {
           await createGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 
@@ -1085,7 +1085,7 @@ describe('Gig Creation Tests', () => {
         try {
           await createGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 
@@ -1126,7 +1126,7 @@ describe('Gig Creation Tests', () => {
         try {
           await createGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 
@@ -1165,7 +1165,7 @@ describe('Gig Creation Tests', () => {
         try {
           await createGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 
@@ -1205,7 +1205,7 @@ describe('Gig Creation Tests', () => {
         try {
           await createGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 
@@ -1245,7 +1245,7 @@ describe('Gig Creation Tests', () => {
         try {
           await createGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 
@@ -1330,7 +1330,7 @@ describe('Gig Creation Tests', () => {
         try {
           await createGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 
@@ -1380,7 +1380,7 @@ describe('Gig Creation Tests', () => {
         try {
           await createGig(null, formData1)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 
@@ -1388,7 +1388,7 @@ describe('Gig Creation Tests', () => {
         try {
           await createGig(null, formData2)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 
@@ -1434,7 +1434,7 @@ describe('Gig Creation Tests', () => {
         try {
           await createGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 
@@ -1470,7 +1470,7 @@ describe('Gig Creation Tests', () => {
         try {
           await createGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 
@@ -1506,7 +1506,7 @@ describe('Gig Creation Tests', () => {
         try {
           await createGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 
@@ -1545,7 +1545,7 @@ describe('Gig Creation Tests', () => {
         try {
           await createGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 
@@ -1585,7 +1585,7 @@ describe('Gig Creation Tests', () => {
         try {
           await createGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 
@@ -1623,7 +1623,7 @@ describe('Gig Creation Tests', () => {
         try {
           await createGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 
@@ -1663,7 +1663,7 @@ describe('Gig Creation Tests', () => {
           result = await createGig(null, formData)
         } catch (error: any) {
           // Redirect is expected on success
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 
@@ -1709,7 +1709,7 @@ describe('Gig Creation Tests', () => {
         try {
           await createGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 
@@ -1782,7 +1782,7 @@ describe('Gig Creation Tests', () => {
         try {
           await createGig(null, formData)
         } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
+          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
         }
       })
 

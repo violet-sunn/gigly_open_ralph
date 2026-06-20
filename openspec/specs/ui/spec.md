@@ -7402,3 +7402,163 @@ may be invented.
 - every messaging flow preserved (select, send, search, participant-only auth); F2 + F5 lints green
 - `build` (`/chats`) + `test:unit` (930) + `compose-chats` E2E (4/4) green; F1 = structural vs the prototype `chats` frame (≤1% deferred to Phase 4)
 - Reconciliation decisions recorded (§10.15 / RC-S22–S24)
+
+### Requirement: Company Applications Screen at /gigs/[id]/applications
+The application MUST provide a company **«Отклики»** screen at `/gigs/[id]/applications`, a composition-pure
+`@composed-screen` inside `AppShell`, available **only to the gig owner**. A non-owner (specialist, other company, or
+unauthenticated) MUST be redirected to `/gigs/[id]` (or `/login`). The screen MUST render a «← Назад к проекту» link to
+`/gigs/[id]`, a `SectionHeader` «Отклики» with the applicant count and the subtitle «на проект «{gig.title}»», the
+`ApplicantCard` list, and an empty state when there are no applicants. It MUST be token-pure (F2) and composition-pure
+(F5); all on-screen text MUST be Russian.
+
+#### Scenario: The owner sees the gig-scoped applicants list
+- GIVEN a CLIENT who owns a gig with applications
+- WHEN they open `/gigs/[id]/applications`
+- THEN the screen MUST show «Отклики» + the count + «на проект «{gig.title}»», a «← Назад к проекту» link, and an
+  `ApplicantCard` per applicant
+- AND the screen MUST contain no `className=`/`style=`/hex literals (F5)
+
+#### Scenario: Non-owners are redirected
+- GIVEN a specialist, a non-owner company, or an unauthenticated visitor
+- WHEN they request `/gigs/[id]/applications`
+- THEN they MUST be redirected away (`/gigs/[id]` or `/login`) and MUST NOT see the applicants
+
+#### Scenario: Empty state
+- GIVEN an owned gig with no applications
+- WHEN the owner opens the screen
+- THEN it MUST render an empty state (no applicant cards)
+
+### Requirement: ApplicantCard Block
+A new `ApplicantCard` block (+ `ApplicantCardVM`) MUST render the prototype applicant card: an identity row (avatar +
+name + level + ★ rating) with a status pill, the tech tags, and the **Подход** / **Уточняющие вопросы** / **Оценка
+трудозатрат** sections. It MUST expose an actions slot (children) that the screen fills with the inline Принять/Отклонить
+forms (the server-action wiring stays in the screen). The block MUST be token-pure and presentational (no server-action
+imports).
+
+#### Scenario: ApplicantCard renders identity + the three sections + an actions slot
+- GIVEN an `ApplicantCardVM` (name, level, rating, tags, approach/questions/estimate, status) with action children
+- WHEN it renders
+- THEN it MUST show the identity row + status pill, the tags, the Подход/Уточняющие вопросы/Оценка трудозатрат sections,
+  and the provided actions
+- AND it MUST contain no `className=`/`style=`/hex literals beyond its kit primitives
+
+### Requirement: Accept/Reject on the Applications Screen (Lifecycle Reused)
+For a **pending** applicant the screen MUST render **Принять** and **Отклонить** wired to the existing
+`acceptApplication` / `rejectApplication` actions — reused verbatim. Accept MUST assign the specialist, transition the
+gig `OPEN → IN_PROGRESS`, and auto-reject the other PENDING applications (with the existing notifications). When the gig
+is assigned, the screen MUST render the derived success notice «Назначен {name} — гиг переходит «В работу». Остальные
+отклики отклонены автоматически.».
+
+#### Scenario: Accept assigns and auto-rejects others
+- GIVEN an owner viewing two pending applicants
+- WHEN they Принять one
+- THEN that application MUST become ACCEPTED, the gig MUST become `IN_PROGRESS` with the specialist assigned, and the
+  other PENDING application(s) MUST become REJECTED
+- AND on revisiting the screen the «Назначен {name} …» success notice MUST be shown
+
+#### Scenario: Reject rejects one applicant
+- GIVEN an owner viewing a pending applicant
+- WHEN they Отклонить
+- THEN that application MUST become REJECTED and the gig MUST remain OPEN
+
+### Requirement: Gig-Detail Owner Affordance Becomes the Applications Link
+The gig-detail screen MUST replace its inline owner applicant list with the prototype **«Смотреть отклики (N)»** link to
+`/gigs/[id]/applications` (owner only). Gig-detail MUST NOT render the inline `ApplicationEntry` owner list anymore; every
+other gig-detail flow (apply/withdraw, lifecycle, messaging, dispute) is unchanged. `getGigApplications(gigId, viewer)`
+MUST be owner-gated (null/redirect for non-owners), returning the gig title, count, assigned state, and the applicants as
+`ApplicantCardVM[]`, reusing the existing applicant assembly.
+
+#### Scenario: gig-detail links to the applications screen
+- GIVEN the gig owner on `/gigs/[id]`
+- WHEN it renders
+- THEN it MUST show «Смотреть отклики (N)» linking to `/gigs/[id]/applications` and MUST NOT render the inline applicant
+  list
+
+#### Scenario: getGigApplications is owner-gated
+- GIVEN `getGigApplications(gigId, viewer)`
+- WHEN the viewer owns the gig, it MUST return the title, count, assigned state, and applicant cards
+- AND WHEN the viewer does not own the gig, it MUST return null (the page redirects)
+
+**Acceptance Criteria:**
+- `/gigs/[id]/applications` (owner-only; non-owner redirected): «← Назад к проекту» + «Отклики» + count + «на проект «{title}»» + ApplicantCard list + empty state; F5-pure
+- new `ApplicantCard` block + `ApplicantCardVM` (identity + status + tags + Подход/Уточняющие вопросы/Оценка трудозатрат + actions slot); fixture + render test
+- accept/reject reused verbatim (accept → assign + `IN_PROGRESS` + auto-reject others + notify); derived «Назначен …» success notice
+- gig-detail replaces the inline owner list with «Смотреть отклики (N)» → the screen; `getGigApplications(gigId, viewer)` owner-gated
+- F2 + F5 lints green; `build` + `test:unit` + `build-applications-screen` E2E green; F1 = structural vs the prototype `applications` frame (≤1% deferred to Phase 4)
+- Reconciliation decisions recorded (§10.17 / RC-S28–S30)
+
+### Requirement: Gig Creation Screen Is the Guided Brief
+The `/gigs/new` screen MUST be a composition-pure `@composed-screen` inside `AppShell` (CLIENT-only), reconciled to the
+prototype `createGig` as a two-column layout: a left Definition-of-Done form and a right feedback panel. The left form
+MUST present four sections — **«Что нужно сделать?»** (title + a category selector + description), **«Как поймём, что
+готово?»** (цель + ожидаемый результат + a «Готово, когда…» criteria editor), **«Что важно учесть?»** (constraints +
+tags), **«Условия»** (budget ₽ + срок) — all controlled, submitting via the existing `createGig`. The screen MUST be
+token-pure (F2) and composition-pure (F5); all on-screen text MUST be Russian.
+
+#### Scenario: The guided-brief form renders and submits
+- GIVEN a CLIENT on `/gigs/new`
+- WHEN it renders
+- THEN it MUST show the four DoD sections and the right feedback panel
+- AND filling the required fields + publishing MUST call `createGig` (which creates the gig with the 10% fee)
+- AND the screen MUST contain no `className=`/`style=`/hex literals (F5)
+
+### Requirement: Gig Creation Redirects to a Success Screen
+On a successful create, `createGig` MUST redirect to a dedicated success screen at `/gigs/new/success` (changed from
+`/dashboard`), which MUST render a «Гиг опубликован» confirmation card with **«К моим гигам»** (→ `/my-gigs`) and
+**«Создать ещё»** (→ `/gigs/new`). The validation + fee math are unchanged.
+
+#### Scenario: Publishing shows the success screen
+- GIVEN a valid gig submitted from `/gigs/new`
+- WHEN `createGig` succeeds
+- THEN it MUST redirect to `/gigs/new/success`, which MUST show «Гиг опубликован» + «К моим гигам» + «Создать ещё»
+
+### Requirement: Readiness Meter
+The right panel MUST render a **«Готовность брифа»** readiness meter: a `ProgressBar` showing the share of completed
+checks, colour-coded (≥6 of 7 green / ≥4 brand / else amber), over a **7-point checklist** — Название, Категория,
+Описание (≥20 chars), Цель, Ожидаемый результат, Критерии приёмки (≥1), Бюджет и срок — each shown done (✓) or not (○),
+plus a nudge for the first unmet check. It MUST update **live**; it is advisory (`createGig` remains the gate).
+
+#### Scenario: The meter advances as fields are filled
+- GIVEN the create-gig screen
+- WHEN the user fills the title, category, a ≥20-char description, цель, результат, ≥1 criterion, and budget + срок
+- THEN the readiness meter MUST advance toward 7/7 and each corresponding checklist item MUST flip to done
+
+### Requirement: Live Fee Panel
+The right panel MUST render a **«Сводка (комиссия)»** fee panel showing **Бюджет**, **Сервисный сбор (10%)**, and
+**Итого к оплате** (budget + 10%), computed **live** from the budget input using the same 10% the server applies, plus
+the «Опубликовать гиг» action.
+
+#### Scenario: The fee updates live and matches the server
+- GIVEN a budget entered in roubles
+- WHEN it changes
+- THEN the panel MUST show Сервисный сбор = floor(budget × 0.10) and Итого = budget + fee
+- AND on publish the created gig's `serviceFee` / `totalAmount` MUST equal those figures
+
+### Requirement: «Готово, когда…» Criteria Editor
+The DoD section MUST provide a `CriteriaEditor` to build the acceptance criteria: an input + «Добавить», suggestion pills,
+and removable criterion rows. The collected criteria MUST be submitted as the gig's `acceptanceCriteria` (the server's
+existing ≥50-char floor still applies).
+
+#### Scenario: Criteria are added, removed, and submitted
+- GIVEN the criteria editor
+- WHEN the user adds criteria (typing or via a suggestion) and removes one
+- THEN the list MUST update, and publishing MUST submit the joined criteria as `acceptanceCriteria`
+
+### Requirement: Create-Gig Blocks Render
+The new `ReadinessMeter`, `FeePanel`, and `CriteriaEditor` blocks MUST render from fixtures (token-pure; `ReadinessMeter`
+reuses `ProgressBar` with its new `tone` prop; `CriteriaEditor` exposes add/remove callbacks).
+
+#### Scenario: The three blocks render from fixtures
+- GIVEN the block fixtures
+- WHEN each renders
+- THEN `ReadinessMeter` MUST show the bar + the checklist, `FeePanel` MUST show Бюджет/Сервисный сбор (10%)/Итого, and
+  `CriteriaEditor` MUST show the input + «Добавить» + the rows
+- AND none MUST contain `className=`/`style=`/hex literals beyond their kit primitives
+
+**Acceptance Criteria:**
+- `/gigs/new` rebuilt as a two-column F5 `@composed-screen`: DoD form (4 sections, category via `CheckField`, `CriteriaEditor`) + readiness meter + live fee panel
+- `ReadinessMeter` (ProgressBar + 7-check checklist + nudge), `FeePanel` (Бюджет/Сервисный сбор 10%/Итого + publish), `CriteriaEditor` (input + «Добавить» + suggestions + removable rows) — new blocks + fixtures + render tests; `ProgressBar` gains a `tone` prop
+- live fee mirrors the server's 10%; validation + fee math reused unchanged
+- `createGig` success redirect `/dashboard` → `/gigs/new/success` (only action change); success screen «Гиг опубликован» + «К моим гигам»/«Создать ещё»
+- the createGig redirect-asserting test files updated to the new target (validation + fee assertions kept); F2 + F5 lints + `build` + `test:unit` + `compose-create-gig` E2E green; F1 = structural (≤1% Phase 4)
+- Reconciliation decisions recorded (§10.19 / RC-S34–S36)

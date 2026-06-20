@@ -103,3 +103,62 @@ The change MUST be additive with the auth/profile flows green and no table/VM/re
 - **Out of scope (follow-up):** enforcing the notification toggles in `createNotification` (gating notification
   *creation* by the stored preferences) — this domain stores/reads/updates them; the existing notification behaviour
   is unchanged.
+
+## Reconciled Requirements (reconcile-settings, 2026-06-20)
+
+### Requirement: Settings Screen Reconciled to the Prototype
+The `/settings` screen MUST remain a composition-pure `@composed-screen` inside `AppShell`, reconciled to the prototype
+«Настройки» as four sections, each a `SectionHeader` over kit blocks: **ВНЕШНИЙ ВИД** — **Тема** (Тёмная/Светлая, kept on
+the `lib/theme.ts` `[data-theme]` + localStorage switch) and **Язык** (Русский/English) via `CheckField`, and **Валюта**
+(₽ Рубль / $ Доллар / € Евро) **display-only** with ₽ Рубль selected (RUB-only — nothing persisted); **УВЕДОМЛЕНИЯ** —
+four `ToggleField` rows («Новые отклики», «Сообщения», «Смена статуса гига», «Уведомления об оплатах»); **ПРИВАТНОСТЬ** —
+two `ToggleField` rows («Показывать рейтинг в профиле», «Показывать статус «онлайн»»); **АККАУНТ** — a danger «Выйти из
+аккаунта» button (the existing `logoutUser`) with the existing delete-account flow preserved; **АКТИВНЫЕ СЕССИИ** — a
+`SessionRow` list. The screen MUST be token-pure (F2) and composition-pure (F5); all on-screen text MUST be Russian.
+
+#### Scenario: The four sections + the sessions list render
+- GIVEN an authenticated user on `/settings`
+- WHEN it renders
+- THEN it MUST show ВНЕШНИЙ ВИД (Тема + Язык + Валюта), УВЕДОМЛЕНИЯ (4 toggles), ПРИВАТНОСТЬ (2 toggles), АККАУНТ
+  («Выйти из аккаунта» + delete-account), and АКТИВНЫЕ СЕССИИ (a `SessionRow` list)
+- AND the screen MUST contain no `className=`/`style=`/hex literals (F5)
+
+#### Scenario: Валюта is display-only RUB
+- GIVEN the ВНЕШНИЙ ВИД section
+- THEN Валюта MUST show ₽ Рубль selected, and selecting a currency MUST NOT persist anything (the product is RUB-only)
+
+### Requirement: Preferences Extended and Persisted
+The `Preferences` type, `getPreferences`, and `updatePreferences` MUST cover `notifyPayments`, `showRatingInProfile`,
+`showOnlineStatus` (each a `User` Boolean defaulting `true`) alongside the existing `locale`, `notifyApplications`,
+`notifyStatusChanges`, `notifyMessages`. `updatePreferences` MUST stay partial-safe. `getSettings(viewer)` MUST return
+the extended `prefs` + `email` + `sessions`.
+
+#### Scenario: Toggling a notification/privacy pref persists across reload
+- GIVEN the settings screen
+- WHEN a user toggles «Уведомления об оплатах» (or «Показывать статус «онлайн»») off and saves
+- THEN `updatePreferences` MUST persist it, and on reload `getSettings` MUST return the updated value while every other
+  preference keeps its prior value
+
+#### Scenario: New users get the default preferences
+- GIVEN a newly-created user
+- THEN `notifyPayments`, `showRatingInProfile`, `showOnlineStatus` MUST default to `true` and `locale` to `ru`
+
+### Requirement: Active Sessions Section (SessionRow)
+The settings screen MUST render an «Активные сессии» section via `SessionRow`, from `getActiveSessions(userId,
+currentSid)`. The **current** session MUST render `state: "active"`; every other session MUST render `state: "Default"`
+with a **terminate** action wired to `terminateSession`. Each row's title MUST be the device parsed from the user-agent
+(«{browser} · {OS}») and its description the relative last-active time. Session **location MUST be omitted** (no geo
+backend — not fabricated).
+
+#### Scenario: The current session is marked and others can be terminated
+- GIVEN a user with two or more sessions
+- WHEN `/settings` renders the «Активные сессии» list
+- THEN the current session MUST be marked `active`, and each other session MUST offer a terminate action that calls
+  `terminateSession`
+- AND no row MUST display a fabricated location
+
+**Acceptance Criteria:**
+- `/settings` reconciled to the four prototype sections + an «Активные сессии» list; F5-pure; `CheckField` Тема/Язык + display-only ₽ Валюта; 4 `ToggleField` notifications + 2 privacy; «Выйти из аккаунта» + preserved delete-account
+- `Preferences` += `notifyPayments`/`showRatingInProfile`/`showOnlineStatus` (default true); `updatePreferences` partial-safe; persist-on-reload verified; `getSettings` returns `prefs` + `email` + `sessions`
+- sessions from the real backend (location omitted); F2 + F5 lints + `build` + `test:unit` + `compose-settings` E2E green; F1 = structural (≤1% Phase 4)
+- Reconciliation decisions recorded (§10.16 / RC-S25–S27)

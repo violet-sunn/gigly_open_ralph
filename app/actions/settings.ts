@@ -23,6 +23,9 @@ export async function updatePreferences(
     notifyApplications?: boolean
     notifyStatusChanges?: boolean
     notifyMessages?: boolean
+    notifyPayments?: boolean
+    showRatingInProfile?: boolean
+    showOnlineStatus?: boolean
   } = {}
 
   if (formData.has('locale')) {
@@ -37,8 +40,37 @@ export async function updatePreferences(
   if (formData.has('notifyApplications')) data.notifyApplications = asBool(formData.get('notifyApplications'))
   if (formData.has('notifyStatusChanges')) data.notifyStatusChanges = asBool(formData.get('notifyStatusChanges'))
   if (formData.has('notifyMessages')) data.notifyMessages = asBool(formData.get('notifyMessages'))
+  if (formData.has('notifyPayments')) data.notifyPayments = asBool(formData.get('notifyPayments'))
+  if (formData.has('showRatingInProfile')) data.showRatingInProfile = asBool(formData.get('showRatingInProfile'))
+  if (formData.has('showOnlineStatus')) data.showOnlineStatus = asBool(formData.get('showOnlineStatus'))
 
   await prisma.user.update({ where: { id: session.userId }, data })
+
+  return { success: true }
+}
+
+/**
+ * Terminate one of the authenticated user's sessions (reconcile-settings). Ownership-enforced: deletes the `Session`
+ * row only if it belongs to the caller. If the terminated session is the caller's current one (its id === the JWT
+ * `sid`), the cookie is cleared and the caller is redirected to /login.
+ */
+export async function terminateSession(sessionId: string) {
+  const session = await getSession()
+  if (!session) {
+    redirect('/login')
+  }
+
+  const row = await prisma.session.findUnique({ where: { id: sessionId } })
+  if (!row || row.userId !== session.userId) {
+    return { error: 'Session not found.' }
+  }
+
+  await prisma.session.delete({ where: { id: sessionId } })
+
+  if (session.sid === sessionId) {
+    await destroySession()
+    redirect('/login')
+  }
 
   return { success: true }
 }

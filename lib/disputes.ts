@@ -69,6 +69,25 @@ const money = (kopecks: number): string => `${new Intl.NumberFormat('ru-RU').for
 const entryRole = (r: string): 'specialist' | 'company' | 'moderator' =>
   r === 'company' || r === 'moderator' ? r : 'specialist'
 
+/**
+ * Context for the dedicated «Открыть спор» screen (reconcile-disputes-flow) — the gig title for `/disputes/new?gig=<id>`.
+ * Participant-gated: returns null unless the viewer is the gig's client or assigned specialist (and the gig is a real,
+ * assigned, non-example engagement) — `openDispute` re-validates server-side on submit.
+ */
+export async function getNewDisputeContext(
+  gigId: string,
+  viewer: { userId: string; role: string },
+): Promise<{ gigId: string; gigTitle: string } | null> {
+  const gig = await prisma.gig.findUnique({
+    where: { id: gigId },
+    select: { id: true, title: true, clientId: true, assignedSpecialistId: true, isExample: true },
+  })
+  if (!gig || gig.isExample || !gig.assignedSpecialistId) return null
+  const isParticipant = gig.clientId === viewer.userId || gig.assignedSpecialistId === viewer.userId
+  if (!isParticipant) return null
+  return { gigId: gig.id, gigTitle: gig.title }
+}
+
 export async function getDisputeDetail(id: string) {
   const d = await prisma.dispute.findUnique({
     where: { id },

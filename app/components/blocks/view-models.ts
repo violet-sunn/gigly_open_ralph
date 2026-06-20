@@ -362,9 +362,53 @@ export interface CheckFieldVM {
 }
 export type SessionState = "Default" | "active" | "delete";
 export interface SessionRowVM {
+  /** Session row id (reconcile-settings) — used to terminate a specific session. */
+  id?: string;
   title: string;
   description?: string;
   state: SessionState;
+}
+
+/** ReadinessMeter (reconcile-create-gig) — the «Готовность брифа» panel: a ProgressBar + a 7-point checklist + a nudge. */
+export interface ReadinessCheckVM {
+  label: string;
+  done: boolean;
+}
+export interface ReadinessMeterVM {
+  pct: number; // 0–100
+  tone: "amber" | "brand" | "green";
+  checks: ReadinessCheckVM[];
+  nudge?: string;
+}
+
+/** FeePanel (reconcile-create-gig) — the «Сводка (комиссия)» live summary: Бюджет → Сервисный сбор (10%) → Итого. */
+export interface FeePanelVM {
+  budget: Money;
+  fee: Money;
+  total: Money;
+}
+
+/** CriteriaEditor (reconcile-create-gig) — the «Готово, когда…» editor: the current criteria + the suggestion pills. */
+export interface CriteriaEditorVM {
+  items: string[];
+  suggestions: string[];
+}
+
+/** ApplicantCard (build-applications-screen) — the company «Отклики» applicant card: identity + status + tech tags +
+ *  Подход/Уточняющие вопросы/Оценка трудозатрат. The accept/reject forms are passed in as the block's `children`. */
+export interface ApplicantCardVM {
+  id: string;
+  name: string;
+  level?: string;
+  verified?: boolean;
+  rating: RatingVM;
+  tags: string[];
+  approach?: string;
+  questions?: string;
+  estimate?: string;
+  status: { label: string; tone: Status };
+  /** Whether the applicant is still PENDING (drives the accept/reject affordance in the screen). */
+  pending: boolean;
 }
 export interface FileChipVM {
   name: string;

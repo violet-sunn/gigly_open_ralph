@@ -796,6 +796,104 @@ Reconciled `/chats` to the prototype chats screen and **completed** the thread-h
 chats-vm counterparty/specialty + domain-blocks ChatHeader axis tests) + `compose-chats` E2E (4/4) green. F1 =
 structural vs the prototype `chats` frame; absolute ≤1% deferred to Phase 4.
 
+## 10.16 Settings screen + real session tracking (2026-06-20, change `reconcile-settings`)
+
+Reconciled `/settings` to the prototype «Настройки» and added a real session-tracking backend.
+
+- **RC-S25 — the four prototype sections, kit-composed.** ВНЕШНИЙ ВИД (Тема + Язык via `CheckField`, kept on the
+  `lib/theme.ts` `[data-theme]`/localStorage switch; **Валюта display-only ₽** — RUB-only product), УВЕДОМЛЕНИЯ (4
+  `ToggleField`: «Новые отклики»/«Сообщения»/«Смена статуса гига»/«Уведомления об оплатах»), ПРИВАТНОСТЬ (2 `ToggleField`:
+  «Показывать рейтинг в профиле»/«Показывать статус «онлайн»»), АККАУНТ («Выйти из аккаунта» via the existing
+  `logoutUser` + the **preserved** delete-account flow).
+- **RC-S26 — the planning assumption was corrected.** The prototype settings has **no** session list and uses inline
+  toggles/button-groups, **not** the `SessionRow`/`ToggleField`/`CheckField` kit blocks (those exist in the kit, not the
+  screen) — like the gig-detail no-files correction. This change *adopts* the blocks (kit-consistent) and the prefs grew
+  by `notifyPayments`/`showRatingInProfile`/`showOnlineStatus` (User Booleans, default true) so they persist.
+- **RC-S27 — real session tracking (owner-approved addition beyond the prototype).** New `Session` model;
+  `createSession` captures user-agent + IP (`headers()`) and embeds the row id as the JWT `sid`; `getSession` is
+  **backward-compatible** (reads `sid` when present, never requires a `Session` row — sid-less tokens + the test harness
+  keep working); `destroySession`/`logoutUser` deletes the current row; `terminateSession(id)` is ownership-checked
+  (self-logout when current). `getActiveSessions` → `SessionRowVM[]` (title = the UA parsed via `lib/user-agent.ts`,
+  current = `active`). **Location is omitted** (no geo backend — not fabricated). The «Активные сессии» section is a
+  sanctioned extension beyond the prototype.
+
+*Pipeline:* `lint:tokens` (0 new) + `lint:composition` (Settings F5, 19 screens) + `build` (`/settings`) + `test:unit`
+(937, incl. new `session-tracking` + extended `settings-vm`/`account-preferences`; auth suite green = backward-compat) +
+`compose-settings` E2E (5/5) green. F1 = structural vs the prototype «Настройки»; absolute ≤1% deferred to Phase 4.
+
+## 10.17 Company «Отклики» screen (2026-06-20, change `build-applications-screen`)
+
+Lifted the company applicant list out of gig-detail into a dedicated, **gig-scoped** «Отклики» screen.
+
+- **RC-S28 — the «Отклики» screen lives at `/gigs/[id]/applications` (gig-scoped, owner-only).** The prototype screen
+  is per-gig («на проект «{title}»» + «← Назад к проекту» + the gig-detail «Смотреть отклики (N)» entry point), not a
+  cross-gig inbox. The page is owner-gated (`getGigApplications` returns null → redirect to `/gigs/[id]` for non-owners).
+  It renders «← Назад к проекту», a `SectionHeader` «Отклики» + count + the «на проект «{title}»» subtitle, a derived
+  «Назначен {name} — гиг переходит «В работу». Остальные отклики отклонены автоматически.» success notice when assigned,
+  the `ApplicantCard` list, and an «Откликов пока нет.» empty state.
+- **RC-S29 — new `ApplicantCard` block.** Canonicalizes the repeated applicant card: a `ProfileCard` identity row +
+  status pill, the tech tags, and **Подход / Уточняющие вопросы / Оценка трудозатрат** (`RequirementCard`), with an
+  **`children` actions slot** the screen fills with the inline Принять/Отклонить forms (server-action wiring stays in the
+  screen — F5; `compose-screen-inline-islands`).
+- **RC-S30 — gig-detail's owner list → the «Смотреть отклики (N)» link; accept/reject reused verbatim.** Gig-detail no
+  longer renders the inline `ApplicationEntry` owner list — it links to the new screen. `acceptApplication` /
+  `rejectApplication` are unchanged (accept → assign + `IN_PROGRESS` + auto-reject others + notify; both redirect to
+  `/gigs/[id]`). **Decision:** the prototype's in-place success notice is **derived** on the applications screen (shown on
+  revisit), not produced by changing the shared action's redirect — keeping the action contract + its tests intact.
+
+*Pipeline:* `lint:tokens` (0 new) + `lint:composition` (Applications F5, 20 screens) + `build`
+(`/gigs/[id]/applications`) + `test:unit` (942, incl. new `gig-applications-vm` + the ApplicantCard render test) +
+`build-applications-screen` (5/5) + `compose-gig-detail-apply` (5/5) E2E green. F1 = structural vs the prototype
+`applications`; absolute ≤1% deferred to Phase 4.
+
+## 10.18 Disputes flow UI (2026-06-20, change `reconcile-disputes-flow`)
+
+Pure UI reconciliation over the complete dispute backend (the model + `openDispute`/`resolveDispute` + the VMs were
+finished by `reconcile-data-model-to-design`).
+
+- **RC-S31 — dedicated «Открыть спор» screen at `/disputes/new?gig=<id>`.** Participant-gated (`getNewDisputeContext`
+  returns null → redirect); a reason `CheckField` (the six `DisputeReason` enum values) + a description `Textarea` → the
+  unchanged `openDispute` (which normalizes the reason, freezes the amount, captures the openerRole, and writes the
+  opening timeline entry). gig-detail's inline free-text `OpenDisputeAction` is replaced by the «Открыть спор» link.
+- **RC-S32 — `DisputeDetail` renders the full prototype detail.** Render-only enhancement (the VM already carried the
+  data): the frozen amount (Заморожено), the opener party, the evidence (Доказательства), and the role-labelled
+  **timeline** (Хронология — Специалист / Заказчик / Модератор + text + date).
+- **RC-S33 — admin verdict resolve UI.** The admin resolve panel on `/disputes/[id]` (admin-gated, OPEN-only) gains a
+  verdict `CheckField` (specialist / company / split_50) submitted as `verdict` to the unchanged `resolveDispute`, which
+  prefixes the verdict onto the resolution + writes the `ModerationLog` + a moderator timeline entry. **Decision:** the
+  resolve stays **inline** on `/disputes/[id]` (the prototype's admin-only «РЕШЕНИЕ СПОРА» content), not a separate
+  route — nothing displaced.
+
+*Pipeline:* `lint:tokens` (0 new) + `lint:composition` (NewDispute F5, 21 screens) + `build` (`/disputes/new`) +
+`test:unit` (944, incl. the verdict + timeline assertions) + `reconcile-disputes-flow` (3/3) + `compose-disputes` (6/6)
+E2E green. F1 = structural vs the prototype dispute frames; absolute ≤1% deferred to Phase 4.
+
+## 10.19 Create-gig guided brief (2026-06-20, change `reconcile-create-gig`)
+
+Rebuilt `/gigs/new` (a pre-redesign raw Tailwind form) as the prototype «Создать гиг» guided brief. The `createGig`
+validation + 10% fee + all Gig fields were already complete — this is a UI rebuild.
+
+- **RC-S34 — `/gigs/new` is a two-column F5 guided brief.** A `@composed-screen` `Split`: left = the Definition-of-Done
+  form (Что нужно сделать? / Как поймём, что готово? / Что важно учесть? / Условия — controlled `Input`/`Textarea`,
+  category via `CheckField`, the «Готово, когда…» `CriteriaEditor`); right = live feedback (`ReadinessMeter` +
+  `FeePanel`). Controlled fields both compute the live feedback and submit via `createGig` (criteria + category ride via
+  hidden inputs). The old `gig-form.tsx` is removed.
+- **RC-S35 — 3 new blocks + a ProgressBar tone.** `ReadinessMeter` (the «Готовность брифа» 7-point checklist over a
+  `ProgressBar`, tone-coded ≥6 green / ≥4 brand / else amber), `FeePanel` (Бюджет → Сервисный сбор (10%) → Итого, live,
+  mirroring the server's 10%), `CriteriaEditor` (input + «Добавить» + suggestion pills + removable rows). `ProgressBar`
+  gains a backward-compatible `tone` prop (default brand; OnboardingCard unaffected).
+- **RC-S36 — success screen + the createGig redirect.** New `/gigs/new/success` «Гиг опубликован» card + «К моим гигам»
+  (→ `/my-gigs`) / «Создать ещё». `createGig`'s **only** change: the success redirect `/dashboard` → `/gigs/new/success`
+  (PRG). The 4 createGig redirect-asserting test files (`gig-creation`/`gig-authorization`/`structured-fields`/
+  `xss-protection`) updated to the new target; validation + fee assertions preserved.
+- **Decisions:** category via `CheckField` (no new category block); the server `acceptanceCriteria` ≥50-char floor kept
+  (the readiness «Критерии приёмки» check is ≥1, advisory — the server stays the gate); fee math reused, not
+  re-implemented.
+
+*Pipeline:* `lint:tokens` (0 new) + `lint:composition` (CreateGig + success F5, 23 screens) + `build` (`/gigs/new` +
+`/gigs/new/success`) + `test:unit` (946; 4 test files retargeted to `/gigs/new/success`) + `compose-create-gig` E2E (2/2)
+green. F1 = structural vs the prototype createGig; absolute ≤1% deferred to Phase 4.
+
 ## 10.5 Auth/onboarding screen reconciliation (2026-06-18, change `reconcile-auth-and-onboarding`)
 
 - **RC-S4 — `AuthHeader` block added for the auth «HEADER» lockup.** The five Figma auth nodes

@@ -13,10 +13,25 @@ export interface Preferences {
   notifyApplications: boolean
   notifyStatusChanges: boolean
   notifyMessages: boolean
+  // reconcile-settings — the prototype's «оплаты» notification + the ПРИВАТНОСТЬ toggles.
+  notifyPayments: boolean
+  showRatingInProfile: boolean
+  showOnlineStatus: boolean
+}
+
+/** The default preferences (mirror the schema @default(true) + RU locale) — used when a user row is absent. */
+export const DEFAULT_PREFERENCES: Preferences = {
+  locale: 'ru',
+  notifyApplications: true,
+  notifyStatusChanges: true,
+  notifyMessages: true,
+  notifyPayments: true,
+  showRatingInProfile: true,
+  showOnlineStatus: true,
 }
 
 /**
- * A user's account preferences (locale + notification toggles). Returns null if the user does not exist.
+ * A user's account preferences (locale + notification + privacy toggles). Returns null if the user does not exist.
  */
 export async function getPreferences(userId: string): Promise<Preferences | null> {
   const u = await prisma.user.findUnique({
@@ -26,6 +41,9 @@ export async function getPreferences(userId: string): Promise<Preferences | null
       notifyApplications: true,
       notifyStatusChanges: true,
       notifyMessages: true,
+      notifyPayments: true,
+      showRatingInProfile: true,
+      showOnlineStatus: true,
     },
   })
   return u ?? null

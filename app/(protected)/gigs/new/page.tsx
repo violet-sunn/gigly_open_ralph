@@ -1,40 +1,18 @@
 import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
-import { GigForm } from './gig-form'
-import { BackButton } from '@/app/components/BackButton'
-import { Suspense } from 'react'
-import { prisma } from '@/lib/prisma'
+import { CATEGORIES } from '@/lib/categories'
+import { CreateGig } from './CreateGig'
 
+/**
+ * «Создать гиг» (reconcile-create-gig) — the guided-brief gig-creation screen. CLIENT-only; passes the category
+ * options (server-sourced from lib/categories) into the composed screen.
+ */
 export default async function NewGigPage() {
   const session = await getSession()
   if (!session) redirect('/login')
   if (session.role !== 'CLIENT') redirect('/dashboard')
 
-  // Fetch user's guidance state
-  const user = await prisma.user.findUnique({
-    where: { id: session.userId },
-    select: {
-      hasCreatedFirstGig: true,
-      gigCreationGuidanceDismissed: true,
-    },
-  })
+  const categoryOptions = CATEGORIES.map((c) => ({ key: c.slug, label: c.name }))
 
-  const showGuidance = user && !user.hasCreatedFirstGig && !user.gigCreationGuidanceDismissed
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-surface-level-0 py-12">
-      <div className="max-w-lg w-full space-y-8 p-8 bg-surface-level-1 border border-neutral-weak rounded-lg shadow-md">
-        <div className="mb-4">
-          <Suspense fallback={null}>
-            <BackButton />
-          </Suspense>
-        </div>
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-white">Post a Gig</h2>
-          <p className="mt-2 text-sm text-neutral-strong">Describe the work and set your budget</p>
-        </div>
-        <GigForm showGuidance={showGuidance || false} />
-      </div>
-    </div>
-  )
+  return <CreateGig categoryOptions={categoryOptions} />
 }

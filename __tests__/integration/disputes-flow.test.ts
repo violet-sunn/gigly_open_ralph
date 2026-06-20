@@ -52,11 +52,12 @@ function openForm(gigId: string, reason = 'Scope grew significantly beyond the o
   return fd
 }
 
-function resolveForm(disputeId: string, resolution: string, status?: string) {
+function resolveForm(disputeId: string, resolution: string, status?: string, verdict?: string) {
   const fd = new FormData()
   fd.set('disputeId', disputeId)
   fd.set('resolution', resolution)
   if (status) fd.set('status', status)
+  if (verdict) fd.set('verdict', verdict)
   return fd
 }
 
@@ -161,6 +162,30 @@ describe('disputes-flow — resolve + audit (admin)', () => {
     expect(log?.adminId).toBe(admin.id)
     expect(log?.targetGigId).toBe(gig.id)
     expect(log?.targetUserId).toBe(client.id)
+  })
+
+  it('a verdict prefixes the resolution and appends a moderator timeline entry (reconcile-disputes-flow)', async () => {
+    const prisma = getTestPrismaClient()
+    const { client, gig } = await gigWithSpecialist(prisma)
+    const admin = await createTestUser(prisma, { role: 'ADMIN' })
+    const dispute = await prisma.dispute.create({
+      data: { gigId: gig.id, openerId: client.id, reason: 'Результат не соответствует ТЗ' },
+    })
+
+    await withAuthContext(admin, async () => {
+      await expect(
+        resolveDispute(null, resolveForm(dispute.id, 'Бюджет возвращён.', 'RESOLVED', 'specialist'))
+      ).rejects.toThrow('NEXT_REDIRECT')
+    })
+
+    const resolved = await prisma.dispute.findUnique({ where: { id: dispute.id } })
+    expect(resolved?.status).toBe('RESOLVED')
+    expect(resolved?.resolution).toBe('В пользу специалиста — Бюджет возвращён.') // verdict prefixed
+
+    const entries = await prisma.disputeEntry.findMany({ where: { disputeId: dispute.id } })
+    const moderatorEntry = entries.find((e) => e.authorRole === 'moderator')
+    expect(moderatorEntry).toBeTruthy()
+    expect(moderatorEntry?.text).toBe('В пользу специалиста — Бюджет возвращён.')
   })
 
   it('rejects a non-admin', async () => {

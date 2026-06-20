@@ -14,6 +14,10 @@ import {
   ToggleList,
   DataTable,
   RequirementCard,
+  ApplicantCard,
+  ReadinessMeter,
+  FeePanel,
+  CriteriaEditor,
   CriteriaList,
   CriteriaRow,
   Bio,
@@ -52,6 +56,10 @@ import {
   disputeDetailFixture,
   disputeDetailResolvedFixture,
   requirementCardFixture,
+  applicantCardFixture,
+  readinessMeterFixture,
+  feePanelFixture,
+  criteriaEditorFixture,
   criteriaListFixture,
   termsTabsFixture,
   conditionsPanelFixture,
@@ -265,7 +273,8 @@ describe("domain-blocks / DisputeList + DisputeDetail", () => {
   it("DisputeDetail renders gig, opener (ClientCard), reason and status; resolution only when resolved", () => {
     const { unmount } = render(<DisputeDetail vm={disputeDetailFixture} />);
     expect(screen.getByText("Лендинг для финтех-стартапа")).toBeInTheDocument();
-    expect(screen.getByText("Иван Петров")).toBeInTheDocument(); // opener via ClientCard
+    // opener name appears via ClientCard and again as the timeline entry author → assert ≥1.
+    expect(screen.getAllByText("Иван Петров").length).toBeGreaterThan(0);
     expect(screen.getByText("Причина")).toBeInTheDocument();
     expect(screen.queryByText("Решение")).toBeNull(); // open → no resolution shown
     unmount();
@@ -273,6 +282,20 @@ describe("domain-blocks / DisputeList + DisputeDetail", () => {
     render(<DisputeDetail vm={disputeDetailResolvedFixture} />);
     expect(screen.getByText("Решение")).toBeInTheDocument();
     expect(screen.getByText(/Спор разрешён в пользу заказчика/)).toBeInTheDocument();
+  });
+
+  it("DisputeDetail renders the frozen amount, evidence, and the role-labelled timeline (reconcile-disputes-flow)", () => {
+    const { unmount } = render(<DisputeDetail vm={disputeDetailFixture} />);
+    expect(screen.getByText("Заморожено")).toBeInTheDocument();
+    expect(screen.getByText("150 000 ₽")).toBeInTheDocument(); // frozen amount
+    expect(screen.getByText("Доказательства")).toBeInTheDocument();
+    expect(screen.getByText("ТЗ.pdf")).toBeInTheDocument(); // an evidence file
+    expect(screen.getByText("Хронология")).toBeInTheDocument(); // timeline
+    expect(screen.getByText(/Объём работ значительно вырос/)).toBeInTheDocument(); // a timeline entry
+    unmount();
+
+    render(<DisputeDetail vm={disputeDetailResolvedFixture} />);
+    expect(screen.getByText(/В пользу заказчика — бюджет возвращён/)).toBeInTheDocument(); // moderator timeline entry
   });
 });
 
@@ -363,6 +386,50 @@ describe("domain-blocks / GigHeader + ConditionsPanel (gig-detail prototype)", (
     rerender(<ConditionsPanel vm={conditionsPanelFixture} active="proposed" />);
     expect(screen.getByText("300 400 ₽")).toBeInTheDocument();
     expect(screen.getByText("14 дней")).toBeInTheDocument();
+  });
+});
+
+describe("domain-blocks / ApplicantCard (applications screen)", () => {
+  it("renders identity + status + tech tags + the three sections + the actions slot", () => {
+    render(
+      <ApplicantCard vm={applicantCardFixture}>
+        <button type="button">Принять</button>
+      </ApplicantCard>,
+    );
+    expect(screen.getByText("Тимур Камальтдинов")).toBeInTheDocument(); // identity (ProfileCard)
+    expect(screen.getByText("На рассмотрении")).toBeInTheDocument(); // status pill
+    expect(screen.getByText("React")).toBeInTheDocument(); // a tech tag
+    expect(screen.getByText("Подход")).toBeInTheDocument();
+    expect(screen.getByText("Уточняющие вопросы")).toBeInTheDocument();
+    expect(screen.getByText("Оценка трудозатрат")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Принять" })).toBeInTheDocument(); // actions slot
+  });
+});
+
+describe("domain-blocks / create-gig — ReadinessMeter, FeePanel, CriteriaEditor", () => {
+  it("ReadinessMeter renders the progress bar + the 7-point checklist + the nudge", () => {
+    render(<ReadinessMeter vm={readinessMeterFixture} />);
+    expect(screen.getByText("Готовность брифа")).toBeInTheDocument();
+    expect(screen.getByRole("progressbar")).toBeInTheDocument();
+    expect(screen.getByText("Название")).toBeInTheDocument();
+    expect(screen.getByText("Бюджет и срок")).toBeInTheDocument();
+    expect(screen.getByText("Добавьте: Ожидаемый результат")).toBeInTheDocument(); // nudge
+  });
+
+  it("FeePanel shows Бюджет, the 10% fee, and the total", () => {
+    render(<FeePanel vm={feePanelFixture} />);
+    expect(screen.getByText("Сервисный сбор (10%)")).toBeInTheDocument();
+    expect(screen.getByText("Итого к оплате")).toBeInTheDocument();
+    expect(screen.getByText("110 000 ₽")).toBeInTheDocument(); // total
+  });
+
+  it("CriteriaEditor renders the input + «Добавить» + the criterion rows; remove fires", () => {
+    const onRemove = vi.fn();
+    render(<CriteriaEditor vm={criteriaEditorFixture} onAdd={vi.fn()} onRemove={onRemove} />);
+    expect(screen.getByRole("button", { name: "Добавить" })).toBeInTheDocument();
+    expect(screen.getByText(/Лендинг проходит lighthouse/)).toBeInTheDocument(); // a criterion row
+    screen.getAllByRole("button", { name: "Удалить критерий" })[0].click();
+    expect(onRemove).toHaveBeenCalledWith(0);
   });
 });
 

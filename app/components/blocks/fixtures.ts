@@ -18,6 +18,10 @@ import type {
   DisputeDetailVM,
   BannerCardVM,
   RequirementCardVM,
+  ApplicantCardVM,
+  ReadinessMeterVM,
+  FeePanelVM,
+  CriteriaEditorVM,
   CriteriaListVM,
   TermsTabsVM,
   ConditionsPanelVM,
@@ -247,6 +251,61 @@ export const requirementCardFixture: RequirementCardVM = {
   title: "Определение готовности",
   body: "Адаптивный лендинг на Next.js, lighthouse ≥ 90, передача исходников в Figma.",
   icon: "verified",
+};
+
+export const applicantCardFixtures: ApplicantCardVM[] = [
+  {
+    id: "ap1",
+    name: "Тимур Камальтдинов",
+    level: "Senior",
+    verified: true,
+    rating: { value: 4.8, count: 45, verified: true },
+    tags: ["React", "TypeScript", "Next.js"],
+    approach: "Сделаю поэтапно: анализ, архитектура, реализация и тесты с покрытием.",
+    questions: "Есть ли макеты и доступ к API до старта?",
+    estimate: "2 недели",
+    status: { label: "На рассмотрении", tone: "review" },
+    pending: true,
+  },
+  {
+    id: "ap2",
+    name: "Мария Иванова",
+    level: "Middle+",
+    rating: { value: 4.5, count: 12, verified: false },
+    tags: ["Go", "Docker"],
+    approach: "Контейнеризация + CI/CD, поэтапная миграция.",
+    questions: "Какой целевой RPS?",
+    estimate: "10 рабочих дней",
+    status: { label: "Отклонён", tone: "rejected" },
+    pending: false,
+  },
+];
+export const applicantCardFixture: ApplicantCardVM = applicantCardFixtures[0];
+
+export const readinessMeterFixture: ReadinessMeterVM = {
+  pct: Math.round((4 / 7) * 100),
+  tone: "brand",
+  checks: [
+    { label: "Название", done: true },
+    { label: "Категория", done: true },
+    { label: "Описание", done: true },
+    { label: "Цель", done: true },
+    { label: "Ожидаемый результат", done: false },
+    { label: "Критерии приёмки", done: false },
+    { label: "Бюджет и срок", done: false },
+  ],
+  nudge: "Добавьте: Ожидаемый результат",
+};
+
+export const feePanelFixture: FeePanelVM = {
+  budget: "100 000 ₽",
+  fee: "10 000 ₽",
+  total: "110 000 ₽",
+};
+
+export const criteriaEditorFixture: CriteriaEditorVM = {
+  items: ["Лендинг проходит lighthouse ≥ 90", "Адаптив под мобильные"],
+  suggestions: ["Есть тесты", "Передача исходников", "Документация"],
 };
 
 export const criteriaListFixture: CriteriaListVM = {

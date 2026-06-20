@@ -87,10 +87,39 @@ Three things this resolves outright:
   `counterparty`+`specialty` (position→specialization→experienceLevel, undefined for company; RC-S23); conversation-item
   gig status badge (RC-S24). All messaging flows preserved. §10.15. Gates: lints, build (`/chats`), test:unit (930, +
   chats-vm + domain-blocks axis tests), `compose-chats` E2E (4/4) green.
-- [ ] `/ralphy-plan reconcile-settings "Reconcile /settings to the design: SessionRow list, Toggle/Check fields, and the light-theme switch (Phase 1). Test: prefs persist; Fidelity DoD; E2E."`
-- [ ] `/ralphy-plan build-applications-screen "Company applicants screen (ROUTES applications): specialist cards (approach/questions/estimate) → Accept (assigns, others rejected) / Reject. Lift from the embedded gig-detail list. Test: accept→in_progress; Fidelity DoD."`
-- [ ] `/ralphy-plan reconcile-disputes-flow "Dedicated disputeNew (reason enum + description) + admin disputeResolve (verdict: spec/client/50% → resolved + moderation log) + timeline. Test: open→resolve lifecycle; Fidelity DoD."`
-- [ ] `/ralphy-plan reconcile-create-gig "Guided brief: DoD constructor (goal/result/'Готово, когда…' criteria) + readiness meter + live budget→10% fee→total + success screen. Test: validation + fee math; Fidelity DoD."`
+- [x] `reconcile-settings` — **DONE (2026-06-20)**: reconciled `/settings` to the prototype «Настройки» (four sections —
+  ВНЕШНИЙ ВИД: Тема (CheckField, kept on the `lib/theme.ts` switch) + Язык + display-only ₽ Валюта; УВЕДОМЛЕНИЯ (4
+  ToggleField) + ПРИВАТНОСТЬ (2 ToggleField), new persisted prefs `notifyPayments`/`showRatingInProfile`/
+  `showOnlineStatus`; АККАУНТ «Выйти из аккаунта» + preserved delete-account). **Corrected the planning assumption** —
+  the prototype settings has NO session list/Toggle-Check blocks; those were the kit, not the screen. Per the owner's
+  decisions: **full parity** + **real session tracking** — new `Session` model + `createSession` UA/IP capture +
+  `sid`-in-JWT (backward-compatible: sid-less/harness tokens still validate) + `terminateSession` (ownership-checked) +
+  an «Активные сессии» `SessionRow` list (location omitted — no geo backend). §10.16. Gates: lints, build (`/settings`),
+  test:unit (937, incl. `session-tracking` + extended `settings-vm`/`account-preferences`), `compose-settings` E2E (5/5)
+  green.
+- [x] `build-applications-screen` — **DONE (2026-06-20)**: lifted the company applicant list out of gig-detail into a
+  dedicated **gig-scoped** «Отклики» screen at `/gigs/[id]/applications` (prototype `applications`: «← Назад к проекту» +
+  «Отклики»+count + «на проект «{title}»» + derived «Назначен …» success notice + applicant cards + empty state). New
+  **`ApplicantCard`** block (identity + status + tech tags + Подход/Уточняющие вопросы/Оценка трудозатрат + an actions
+  slot) + `getGigApplications(gigId, viewer)` (owner-gated). gig-detail's owner list → the «Смотреть отклики (N)» link.
+  `acceptApplication`/`rejectApplication` reused verbatim (accept → assign + IN_PROGRESS + auto-reject others). §10.17.
+  Gates: lints (20 screens), build (`/gigs/[id]/applications`), test:unit (942), `build-applications-screen` (5/5) +
+  `compose-gig-detail-apply` (5/5) E2E green.
+- [x] `reconcile-disputes-flow` — **DONE (2026-06-20)**: pure UI reconciliation over the complete backend. New dedicated
+  **«Открыть спор»** screen at `/disputes/new?gig=<id>` (participant-gated; reason `CheckField` (6 enum values) +
+  description `Textarea` → `openDispute`); gig-detail's inline free-text dispute form → the «Открыть спор» link.
+  `DisputeDetail` enhanced to render the frozen amount + parties + evidence + the role-labelled **timeline**
+  (render-only). Admin resolve UI gains the **verdict** `CheckField` (specialist/company/split_50) → the existing
+  `resolveDispute` (verdict-prefixed resolution + `ModerationLog` + moderator timeline entry). §10.18. Gates: lints (21
+  screens), build (`/disputes/new`), test:unit (944, incl. the verdict assertion), `reconcile-disputes-flow` (3/3) +
+  `compose-disputes` (6/6) E2E green.
+- [x] `reconcile-create-gig` — **DONE (2026-06-20)**: rebuilt `/gigs/new` (was pre-redesign raw Tailwind) as the
+  prototype **«Создать гиг» guided brief** — a two-column F5 `@composed-screen`: left DoD form (4 sections; category via
+  `CheckField`; the «Готово, когда…» `CriteriaEditor`), right live feedback (`ReadinessMeter` 7-check + `FeePanel`
+  budget→10%→Итого). 3 new blocks (`ReadinessMeter`/`FeePanel`/`CriteriaEditor`) + a `tone` prop on `ProgressBar`. New
+  `/gigs/new/success` «Гиг опубликован» screen; `createGig` success redirect `/dashboard`→`/gigs/new/success` (its only
+  change; 10% fee + validation reused). §10.19. Gates: lints (23 screens), build (`/gigs/new` + success), test:unit
+  (946; the 4 createGig redirect-asserting test files updated to the new target), `compose-create-gig` E2E (2/2) green.
 - [ ] `/ralphy-plan reconcile-finances-and-admin "Re-ground /finances (role summary + ops by status) and the admin console (stats + dispute queue + users/gigs moderation + log) on the prototype. Test: role figures; Fidelity DoD."`
 - [ ] `/ralphy-plan add-onboarding-screen "Onboarding (Онбординг.dc.html). Test: flow + Fidelity DoD."`
 

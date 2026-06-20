@@ -114,7 +114,8 @@ export async function createGig(
     await prisma.gig.create({ data: gigData })
   }
 
-  redirect('/dashboard')
+  // reconcile-create-gig: land on the dedicated «Гиг опубликован» success screen (Post/Redirect/Get).
+  redirect('/gigs/new/success')
 }
 
 export async function applyToGig(
