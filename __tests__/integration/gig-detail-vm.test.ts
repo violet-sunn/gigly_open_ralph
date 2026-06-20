@@ -45,7 +45,12 @@ describe('getGigDetail', () => {
     expect(data).not.toBeNull()
     expect(data!.header.status).toBe('open')
     expect(data!.header.tags).toEqual(['React', 'Go'])
+    expect(data!.header.description).toBe(gig.description) // main block renders the brief body
     expect(data!.requirements).toHaveLength(3) // goal + deliverables + constraints
+    // conditions panel: срок/бюджет figures present; the specialist does NOT see the company fee breakdown
+    expect(data!.conditions.client.budget).toBe(data!.terms.client[0].value)
+    expect(data!.conditions.status.label).toBeTruthy()
+    expect(data!.conditions.fee).toBeUndefined()
     expect(data!.criteria.items.map((i) => i.label)).toEqual(['Критерий один', 'Критерий два'])
     expect(data!.client.name).toBe('ООО Ромашка')
     expect(data!.client.rating.value).toBe(4)
@@ -78,6 +83,9 @@ describe('getGigDetail', () => {
     expect(ownerView!.applications).toHaveLength(1)
     expect(ownerView!.applications[0].name).toBe('Спец')
     expect(ownerView!.applications[0].status).toBe('PENDING')
+    // the company (owner) sees the fee breakdown in the conditions panel; the specialist did not
+    expect(ownerView!.conditions.fee).toBeDefined()
+    expect(specView!.conditions.fee).toBeUndefined()
   })
 
   it('exposes lifecycle + messaging flags for the assigned specialist and owner across statuses', async () => {

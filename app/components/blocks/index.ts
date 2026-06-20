@@ -29,6 +29,7 @@ export { RequirementCard } from "./RequirementCard";
 export { CriteriaList } from "./CriteriaList";
 export { CriteriaRow } from "./CriteriaRow";
 export { TermsTabs } from "./TermsTabs";
+export { ConditionsPanel } from "./ConditionsPanel";
 export { ApplyPanel } from "./ApplyPanel";
 export { MessageBubble } from "./MessageBubble";
 export { Bio } from "./Bio";

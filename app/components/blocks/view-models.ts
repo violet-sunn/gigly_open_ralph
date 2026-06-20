@@ -73,6 +73,9 @@ export interface GigHeaderVM {
   category: Category;
   tags: string[];
   postedAt: DateISO;
+  /** The gig brief body — the prototype `main` block renders it under the tag row (срок/бюджет live in the
+   *  conditions panel, so `main` carries the description, not the budget/deadline meta row). */
+  description?: string;
 }
 export interface ProfileHeaderVM {
   avatar: ImageRef;
@@ -208,6 +211,36 @@ export interface BioVM {
   presence?: string; // «был(-а) недавно»
   sizeFor?: "gig" | "acc-bio";
   user?: "specialist" | "company";
+  /** Optional descriptive line under the identity row (the gig-detail conditions-bio companyDesc). */
+  description?: string;
+}
+
+/**
+ * ConditionsPanel block — the prototype gig-detail «УСЛОВИЯ» sunken panel (Gigly App.dc.html gigDetail col2):
+ * a two-tab toggle (the gig's terms «Условия {company}» vs the specialist's «Мои условия») over a Статус row and
+ * the Срок выполнения / Бюджет проекта figures rendered as large `grotesk` (Manrope) numerics with the «[N этап]» /
+ * «фикс. цена» sublabels. For the company viewer the budget block additionally shows the Сервисный сбор (10%) /
+ * Итого к оплате breakdown (`fee`). Schema-independent; figures arrive pre-formatted.
+ */
+export interface ConditionsTermsVM {
+  deadline: string; // e.g. «14 дней»
+  budget: Money;
+}
+export interface ConditionsPanelVM {
+  /** Company name for the «Условия {company}» tab label. */
+  company: string;
+  /** The Статус row — a status tone + its label. */
+  status: { label: string; tone: Status };
+  /** Figures for the gig owner's terms tab («Условия {company}»). */
+  client: ConditionsTermsVM;
+  /** Figures for the specialist's counter-terms tab («Мои условия»). */
+  proposed: ConditionsTermsVM;
+  /** Срок sublabel, e.g. «1 этап» (from the gig's stage count). */
+  deadlineNote?: string;
+  /** Бюджет sublabel, e.g. «фикс. цена». */
+  budgetNote?: string;
+  /** Company-only fee breakdown — present ⇒ render Сервисный сбор + Итого (gated by the caller to the owner). */
+  fee?: { service: Money; total: Money };
 }
 
 export interface ChatHeaderVM {
@@ -217,6 +250,8 @@ export interface ChatHeaderVM {
   rating?: RatingVM;
   presence?: string; // «был(-а) недавно»
   specialty?: string; // counterparty `Специальность` (add-bio-block) — surfaced via the Bio block
+  /** The counterparty's role (reconcile-chats) — drives the Bio `user` axis: a company collapses `Специальность`. */
+  counterparty?: "specialist" | "company";
 }
 export interface ConversationItemVM {
   id: string;
@@ -227,6 +262,8 @@ export interface ConversationItemVM {
   unread: number;
   /** Optional secondary line under the name (e.g. the gig title). */
   subtitle?: string;
+  /** Optional gig status badge (reconcile-chats) — the prototype conversation item shows the gig status. */
+  status?: Status;
 }
 export interface NotificationItemVM {
   id: string;

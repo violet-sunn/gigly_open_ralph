@@ -30,6 +30,7 @@ import type {
   CriteriaListVM,
   ClientCardVM,
   TermsTabsVM,
+  ConditionsPanelVM,
   ChatPanelVM,
   ApplyPanelVM,
   Status,
@@ -51,6 +52,16 @@ const GIG_STATUS: Record<string, Status> = {
   PAID: 'completed',
 }
 const money = (kopecks: number): string => `${new Intl.NumberFormat('ru-RU').format(kopecks / 100)} ₽`
+
+// Display Status → Russian label (mirrors blocks/util STATUS_LABEL) — for the conditions-panel Статус row.
+const STATUS_LABEL_RU: Record<Status, string> = {
+  open: 'Открыт',
+  review: 'На рассмотрении',
+  'in-progress': 'В работе',
+  verification: 'На проверке',
+  completed: 'Завершён',
+  rejected: 'Отклонён',
+}
 
 /**
  * Display status (reconcile-data-model-to-design): «На рассмотрении» is a DERIVED display state — an OPEN gig that
@@ -292,6 +303,90 @@ export async function getSpecialistDashboard(userId: string): Promise<Specialist
   }
 }
 
+// ---- «Мои гиги» (reconcile-my-projects) -----------------------------------
+
+/** A GigCardVM carrying the «Мои гиги» tab it belongs to, so the screen can filter the grid client-side. */
+export type MyGigCard = GigCardVM & { tabKey: string }
+
+export interface MyGigsData {
+  gigCards: MyGigCard[]
+  tabs: { value: string; label: string; count?: number }[]
+}
+
+/**
+ * «Мои гиги» (reconcile-my-projects) — the viewer's OWN gigs, role-aware, with the prototype's five status tabs
+ * (Все / Заявки / В работе / На проверке / Завершённые, each with a count). CLIENT → posted gigs (Заявки = own OPEN
+ * gigs that received applications → the derived «На рассмотрении»); SPECIALIST → PENDING applications (Заявки) +
+ * assigned gigs (В работе / На проверке / Завершённые). Reuses toGigCardVM + gigDisplayStatus and the same queries the
+ * dashboards use — no new gig semantics, no migration. Cards whose status maps to no tab (a CLIENT's OPEN gig with 0
+ * applications) surface under «Все» only, so nothing is lost (the specialist-dashboard archive rule).
+ */
+export async function getMyGigs(viewer: { userId: string; role: string }): Promise<MyGigsData> {
+  let gigCards: MyGigCard[]
+
+  if (viewer.role === 'CLIENT') {
+    const gigs = await prisma.gig.findMany({
+      where: { clientId: viewer.userId },
+      orderBy: { createdAt: 'desc' },
+      include: { _count: { select: { applications: true } } },
+    })
+    gigCards = await Promise.all(
+      gigs.map(async (g) => {
+        const applicationCount = g._count.applications
+        const card = await toGigCardVM({ ...g, applicationCount })
+        const tabKey =
+          g.status === 'OPEN'
+            ? applicationCount > 0
+              ? 'apps'
+              : 'open'
+            : g.status === 'IN_PROGRESS'
+              ? 'in-progress'
+              : g.status === 'REVIEW'
+                ? 'verification'
+                : 'completed' // COMPLETED | PAID
+        return { ...card, tabKey }
+      }),
+    )
+  } else {
+    const [applications, assignedGigs] = await Promise.all([
+      prisma.application.findMany({
+        where: { specialistId: viewer.userId },
+        include: { gig: true },
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.gig.findMany({
+        where: { assignedSpecialistId: viewer.userId, status: { in: ['IN_PROGRESS', 'REVIEW', 'COMPLETED', 'PAID'] } },
+        orderBy: { updatedAt: 'desc' },
+      }),
+    ])
+    // Заявки — PENDING applications (the card reflects the pending application → «На рассмотрении»).
+    const pending: MyGigCard[] = await Promise.all(
+      applications
+        .filter((a) => a.status === 'PENDING')
+        .map(async (a) => ({ ...(await toGigCardVM(a.gig)), status: 'review' as Status, tabKey: 'apps' })),
+    )
+    // Assigned gigs — В работе / На проверке / Завершённые (standard toGigCardVM status mapping).
+    const assigned: MyGigCard[] = await Promise.all(
+      assignedGigs.map(async (g) => ({
+        ...(await toGigCardVM(g)),
+        tabKey: g.status === 'IN_PROGRESS' ? 'in-progress' : g.status === 'REVIEW' ? 'verification' : 'completed',
+      })),
+    )
+    gigCards = [...pending, ...assigned]
+  }
+
+  const countBy = (key: string) => gigCards.filter((c) => c.tabKey === key).length
+  const tabs = [
+    { value: 'all', label: 'Все', count: gigCards.length },
+    { value: 'apps', label: 'Заявки', count: countBy('apps') },
+    { value: 'in-progress', label: 'В работе', count: countBy('in-progress') },
+    { value: 'verification', label: 'На проверке', count: countBy('verification') },
+    { value: 'completed', label: 'Завершённые', count: countBy('completed') },
+  ]
+
+  return { gigCards, tabs }
+}
+
 // ---- Gig search / browse (compose-gig-search) -----------------------------
 
 /** A browse gig carries its owner (client) — OPEN gigs have no specialist, so the card shows the client's rating. */
@@ -376,6 +471,7 @@ export interface GigDetailData {
   bio: BioVM
   clientId: string
   terms: TermsTabsVM
+  conditions: ConditionsPanelVM
   chat: ChatPanelVM
   apply: ApplyPanelVM
   isOwner: boolean
@@ -437,6 +533,7 @@ export async function getGigDetail(
     category: (gig.categorySlug as Category | null) ?? 'development',
     tags: tagsArr,
     postedAt: fmt(gig.createdAt),
+    description: gig.description,
   }
 
   const requirements: RequirementCardVM[] = []
@@ -481,6 +578,19 @@ export async function getGigDetail(
       { label: 'Бюджет', value: money(gig.budget) },
       { label: 'Срок', value: `${gig.deadlineDays} дней` },
     ],
+  }
+
+  // The prototype gig-detail «УСЛОВИЯ» panel: tabs (gig vs my terms) + Статус + grotesk Срок/Бюджет + (company-only)
+  // fee breakdown. Срок/Бюджет mirror `terms`; the fee block is owner-only (`serviceFee`/`totalAmount` on the gig).
+  const displayStatus = gigDisplayStatus(gig.status, gig.applications.length)
+  const conditions: ConditionsPanelVM = {
+    company: client.name,
+    status: { label: STATUS_LABEL_RU[displayStatus], tone: displayStatus },
+    client: { deadline: `${gig.deadlineDays} дней`, budget: money(gig.budget) },
+    proposed: { deadline: `${proposedDeadline} дней`, budget: money(proposedBudget) },
+    deadlineNote: `${gig.stageCount} этап`,
+    budgetNote: 'фикс. цена',
+    fee: isOwner ? { service: money(gig.serviceFee), total: money(gig.totalAmount) } : undefined,
   }
 
   const chat: ChatPanelVM = {
@@ -533,6 +643,7 @@ export async function getGigDetail(
     bio,
     clientId: gig.clientId,
     terms,
+    conditions,
     chat,
     apply,
     isOwner,
@@ -769,6 +880,8 @@ export async function getConversations(viewer: { userId: string; role: string })
         preview,
         timestamp: timeOfDay(last.createdAt),
         unread,
+        // The gig status badge (reconcile-chats) — these gigs are assigned (IN_PROGRESS+), so 0 applications matters not.
+        status: gigDisplayStatus(g.status),
         _last: new Date(last.createdAt).getTime(),
       }
     })
@@ -817,12 +930,20 @@ export async function getChatThread(
     (viewerIsClient ? gig.assignedSpecialist?.specialistProfile?.avatarUrl : gig.client.clientProfile?.avatarUrl) || ''
   const rating = counterpartyId ? await getRatingForUser(counterpartyId) : { value: 0, count: 0, verified: false }
 
+  // Counterparty role drives the Bio `user` axis (reconcile-chats): a CLIENT viewer's counterparty is the assigned
+  // specialist (show `Специальность`); a SPECIALIST viewer's counterparty is the company (collapse it). Specialty is
+  // bound from the specialist's profile (position → specialization → experience level) — never fabricated.
+  const sp = gig.assignedSpecialist?.specialistProfile
+  const specialty = viewerIsClient ? sp?.position || sp?.specialization || sp?.experienceLevel || undefined : undefined
+
   const header: ChatHeaderVM = {
     avatar: counterpartyAvatar,
     name: counterpartyName,
     verified: rating.verified,
     rating,
     presence: 'был(-а) недавно',
+    counterparty: viewerIsClient ? 'specialist' : 'company',
+    specialty,
   }
 
   return { header, chat: { thread, composer: { canAttach: false }, header } }

@@ -20,6 +20,7 @@ import type {
   RequirementCardVM,
   CriteriaListVM,
   TermsTabsVM,
+  ConditionsPanelVM,
   ApplyPanelVM,
   MessageBubbleVM,
   ChatHeaderVM,
@@ -72,6 +73,7 @@ export const gigHeaderFixture: GigHeaderVM = {
   category: "design",
   tags: ["React", "TypeScript"],
   postedAt: "12 июня 2026",
+  description: "Нужен современный лендинг с акцентом на конверсию и адаптивную вёрстку.",
 };
 
 export const profileCardFixture: ProfileCardVM = {
@@ -281,6 +283,16 @@ export const termsTabsFixture: TermsTabsVM = {
   ],
 };
 
+export const conditionsPanelFixture: ConditionsPanelVM = {
+  company: "Acme Corp",
+  status: { label: "На рассмотрении", tone: "review" },
+  client: { deadline: "10 дней", budget: "280 000 ₽" },
+  proposed: { deadline: "14 дней", budget: "300 400 ₽" },
+  deadlineNote: "1 этап",
+  budgetNote: "фикс. цена",
+  fee: { service: "28 000 ₽", total: "308 000 ₽" },
+};
+
 export const applyPanelFixture: ApplyPanelVM = {
   submitLabel: "Откликнуться",
   fields: [
@@ -301,6 +313,8 @@ export const chatHeaderFixture: ChatHeaderVM = {
   verified: true,
   rating: { value: 5, count: 45, verified: true },
   presence: "был(-а) недавно",
+  counterparty: "specialist",
+  specialty: "[Senior Frontend Engineer]",
 };
 
 // Bio block — the 4 variants (sizeFor × user). Specialist shows `Специальность`; company omits it.
@@ -333,8 +347,8 @@ export const bioGigFixture: BioVM = {
 };
 
 export const conversationItemFixtures: ConversationItemVM[] = [
-  { id: "c1", avatar: "", name: "ООО Ромашка", subtitle: "Лендинг для финтех-стартапа", preview: "Когда сможете приступить?", timestamp: "10:24", unread: 2 },
-  { id: "c2", avatar: "", name: "Иван Петров", subtitle: "Миграция на PostgreSQL", preview: "Спасибо, всё отлично!", timestamp: "вчера", unread: 0 },
+  { id: "c1", avatar: "", name: "ООО Ромашка", subtitle: "Лендинг для финтех-стартапа", preview: "Когда сможете приступить?", timestamp: "10:24", unread: 2, status: "in-progress" },
+  { id: "c2", avatar: "", name: "Иван Петров", subtitle: "Миграция на PostgreSQL", preview: "Спасибо, всё отлично!", timestamp: "вчера", unread: 0, status: "verification" },
 ];
 
 export const notificationItemFixtures: NotificationItemVM[] = [
@@ -359,7 +373,7 @@ const clientNav = (collapsed: boolean): SidebarNavVM => ({
   profile: profileCardFixture,
   items: [
     { icon: "dashboard", label: "Дашборд", href: "/dashboard", active: true },
-    { icon: "my-gigs", label: "Мои гиги", href: "/gigs", count: 4, active: false },
+    { icon: "my-gigs", label: "Мои гиги", href: "/my-gigs", count: 4, active: false },
     { icon: "chats", label: "Чаты", href: "/chats", count: 2, active: false },
     { icon: "finances", label: "Финансы", href: "/finances", active: false },
     { icon: "disputes", label: "Споры", href: "/disputes", active: false },
@@ -373,7 +387,7 @@ const specialistNav = (collapsed: boolean): SidebarNavVM => ({
   items: [
     { icon: "dashboard", label: "Дашборд", href: "/dashboard", active: true },
     { icon: "search", label: "Поиск", href: "/gigs", active: false },
-    { icon: "my-gigs", label: "Мои гиги", href: "/projects", count: 3, active: false },
+    { icon: "my-gigs", label: "Мои гиги", href: "/my-gigs", count: 3, active: false },
     { icon: "chats", label: "Чаты", href: "/chats", count: 5, active: false },
     { icon: "finances", label: "Финансы", href: "/finances", active: false },
     { icon: "disputes", label: "Споры", href: "/disputes", active: false },

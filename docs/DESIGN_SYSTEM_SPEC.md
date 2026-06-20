@@ -705,6 +705,97 @@ baseline (fail-on-all); `lint:composition` + `build` + `test:unit` (911) + `them
 *Pipeline:* `lint:tokens` (Bio token-pure) + `lint:composition` (GigDetail F5) + `build` + `test:unit` (921) +
 `compose-chats`/`compose-gig-detail-apply` E2E green.
 
+## 10.13 Gig-detail screen reconciliation (2026-06-20, change `reconcile-gig-detail-apply`)
+
+Re-laid `/gigs/[id]` to the **prototype** `gigDetail` route (`gigly_full_design/Gigly App.dc.html` L437–641), read
+directly — NOT the superseded `docs/figma-screens-export.md`. A 2-column composition: **col1** = the `main` GigHeader
+(title + tags + description) + `SectionHeader` «Технические требования» (RequirementCard 2-col grid) + `SectionHeader`
+«Критерии успеха» (numbered CriteriaList); **col2 «УСЛОВИЯ»** = company `Bio` + `ConditionsPanel` + the role action
+rail + «Сообщения» chat.
+
+- **RC-S14 — there is NO files/attachments section; this corrects the prior export-based claim.** The deleted
+  pre-design draft carried a «Файлы» section (4 file chips / "sanctioned omission pending a backend"). The real
+  prototype `gigDetail` has **no such section** — the only file references in the design are gig-description prose and
+  dispute evidence. So there is nothing to render and nothing to defer: **the omission is a design fact**, recorded
+  here to supersede the earlier reading. (E2E asserts `getByText('Файлы')` has count 0.)
+- **RC-S15 — the conditions panel is a new `ConditionsPanel` block; срок/бюджет are `grotesk` (Manrope) numerics.**
+  The prototype col2 «УСЛОВИЯ» panel (a two-tab toggle «Условия {company}» / «Мои условия» + a Статус row + Срок
+  выполнения + Бюджет проекта as large numbers + sublabels) does not fit the generic term-row `TermsTabs`, so it is a
+  dedicated `ConditionsPanel` block. **This is a sanctioned deviation from the change proposal's "no new component"**
+  line — rendering the grotesk numerics + the Статус row + the fee breakdown token-purely in an F5-pure screen
+  genuinely requires a block; `TermsTabs` stays in the kit (workbench/tests) untouched. The Срок/Бюджет figures bind
+  the `font-grotesk` token (the design's Manrope numeric face, from `adopt-design-fonts`).
+- **RC-S16 — the company (owner) sees the fee breakdown; the specialist does not.** The budget block adds **Сервисный
+  сбор (10%)** + **Итого к оплате** (from the gig's `serviceFee` / `totalAmount`) only for the gig owner — gated in
+  `getGigDetail` (`fee: isOwner ? … : undefined`).
+- **RC-S17 — `GigHeader` reconciled to the `main` shape (+ description, − meta row).** `GigHeaderVM` gains
+  `description`; the `main` block renders the brief body and **drops the former budget/deadline/posted meta row**
+  (срок/бюджет live in `ConditionsPanel`). `getGigDetail` binds `header.description = gig.description`. The status
+  label now appears in **two** legitimate places — the `GigHeader` badge and the `ConditionsPanel` Статус row — so the
+  E2E status assertions use `.first()`.
+- **RC-S18 — «Вернуть на доработку» is a flagged follow-up, NOT invented here.** The prototype owner action set
+  includes a return-to-rework button (REVIEW→IN_PROGRESS), but there is **no coded `returnWork` server action**. Per
+  "do not invent lifecycle semantics," it is flagged (a code comment in `GigDetail.tsx`) for a future change rather
+  than fabricated. Every existing lifecycle flow (apply/withdraw, accept/reject, submit, approve, mark-as-paid,
+  messaging, open-dispute) is preserved verbatim — only its column/position changed.
+
+*Pipeline:* `lint:tokens` (GigDetail/GigHeader/Bio/ConditionsPanel token-pure) + `lint:composition` (GigDetail F5, 18
+screens) + `build` (`/gigs/[id]`) + `test:unit` (923; the 1 `gig-browse-access` timeout is the known test-db pollution
+flake, green in isolation) + `compose-gig-detail-apply` E2E (5/5) green. F1 = structural/overlay match to the
+prototype; the absolute ≤1% pixel gate stays Phase 4 (`refidelity-from-full-design`).
+
+## 10.14 «Мои гиги» screen (2026-06-20, change `reconcile-my-projects`)
+
+Reconciled the prototype `gigs` screen = **«Мои гиги»** (`ROUTES.md` L11/L27) as a new standalone route.
+
+- **RC-S19 — «Мои гиги» lives at `/my-gigs` (both roles); `/gigs` stays the public browse/search.** The prototype's
+  `gigs` "route" is an internal screen key in a single-file click-through, **not a URL contract**. In code `/gigs` is
+  already the SPECIALIST browse/search (a real shipped feature the prototype doesn't draw). Per web-routing best practice
+  (a bare plural collection route = "all"; a personal subset takes an explicit qualifier; never silently change an
+  existing URL's meaning) the own-gigs screen is a **new** F5-pure `@composed-screen` at `/my-gigs` — confirmed with the
+  product owner — and browse is untouched. The nav (`lib/nav.ts`) + fixtures now point «Мои гиги» → `/my-gigs` for both
+  roles (correcting the prior `/gigs` (client) / `/projects` (specialist) disagreement; the CLIENT link had pointed at a
+  route clients are redirected away from).
+- **RC-S20 — role-aware content on one route; the prototype's five status tabs.** `getMyGigs(viewer)` factors the
+  dashboards' own-gig logic (reuses `toGigCardVM` + `gigDisplayStatus`, same queries — no new gig semantics): CLIENT →
+  posted gigs; SPECIALIST → PENDING applications + assigned gigs. Tabs **Все / Заявки / В работе / На проверке /
+  Завершённые** with counts; the **«Заявки»** tab is role-aware (CLIENT = own OPEN gigs with applications → derived «На
+  рассмотрении»; SPECIALIST = own PENDING applications). Cards whose status maps to no tab (a CLIENT's OPEN gig with 0
+  applications) surface under «Все» only — nothing lost.
+- **RC-S21 — prototype empty state + skeleton loading.** An empty tab renders «Здесь пока пусто» + «Гигов с таким
+  статусом нет. Они появятся здесь, когда изменится статус работ.» (composed from `SectionHeader` + `Notice` — no
+  dedicated `EmptyState` block was added; a first-class empty-state block remains a possible later kit addition). A
+  `loading.tsx` renders the prototype's 2-column skeleton grid while `getMyGigs` resolves.
+- **Deviation — no workbench-registry entry.** The workbench catalog (`app/workbench/registry.tsx`) registers
+  blocks/primitives/tokens/templates/layout, **not** composed screens, so `MyGigs` is not catalogued there (matching every
+  prior screen, e.g. `Chats`/`GigDetail`). The screen is instead covered by `compose-my-gigs` E2E + `lint:composition`.
+
+*Pipeline:* `validate:tokens` (49) + `lint:tokens` (0 new) + `lint:composition` (MyGigs F5, 19 screens) + `build`
+(`/my-gigs` 931 B) + `test:unit` (930) + `compose-my-gigs` E2E (3/3) green. F1 = structural vs the prototype `gigs`
+frame; absolute ≤1% deferred to Phase 4.
+
+## 10.15 Chats screen + thread-header Bio completion (2026-06-20, change `reconcile-chats`)
+
+Reconciled `/chats` to the prototype chats screen and **completed** the thread-header `Bio` adoption begun by
+`add-bio-block`.
+
+- **RC-S22 — the thread-header `Bio` `user` axis is the counterparty's role, not a constant.** `ChatHeader` had
+  hard-coded `user: "specialist"`; a company counterparty (a SPECIALIST viewing the chat) wrongly got specialist
+  treatment. `ChatHeaderVM` now carries `counterparty: "specialist" | "company"`, which drives the `Bio` `user` axis —
+  company collapses `Специальность`, specialist shows it.
+- **RC-S23 — `getChatThread` binds `counterparty` + `specialty`.** It sets `counterparty` from the viewer role (CLIENT
+  viewer → specialist counterparty; SPECIALIST viewer → company) and populates `specialty` from the specialist's profile
+  (**position → specialization → experienceLevel**, never fabricated; undefined for a company). Presence stays the
+  prototype's static «был(-а) недавно». All messaging semantics (sendMessage, participant-only auth, day separators)
+  unchanged.
+- **RC-S24 — the conversation-list item shows the gig status badge.** `ConversationItemVM` gains `status`;
+  `ConversationItem` renders an `inline-dot` `StatusBadge` beside the name; `getConversations` derives it via
+  `gigDisplayStatus` (these gigs are assigned → IN_PROGRESS+).
+
+*Pipeline:* `lint:tokens` (0 new) + `lint:composition` (Chats F5) + `build` (`/chats`) + `test:unit` (930, incl. the new
+chats-vm counterparty/specialty + domain-blocks ChatHeader axis tests) + `compose-chats` E2E (4/4) green. F1 =
+structural vs the prototype `chats` frame; absolute ≤1% deferred to Phase 4.
+
 ## 10.5 Auth/onboarding screen reconciliation (2026-06-18, change `reconcile-auth-and-onboarding`)
 
 - **RC-S4 — `AuthHeader` block added for the auth «HEADER» lockup.** The five Figma auth nodes

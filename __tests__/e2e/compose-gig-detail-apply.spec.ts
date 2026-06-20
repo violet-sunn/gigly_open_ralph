@@ -4,11 +4,13 @@ import { PrismaClient } from '@prisma/client'
 import { PrismaLibSql } from '@prisma/adapter-libsql'
 
 /**
- * compose-gig-detail-apply (Phase 2) — verifies the /gigs/[id] screen is composed from the kit (GigHeader +
- * RequirementCard·grid + CriteriaList + ClientCard + TermsTabs + ApplyPanel + ChatPanel) and that the preserved flows
- * work end-to-end: a SPECIALIST applies, the owner accepts (→ IN_PROGRESS), the assigned specialist submits
- * (→ REVIEW), messaging works once assigned, and example gigs can't be applied to. Seeds directly into the E2E db
- * (file:./test.db, same as the dev server).
+ * compose-gig-detail-apply — verifies the /gigs/[id] screen reconciled to the gigly_full_design prototype
+ * (reconcile-gig-detail-apply): col1 = GigHeader `main` (title + tags + description) + «Технические требования»
+ * (RequirementCard·grid) + «Критерии успеха» (CriteriaList), NO files section; col2 «УСЛОВИЯ» = the company Bio +
+ * the ConditionsPanel (grotesk Срок/Бюджет + the company-only fee breakdown) + the apply/owner/lifecycle action rail
+ * + the «Сообщения» chat. The preserved flows work end-to-end: a SPECIALIST applies, the owner accepts (→ IN_PROGRESS,
+ * and sees the fee breakdown), the assigned specialist submits (→ REVIEW), messaging works once assigned, and example
+ * gigs can't be applied to. Seeds directly into the E2E db (file:./test.db, same as the dev server).
  */
 const longApproach =
   'Я подойду к задаче поэтапно: анализ требований, проектирование архитектуры, реализация и тестирование с покрытием. ' +
@@ -83,8 +85,14 @@ test.describe('compose-gig-detail-apply — composed gig detail', () => {
     await page.goto(`/gigs/${gigApplyId}`)
 
     await expect(page.getByText('GD Apply Gig').first()).toBeVisible() // GigHeader (title also in the breadcrumb)
+    await expect(page.getByText(/reasonably detailed description/)).toBeVisible() // GigHeader main renders the description
+    await expect(page.getByText('Технические требования')).toBeVisible() // SectionHeader (col1)
     await expect(page.getByText('Цель проекта')).toBeVisible() // RequirementCard
-    await expect(page.getByRole('tab', { name: 'От заказчика' })).toBeVisible() // TermsTabs
+    await expect(page.getByText('Критерии успеха')).toBeVisible() // SectionHeader (col1)
+    await expect(page.getByText('Файлы')).toHaveCount(0) // NO files section — the prototype has none
+    await expect(page.getByRole('tab', { name: 'Мои условия' })).toBeVisible() // ConditionsPanel (col2 «УСЛОВИЯ»)
+    await expect(page.getByText('Бюджет проекта')).toBeVisible() // ConditionsPanel grotesk budget label
+    await expect(page.getByText('Срок выполнения')).toBeVisible() // ConditionsPanel grotesk deadline label
     await expect(page.getByRole('button', { name: 'Откликнуться' })).toBeVisible() // ApplyPanel
 
     await page.locator('textarea[name="approach"]').fill(longApproach)
@@ -101,9 +109,10 @@ test.describe('compose-gig-detail-apply — composed gig detail', () => {
 
     await expect(page.getByText(/Отклики: 1/)).toBeVisible()
     await expect(page.getByText('Тест Спец')).toBeVisible() // ProfileCard
+    await expect(page.getByText('Сервисный сбор (10%)')).toBeVisible() // company-only fee breakdown (ConditionsPanel)
     await page.getByRole('button', { name: 'Принять' }).click()
 
-    await expect(page.getByText('В работе')).toBeVisible() // GigHeader status after accept
+    await expect(page.getByText('В работе').first()).toBeVisible() // status after accept (GigHeader badge + ConditionsPanel Статус)
   })
 
   test('the assigned specialist submits work (→ На проверке)', async ({ page }) => {
@@ -111,7 +120,7 @@ test.describe('compose-gig-detail-apply — composed gig detail', () => {
     await page.goto(`/gigs/${gigSubmitId}`)
 
     await page.getByRole('button', { name: 'Отправить работу' }).click()
-    await expect(page.getByText('На проверке')).toBeVisible()
+    await expect(page.getByText('На проверке').first()).toBeVisible() // GigHeader badge + ConditionsPanel Статус
   })
 
   test('messaging works once a specialist is assigned', async ({ page }) => {

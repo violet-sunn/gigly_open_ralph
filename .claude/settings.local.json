@@ -278,7 +278,9 @@
       "Bash(cp scripts/generated-tokens.css /tmp/gt.css.bak)",
       "Bash(sed -i 's/\\\\[data-theme=\"light\"\\\\] {/[data-theme=\"light\"] {\\\\n  --surface-level-0: #ff0000;/' scripts/generated-tokens.css)",
       "Bash(DATABASE_URL=\"file:./prisma/dev.db\" npx prisma migrate dev --name reconcile_data_model_to_design --skip-generate)",
-      "Bash(DATABASE_URL=\"file:./prisma/dev.db\" npx prisma db push --accept-data-loss)"
+      "Bash(DATABASE_URL=\"file:./prisma/dev.db\" npx prisma db push --accept-data-loss)",
+      "Bash(awk -F: '$1>=1500 && $1<=2100')",
+      "Bash(awk -F: '$1<1440')"
     ]
   }
 }

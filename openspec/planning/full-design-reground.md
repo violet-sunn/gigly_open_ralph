@@ -1,10 +1,13 @@
 # Full-Design Re-Ground — Reassessment & Re-Route
 
 **Created:** 2026-06-19
-**Status:** PLANNED (master plan)
-**Supersedes-as-SoT:** the `/screens/*.svg` extraction and the partial Figma MCP exports (`docs/figma-*.md`).
-**Extends:** `openspec/planning/figma-grounded-ui-reconciliation.md` (9/13 done) — its remaining items fold into Phase 3 here, re-grounded on the new source.
-**New source of truth:** `gigly_full_design/` — full clickable prototype + 62-component bundle + **59 readable JSX sources** + **189 tokens** (Light/Dark) + `DATA-MODEL.md` / `ROUTES.md` / `HANDOFF.md` / `ТЗ — Светлая тема.md`.
+**Status:** PLANNED (the master plan — the sole authoritative UI plan)
+**Supersedes (treat as non-existent):** ALL prior UI plans/inputs, which predate the real design project and carry no
+authority — the `/screens/*.svg` extraction, the partial Figma MCP exports (`docs/figma-*.md`), and
+`openspec/planning/figma-grounded-ui-reconciliation.md` (created 2026-06-17, before `gigly_full_design`). Nothing
+authored under those (e.g. the deleted `reconcile-gig-detail-apply`) is reused; every remaining screen is **planned
+fresh** against the prototype.
+**Sole source of truth:** `gigly_full_design/` — full clickable prototype + 62-component bundle + **59 readable JSX sources** + **189 tokens** (Light/Dark) + `DATA-MODEL.md` / `ROUTES.md` / `HANDOFF.md` / `ТЗ — Светлая тема.md`.
 
 ## 1. The paradigm shift
 
@@ -21,14 +24,14 @@ Three things this resolves outright:
 
 **The codebase is further along than the plan tracked.** Route sweep: `dashboard, /gigs (search+mine), gigDetail, chats, finances, disputes(+detail), profile(+edit, +public), createGig, settings, admin(+users,+gigs), auth/login/register` are **all built and composed**. The 14-screen reconciliation plan undercounts reality — disputes/finances/settings/chats already exist (your recent specs commit).
 
-**What re-grounds (not redone):** the remaining reconciliation items (`reconcile-gig-detail-apply` already planned, `reconcile-my-projects`, `reconcile-chats`) and the fidelity pass should now target the **prototype**, with fonts resolved.
+**What re-grounds (planned fresh against the prototype):** the remaining screen reconciliations (gig-detail-apply, my-projects, chats) and the fidelity pass — each authored from `gigly_full_design`, not carried over from any prior plan.
 
 ## 3. The delta in four dimensions
 
 ### 3.1 Tokens — near-complete agreement; gaps are additive
 - ✅ Core palette/surfaces/brand/status values AGREE with `scripts/generated-tokens.*`.
 - ➕ **Add:** the full status **radial + border + text** triads (open/in-progress/review/testing/completed/rejected), the `shadow-sm/md/lg/focus` set, the complete `spacing` scale (xs…6xl), `radius` scale incl. `radius-special 16`.
-- ➕ **Pin category colours** (currently only `category-marketing #0088ff`): **Маркетинг=blue · Дизайн=rose · Программирование=green · Разработка=teal · Кодинг=orange** — the unbound hue↔domain mapping the old plan flagged is now resolved by `DATA-MODEL.md`.
+- ➕ **Pin category colours** (currently only `category-marketing #0088ff`): **Маркетинг=blue · Дизайн=rose · Программирование=green · Разработка=teal · Кодинг=orange** — the previously-unbound hue↔domain mapping is now pinned by `DATA-MODEL.md` + `Category.jsx`.
 - 🆕 **Light theme** token values (a whole second mode).
 
 ### 3.2 Components — kit is healthy; one real atom gap
@@ -59,7 +62,7 @@ Three things this resolves outright:
 
 ### Phase 0 — Re-ground the source of truth (cheap)
 - [x] `project.md` §Design Tokens → point at `gigly_full_design` (this commit).
-- [x] Predecessor note on `figma-grounded-ui-reconciliation.md` (this commit) + memory `gigly-full-design-import`.
+- [x] Marked the pre-design `figma-grounded-ui-reconciliation.md` as **superseded / non-authoritative** (it predates the real design) + memory `gigly-full-design-import`.
 - [x] `adopt-design-fonts` — **DONE (2026-06-19)**: NKDuy Mono→Handjet (`--font-mono`) + Vremena Grotesk→Manrope (`--font-grotesk`, new) via `next/font/google` (self-hosted, Cyrillic); SF Compact→system stack (`--font-sans`). Dropped Inter/JetBrains; exposed `font-grotesk`; F1 font cap retired across docs/planning/memory. tokens/build/lint/unit green.
 
 ### Phase 1 — Token + theme foundation
@@ -72,8 +75,18 @@ Three things this resolves outright:
 
 ### Phase 3 — Kit gap + screen re-reconciliation (re-ground on the prototype)
 - [x] `add-bio-block` — **DONE (2026-06-20)**: `Bio` block (sizeFor gig|acc-bio × user; company omits `Специальность` → collapses `bio` 2931:2365 + `bio/message/COMPANY` 2931:2366); adopted in `ChatHeader` (renders Bio; VM preserved + optional specialty) + gig-detail CONDITIONS (`getGigDetail` `bio: BioVM`). 3-variant render tests; build/lints/921 unit/chat+gig-detail E2E green. (RC-S13, §10.12.)
-- [ ] `reconcile-gig-detail-apply` — already authored; re-ground its F1 on the prototype (the design CONFIRMS its col1/col2 structure; the files section remains a sanctioned omission until attachments exist).
-- [ ] `/ralphy-plan reconcile-my-projects "…2860:2192 / 3795:5947…"` and `/ralphy-plan reconcile-chats "…2860:4702 / 3795:6890, adopt Bio…"` (from the prior plan, re-grounded).
+- [x] `reconcile-gig-detail-apply` — **DONE (2026-06-20)**: re-laid `/gigs/[id]` to the prototype `gigDetail` route (read directly). col1 = `main` GigHeader (title + tags + **description**) + «Технические требования» (RequirementCard 2-col grid) + «Критерии успеха» (numbered CriteriaList), **NO files section** (corrects the deleted draft's export-based files claim — RC-S14). col2 «УСЛОВИЯ» = company `Bio` (+ description line) + new **`ConditionsPanel`** block (tabs «Условия {company}»/«Мои условия» + Статус + Срок/Бюджет as **`font-grotesk`** numerics + **company-only fee breakdown**) + the apply/owner/lifecycle/dispute action rail + «Сообщения» chat. `GigHeaderVM` += `description` (meta row dropped); `getGigDetail` += `header.description` + `conditions` VM (owner-gated `fee`). **«Вернуть на доработку» flagged (no coded `returnWork`) — not invented.** Multi-role wiring preserved verbatim. Build/lints/923 unit (1 known pollution flake, green isolated)/`compose-gig-detail-apply` E2E 5/5 green. (RC-S14–S18, §10.13.)
+- [x] `reconcile-my-projects` — **DONE (2026-06-20)**: new standalone **«Мои гиги»** screen at `/my-gigs` (both roles;
+  `/gigs` stays browse — confirmed routing decision, RC-S19). `getMyGigs(viewer)` factors the dashboards' own-gig logic
+  (CLIENT posted gigs / SPECIALIST applications+assigned) with the prototype's 5 status tabs + role-aware «Заявки»
+  (RC-S20); prototype empty state + skeleton `loading.tsx` (RC-S21). Nav (`lib/nav.ts`)+fixtures → `/my-gigs`. §10.14.
+  Gates: validate/lint:tokens, lint:composition (19 screens), build (`/my-gigs`), test:unit (930), `compose-my-gigs` E2E
+  (3/3) green.
+- [x] `reconcile-chats` — **DONE (2026-06-20)**: **completed** the thread-header `Bio` adoption — dynamic `user` axis
+  from `ChatHeaderVM.counterparty` (company collapses `Специальность`, specialist shows it; RC-S22), `getChatThread` binds
+  `counterparty`+`specialty` (position→specialization→experienceLevel, undefined for company; RC-S23); conversation-item
+  gig status badge (RC-S24). All messaging flows preserved. §10.15. Gates: lints, build (`/chats`), test:unit (930, +
+  chats-vm + domain-blocks axis tests), `compose-chats` E2E (4/4) green.
 - [ ] `/ralphy-plan reconcile-settings "Reconcile /settings to the design: SessionRow list, Toggle/Check fields, and the light-theme switch (Phase 1). Test: prefs persist; Fidelity DoD; E2E."`
 - [ ] `/ralphy-plan build-applications-screen "Company applicants screen (ROUTES applications): specialist cards (approach/questions/estimate) → Accept (assigns, others rejected) / Reject. Lift from the embedded gig-detail list. Test: accept→in_progress; Fidelity DoD."`
 - [ ] `/ralphy-plan reconcile-disputes-flow "Dedicated disputeNew (reason enum + description) + admin disputeResolve (verdict: spec/client/50% → resolved + moderation log) + timeline. Test: open→resolve lifecycle; Fidelity DoD."`

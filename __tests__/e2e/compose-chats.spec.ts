@@ -33,7 +33,9 @@ test.beforeAll(async () => {
       email: `cchat-spec-${stamp}@example.com`,
       password: 'x',
       role: 'SPECIALIST',
-      specialistProfile: { create: { displayName: 'Иван Спец', techStack: 'React', experienceLevel: 'SENIOR' } },
+      specialistProfile: {
+        create: { displayName: 'Иван Спец', techStack: 'React', experienceLevel: 'SENIOR', position: 'Backend-разработчик' },
+      },
     },
   })
 
@@ -68,15 +70,18 @@ test.describe('compose-chats — composed chats inbox', () => {
     await expect(page.getByRole('search')).toBeVisible() // SearchPanel
     await expect(page.getByText('Иван Спец')).toBeVisible() // counterparty name (ConversationItem)
     await expect(page.getByText('E2E Chats Gig — миграция дашборда')).toBeVisible() // subtitle
+    await expect(page.getByText('В работе').first()).toBeVisible() // gig status badge on the conversation item
   })
 
-  test('opening a conversation renders the thread + composer', async ({ page }) => {
+  test('opening a conversation renders the thread + composer with the Bio header', async ({ page }) => {
     await setE2ESession(page, { id: clientId, email: clientEmail, role: 'CLIENT' })
     await page.goto(`/chats?gig=${gigId}`)
 
     // The message appears in both the list preview and the thread bubble — assert the thread bubble (last).
     await expect(page.getByText('Здравствуйте! Готов приступить.').last()).toBeVisible() // a MessageBubble in the thread
     await expect(page.getByRole('textbox', { name: 'Сообщение' })).toBeVisible() // composer Input
+    // Bio thread header (reconcile-chats): a CLIENT viewer sees the specialist counterparty's Специальность.
+    await expect(page.getByText('Backend-разработчик')).toBeVisible()
   })
 
   test('sending a message via the existing sendMessage works (lands on the gig conversation)', async ({ page }) => {

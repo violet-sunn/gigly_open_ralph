@@ -45,6 +45,7 @@ describe('getConversations', () => {
     expect(convos[0].subtitle).toBe('Миграция на PostgreSQL')
     expect(convos[0].preview).toBe('Второе сообщение') // last message
     expect(convos[0].unread).toBe(2) // both from the specialist, no lastReadAt
+    expect(convos[0].status).toBe('in-progress') // the gig status badge (reconcile-chats)
   })
 
   it('honors Notification.lastReadAt (lastReadAt after all messages → 0 unread)', async () => {
@@ -82,7 +83,20 @@ describe('getChatThread', () => {
     expect(thread!.chat.thread[2].direction).toBe('out')
     expect(thread!.chat.thread[0].date).toBeTruthy() // day-separator label present
     expect(thread!.header.name).toBe('Иван Спец') // counterparty (specialist)
+    // Bio adoption (reconcile-chats): CLIENT viewer → specialist counterparty + Специальность from the profile.
+    expect(thread!.header.counterparty).toBe('specialist')
+    expect(thread!.header.specialty).toBe('SENIOR') // experienceLevel default (no position/specialization seeded)
     void specialist
+  })
+
+  it('for a SPECIALIST viewer the counterparty is the company (no Специальность)', async () => {
+    const { specialist, gig } = await seedConversation()
+
+    const thread = await getChatThread(gig.id, { userId: specialist.id, role: 'SPECIALIST' })
+    expect(thread).not.toBeNull()
+    expect(thread!.header.name).toBe('ООО Ромашка') // counterparty (company)
+    expect(thread!.header.counterparty).toBe('company')
+    expect(thread!.header.specialty).toBeUndefined() // companies have no Специальность
   })
 
   it('returns null for a non-participant viewer', async () => {

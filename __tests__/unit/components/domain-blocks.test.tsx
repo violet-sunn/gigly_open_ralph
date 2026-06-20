@@ -22,9 +22,12 @@ import {
   OnboardingCard,
   AuthHeader,
   TermsTabs,
+  ConditionsPanel,
+  GigHeader,
   ApplyPanel,
   MessageBubble,
   ConversationItem,
+  ChatHeader,
   NotificationItem,
   AttentionCard,
   ToggleField,
@@ -51,6 +54,8 @@ import {
   requirementCardFixture,
   criteriaListFixture,
   termsTabsFixture,
+  conditionsPanelFixture,
+  gigHeaderFixture,
   applyPanelFixture,
   messageBubbleFixtures,
   conversationItemFixtures,
@@ -73,6 +78,7 @@ import {
   bioSpecialistFixture,
   bioCompanyFixture,
   bioGigFixture,
+  chatHeaderFixture,
 } from "@/app/components/blocks/fixtures";
 
 // Every block renders every §3.2 variant from fixtures (F3), composed from primitives + tokens (F2/F5),
@@ -329,6 +335,37 @@ describe("domain-blocks / TermsTabs + ApplyPanel", () => {
   });
 });
 
+describe("domain-blocks / GigHeader + ConditionsPanel (gig-detail prototype)", () => {
+  it("GigHeader renders the title + description (no budget/deadline/posted meta row)", () => {
+    const { container } = render(<GigHeader vm={gigHeaderFixture} />);
+    expect(screen.getByText(gigHeaderFixture.title)).toBeInTheDocument();
+    expect(screen.getByText(gigHeaderFixture.description!)).toBeInTheDocument();
+    // the срок/бюджет/posted meta row is dropped — those live in the conditions panel
+    expect(container.textContent).not.toContain("300 400 ₽");
+    expect(container.textContent).not.toContain("12 июня 2026");
+    expect(container.textContent).not.toMatch(/Срок\s+14/);
+  });
+
+  it("ConditionsPanel shows grotesk Срок/Бюджет per tab + the company fee breakdown", () => {
+    const { container, rerender } = render(<ConditionsPanel vm={conditionsPanelFixture} active="client" />);
+    // tabs reflect the prototype labels
+    expect(screen.getByRole("tab", { name: "Условия Acme Corp" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByText("280 000 ₽")).toBeInTheDocument(); // client budget
+    expect(screen.getByText("10 дней")).toBeInTheDocument(); // client deadline
+    expect(screen.getByText("фикс. цена")).toBeInTheDocument();
+    // company-only fee breakdown
+    expect(screen.getByText("Сервисный сбор (10%)")).toBeInTheDocument();
+    expect(screen.getByText("Итого к оплате")).toBeInTheDocument();
+    // срок/бюджет numerics use the grotesk (Manrope) face
+    const grotesk = Array.from(container.querySelectorAll("span")).filter((s) => s.className.includes("font-grotesk"));
+    expect(grotesk.length).toBeGreaterThan(0);
+    // switching to «Мои условия» surfaces the specialist's counter figures
+    rerender(<ConditionsPanel vm={conditionsPanelFixture} active="proposed" />);
+    expect(screen.getByText("300 400 ₽")).toBeInTheDocument();
+    expect(screen.getByText("14 дней")).toBeInTheDocument();
+  });
+});
+
 describe("domain-blocks / messaging — MessageBubble, ConversationItem, NotificationItem", () => {
   it("MessageBubble aligns + tints by direction", () => {
     const inVm = messageBubbleFixtures[0];
@@ -350,6 +387,21 @@ describe("domain-blocks / messaging — MessageBubble, ConversationItem, Notific
 
     const { container: read } = render(<ConversationItem vm={conversationItemFixtures[1]} />);
     expect(within(read.firstElementChild as HTMLElement).queryByText("0")).toBeNull();
+  });
+
+  it("ConversationItem shows the gig status badge (reconcile-chats)", () => {
+    render(<ConversationItem vm={conversationItemFixtures[0]} />);
+    expect(screen.getByText("В работе")).toBeInTheDocument(); // status: 'in-progress'
+  });
+
+  it("ChatHeader adopts Bio: specialist counterparty shows Специальность, company collapses it", () => {
+    const { unmount } = render(<ChatHeader vm={chatHeaderFixture} />);
+    expect(screen.getByText("Vercel")).toBeInTheDocument();
+    expect(screen.getByText("[Senior Frontend Engineer]")).toBeInTheDocument();
+    unmount();
+
+    render(<ChatHeader vm={{ ...chatHeaderFixture, counterparty: "company", specialty: undefined }} />);
+    expect(screen.queryByText("[Senior Frontend Engineer]")).toBeNull();
   });
 
   it("NotificationItem maps each type to an exported icon", () => {
@@ -516,5 +568,10 @@ describe("domain-blocks / Bio — bio (2931:2365) + bio/message/COMPANY (2931:23
     render(<Bio vm={bioGigFixture} />);
     expect(screen.getByText("Иван Петров")).toBeInTheDocument();
     expect(screen.getByText("[Backend]")).toBeInTheDocument();
+  });
+
+  it("renders the optional description line under the identity row (conditions-bio)", () => {
+    render(<Bio vm={{ ...bioCompanyFixture, description: "Делаем платёжные сервисы с 2015 года." }} />);
+    expect(screen.getByText("Делаем платёжные сервисы с 2015 года.")).toBeInTheDocument();
   });
 });

@@ -7215,3 +7215,190 @@ the gig-detail screen MUST render `<Bio>` as the conditions bio, staying composi
 - `ChatHeader` renders via `Bio` (`ChatHeaderVM` += optional `specialty`); `getGigDetail` returns `bio`; gig-detail renders `Bio` (F5)
 - 3-variant render tests; `build` + `lint:tokens` + `lint:composition` + `test:unit` (921) + chat/gig-detail E2E green
 - The two-nodes→one-block (`user` axis) decision recorded (§10.12 / RC-S13)
+
+### Requirement: Gig Detail Screen Reconciled to the Prototype
+The `/gigs/[id]` screen MUST remain a composition-pure `@composed-screen` inside `AppShell`, reconciled to the
+`gigly_full_design` `gigDetail` prototype as a 2-column layout: **col1** = a `main` overview (title + category tags +
+the gig **description**) followed by a `SectionHeader` «Технические требования» (with a count) over a **2-column
+`RequirementCard` grid**, and a `SectionHeader` «Критерии успеха» (count) over a **numbered `CriteriaList`**;
+**col2 «УСЛОВИЯ»** = the company `Bio` (+ company description) followed by a conditions panel (`ConditionsPanel` — a
+two-tab toggle «Условия {company}»/«Мои условия» + a Статус row + Срок + Бюджет + the role action panel) and a
+`SectionHeader` «Сообщения» over the `ChatPanel`. The conditions panel is a dedicated `ConditionsPanel` block, NOT the
+generic term-row `TermsTabs` (RC-S15). The screen MUST be token-pure (F2) and composition-pure (F5), and MUST preserve
+every server-action flow (apply, withdraw, accept/reject, submit, approve, return-to-rework, mark-as-paid, messaging,
+open-dispute, admin history).
+
+#### Scenario: col1 renders main + Требования + Критерии успеха (no files section)
+- GIVEN the gig detail screen
+- WHEN it renders
+- THEN col1 MUST show the title + tags + the gig **description**, a `SectionHeader` «Технические требования» over the
+  2-col `RequirementCard` grid, and a `SectionHeader` «Критерии успеха» over the numbered `CriteriaList`
+- AND it MUST NOT render any «Файлы»/attachments section (the prototype has none)
+
+#### Scenario: col2 «УСЛОВИЯ» renders the bio, conditions, action panel, and chat
+- GIVEN the gig detail screen
+- WHEN it renders
+- THEN col2 MUST render the company `Bio` (+ company description), then a `ConditionsPanel` (the two-tab toggle, a
+  Статус row, and Срок + Бюджет), then the role action panel, then a `SectionHeader` «Сообщения» over the `ChatPanel`
+- AND the `GigHeader`/`main` block MUST NOT render the former budget/deadline/posted meta row (срок/бюджет live in col2)
+
+#### Scenario: All server-action flows preserved; composition-pure
+- GIVEN the screen across roles
+- WHEN it is interacted with
+- THEN a SPECIALIST applies (+ withdraws); the owner sees the applications + accepts/rejects; the assigned specialist
+  submits, the owner approves / returns-to-rework / pays; messaging works once assigned; example/closed/dispute/admin
+  notices behave as before
+- AND the screen MUST contain no `className=`/`style=`/hex literals (F5)
+
+### Requirement: Срок/Бюджет Are Grotesk Numerics; the Company Sees the Fee Breakdown
+The conditions panel MUST render **Срок выполнения** and **Бюджет проекта** as large **`font-grotesk`** (Manrope)
+numbers with the «[N этап]» / «фикс. цена» sublabels. For the **company** viewer, the budget block MUST additionally
+show the **Сервисный сбор (10%)** and **Итого к оплате** breakdown (from the gig's `serviceFee` / `totalAmount`); the
+specialist MUST NOT see it (gated in `getGigDetail` as `fee: isOwner ? … : undefined`).
+
+#### Scenario: Numerics use grotesk; company-only fee breakdown
+- GIVEN the conditions panel
+- WHEN it renders for a specialist and for the gig owner (company)
+- THEN Срок + Бюджет MUST use the `font-grotesk` token, and the **company** view MUST show the 10% fee + total while
+  the specialist view MUST NOT
+
+### Requirement: GigHeader Reconciled to the main Shape (with description)
+`GigHeaderVM` MUST carry `description` and the `GigHeader`/`main` block MUST render it; in the gig-detail composition
+the block MUST NOT render the budget/deadline/posted meta row. `getGigDetail` MUST bind `header.description` from the
+gig.
+
+#### Scenario: main renders the description, not the meta row
+- GIVEN `getGigDetail(gigId, viewer)`
+- THEN `header.description` MUST equal the gig description and the `main` block MUST render it
+- AND the budget/deadline/posted meta row MUST NOT appear in `main`
+
+### Requirement: The Files-Section Omission Is a Design Fact, Not a Deferral
+The screen MUST NOT render a files/attachments section, recorded as a **design fact** (the prototype `gigDetail` has no
+such section) — explicitly correcting the prior export-based "4 file chips / sanctioned omission pending a backend"
+claim. The decision MUST be recorded in the reconciliation note (§10.13 / RC-S14).
+
+#### Scenario: No files section, correction recorded
+- GIVEN the reconciled screen
+- THEN there MUST be no files/attachments section, and `docs/DESIGN_SYSTEM_SPEC.md` MUST record that the prototype has
+  none (superseding the earlier export-based claim)
+
+### Requirement: Gig Detail Reconciliation Keeps the Suite Green
+The reconciliation MUST update the affected E2E/unit/VM assertions to the prototype composition while preserving every
+behavioural assertion, and keep the build, token-purity lint, composition lint, and unit/E2E suites green.
+
+#### Scenario: Tests updated to the prototype composition, suite green
+- GIVEN `compose-gig-detail-apply.spec.ts`, `domain-blocks.test.tsx`, `gig-detail-vm.test.ts`
+- WHEN they run after the reconciliation
+- THEN they MUST assert the col1 description + Требования/Критерии успеха headers + **no files section** + the col2
+  Bio/ConditionsPanel/Срок/Бюджет/company-fee + the «Сообщения» chat, and the `GigHeader` description
+- AND the behavioural assertions (apply → «Отозвать заявку», owner accept → «В работе», submit → «На проверке»,
+  messaging echo, example «Откликаться на примеры нельзя») MUST still pass
+- AND `npm run build`, `npm run lint:tokens`, `npm run lint:composition`, and `npm run test:unit` MUST pass
+
+**Acceptance Criteria:**
+- col1 = main (title+tags+description) + «Технические требования» (2-col RequirementCard) + «Критерии успеха» (numbered CriteriaList); **no files section**
+- col2 «УСЛОВИЯ» = company `Bio` + `ConditionsPanel` (tabs + Статус + Срок/Бюджет as `font-grotesk`, company-only fee breakdown) + role action panel + «Сообщения» ChatPanel
+- `GigHeader` renders `description`, drops the meta row; `getGigDetail` binds it + the `conditions` VM; срок/бюджет use `font-grotesk`
+- every server-action flow preserved; **«Вернуть на доработку» flagged (no coded `returnWork`), not invented** (§10.13 / RC-S18)
+- new `ConditionsPanel` block + `ConditionsPanelVM` (sanctioned deviation from "no new component"; RC-S15); `TermsTabs` kept in the kit untouched
+- F2 + F5 lints green; the no-files correction recorded; `build` + `lint:tokens` + `lint:composition` + `test:unit` (923) + `compose-gig-detail-apply` E2E (5/5) green; F1 = structural vs the prototype (≤1% deferred to Phase 4 `refidelity-from-full-design`)
+- Reconciliation decisions recorded (§10.13 / RC-S14–S18)
+
+### Requirement: «Мои гиги» Screen at /my-gigs (Role-Aware Own Gigs)
+The application MUST provide a standalone **«Мои гиги»** screen at `/my-gigs`, available to **both** CLIENT and
+SPECIALIST, as a composition-pure `@composed-screen` inside `AppShell`. It MUST list the **viewer's own gigs** — for a
+CLIENT, the gigs they posted; for a SPECIALIST, the gigs they applied to or are assigned to — as a 2-column `GigCard`
+grid under a `SectionHeader` «Мои гиги» and a `Tabs` status bar. Each card MUST link to `/gigs/[id]`. The public
+browse/search screen at `/gigs` MUST remain unchanged. The prototype's `gigs` screen key is NOT a URL contract; the
+own-gigs screen lives at `/my-gigs` and the nav (`lib/nav.ts`) + fixtures point «Мои гиги» there for both roles
+(RC-S19). The screen MUST be token-pure (F2) and composition-pure (F5), composing only existing kit blocks
+(`SectionHeader`, `Tabs`, `GigCard`, an empty-state block) + layout + tokens. All on-screen text MUST be Russian.
+
+#### Scenario: /my-gigs renders the header, tabs, and own-gig grid
+- GIVEN an authenticated CLIENT (or SPECIALIST) on `/my-gigs`
+- WHEN it renders
+- THEN it MUST show a `SectionHeader` «Мои гиги», a `Tabs` status bar with per-tab counts, and a 2-column `GigCard` grid
+  of the **viewer's own** gigs, each linking to `/gigs/[id]`
+- AND the public browse/search at `/gigs` MUST be unaffected
+
+#### Scenario: Role-aware content on one route
+- GIVEN the `/my-gigs` screen
+- WHEN a CLIENT views it, the grid MUST contain gigs the client posted
+- AND WHEN a SPECIALIST views it, the grid MUST contain gigs the specialist applied to or is assigned to
+
+### Requirement: «Мои гиги» Five Status Tabs With Counts (Both Roles)
+The «Мои гиги» screen MUST present the prototype's five status tabs — **Все / Заявки / В работе / На проверке /
+Завершённые** — for both roles, each with a count, with client-side filtering by the active tab (Все = all). The
+**«Заявки»** tab is role-specific: for a CLIENT it MUST count own OPEN gigs that have received applications (the derived
+«На рассмотрении», OPEN + applications>0); for a SPECIALIST it MUST count own PENDING applications. The derivation MUST
+reuse `gigDisplayStatus` (no new status semantics). `lib/view-models.ts` MUST expose `getMyGigs(viewer)` returning the
+role-aware tagged cards + the five-tab descriptor, reusing `toGigCardVM` and the dashboards' existing gig queries
+(RC-S20).
+
+#### Scenario: Tabs render with counts and filter the grid
+- GIVEN the «Мои гиги» screen with gigs across statuses
+- THEN the five tabs MUST each show a count, and selecting a tab MUST filter the grid to that status (Все shows all)
+
+#### Scenario: «Заявки» is role-aware
+- GIVEN the «Заявки» tab
+- WHEN a CLIENT views it, it MUST count own OPEN gigs with applications (derived «На рассмотрении»)
+- AND WHEN a SPECIALIST views it, it MUST count own PENDING applications
+
+### Requirement: «Мои гиги» Empty State and Skeleton Loading
+When the active tab has no gigs, the screen MUST render the prototype empty state — the title **«Здесь пока пусто»** and
+the subtitle **«Гигов с таким статусом нет. Они появятся здесь, когда изменится статус работ.»**. While the server data
+resolves, the route MUST render a 2-column **skeleton** grid (a `loading.tsx` / Suspense fallback) (RC-S21).
+
+#### Scenario: Empty tab shows the prototype empty state
+- GIVEN a tab with no gigs
+- WHEN that tab is active
+- THEN the screen MUST show «Здесь пока пусто» and the subtitle above
+
+#### Scenario: Loading shows the skeleton grid
+- GIVEN navigation to `/my-gigs` before data resolves
+- THEN a 2-column skeleton grid MUST be shown via the route's loading boundary
+
+**Acceptance Criteria:**
+- `/my-gigs` (both roles), F5-pure: `SectionHeader` «Мои гиги» + `Tabs` (5 tabs, counts) + 2-col `GigCard` grid of own gigs; `/gigs` browse unchanged
+- 5-tab set Все/Заявки/В работе/На проверке/Завершённые; «Заявки» role-aware (client OPEN+apps «На рассмотрении» / specialist PENDING); reuses `gigDisplayStatus`
+- prototype empty state + 2-col skeleton `loading.tsx`; `getMyGigs(viewer)` factors the dashboards' own-gig logic; nav + fixtures → `/my-gigs`
+- F2 + F5 lints green; `build` (`/my-gigs`) + `test:unit` (930) + `compose-my-gigs` E2E (3/3) green; F1 = structural vs the prototype `gigs` frame (≤1% deferred to Phase 4)
+- Reconciliation decisions recorded (§10.14 / RC-S19–S21)
+
+### Requirement: Chat Thread Header Uses the Bio Identity With a Dynamic Counterparty Role
+The chat thread header MUST render the **`Bio`** identity (`acc-bio`): avatar + name + verify-patch + rating + presence
+«был(-а) недавно». `Bio`'s `user` axis MUST be **driven by the counterparty's role**, not constant: a **company**
+counterparty (a SPECIALIST viewing the chat) MUST use `user: "company"` and **collapse** the `Специальность`; a
+**specialist** counterparty (a CLIENT viewing the chat) MUST use `user: "specialist"` and **show** it. `ChatHeaderVM`
+MUST carry the counterparty role; the prior hard-coded `user: "specialist"` MUST be removed. `getChatThread` MUST set
+`header.counterparty` from the viewer's role and populate `header.specialty` from the assigned specialist's profile
+(position → specialization → experienceLevel) when the counterparty is a specialist, leaving it undefined for a company;
+the presence «был(-а) недавно» and all messaging/authorization semantics MUST be unchanged (RC-S22, RC-S23).
+
+#### Scenario: Company counterparty collapses Специальность
+- GIVEN a SPECIALIST viewing a chat (the counterparty is the company)
+- THEN the thread header MUST use the `Bio` company variant and MUST NOT show a `Специальность`; `getChatThread` MUST set
+  `header.counterparty === "company"` and `header.specialty === undefined`
+
+#### Scenario: Specialist counterparty shows Специальность
+- GIVEN a CLIENT viewing a chat (the counterparty is the assigned specialist)
+- THEN the thread header MUST use the `Bio` specialist variant and MUST show the specialist's `Специальность`;
+  `getChatThread` MUST set `header.counterparty === "specialist"` and bind `header.specialty` from the profile
+
+### Requirement: Conversation Item Shows Gig Status and Unread
+Each `ConversationItem` MUST show the gig **status badge** (derived via `gigDisplayStatus`) and an **unread** indicator
+alongside the counterparty name, gig-title subtitle, last-message preview, and timestamp, matching the prototype list
+item. `ConversationItemVM` carries `status`; `getConversations` derives it (RC-S24). No field the prototype does not show
+may be invented.
+
+#### Scenario: Conversation item renders status + unread
+- GIVEN a conversation in the list
+- THEN it MUST show the gig status badge + the unread indicator + the gig-title subtitle
+
+**Acceptance Criteria:**
+- thread header uses `Bio` with a **dynamic** `user` axis (company collapses `Специальность`, specialist shows it); hard-coded `user: "specialist"` removed; `ChatHeaderVM` += `counterparty`
+- `getChatThread` binds `header.counterparty` per viewer role + `header.specialty` (position→specialization→experienceLevel, undefined for a company); presence stays «был(-а) недавно»
+- `ConversationItemVM` += `status`; `ConversationItem` renders the gig status badge; `getConversations` derives it via `gigDisplayStatus`
+- every messaging flow preserved (select, send, search, participant-only auth); F2 + F5 lints green
+- `build` (`/chats`) + `test:unit` (930) + `compose-chats` E2E (4/4) green; F1 = structural vs the prototype `chats` frame (≤1% deferred to Phase 4)
+- Reconciliation decisions recorded (§10.15 / RC-S22–S24)

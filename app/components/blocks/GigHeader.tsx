@@ -5,9 +5,10 @@ import { STATUS_LABEL, CATEGORY_LABEL } from "./util";
 import type { GigHeaderVM } from "./view-models";
 
 /**
- * GigHeader block (compose-gig-detail-apply gap fill, DESIGN_SYSTEM_SPEC §3.2) — the gig-detail header:
- * status + category, the title (display type), tags, budget (mono) + deadline + posted date. Composed from
- * primitives + layout primitives + tokens. Token-pure.
+ * GigHeader block (DESIGN_SYSTEM_SPEC §3.2) — the prototype gig-detail `main` block: status + category, the title
+ * (display type), category tags, and the gig **description**. Срок/бюджет are NOT shown here — they live in the
+ * conditions panel (ConditionsPanel) per the prototype — so this block carries the brief body, not a meta row.
+ * Composed from primitives + layout primitives + tokens. Token-pure.
  */
 export function GigHeader({ vm }: { vm: GigHeaderVM }) {
   return (
@@ -29,11 +30,7 @@ export function GigHeader({ vm }: { vm: GigHeaderVM }) {
             ))}
           </Stack>
         )}
-        <Stack axis="row" gap={4} align="center" justify="between">
-          <span className="font-mono text-mono text-strong">{vm.budget}</span>
-          <span className="text-caption font-caption text-muted">Срок {vm.deadlineDays} дней</span>
-          <span className="text-caption font-caption text-muted">{vm.postedAt}</span>
-        </Stack>
+        {vm.description && <span className="text-body font-grotesk text-muted">{vm.description}</span>}
       </Stack>
     </Panel>
   );

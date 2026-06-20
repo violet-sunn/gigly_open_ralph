@@ -13,7 +13,7 @@ import type { BioVM } from "./view-models";
 export function Bio({ vm }: { vm: BioVM }) {
   const accBio = (vm.sizeFor ?? "acc-bio") === "acc-bio";
   const showSpecialty = vm.user !== "company" && !!vm.specialty;
-  return (
+  const identity = (
     <Stack axis="row" gap={3} align="center">
       <Avatar src={vm.avatar || undefined} initials={initials(vm.name)} size={accBio ? "lg" : "sm"} online={vm.rating?.online} />
       <Stack gap={1}>
@@ -25,6 +25,14 @@ export function Bio({ vm }: { vm: BioVM }) {
         {vm.rating && <Rating value={vm.rating.value} count={vm.rating.count} verified={false} />}
         {vm.presence && <span className="text-caption font-caption text-muted">{vm.presence}</span>}
       </Stack>
+    </Stack>
+  );
+  // The conditions-bio (gig-detail col2) adds a descriptive line under the identity row; absent ⇒ identity only.
+  if (!vm.description) return identity;
+  return (
+    <Stack gap={2}>
+      {identity}
+      <span className="text-caption font-grotesk text-muted">{vm.description}</span>
     </Stack>
   );
 }

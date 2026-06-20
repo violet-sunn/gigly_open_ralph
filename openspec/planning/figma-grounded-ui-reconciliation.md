@@ -1,7 +1,13 @@
 # Figma-Grounded UI Reconciliation
 
 **Created:** 2026-06-17
-**Status:** SUPERSEDED-AS-SOT (2026-06-19) — this plan was grounded in the *partial* Figma MCP exports (`docs/figma-*.md`). The complete handoff `gigly_full_design/` is now the authoritative source; the master re-route is **`openspec/planning/full-design-reground.md`**. The remaining items here (#9 reconcile-gig-browse done; #10 gig-detail-apply authored; #11 my-projects; #12 chats; #13 refidelity) fold into that plan's Phase 3–4, re-grounded on the prototype with resolved fonts. Completed items (1–9) stand.
+**Status:** ⚠️ **DEFUNCT — historical only (do not act on this plan).** Created 2026-06-17 from the *partial* Figma
+MCP exports (`docs/figma-*.md`), **before** the real design project `gigly_full_design/` (imported 2026-06-19). It is
+**non-authoritative**: the master plan is **`openspec/planning/full-design-reground.md`**, sourced solely from
+`gigly_full_design`. The changes already *archived* under this plan (the Phase-0 kit + early reconciliations) are real
+history and stand, but **no un-built item here should be picked up** — every remaining screen is planned **fresh**
+against the prototype. (Anything authored here that wasn't archived — e.g. a `reconcile-gig-detail-apply` draft — was
+deleted and is NOT to be revived; it descends from the pre-design exports.)
 **Predecessor:** `openspec/planning/archive/ui-redesign-integration.md` (COMPLETE, 29/29) — built the mechanism from lossy SVGs; this iteration reconciles it to authoritative Figma data.
 
 ## Mandate: reconcile to the system, don't copy screens

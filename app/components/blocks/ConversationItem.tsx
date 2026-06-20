@@ -1,12 +1,13 @@
-import { Avatar } from "@/app/components/primitives";
+import { Avatar, StatusBadge } from "@/app/components/primitives";
 import { Stack } from "@/app/components/layout/Stack";
 import { cx } from "@/app/components/layout/scale";
-import { initials } from "./util";
+import { initials, STATUS_LABEL } from "./util";
 import type { ConversationItemVM } from "./view-models";
 
 /**
  * ConversationItem block (DESIGN_SYSTEM_SPEC §3.2) — {read, unread}.
- * Avatar + name + preview + timestamp + unread count (brand pill). Token-pure.
+ * Avatar + name (+ optional gig status badge) + gig subtitle + preview + timestamp + unread count (brand pill).
+ * Token-pure.
  */
 export function ConversationItem({ vm, onOpen }: { vm: ConversationItemVM; onOpen?: () => void }) {
   const unread = vm.unread > 0;
@@ -18,7 +19,14 @@ export function ConversationItem({ vm, onOpen }: { vm: ConversationItemVM; onOpe
     >
       <Avatar src={vm.avatar || undefined} initials={initials(vm.name)} size="sm" />
       <Stack gap={1} className="min-w-0 flex-1">
-        <span className={cx("truncate text-label text-strong", unread ? "font-h2" : "font-label")}>{vm.name}</span>
+        <Stack axis="row" gap={2} align="center" className="min-w-0">
+          <span className={cx("truncate text-label text-strong", unread ? "font-h2" : "font-label")}>{vm.name}</span>
+          {vm.status && (
+            <StatusBadge variant="inline-dot" status={vm.status}>
+              {STATUS_LABEL[vm.status]}
+            </StatusBadge>
+          )}
+        </Stack>
         {vm.subtitle && <span className="truncate text-caption font-caption text-subtle">{vm.subtitle}</span>}
         <span className="truncate text-caption font-caption text-muted">{vm.preview}</span>
       </Stack>

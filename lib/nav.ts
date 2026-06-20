@@ -20,10 +20,12 @@ export interface NavCounts {
 export function buildSidebarNav(role: NavRole, counts: NavCounts = {}): SidebarNavItemVM[] {
   const dashboard: SidebarNavItemVM = { icon: 'dashboard', label: 'Дашборд', href: '/dashboard', active: false }
   const search: SidebarNavItemVM = { icon: 'search', label: 'Поиск', href: '/gigs', active: false }
+  // «Мои гиги» (reconcile-my-projects): the role-aware own-gigs screen at /my-gigs, both roles. The bare /gigs route
+  // stays the SPECIALIST public browse/search (the «Поиск» item).
   const myGigs: SidebarNavItemVM = {
     icon: 'my-gigs',
     label: 'Мои гиги',
-    href: role === 'CLIENT' ? '/gigs' : '/projects',
+    href: '/my-gigs',
     count: counts.gigs,
     active: false,
   }

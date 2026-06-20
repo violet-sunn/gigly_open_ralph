@@ -9,11 +9,11 @@ import { Stack } from "@/app/components/layout/Stack";
 import { Button, StatusBadge } from "@/app/components/primitives";
 import {
   GigHeader,
+  SectionHeader,
   RequirementCard,
   CriteriaList,
   Bio,
-  ClientCard,
-  TermsTabs,
+  ConditionsPanel,
   ApplyPanel,
   ChatPanel,
   ProfileCard,
@@ -183,21 +183,23 @@ function ApplicationEntry({ app, gigStatus }: { app: GigDetailApplication; gigSt
 }
 
 /**
- * Gig detail — composed purely from the kit (compose-gig-detail-apply, Phase 2). Renders inside the layout's AppShell.
- * Template + slotted blocks + data only — no styling/className/style; arranged via layout primitives. Wires the
- * (unchanged) server actions via useActionState + <form action>. Multi-role: the SPECIALIST apply/withdraw view (the
- * design mock), the owner's applications + accept/reject + lifecycle (submit/approve/pay), gig-scoped messaging, and the
- * admin moderation history — all preserved.
+ * Gig detail — reconciled to the `gigly_full_design` prototype gigDetail route (reconcile-gig-detail-apply). A 2-column
+ * composition inside the layout's AppShell: **col1** = the `main` GigHeader (title + tags + description) over the
+ * «Технические требования» (2-col RequirementCard grid) and «Критерии успеха» (numbered CriteriaList) sections — NO
+ * files section (the prototype has none). **col2 «УСЛОВИЯ»** = the company Bio + the ConditionsPanel (grotesk
+ * срок/бюджет + the company fee breakdown) + the role action rail (apply/withdraw, owner applications + accept/reject,
+ * lifecycle submit/approve/pay, open-dispute) + the «Сообщения» chat + the admin moderation history. Template +
+ * slotted blocks + data only — no className/style; arranged via layout primitives. The (unchanged) server actions are
+ * wired via useActionState + <form action>. NOTE: a «Вернуть на доработку» (REVIEW→IN_PROGRESS) action appears in the
+ * prototype owner action set but has no coded server action yet — flagged for a follow-up (no lifecycle invented here).
  */
 export function GigDetail({ data }: { data: GigDetailData }) {
-  const [tab, setTab] = useState<"proposed" | "client">("proposed");
+  const [tab, setTab] = useState<"client" | "proposed">("client");
   const va = data.viewerApplication;
   const specialistViewer = !data.isOwner && !data.isAssignedSpecialist;
 
   return (
     <Section gap={6}>
-      <GigHeader vm={data.header} />
-
       {data.isExample && <Notice tone="info">Это пример гига. Откликаться на примеры нельзя.</Notice>}
       {data.closedByAdmin && (
         <Notice tone="error">Гиг закрыт администрацией{data.closedAt ? ` · ${data.closedAt}` : ""}.</Notice>
@@ -205,18 +207,31 @@ export function GigDetail({ data }: { data: GigDetailData }) {
       {data.paidAt && <Notice tone="success">Оплата подтверждена · {data.paidAt}</Notice>}
 
       <Split ratio="2:1">
+        {/* col1 — main + Технические требования + Критерии успеха (no files section) */}
         <Stack gap={6}>
+          <GigHeader vm={data.header} />
+
           {data.requirements.length > 0 && (
-            <Grid columns={2} gap={4}>
-              {data.requirements.map((r, i) => (
-                <RequirementCard key={i} vm={r} />
-              ))}
-            </Grid>
+            <Stack gap={4}>
+              <SectionHeader vm={{ title: "Технические требования", count: data.requirements.length }} />
+              <Grid columns={2} gap={4}>
+                {data.requirements.map((r, i) => (
+                  <RequirementCard key={i} vm={r} />
+                ))}
+              </Grid>
+            </Stack>
           )}
 
-          <CriteriaList vm={data.criteria} />
+          <Stack gap={4}>
+            <SectionHeader vm={{ title: "Критерии успеха", count: data.criteria.items.length }} />
+            <CriteriaList vm={data.criteria} />
+          </Stack>
+        </Stack>
 
-          <TermsTabs vm={data.terms} active={tab} onSelect={(t) => setTab(t as "proposed" | "client")} />
+        {/* col2 «УСЛОВИЯ» — bio + conditions panel + the role action rail + messaging */}
+        <Stack gap={6}>
+          <Bio vm={data.bio} />
+          <ConditionsPanel vm={data.conditions} active={tab} onSelect={(t) => setTab(t as "client" | "proposed")} />
 
           {/* SPECIALIST apply + states */}
           {data.lifecycle.canApply && <ApplyAction gigId={data.gigId} vm={data.apply} />}
@@ -242,13 +257,17 @@ export function GigDetail({ data }: { data: GigDetailData }) {
             </Stack>
           )}
 
+          {/* Open-dispute entry — participant (owner or assigned specialist), once a specialist is assigned */}
+          {(data.isOwner || data.isAssignedSpecialist) && data.messaging.assigned && !data.isExample && (
+            <OpenDisputeAction gigId={data.gigId} />
+          )}
+
           {/* Messaging */}
           {data.messaging.canView ? (
-            data.messaging.canSend ? (
-              <MessageChat gigId={data.gigId} chat={data.chat} />
-            ) : (
-              <ChatPanel vm={data.chat} />
-            )
+            <Stack gap={4}>
+              <SectionHeader vm={{ title: "Сообщения" }} />
+              {data.messaging.canSend ? <MessageChat gigId={data.gigId} chat={data.chat} /> : <ChatPanel vm={data.chat} />}
+            </Stack>
           ) : (
             (data.isOwner || data.isAssignedSpecialist) && (
               <Notice tone="info">Сообщения станут доступны после назначения специалиста.</Notice>
@@ -265,17 +284,6 @@ export function GigDetail({ data }: { data: GigDetailData }) {
               ))}
             </Stack>
           )}
-
-          {/* Open-dispute entry — participant (owner or assigned specialist), once a specialist is assigned */}
-          {(data.isOwner || data.isAssignedSpecialist) && data.messaging.assigned && !data.isExample && (
-            <OpenDisputeAction gigId={data.gigId} />
-          )}
-        </Stack>
-
-        <Stack gap={6}>
-          {/* CONDITIONS lead: the company bio (acc-bio Bio block) + the client meta card. */}
-          <Bio vm={data.bio} />
-          <ClientCard vm={data.client} />
         </Stack>
       </Split>
     </Section>

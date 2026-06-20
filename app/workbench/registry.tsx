@@ -622,6 +622,18 @@ const blockEntries: CatalogEntry[] = [
       </Stack>
     ),
   },
+  {
+    id: "ConditionsPanel",
+    kind: "block",
+    title: "ConditionsPanel (gig-detail УСЛОВИЯ — grotesk срок/бюджет + company fee)",
+    reference: REF.frames,
+    Story: () => (
+      <Stack gap={4}>
+        <B.ConditionsPanel vm={F.conditionsPanelFixture} active="client" />
+        <B.ConditionsPanel vm={F.conditionsPanelFixture} active="proposed" />
+      </Stack>
+    ),
+  },
   { id: "ApplyPanel", kind: "block", title: "ApplyPanel", reference: REF.frames, Story: () => <B.ApplyPanel vm={F.applyPanelFixture} /> },
   {
     id: "MessageBubble",
