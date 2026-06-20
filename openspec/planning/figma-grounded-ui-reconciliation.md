@@ -1,7 +1,7 @@
 # Figma-Grounded UI Reconciliation
 
 **Created:** 2026-06-17
-**Status:** PLANNED
+**Status:** SUPERSEDED-AS-SOT (2026-06-19) — this plan was grounded in the *partial* Figma MCP exports (`docs/figma-*.md`). The complete handoff `gigly_full_design/` is now the authoritative source; the master re-route is **`openspec/planning/full-design-reground.md`**. The remaining items here (#9 reconcile-gig-browse done; #10 gig-detail-apply authored; #11 my-projects; #12 chats; #13 refidelity) fold into that plan's Phase 3–4, re-grounded on the prototype with resolved fonts. Completed items (1–9) stand.
 **Predecessor:** `openspec/planning/archive/ui-redesign-integration.md` (COMPLETE, 29/29) — built the mechanism from lossy SVGs; this iteration reconciles it to authoritative Figma data.
 
 ## Mandate: reconcile to the system, don't copy screens
@@ -76,7 +76,7 @@ From `project.md`, "Professional B2B Experience" and "Quality Over Quantity" dem
 
 ### Risks & unknowns
 
-- **Font web-licence** (SF Compact + the three non-token families) remains an **external prerequisite** that caps the absolute F1 ≤1% gate — carried as a noted dependency, not resolved here.
+- ~~**Font web-licence** (SF Compact + the three non-token families) remains an **external prerequisite** that caps the absolute F1 ≤1% gate.~~ **RESOLVED (2026-06-19, `adopt-design-fonts`)** — the `gigly_full_design` handoff fixes a sanctioned free-Cyrillic substitution (NKDuy Mono→Handjet, Vremena Grotesk→Manrope, SF Compact→system); the F1 type cap is retired.
 - **tag/Category hue↔domain mapping** has no source-of-truth variable (hues are raw hex) — needs a designer decision; until then the mapping is a flagged assumption.
 - DOM restructure on reconciled screens risks the ~860-test suite — mitigate by preserving `data-testid`/ARIA and stable action/form signatures (same discipline as the prior plan's high-friction screens).
 
@@ -161,7 +161,7 @@ From `project.md`, "Professional B2B Experience" and "Quality Over Quantity" dem
 
 #### 13. refidelity-from-figma-references
 ```bash
-/ralphy-plan refidelity-from-figma-references "Re-ground the fidelity gate on Figma, not SVG renders. Requirements: (1) capture Figma node screenshots (MCP get_screenshot) as the F1 baseline for every reconciled screen + component, (2) recalibrate the ≤1% threshold + dynamic-region masking, (3) re-assert F1 per reconciled surface (noting the font-licence cap where it still applies), (4) RE-RUN the generativity proof — the mock-less admin screens (/admin, /admin/users, /admin/gigs) must still compose from the EXPANDED kit with zero off-system values; any new gap is logged back to the design-system spec. Test: passes a known-good control; fails an injected offset + a planted off-token value; generativity asserts zero off-system values across admin (friction: medium). Depends on: all of Phase 0 + Phase 1."
+/ralphy-plan refidelity-from-figma-references "Re-ground the fidelity gate on Figma, not SVG renders. Requirements: (1) capture Figma node screenshots (MCP get_screenshot) as the F1 baseline for every reconciled screen + component, (2) recalibrate the ≤1% threshold + dynamic-region masking, (3) re-assert F1 per reconciled surface (font cap RETIRED 2026-06-19 by `adopt-design-fonts` — superseded by `refidelity-from-full-design` in `full-design-reground.md` Phase 4), (4) RE-RUN the generativity proof — the mock-less admin screens (/admin, /admin/users, /admin/gigs) must still compose from the EXPANDED kit with zero off-system values; any new gap is logged back to the design-system spec. Test: passes a known-good control; fails an injected offset + a planted off-token value; generativity asserts zero off-system values across admin (friction: medium). Depends on: all of Phase 0 + Phase 1."
 ```
 
 ## Status
@@ -169,15 +169,15 @@ From `project.md`, "Professional B2B Experience" and "Quality Over Quantity" dem
 **Phase 0 — Close the kit gaps**
 - [x] reconcile-design-tokens-from-figma
 - [x] add-missing-primitives
-- [ ] reconcile-attention-card-and-settings-composites
-- [ ] add-profile-and-gig-detail-blocks
-- [ ] add-onboarding-and-auth-blocks
+- [x] reconcile-attention-card-and-settings-composites
+- [x] add-profile-and-gig-detail-blocks
+- [x] add-onboarding-and-auth-blocks
 
 **Phase 1 — Reconcile screens**
-- [ ] reconcile-auth-and-onboarding
-- [ ] reconcile-profile-screen
-- [ ] reconcile-dashboards
-- [ ] reconcile-gig-browse
+- [x] reconcile-auth-and-onboarding
+- [x] reconcile-profile-screen
+- [x] reconcile-dashboards
+- [x] reconcile-gig-browse
 - [ ] reconcile-gig-detail-apply
 - [ ] reconcile-my-projects
 - [ ] reconcile-chats
@@ -185,6 +185,6 @@ From `project.md`, "Professional B2B Experience" and "Quality Over Quantity" dem
 **Phase 2 — Re-validate**
 - [ ] refidelity-from-figma-references
 
-**Progress:** 2/13 changes completed
+**Progress:** 9/13 changes completed — **Phase 0 (kit gaps) COMPLETE**; Phase 1 (screen reconciliations) underway — `reconcile-auth-and-onboarding` (AuthHeader + AuthStepDots) + `reconcile-profile-screen` (SpecialtyTag + status pill, RC-S7/S8) + `reconcile-dashboards` (both nodes 2860:3751/3371:5387: WELCOME greeting + OnboardingCard×2 replacing BannerCard, 2-col BOARD, specialist 6× AttentionCard strip bound to live notifications, company hides it; RC-S9/S10) + `reconcile-gig-browse` (node 2860:2056: SectionHeader «Поиск проектов» + grid/list switcher hoisted from FilterBar into the header row, GigCard grid/list, filters retained as a sanctioned variant; RC-S11)
 **Started:** 2026-06-17 — reconcile-design-tokens-from-figma (also committed the uncommitted §10 token reconcile + fixed the stale typography anchor test); add-missing-primitives (IconButton, SpecialtyTag, Button sm+danger, FilterGroup, Select option-disabled; +surface/inverse token; refactored 4 gear edit buttons)
 **Completed:** Not completed

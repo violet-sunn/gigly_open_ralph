@@ -5,6 +5,7 @@
 export { Button } from "./Button";
 export { IconButton } from "./IconButton";
 export { Input } from "./Input";
+export { Textarea } from "./Textarea";
 export { PasswordInput } from "./PasswordInput";
 export { SearchInput } from "./SearchInput";
 export { Select, type SelectOption } from "./Select";
@@ -21,6 +22,8 @@ export { Rating } from "./Rating";
 export { ViewToggle } from "./ViewToggle";
 export { ProgressBar } from "./ProgressBar";
 export { StepIndicator } from "./StepIndicator";
+export { AuthStepDots } from "./AuthStepDots";
+export { Logomark } from "./Logomark";
 export { Icon } from "./Icon";
 
 export {

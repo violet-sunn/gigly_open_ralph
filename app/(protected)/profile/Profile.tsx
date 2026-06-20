@@ -16,8 +16,10 @@ import {
 import type { ProfileData } from '@/lib/view-models'
 
 /**
- * Profile — composed purely from the kit (compose-profile, Phase 2). Renders inside the layout's AppShell, shared by
- * the own (`/profile`) and public (`/profile/[userId]`) views. Template + slotted blocks + data only — no
+ * Profile — composed purely from the kit (reconcile-profile-screen, Phase 1; reconciled to Профиль/specialist
+ * 2860:2103). Renders inside the layout's AppShell, shared by the own (`/profile`) and public (`/profile/[userId]`)
+ * views. The node CONTENT leads with the ID block (ProfileHeader ‖ the «на стадии разработки» placeholder StatPanel)
+ * — no page-title heading — followed by the 2-col BLOCK. Template + slotted blocks + data only — no
  * styling/className/style; arranged via layout primitives. The single interaction is the owner edit affordance →
  * `/profile/edit` (the existing edit form is unchanged); `isOwner=false` (public view) drops it.
  */
@@ -26,7 +28,7 @@ export function Profile({ data }: { data: ProfileData }) {
   const edit = data.isOwner ? () => router.push('/profile/edit?from=profile') : undefined
 
   return (
-    <Section title="Профиль" gap={6}>
+    <Section gap={6}>
       <Split ratio="2:1">
         <ProfileHeader vm={data.header} onEdit={edit} />
         <StatPanel vm={data.stats} variant="single" />

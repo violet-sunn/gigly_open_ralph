@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .frm { width:480px; height:301px; flex:none; overflow:hidden; border-radius:4px; background:#01030e; box-shadow:0 1px 3px rgba(0,0,0,.18); position:relative; }
+    .frm-scale { width:1512px; height:948px; transform:scale(0.3175); transform-origin:top left; pointer-events:none; }
+    .frm-tap { position:absolute; inset:0; cursor:pointer; z-index:2; }
+    .frm-ph { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+    .frm-ph span { width:22px; height:22px; border-radius:50%; border:2px solid #1c2230; border-top-color:#0088ff; animation:frm-spin .8s linear infinite; }
+    @keyframes frm-spin { to { transform:rotate(360deg); } }
+  </style>
+</helmet>
+<div style="width:max-content; min-width:100%; min-height:100vh; box-sizing:border-box; padding:56px; background:#0a0c14; display:flex; flex-direction:column; gap:56px; font-family:'Manrope',sans-serif;">
+
+  <div style="display:flex; flex-direction:column; gap:10px;">
+    <div style="display:flex; align-items:center; gap:16px;">
+      <x-import component-from-global-scope="Logomark" from="./design-system/Components.bundle.js" size="l" hint-size="120px,44px"></x-import>
+      <span style="font-family:'Handjet',monospace; font-size:26px; color:#fff; letter-spacing:1px;">РАЗВЁРТКА ЭКРАНОВ</span>
+    </div>
+    <span style="font-family:'Handjet',monospace; font-size:15px; color:#5a5f6b;">Все экраны и состояния продукта · клик по кадру открывает живой экран · обе роли + админ + онбординг</span>
+  </div>
+
+  <section style="display:flex; flex-direction:column; gap:20px;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <span style="width:10px; height:10px; border-radius:50%; background:#0088ff;"></span>
+      <span style="font-family:'Handjet',monospace; font-size:22px; color:#fff; letter-spacing:1px;">РОЛЬ · СПЕЦИАЛИСТ</span>
+    </div>
+    <div style="display:flex; gap:32px; align-items:flex-start; flex-wrap:wrap; max-width:1600px;">
+      <sc-for list="{{ specScreens }}" as="s" hint-placeholder-count="8">
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <span style="font-family:'Handjet',monospace; font-size:14px; color:#8a8f99;">{{ s.label }}</span>
+          <div class="frm" data-frame="{{ s.key }}">
+            <a class="frm-tap" href="{{ s.href }}" target="_blank"></a>
+            <sc-if value="{{ s.visible }}" hint-placeholder-val="{{ false }}">
+              <div class="frm-scale"><dc-import name="Gigly App" initial-role="{{ s.role }}" initial-route="{{ s.route }}" initial-tab="{{ s.tab }}" initial-gig="{{ s.gig }}" initial-stage="{{ s.stage }}" initial-applied="{{ s.applied }}" initial-modal="{{ s.modal }}" initial-dispute="{{ s.dispute }}" hint-size="1512px,948px"</dc-import></div>
+            </sc-if>
+            <sc-if value="{{ s.hidden }}" hint-placeholder-val="{{ true }}">
+              <div class="frm-ph"><span></span></div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="display:flex; flex-direction:column; gap:20px;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <span style="width:10px; height:10px; border-radius:50%; background:#34c759;"></span>
+      <span style="font-family:'Handjet',monospace; font-size:22px; color:#fff; letter-spacing:1px;">РОЛЬ · КОМПАНИЯ</span>
+    </div>
+    <div style="display:flex; gap:32px; align-items:flex-start; flex-wrap:wrap; max-width:1600px;">
+      <sc-for list="{{ compScreens }}" as="s" hint-placeholder-count="7">
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <span style="font-family:'Handjet',monospace; font-size:14px; color:#8a8f99;">{{ s.label }}</span>
+          <div class="frm" data-frame="{{ s.key }}">
+            <a class="frm-tap" href="{{ s.href }}" target="_blank"></a>
+            <sc-if value="{{ s.visible }}" hint-placeholder-val="{{ false }}">
+              <div class="frm-scale"><dc-import name="Gigly App" initial-role="{{ s.role }}" initial-route="{{ s.route }}" initial-tab="{{ s.tab }}" initial-gig="{{ s.gig }}" initial-stage="{{ s.stage }}" initial-applied="{{ s.applied }}" initial-modal="{{ s.modal }}" initial-dispute="{{ s.dispute }}" hint-size="1512px,948px"</dc-import></div>
+            </sc-if>
+            <sc-if value="{{ s.hidden }}" hint-placeholder-val="{{ true }}">
+              <div class="frm-ph"><span></span></div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="display:flex; flex-direction:column; gap:20px;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <span style="width:10px; height:10px; border-radius:50%; background:#f59e0b;"></span>
+      <span style="font-family:'Handjet',monospace; font-size:22px; color:#fff; letter-spacing:1px;">АДМИН · ОНБОРДИНГ</span>
+    </div>
+    <div style="display:flex; gap:32px; align-items:flex-start; flex-wrap:wrap; max-width:1600px;">
+      <sc-for list="{{ adminScreens }}" as="s" hint-placeholder-count="2">
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <span style="font-family:'Handjet',monospace; font-size:14px; color:#8a8f99;">{{ s.label }}</span>
+          <div class="frm" data-frame="{{ s.key }}">
+            <a class="frm-tap" href="{{ s.href }}" target="_blank"></a>
+            <sc-if value="{{ s.visible }}" hint-placeholder-val="{{ false }}">
+              <div class="frm-scale"><dc-import name="Gigly App" initial-role="{{ s.role }}" initial-route="{{ s.route }}" initial-tab="{{ s.tab }}" initial-gig="{{ s.gig }}" initial-stage="{{ s.stage }}" initial-applied="{{ s.applied }}" initial-modal="{{ s.modal }}" initial-dispute="{{ s.dispute }}" hint-size="1512px,948px"</dc-import></div>
+            </sc-if>
+            <sc-if value="{{ s.hidden }}" hint-placeholder-val="{{ true }}">
+              <div class="frm-ph"><span></span></div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-for>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <span style="font-family:'Handjet',monospace; font-size:14px; color:#8a8f99;">Онбординг</span>
+        <div class="frm" data-frame="onb">
+          <a class="frm-tap" href="{{ onbHref }}" target="_blank"></a>
+          <sc-if value="{{ onbVisible }}" hint-placeholder-val="{{ false }}">
+            <div class="frm-scale"><dc-import name="Онбординг" hint-size="1512px,948px"></dc-import></div>
+          </sc-if>
+          <sc-if value="{{ onbHidden }}" hint-placeholder-val="{{ true }}">
+            <div class="frm-ph"><span></span></div>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="display:flex; flex-direction:column; gap:20px;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <span style="width:10px; height:10px; border-radius:50%; background:#ef4444;"></span>
+      <span style="font-family:'Handjet',monospace; font-size:22px; color:#fff; letter-spacing:1px;">СПОРЫ · МОДЕРАЦИЯ</span>
+    </div>
+    <div style="display:flex; gap:32px; align-items:flex-start; flex-wrap:wrap; max-width:1600px;">
+      <sc-for list="{{ disputeScreens }}" as="s" hint-placeholder-count="4">
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <span style="font-family:'Handjet',monospace; font-size:14px; color:#8a8f99;">{{ s.label }}</span>
+          <div class="frm" data-frame="{{ s.key }}">
+            <a class="frm-tap" href="{{ s.href }}" target="_blank"></a>
+            <sc-if value="{{ s.visible }}" hint-placeholder-val="{{ false }}">
+              <div class="frm-scale"><dc-import name="Gigly App" initial-role="{{ s.role }}" initial-route="{{ s.route }}" initial-tab="{{ s.tab }}" initial-gig="{{ s.gig }}" initial-stage="{{ s.stage }}" initial-applied="{{ s.applied }}" initial-modal="{{ s.modal }}" initial-dispute="{{ s.dispute }}" hint-size="1512px,948px"></dc-import></div>
+            </sc-if>
+            <sc-if value="{{ s.hidden }}" hint-placeholder-val="{{ true }}">
+              <div class="frm-ph"><span></span></div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="display:flex; flex-direction:column; gap:20px;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <span style="width:10px; height:10px; border-radius:50%; background:#8b5cf6;"></span>
+      <span style="font-family:'Handjet',monospace; font-size:22px; color:#fff; letter-spacing:1px;">ПОПАПЫ · СОСТОЯНИЯ</span>
+    </div>
+    <div style="display:flex; gap:32px; align-items:flex-start; flex-wrap:wrap; max-width:1600px;">
+      <sc-for list="{{ stateScreens }}" as="s" hint-placeholder-count="5">
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <span style="font-family:'Handjet',monospace; font-size:14px; color:#8a8f99;">{{ s.label }}</span>
+          <div class="frm" data-frame="{{ s.key }}">
+            <a class="frm-tap" href="{{ s.href }}" target="_blank"></a>
+            <sc-if value="{{ s.visible }}" hint-placeholder-val="{{ false }}">
+              <div class="frm-scale"><dc-import name="Gigly App" initial-role="{{ s.role }}" initial-route="{{ s.route }}" initial-tab="{{ s.tab }}" initial-gig="{{ s.gig }}" initial-stage="{{ s.stage }}" initial-applied="{{ s.applied }}" initial-modal="{{ s.modal }}" initial-dispute="{{ s.dispute }}" hint-size="1512px,948px"</dc-import></div>
+            </sc-if>
+            <sc-if value="{{ s.hidden }}" hint-placeholder-val="{{ true }}">
+              <div class="frm-ph"><span></span></div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { vis: {} };
+
+  componentDidMount() {
+    // Staggered timer mount — IntersectionObserver callbacks aren't delivered
+    // in this scaled DC host, so mount frames in small batches for a fast first
+    // paint while guaranteeing every frame appears without depending on scroll.
+    const keys = ['s1','s2','s3','s4','s5','s6','s7','s8','c1','c2','c3','c4','c5','c6','c7','a1','a2','onb','d1','d2','d3','d4','p1','p2','p3','p4','p5','p6','p7'];
+    let i = 0;
+    const step = () => {
+      if (i >= keys.length) return;
+      const next = Object.assign({}, this.state.vis);
+      for (let n = 0; n < 2 && i < keys.length; n++, i++) next[keys[i]] = true;
+      this.setState({ vis: next });
+      this._mt = setTimeout(step, 160);
+    };
+    this._mt = setTimeout(step, 80);
+  }
+
+  componentWillUnmount() { try { clearTimeout(this._mt); } catch (e) {} }
+
+  mk(key, label, o) {
+    const o2 = o || {};
+    const parts = [];
+    if (o2.role) parts.push('role=' + o2.role);
+    if (o2.route) parts.push('route=' + o2.route);
+    if (o2.tab) parts.push('tab=' + o2.tab);
+    if (o2.gig) parts.push('gig=' + o2.gig);
+    if (o2.stage) parts.push('stage=' + encodeURIComponent(o2.stage));
+    if (o2.applied) parts.push('applied=' + o2.applied);
+    if (o2.modal) parts.push('modal=' + o2.modal);
+    if (o2.dispute) parts.push('dispute=' + o2.dispute);
+    const href = encodeURI('Gigly App.dc.html') + (parts.length ? '#' + parts.join('&') : '');
+    const visible = !!this.state.vis[key];
+    return Object.assign({ key, label, href, visible, hidden: !visible, role: '', route: '', tab: '', gig: '', stage: '', applied: '', modal: '', dispute: '' }, o2);
+  }
+
+  renderVals() {
+    return {
+      onbHref: encodeURI('Онбординг.dc.html'),
+      onbVisible: !!this.state.vis['onb'], onbHidden: !this.state.vis['onb'],
+      specScreens: [
+        this.mk('s1', 'Дашборд', { role: 'specialist', route: 'dashboard' }),
+        this.mk('s2', 'Поиск гигов', { role: 'specialist', route: 'search' }),
+        this.mk('s3', 'Мои гиги', { role: 'specialist', route: 'gigs' }),
+        this.mk('s4', 'Проект — отклик', { role: 'specialist', route: 'gigDetail', gig: '1' }),
+        this.mk('s5', 'Проект — заявка отправлена', { role: 'specialist', route: 'gigDetail', gig: '1', applied: '1' }),
+        this.mk('s6', 'Чаты', { role: 'specialist', route: 'chats' }),
+        this.mk('s7', 'Финансы', { role: 'specialist', route: 'finance' }),
+        this.mk('s8', 'Профиль', { role: 'specialist', route: 'profile' }),
+      ],
+      compScreens: [
+        this.mk('c1', 'Дашборд', { role: 'company', route: 'dashboard' }),
+        this.mk('c2', 'Мои гиги', { role: 'company', route: 'gigs' }),
+        this.mk('c3', 'Создать гиг — бриф', { role: 'company', route: 'createGig' }),
+        this.mk('c4', 'Отклики', { role: 'company', route: 'applications' }),
+        this.mk('c5', 'Проект — приёмка', { role: 'company', route: 'gigDetail', gig: '1', stage: 'на проверке' }),
+        this.mk('c6', 'Финансы', { role: 'company', route: 'finance' }),
+        this.mk('c7', 'Профиль', { role: 'company', route: 'profile' }),
+      ],
+      adminScreens: [
+        this.mk('a1', 'Модерация', { role: 'admin', route: 'dashboard' }),
+        this.mk('a2', 'Споры — пусто', { role: 'specialist', route: 'disputes' }),
+      ],
+      disputeScreens: [
+        this.mk('d1', 'Споры — список', { role: 'specialist', route: 'disputes' }),
+        this.mk('d2', 'Спор — детальная', { role: 'specialist', route: 'disputeDetail', dispute: '1' }),
+        this.mk('d3', 'Открыть спор', { role: 'specialist', route: 'disputeNew', gig: '1' }),
+        this.mk('d4', 'Решение спора (админ)', { role: 'admin', route: 'disputeResolve', dispute: '1' }),
+      ],
+      stateScreens: [
+        this.mk('p1', 'Настройки', { role: 'specialist', route: 'profile', modal: 'settings' }),
+        this.mk('p2', 'Уведомления', { role: 'specialist', route: 'dashboard', modal: 'notif' }),
+        this.mk('p3', 'Редактирование стека', { role: 'specialist', route: 'profile', modal: 'profStack' }),
+        this.mk('p4', 'Жизненный цикл — в работе', { role: 'specialist', route: 'gigDetail', gig: '1', stage: 'в работе' }),
+        this.mk('p5', 'Завершён', { role: 'specialist', route: 'gigDetail', gig: '1', stage: 'завершён' }),
+        this.mk('p6', 'К оплате (компания)', { role: 'company', route: 'gigDetail', gig: '1', stage: 'завершён' }),
+        this.mk('p7', 'Оплачен (PAID)', { role: 'company', route: 'gigDetail', gig: '1', stage: 'оплачен' }),
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -4,11 +4,12 @@ import { PrismaClient } from '@prisma/client'
 import { PrismaLibSql } from '@prisma/adapter-libsql'
 
 /**
- * compose-profile (Phase 2) — verifies /profile is composed from the kit (ProfileHeader + StatPanel + TagList +
- * CategoryTags + ExperienceList + GigCard·list) with real data, that the edit flow is preserved (the header affordance
- * → /profile/edit, a save round-trips), and that the public /profile/[userId] view renders read-only. Seeds a
- * SPECIALIST with the profile-evolution fields + favorite categories + a COMPLETED gig + a review directly into the E2E
- * db (file:./test.db, same as the dev server).
+ * compose-profile (reconcile-profile-screen, Phase 1 — reconciled to Профиль/specialist 2860:2103) — verifies
+ * /profile is composed from the kit (the ID block ProfileHeader [SpecialtyTag specialty + availability status pill] ‖
+ * placeholder StatPanel, then TagList + CategoryTags + ExperienceList + GigCard·list) with real data, leads with the
+ * ID block (no «Профиль» page-title), that the edit flow is preserved (the header affordance → /profile/edit, a save
+ * round-trips), and that the public /profile/[userId] view renders read-only. Seeds a SPECIALIST with the
+ * profile-evolution fields + favorite categories + a COMPLETED gig + a review directly into the E2E db (file:./test.db).
  */
 let specId: string
 let specEmail: string
@@ -94,9 +95,12 @@ test.describe('compose-profile — composed profile screen', () => {
     await setE2ESession(page, { id: specId, email: specEmail, role: 'SPECIALIST' })
     await page.goto('/profile')
 
-    // ProfileHeader — role tag + phone-verified badge
+    // ProfileHeader ID block — SpecialtyTag specialty + availability status pill + phone-verified badge
     await expect(page.getByText('Senior Frontend Engineer')).toBeVisible()
+    await expect(page.getByText('Не в сети')).toBeVisible() // availability status pill (getProfile online:false)
     await expect(page.getByText('Номер телефона верифицирован')).toBeVisible()
+    // The node CONTENT leads with the ID block — no «Профиль» page-title heading
+    await expect(page.getByRole('heading', { name: 'Профиль', exact: true })).toHaveCount(0)
     // TagList «Стек»
     await expect(page.getByText('Стек', { exact: true })).toBeVisible()
     await expect(page.getByText('WebSocket')).toBeVisible()

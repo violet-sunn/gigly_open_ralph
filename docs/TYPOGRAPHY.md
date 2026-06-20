@@ -1,48 +1,46 @@
-# Typography — font licence decision & type layer
+# Typography — font substitution & type layer
 
-**Created:** 2026-06-14 · **Owner change:** `typography-system` (Phase 0 #4)
+**Created:** 2026-06-14 · **Owner change:** `typography-system` (Phase 0 #4) · **Resolved:** `adopt-design-fonts`
+(2026-06-19) — the authoritative handoff `gigly_full_design/` fixes the substitution; the F1 type cap is retired.
 **Provenance:** `docs/DESIGN_SYSTEM_SPEC.md` §1.4 / §10 (type scale re-sourced from the Figma `tokens` frame,
-2026-06-17), `docs/DESIGN_SPECS.md` §7.3 (the SVG text is outlined to paths — fonts unrecoverable from the SVG
-substrate, which is *why* Figma is now the source for the metrics).
+2026-06-17); `gigly_full_design/README.md` + `HANDOFF.md` + `styles.css` (the sanctioned font-substitution map).
 
-> **Type-axis fidelity is CAPPED (dev stage).** The redesign's intended fonts are **not web-embeddable**, so the
-> app ships the closest freely-licensed substitutes. Pixel-exact type awaits a licensed font (see *Swap-in path*).
+> **Type fidelity is no longer capped.** The redesign's intended fonts are not web-embeddable, but the design now
+> specifies concrete free, Cyrillic-capable substitutes — adopted here as **system fact**. The F1 ≤1% gate's only
+> remaining dependency is the Phase-4 re-baseline (`refidelity-from-full-design`), not the fonts.
 
-## 1. Licence finding
+## 1. The intended families (not web-embeddable) → sanctioned substitutes
 
-| Intended font | Role | Web-embeddable? | Why |
+| Intended font | Role | Embeddable? | Sanctioned substitute |
 |---|---|---|---|
-| **SF Compact** (San Francisco) | display / UI / body | **No** | Apple proprietary; the licence permits use essentially only on Apple platforms — it cannot be self-hosted/served as a web font for a general Next.js site. |
-| **NKDy Mono** | monospace data | **No** | Not a generally-available or licensable web font; no distributable web files. |
+| **SF Compact** (San Francisco) | UI / body (`primary`) | **No** (Apple proprietary) | **system stack** (`-apple-system, system-ui, "Segoe UI", Roboto, …`) |
+| **NKDy Mono** | logo, pixel headings, mono data (`accent`) | **No** (no distributable web files) | **Handjet** (SIL OFL) |
+| **Vremena Grotesk** | grotesk / numbers — gig price/term, message bodies, job-experience | **No** | **Manrope** (SIL OFL) |
 
-Because neither can be embedded, pixel-exact type to the (presumed-SF) reference is **not achievable on the web**.
-This was the planning doc's single biggest fidelity risk, and it is now resolved by an explicit substitute
-decision rather than left blocking.
+The substitution is the design's own decision (`gigly_full_design/styles.css` font-map), not an interim guess. It is
+therefore the **target**, recorded as system fact — what was the planning doc's single biggest fidelity risk is closed.
 
-## 2. Dev-stage substitute decision (closest resemblance)
+## 2. The substitution (sanctioned, OFL / system)
 
-| Token | Substitute | Licence | Why it's the closest resemblance |
+| Contract var | Family | Source | Covers |
 |---|---|---|---|
-| `font/sans` (`--font-sans`) | **Inter** | SIL OFL 1.1 | Free, metrics-close alternative to Apple's San Francisco; near-equivalent x-height, humanist-grotesque proportions, UI legibility at small sizes. Covers the **sans** roles: h2 / title / body / label / label-bioname / caption. |
-| `font/mono` (`--font-mono`) | **JetBrains Mono** | SIL OFL 1.1 | Free monospace with a clean, slightly-condensed rhythm. Covers the **mono/accent** roles — per Figma this is not just tabular data but the **display / h1** headings too (NKDuy Mono display face), plus mono / mono-small (`30 000 ₽`, codes). |
+| `font/sans` (`--font-sans`) | **system stack** | OS-native (no web font; set in `app/globals.css`) | the **sans** roles: h2 / title / body / label / label-bioname / caption (SF Compact role). |
+| `font/mono` (`--font-mono`) | **Handjet** (pixel) | `next/font/google` (self-hosted at build) | the **accent** roles: display / h1 headings, logomark, mono / mono-small (`30 000 ₽`, codes) — the NKDuy Mono pixel face. The contract name `mono` is retained for stability though the face is a pixel display font, not a monospace. |
+| `font/grotesk` (`--font-grotesk`) | **Manrope** | `next/font/google` (self-hosted at build) | the **Vremena Grotesk** roles: numbers, gig price/term, message bodies, job-experience. Available kit-wide; adopted per-screen during the Phase-3 reconciliations. |
 
-Both are **self-hosted** as `woff2` under `app/fonts/` (with OFL licence text committed alongside) and loaded via
-`next/font/local` for **deterministic, offline-safe builds**. Weights shipped: Inter 400/500/600/700 (matching the
-sans `type/*` weights); JetBrains Mono 400.
-
-> **Residual (Figma reconciliation, 2026-06-17):** display/section headings now use the **mono/accent** face at
-> weights **500/600** (Figma Heading/H1 600, H2 500), but only JetBrains Mono **400** is currently shipped — those
-> headings render at 400 (or browser-synthesized weight) until JetBrains Mono 500/600 `woff2` are added to
-> `app/fonts.ts`, or the licensed NKDuy Mono lands. Closing this needs no token/contract change.
+Handjet + Manrope are **self-hosted at build** via `next/font/google` (no runtime Google request; the Cyrillic
+subset + variable axes are handled automatically). `--font-sans` is the OS **system stack** (no web font), set in
+`app/globals.css`. Because both web fonts are **variable**, the heading weights (Figma H1 600 / H2 500) are native —
+there is no shipped-weight gap (the old JetBrains-Mono-400-only residual is resolved).
 
 ## 3. Binding to the type tokens
 
-- `openspec/specs/ui/design-tokens.json` → `font.family.{sans,mono}` reference the `--font-sans` / `--font-mono`
-  variables; `scripts/parse-design-tokens.js` emits a `fontFamily` group; `tailwind.config.ts` consumes it
-  (`font-sans`, `font-mono`).
-- `app/fonts.ts` loads the substitutes via `next/font/local` (`variable: --font-sans / --font-mono`,
-  `display: 'swap'`, `adjustFontFallback: 'Arial'`); `app/layout.tsx` applies the variables on `<html>` and sets
-  `font-sans` as the default body family.
+- `openspec/specs/ui/design-tokens.json` → `font.family.{sans,mono,grotesk}` reference the `--font-sans` /
+  `--font-mono` / `--font-grotesk` variables; `scripts/parse-design-tokens.js` emits a `fontFamily` group;
+  `tailwind.config.ts` consumes it (`font-sans`, `font-mono`, `font-grotesk`).
+- `app/fonts.ts` loads Handjet (`--font-mono`) + Manrope (`--font-grotesk`) via `next/font/google`
+  (`subsets: ['latin','cyrillic']`, `display: 'swap'`); `app/layout.tsx` applies those variables on `<html>` and
+  keeps `font-sans` (the system stack, defined in `globals.css`) as the default body family.
 - The `type/*` tokens (re-sourced from Figma, 2026-06-17) carry **size + line-height + weight + letter-spacing +
   per-role family** (`sans`/`mono`). The parser emits `fontSize` / `lineHeight` / `fontWeight` / `letterSpacing`
   groups plus a per-role `fontFamily` entry, so `text-display font-display tracking-display` yields the full style

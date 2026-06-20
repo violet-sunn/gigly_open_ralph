@@ -4,9 +4,11 @@ import { PrismaClient } from '@prisma/client'
 import { PrismaLibSql } from '@prisma/adapter-libsql'
 
 /**
- * compose-client-dashboard (Phase 2) — verifies the CLIENT /dashboard is composed from the kit (BannerCard + Tabs +
- * GigCard·grid + CreateGigCTA + MessagesPanel) with real data, and that gig links + the create flow work. Seeds a
- * CLIENT + a gig directly into the E2E db (file:./test.db, same as the dev server) so the dashboard has real content.
+ * compose-client-dashboard (reconcile-dashboards, Phase 1 — reconciled to Дашборд/company 3371:5387) — verifies the
+ * CLIENT /dashboard is composed from the kit (WELCOME greeting + OnboardingCard×2 → 2-col BOARD: Активные задачи Tabs +
+ * GigCard feed ‖ Найти новый проект CreateGigCTA + Сообщения MessagesPanel) with real data, that gig links + the create
+ * flow work, and that NO attention strip renders on company. Seeds a CLIENT + a gig directly into the E2E db
+ * (file:./test.db, same as the dev server) so the dashboard has real content.
  */
 let userId: string
 let userEmail: string
@@ -43,14 +45,18 @@ test.beforeAll(async () => {
 })
 
 test.describe('compose-client-dashboard — composed CLIENT dashboard', () => {
-  test('renders the composed blocks (banner, tabs, create CTA, gig card)', async ({ page }) => {
+  test('renders the composed blocks (greeting, onboarding, tabs, create CTA, gig card; no attention strip)', async ({ page }) => {
     await setE2ESession(page, { id: userId, email: userEmail, role: 'CLIENT' })
     await page.goto('/dashboard')
 
-    await expect(page.getByText(/Найдите сильного специалиста/)).toBeVisible() // BannerCard
-    await expect(page.getByRole('tablist')).toBeVisible() // Tabs
-    await expect(page.getByRole('link', { name: /Создать гиг/ }).first()).toBeVisible() // CreateGigCTA / banner CTA
+    await expect(page.getByText(/Здравствуйте/)).toBeVisible() // WELCOME greeting (no BannerCard)
+    await expect(page.getByText('Заполните профиль')).toBeVisible() // an OnboardingCard
+    await expect(page.getByText('Активные задачи')).toBeVisible() // BOARD col1 SectionHeader
+    await expect(page.getByRole('tablist')).toBeVisible() // Tabs (Menu-switcher)
+    await expect(page.getByRole('link', { name: /Создать гиг/ }).first()).toBeVisible() // CreateGigCTA
     await expect(page.getByText('E2E Dashboard Gig')).toBeVisible() // a GigCard
+    await expect(page.getByText('Уведомления')).toHaveCount(0) // company hides the attention strip
+    await expect(page.getByRole('heading', { name: 'Дашборд' })).toHaveCount(0) // no page-title
   })
 
   test('a GigCard opens the gig detail', async ({ page }) => {

@@ -86,7 +86,10 @@ describe('getClientDashboard', () => {
     expect(data.tabs.find((t) => t.value === 'all')?.count).toBe(2)
     expect(data.tabs.find((t) => t.value === 'IN_PROGRESS')?.count).toBe(1)
     expect(data.tabs.map((t) => t.label)).toEqual(['Все', 'В работе', 'На проверке', 'Завершённые'])
-    expect(data.banner.cta?.href).toBe('/gigs/new')
+    // WELCOME — greeting + two onboarding tiles (the first carries the real completion as its progress); no banner.
+    expect(data.greeting).toBeTruthy()
+    expect(data.onboarding.length).toBeGreaterThanOrEqual(2)
+    expect(data.onboarding[0].progress).toBe(data.completion)
     expect(Array.isArray(data.messages.conversations)).toBe(true)
     // each card carries its raw lifecycle status for client-side tab filtering
     expect(data.gigCards.every((c) => typeof c.rawStatus === 'string')).toBe(true)

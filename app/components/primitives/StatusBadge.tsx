@@ -20,7 +20,7 @@ export function StatusBadge({ variant = "pill", status = "open", children, class
     return (
       <span
         className={cx(
-          "inline-flex h-control items-center rounded-pill bg-brand-default/10 px-4 text-label font-label text-brand-default",
+          "inline-flex h-control items-center rounded-pill bg-tint-brand px-4 text-label font-label text-brand-default",
           className,
         )}
       >

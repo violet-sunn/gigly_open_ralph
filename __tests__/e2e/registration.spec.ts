@@ -21,7 +21,7 @@ test.describe('Basic Navigation', () => {
     expect(page.url()).toContain('/register')
 
     // The composed 3-step wizard: step 1 shows the heading + role cards (email/password are on step 2)
-    await expect(page.getByRole('heading', { name: 'Регистрация' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Создайте свой аккаунт' })).toBeVisible()
     await expect(page.getByTestId('role-client')).toBeVisible()
     await expect(page.getByTestId('role-specialist')).toBeVisible()
   })

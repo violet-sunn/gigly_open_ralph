@@ -10,7 +10,7 @@ export function MessageBubble({ vm }: { vm: MessageBubbleVM }) {
   const out = vm.direction === "out";
   return (
     <Stack axis="row" justify={out ? "end" : "start"}>
-      <div className={cx("max-w-md rounded-lg px-3 py-2", out ? "bg-brand-default/10" : "bg-surface-level-2")}>
+      <div className={cx("max-w-md rounded-lg px-3 py-2", out ? "bg-tint-brand" : "bg-surface-level-2")}>
         <span className="block text-body font-body text-strong">{vm.body}</span>
         <span className="mt-1 block text-caption font-caption text-muted">
           {vm.timestamp}

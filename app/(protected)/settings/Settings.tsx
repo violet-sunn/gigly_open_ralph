@@ -1,12 +1,13 @@
 /* @composed-screen */
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { Section } from "@/app/components/layout/Section";
 import { Stack } from "@/app/components/layout/Stack";
 import { Select, Input, Button } from "@/app/components/primitives";
 import { ToggleList, Notice } from "@/app/components/blocks";
 import { updatePreferences, deleteAccount } from "@/app/actions/settings";
+import { applyTheme, getStoredTheme, type Theme } from "@/lib/theme";
 import type { SettingsData } from "@/lib/view-models";
 
 type PrefState = { error?: string; success?: boolean } | null;
@@ -16,6 +17,36 @@ const LOCALE_OPTIONS = [
   { value: "ru", label: "Русский" },
   { value: "en", label: "English" },
 ];
+
+const THEME_OPTIONS = [
+  { value: "dark", label: "Тёмная" },
+  { value: "light", label: "Светлая" },
+];
+
+/** Внешний вид — the theme switch (Тёмная / Светлая). Client-only; persists to localStorage via applyTheme.
+ *  Initialises to the SSR default (dark) then syncs to the stored choice on mount (no hydration mismatch). */
+function AppearanceControl() {
+  const [theme, setThemeState] = useState<Theme>("dark");
+  const [open, setOpen] = useState(false);
+  useEffect(() => setThemeState(getStoredTheme()), []);
+  return (
+    <Section title="Внешний вид" gap={3}>
+      <Select
+        options={THEME_OPTIONS}
+        value={theme}
+        expanded={open}
+        onToggle={() => setOpen((o) => !o)}
+        onSelect={(v) => {
+          const next = (v === "light" ? "light" : "dark") as Theme;
+          setThemeState(next);
+          applyTheme(next);
+          setOpen(false);
+        }}
+        aria-label="Тема оформления"
+      />
+    </Section>
+  );
+}
 
 const NOTIFY_LABELS: Record<string, string> = {
   notifyApplications: "Отклики",
@@ -113,6 +144,8 @@ export function Settings({ prefs, email }: SettingsData) {
           {state?.error && <Notice tone="error">{state.error}</Notice>}
         </Stack>
       </form>
+
+      <AppearanceControl />
 
       <DangerAction email={email} />
     </Section>

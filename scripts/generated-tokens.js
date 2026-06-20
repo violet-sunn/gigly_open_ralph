@@ -1,48 +1,67 @@
 // Auto-generated design tokens
 // Source: openspec/specs/ui/design-tokens.json
-// Generated: 2026-06-17T17:03:37.974Z
+// Generated: 2026-06-20T14:52:23.873Z
 //
 // To regenerate: node scripts/parse-design-tokens.js
+// NOTE (add-light-theme): colors/boxShadow/gradient are var(--*) refs — values + theme overrides
+// live in generated-tokens.css (:root dark, [data-theme="light"] light).
 
 module.exports = {
   colors: {
-  "surface-level-0": "#01030e",
-  "surface-level-1": "#0e101a",
-  "surface-level-2": "#10121c",
-  "surface-level-3": "#1a1a24",
-  "surface-level-3-hover": "#1a1d2a",
-  "surface-inverse": "#ffffff",
-  "text-strong": "#ffffff",
-  "text-inverse": "#ffffff",
-  "text-muted": "#8a8f99",
-  "text-subtle": "#9fa0a4",
-  "text-disabled": "#3a3d45",
-  "border-default": "#5a6070",
-  "brand-default": "#0088ff",
-  "brand-hover": "#0099ff",
-  "brand-pressed": "#0077e6",
-  "brand-highlight": "#4cacff",
-  "brand-dark-600": "#1379f3",
-  "status-open": "#8a8f99",
-  "status-review": "#f59e0b",
-  "status-in-progress": "#3b82f6",
-  "status-verification": "#8b5cf6",
-  "status-completed": "#10b981",
-  "status-rejected": "#ef4444",
-  "category-marketing": "#0088ff",
-  "category-design": "#f45fb1",
-  "category-programming": "#0cc671",
-  "category-development": "#05c9e6",
-  "category-coding": "#f27c0d",
-  "accent-pink": "#ff2d55",
-  "overlay-fill": "rgba(255, 255, 255, 0.05)",
-  "overlay-line": "rgba(255, 255, 255, 0.08)",
-  "overlay-line-strong": "rgba(255, 255, 255, 0.2)",
-  "overlay-header": "rgba(255, 255, 255, 0.01)"
+  "surface-level-0": "var(--surface-level-0)",
+  "surface-level-1": "var(--surface-level-1)",
+  "surface-level-2": "var(--surface-level-2)",
+  "surface-level-3": "var(--surface-level-3)",
+  "surface-level-3-hover": "var(--surface-level-3-hover)",
+  "surface-inverse": "var(--surface-inverse)",
+  "surface-logo-plate": "var(--surface-logo-plate)",
+  "text-strong": "var(--text-strong)",
+  "text-inverse": "var(--text-inverse)",
+  "text-muted": "var(--text-muted)",
+  "text-subtle": "var(--text-subtle)",
+  "text-disabled": "var(--text-disabled)",
+  "border-default": "var(--border-default)",
+  "brand-default": "var(--brand-default)",
+  "brand-hover": "var(--brand-hover)",
+  "brand-pressed": "var(--brand-pressed)",
+  "brand-highlight": "var(--brand-highlight)",
+  "brand-dark-600": "var(--brand-dark-600)",
+  "status-open": "var(--status-open)",
+  "status-review": "var(--status-review)",
+  "status-in-progress": "var(--status-in-progress)",
+  "status-verification": "var(--status-verification)",
+  "status-completed": "var(--status-completed)",
+  "status-rejected": "var(--status-rejected)",
+  "category-marketing": "var(--category-marketing)",
+  "category-design": "var(--category-design)",
+  "category-programming": "var(--category-programming)",
+  "category-development": "var(--category-development)",
+  "category-coding": "var(--category-coding)",
+  "status-border-open": "var(--status-border-open)",
+  "status-border-review": "var(--status-border-review)",
+  "status-border-in-progress": "var(--status-border-in-progress)",
+  "status-border-verification": "var(--status-border-verification)",
+  "status-border-completed": "var(--status-border-completed)",
+  "status-border-rejected": "var(--status-border-rejected)",
+  "accent-pink": "var(--accent-pink)",
+  "tint-brand": "var(--tint-brand)",
+  "tint-danger": "var(--tint-danger)",
+  "tint-danger-hover": "var(--tint-danger-hover)",
+  "attention-status-change": "var(--attention-status-change)",
+  "attention-message": "var(--attention-message)",
+  "attention-deadline": "var(--attention-deadline)",
+  "attention-accepted": "var(--attention-accepted)",
+  "attention-rejected": "var(--attention-rejected)",
+  "attention-payment": "var(--attention-payment)",
+  "overlay-fill": "var(--overlay-fill)",
+  "overlay-line": "var(--overlay-line)",
+  "overlay-line-strong": "var(--overlay-line-strong)",
+  "overlay-header": "var(--overlay-header)"
 },
   fontFamily: {
   "sans": "var(--font-sans), -apple-system, system-ui, Segoe UI, Roboto, sans-serif",
   "mono": "var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace",
+  "grotesk": "var(--font-grotesk), system-ui, Segoe UI, Roboto, sans-serif",
   "display": "var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace",
   "h1": "var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace",
   "h2": "var(--font-sans), -apple-system, system-ui, Segoe UI, Roboto, sans-serif",
@@ -102,11 +121,13 @@ module.exports = {
   "mono-small": "0px"
 },
   boxShadow: {
-  "none": "0px 0px 0px 0px rgba(0, 0, 0, 0.00)",
-  "focus": "0px 0px 0px 2px rgba(0, 136, 255, 0.40)",
-  "card": "0px 2px 8px 0px rgba(0, 0, 0, 0.16)",
-  "md": "0px 4px 12px 0px rgba(0, 0, 0, 0.40)",
-  "popover": "0px 8px 24px 0px rgba(0, 0, 0, 0.20)"
+  "none": "var(--shadow-none)",
+  "sm": "var(--shadow-sm)",
+  "lg": "var(--shadow-lg)",
+  "focus": "var(--shadow-focus)",
+  "card": "var(--shadow-card)",
+  "md": "var(--shadow-md)",
+  "popover": "var(--shadow-popover)"
 },
   spacing: {
   "0": "0px",
@@ -119,7 +140,9 @@ module.exports = {
   "8": "32px",
   "10": "40px",
   "12": "48px",
-  "16": "64px"
+  "16": "64px",
+  "20": "80px",
+  "24": "96px"
 },
   borderRadius: {
   "xs": "2px",
@@ -151,7 +174,18 @@ module.exports = {
   "overlay": "0.6"
 },
   gradient: {
-  "brand-glow": "linear-gradient(90deg, rgba(0, 136, 255, 0.10) 0%, rgba(0, 136, 255, 0.083) 11%, rgba(0, 136, 255, 0) 75%)",
-  "status-completed-glow": "radial-gradient(closest-side, rgba(16, 185, 129, 0.5) 0%, rgba(16, 185, 129, 0.1) 50%, rgba(16, 185, 129, 0) 100%)"
+  "brand-glow": "var(--gradient-brand-glow)",
+  "status-completed-glow": "var(--gradient-status-completed-glow)",
+  "status-open-glow": "var(--gradient-status-open-glow)",
+  "status-in-progress-glow": "var(--gradient-status-in-progress-glow)",
+  "status-review-glow": "var(--gradient-status-review-glow)",
+  "status-verification-glow": "var(--gradient-status-verification-glow)",
+  "status-rejected-glow": "var(--gradient-status-rejected-glow)",
+  "attention-status-change-glow": "var(--gradient-attention-status-change-glow)",
+  "attention-message-glow": "var(--gradient-attention-message-glow)",
+  "attention-deadline-glow": "var(--gradient-attention-deadline-glow)",
+  "attention-accepted-glow": "var(--gradient-attention-accepted-glow)",
+  "attention-rejected-glow": "var(--gradient-attention-rejected-glow)",
+  "attention-payment-glow": "var(--gradient-attention-payment-glow)"
 },
 };

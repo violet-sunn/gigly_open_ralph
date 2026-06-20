@@ -1,0 +1,109 @@
+/* ============================================================
+   GIGLY — global stylesheet
+   Loaded by every screen via <link rel="stylesheet" href="styles.css">.
+   Holds: web-font loading, design tokens, and base resets ONLY.
+   All component styling is inline (Design Components convention).
+   ------------------------------------------------------------
+   Font substitution map (proprietary -> free, Cyrillic-capable):
+     NKDuy Mono      -> Handjet      (pixel/mono brand headers, logo)
+     Vremena Grotesk -> Manrope      (grotesk numerics / labels)
+     SF Compact      -> system stack (-apple-system / Segoe UI)
+   The bundle's baked font-family strings were rewritten to the
+   substitute names; if you re-materialize the bundle, re-apply
+   the NKDuy Mono->Handjet / Vremena Grotesk->Manrope replacement.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Handjet:wght@100..900&family=Inter:wght@100..900&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@100..800&family=Manrope:wght@200..800&display=swap');
+
+@import './design-system/fig-tokens.css';
+
+/* ============================================================
+   THEME LAYER — dark (default) + light override.
+   Inline literals across the app were converted to these vars.
+   The Settings → Внешний вид toggle sets data-theme on <html>.
+   Dark values equal the original literals → no visual regression.
+   Light theme builds depth with shadow + gray layers (not glow):
+   warm-gray app bg, white cards float above it, sunken inputs
+   darker than cards, hairlines become dark-on-light.
+   ============================================================ */
+:root {
+  --surface-app:        #01030e;
+  --surface-sidebar:    #0a0c14;
+  --surface-card:       #0e101a;
+  --surface-sunken:     #10121c;
+  --surface-secondary:  #1c2230;
+  --border-strong:      #313643;
+  --hairline-05: rgba(255,255,255,0.05);
+  --hairline-06: rgba(255,255,255,0.06);
+  --hairline-08: rgba(255,255,255,0.08);
+  --hairline-10: rgba(255,255,255,0.1);
+  --hairline-12: rgba(255,255,255,0.12);
+  --text-1: #ffffff;
+  --text-2: #cfd2d8;
+  --text-3: #8a8f99;
+  --text-4: #5a5f6b;
+  --text-5: #3a3f4d;
+  --card-shadow: none;
+  --card-shadow-lg: 0 20px 60px rgba(0,0,0,0.6);
+  --accent-ink: #4ea3ff;
+  --nav-active-fg: #ffffff;
+  --switch-active-fg: #ffffff;
+  --surface-deep: #0b0d16;
+  --surface-them: #13161f;
+  --bubble-me: #16233a;
+}
+
+html[data-theme="light"] {
+  --surface-primary:    #f4f5f7;   /* override fig token used by body */
+  --surface-app:        #f4f5f7;
+  --surface-sidebar:    #ffffff;
+  --surface-card:       #ffffff;
+  --surface-sunken:     #eceef1;
+  --surface-secondary:  #e7ebf0;
+  --border-strong:      #d4d8df;
+  --hairline-05: rgba(16,24,40,0.05);
+  --hairline-06: rgba(16,24,40,0.07);
+  --hairline-08: rgba(16,24,40,0.10);
+  --hairline-10: rgba(16,24,40,0.12);
+  --hairline-12: rgba(16,24,40,0.16);
+  --text-1: #0e121b;
+  --text-2: #3f4654;
+  --text-3: #5b6472;
+  --text-4: #6b7280;
+  --text-5: #aab0bb;
+  --card-shadow: 0 1px 3px rgba(16,24,40,0.08);
+  --card-shadow-lg: 0 20px 60px rgba(16,24,40,0.18);
+  --accent-ink: #0a66c2;
+  --nav-active-fg: #0a66c2;
+  --switch-active-fg: #0e121b;
+  --surface-deep: #eceef1;
+  --surface-them: #eef0f3;
+  --bubble-me: #d8e9ff;
+  color-scheme: light;
+}
+
+/* Bundle components (ProfileFrame, etc.) carry baked light text that
+   would vanish on light surfaces — force readable ink in light theme.
+   Scoped to the sidebar so accent badges/buttons elsewhere keep theirs. */
+html[data-theme="light"] aside .sc-host-x span { color: #0e121b !important; }
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--surface-primary, #01030e);
+  color: var(--text-primary, #ffffff);
+  font-family: "SF Compact", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button { font-family: inherit; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--dark-brand-1000, #242935); border-radius: 6px; }
+::-webkit-scrollbar-track { background: transparent; }

@@ -595,16 +595,193 @@ token re-source could not see them. Each is resolved here; later block/screen ch
   add a family token only if a distinct family is confirmed intentional. The SF Compact / NKDuy Mono web licence
   remains the only type cap (owned by `typography-system`).
 
-- **RC-S3 — category hues confirmed against component fills (no change).** The five `category/*` tokens
+- **RC-S3 — category hues confirmed against component fills (no change).** ⚠️ **SUPERSEDED on `marketing` by RC-T2
+  (§10.9, 2026-06-19)** — the full `Category.jsx` source shows the Category `blue` variant is `rgb(76,172,255)` =
+  **#4cacff**, so `marketing` was corrected to #4cacff; the rest of this entry stands. The five `category/*` tokens
   (`marketing #0088ff`, `design #f45fb1`, `programming #0cc671`, `development #05c9e6`, `coding #f27c0d`) equal the
   `tag`/`Category` component-variant fills recorded in the import docs. The export's `marketing #0088ff` **vs**
-  `Blue #4cacff` ambiguity is resolved: **`marketing = #0088ff` (brand)**; `#4cacff` is **`brand/highlight`**, the
-  tint used for the "Стек" Blue tag *label*, not a category. Note the Figma hues are raw component fills (not bound
-  variables), so this mapping is the authoritative binding by confirmation.
+  `Blue #4cacff` ambiguity is resolved: ~~**`marketing = #0088ff` (brand)**~~ → **`marketing = #4cacff` (RC-T2)**;
+  `#4cacff` is also `brand/highlight` (kept as a distinct semantic). Note the Figma hues are raw component fills (not
+  bound variables), so this mapping is the authoritative binding by confirmation.
 
 *Pipeline note:* the §10 reconcile edited `design-tokens.json` and regenerated `scripts/generated-tokens.{js,css}`
 but those edits were **uncommitted** in the working tree (last commit 2026-06-14); RC-S1–S3 add **no token changes**,
 so regeneration is a no-op beyond the timestamp and the §10 reconcile should be committed alongside this change.
+
+## 10.9 Token re-ground to gigly_full_design (2026-06-19, change `reconcile-tokens-to-full-design`)
+
+The full design handoff [`gigly_full_design/`](../gigly_full_design/) (complete `fig-tokens.css` 189-token set +
+readable component sources) supersedes the partial export §10.1 worked from. The core values **agreed**; this pass
+closes the residual additive gaps + one value correction.
+
+- **RC-T1 — per-status radial/border triads added (text leaves unchanged).** For all 6 statuses, the Figma
+  `--status-{name}-{bg-radial,border,text}` triad is now token-backed: `gradient.status-{name}-glow` (the 5 missing
+  radials; `completed` already existed) + a new `color-semantic.status-border.{name}` namespace (6 × 30% tints).
+  Figma keys mapped **new → open**, **testing → verification**. The existing `color-semantic.status.{name}` text
+  leaves (and `text-/bg-/border-status-*` utilities) are **untouched** — additive only.
+- **RC-T2 — `category.marketing` corrected `#0088ff` → `#4cacff`; SUPERSEDES RC-S3.** RC-S3 (from the *partial*
+  export) bound `marketing = #0088ff (brand)` and treated `#4cacff` as `brand/highlight` only. The authoritative
+  component source `gigly_full_design/design-system/source/Category.jsx` shows the **Category `blue` variant =
+  `rgb(76,172,255)` = #4cacff**. Per "the full design is the source of truth," **marketing now = #4cacff** (= the
+  value of `brand.highlight`, kept as a distinct semantic). The other four category hues (`design` rose #f45fb1,
+  `programming` #0cc671, `development` #05c9e6, `coding` #f27c0d) match `Category.jsx` exactly; `design` was relabeled
+  **pink → rose**. *(Reversible if the designer confirms marketing should track brand/default.)*
+- **RC-T3 — `status.open` text kept gray `#8a8f99`, not the Figma white.** Figma `status/new/text` is white; the SSOT
+  keeps gray for «Открыт» legibility (a sanctioned divergence). The open **radial + border** are still sourced from
+  the Figma white-based stops, so the glow/border match while the label stays legible.
+- **RC-T4 — scales completed (legacy keys kept).** Added `effect.shadow.sm`/`lg` (Figma Shadow/sm/lg; `card`/`popover`
+  retained as aliases), `numbers.spacing` `20`(80px=5xl)/`24`(96px=6xl). `numbers.corner` already covered the Figma
+  radii (xl 16 = `special`, xs 2 = `lt`) — verified + annotated, no change. No existing token key removed.
+
+*Pipeline:* `design-tokens.json` edited + `scripts/generated-tokens.{js,css}` regenerated; `validate:tokens` reports
+45 canonical colours (was 39; +6 `status-border`), in sync, no parody; `lint:tokens` baseline unchanged.
+
+## 10.10 Runtime theming — the light theme (2026-06-19, change `add-light-theme`)
+
+The net-new **light theme** (`gigly_full_design/ТЗ — Светлая тема.md`) made the token appearance layer
+**runtime-switchable** instead of build-baked.
+
+- **RC-T5 — appearance tokens are var-backed; theme switches on `[data-theme]`.** The parser now emits
+  `tokens.colors/boxShadow/gradient` to Tailwind as `var(--<key>)` (was literal hex); the dark values live in
+  `generated-tokens.css` `:root` and the light overrides in `[data-theme="light"]`; `app/globals.css` `@import`s that
+  layer (it was previously unused). Every **token-pure** utility now themes for free. **Dark stays the default and is
+  visually unchanged** (dark var values == the prior literals). The validator's drift check moved to the CSS-var layer.
+- **RC-T6 — depth via shadow + grey, not glow; brand + Handjet invariant.** `light` siblings build light depth
+  (surfaces `#f4f5f7`/`#fff`/`#eceef1`, hairlines `#e6e8ec`, navy-tinted shadows; the status radial glows → flat 8–10%
+  fills; overlays → dark hairlines). `brand.default #0088ff` and the font families take **no** light override (the
+  brand anchor); status hues stay one-to-one.
+- **RC-T7 — `/opacity` modifiers can't apply to `var()` colours → `tint.*` tokens.** `bg-brand-default/10` (×3) and
+  `bg-status-rejected/20|30` (danger) compiled to *nothing* once the colours became `var()`; replaced with full-value
+  `tint/{brand,danger,danger-hover}` tokens (`brand` muted on light, ТЗ §4). General rule: **no Tailwind `/NN` opacity
+  modifier on a var-backed colour — mint a tint token.**
+- **Switch:** `lib/theme.ts` (`applyTheme`/`getStoredTheme`, `gigly-theme`) + a no-flash boot `<script>` in
+  `app/layout.tsx` (applies the stored theme before paint) + the Settings → Внешний вид `Select`.
+- **Deferred (NOT in this change):** the exhaustive per-screen visual review + WCAG-AA audit of every screen/modal in
+  both themes (→ Phase-3 reconciliations + a `light-theme-screen-audit` follow-up); the 74 baselined legacy raw-literal
+  occurrences (won't theme); the logo-on-light "плашка" decision (ТЗ §5, designer); `prefers-color-scheme` + transitions.
+
+*Pipeline:* `validate:tokens` 48 colours (was 45; +3 `tint`), var-backed + dark/light layers in sync; `lint:tokens`
+baseline unchanged; `theme-switch` E2E green (default dark, toggle→light persists across reload, switch back→dark).
+
+## 10.11 Light-theme acceptance pass (2026-06-20, change `light-theme-screen-audit`)
+
+Closes the `add-light-theme` deferred scope (ТЗ §3/§5/§8.4/§9): contrast enforcement, literal elimination, the logo,
+and a both-themes render sweep.
+
+- **RC-T8 — WCAG-AA contrast gate (both themes).** New `scripts/design-system/validate-contrast.js` (`lint:contrast`)
+  computes the ratio for every text×surface token pair in dark + light: **body 4.5:1** (`text.strong/muted/subtle`),
+  **large 3:1** for `status.*` labels (bold/emphasis pills — keeps the vivid one-to-one hues + leaves the shipped dark
+  theme untouched, e.g. dark verification 4.41:1 passes large). Two documented exceptions (allowlist): white-on-brand
+  button (~3.1:1, ТЗ §4 sanctioned) + the dark-theme specialty chip; `text.disabled` is WCAG-exempt.
+- **RC-T9 — light tokens tightened for AA.** `text.muted`/`subtle` light → `#565c66` (AA body on near-white);
+  `status.open`/`review`/`completed` light darkened (`#767b85`/`#b45309`/`#047857`, hue preserved) for AA-large on
+  white. Dark values unchanged.
+- **RC-T10 — purity flipped to fail-on-all (0 baseline).** The 74 legacy literals resolved: the **dead-duplicate auth
+  trees** (`components/auth/*` + `app/components/auth/*`, both unimported) **deleted** (+ their dead unit tests);
+  `app/login/page.tsx` + `app/components/ui/InfoIcon.tsx` **token-migrated** (login also themes now + a stray malformed
+  SVG path fixed); `register`/`auth`/`profile` were already clean (stale baseline). `token-purity-baseline.json` emptied
+  → any raw literal now fails `lint:tokens`. `login-role-param` + `auth-navigation` E2E updated to the token colours.
+- **RC-T11 — logo on light.** Added `surface.logo-plate` (transparent on dark / `#01030e` dark-island on light, ТЗ §5);
+  `Logomark` wraps the white mark in the plate so it reads on white. Brand + Handjet invariant.
+- **Hydration fix.** Added `suppressHydrationWarning` to `<html>` (`app/layout.tsx`) — the theme boot script mutates the
+  root before hydration (the standard next-themes pattern); the `theme-coverage` E2E surfaced the warning.
+- **Coverage.** `theme-coverage` E2E loads the key public + protected routes under both themes, asserts the page bg
+  switched (themed) + no console error, and captures per-(route×theme) screenshots.
+
+*Pipeline:* `validate:tokens` 49 colours (+`logo-plate`); `lint:contrast` PASS (AA both themes); `lint:tokens` 0
+baseline (fail-on-all); `lint:composition` + `build` + `test:unit` (911) + `theme-coverage`/`theme-switch`/auth E2E green.
+
+## 10.5 Auth/onboarding screen reconciliation (2026-06-18, change `reconcile-auth-and-onboarding`)
+
+- **RC-S4 — `AuthHeader` block added for the auth «HEADER» lockup.** The five Figma auth nodes
+  (`3179:3179` / `3179:3863` / `3195:4564` / `3195:4282` / `3195:4704`) each lead with a HEADER block = Logomark →
+  heading (`type/h1`) + subtitle (`type/body`, muted) → the `AuthStepDots` counter. Coded as the `AuthHeader`
+  block so the composed `/register` wizard stays composition-pure (F5 forbids heading markup/`className` in the
+  screen). The welcome step (3) sets `showLogomark:false` per its node.
+- **RC-S5 — `RegisterWizard` swapped onto `AuthStepDots`; `StepIndicator` retired from the auth path.** Completing
+  RC-B3, the `/register` wizard now renders the dot counter (`count=3`, `current=step`) via `AuthHeader`, NOT the
+  labelled `StepIndicator`. `StepIndicator` remains in the kit/catalog for non-auth use but has no app consumer.
+- **RC-S6 — welcome-step field set is a sanctioned content variant.** The Figma welcome node shows
+  `Input + Select ×2`; the implemented step 3 keeps the **full profile contract** `registerUser` persists
+  (specialist: displayName + position + techStack + 3× Select; company: companyName + inn + contactPerson +
+  phoneNumber). Per the "system > single screen" mandate, the extra fields are a **sanctioned content variant** of
+  the node's layout grammar (heading + counter + labelled fields + back/primary buttons) — no persisted field is
+  dropped to match the mock's count. F3 parity for step 3 is asserted at the layout-grammar + flow level.
+
+## 10.8 Gig-browse screen reconciliation (2026-06-18, change `reconcile-gig-browse`)
+
+- **RC-S11 — `Section title="Поиск гигов"` → `SectionHeader` «Поиск проектов»; the grid/list switcher hoists from
+  `FilterBar` into the header row; the functional filters are a sanctioned content variant.** Поиск
+  проектов/specialist (`2860:2056`) leads with an `H/H1/BLOCK` header row = a `SectionHeader` («Поиск проектов») on
+  the left + the grid/list `switcher` (`ViewToggle`) right-aligned in that same row, over a `GigCard` grid (`Grid
+  columns={3}`, list = `Stack`) spanning the full `Status` set. The browse screen (`GigSearch.tsx`) drops the former
+  `Section title="Поиск гигов"` page-title for the `SectionHeader`, and **moves** the switcher out of the `FilterBar`
+  into the header row (the `ViewToggle` primitive is reused verbatim — same `view`/`onChange` contract, only its
+  placement changes; it still drives the `view` URL param). `FilterBar` now renders its `ViewToggle` **only when
+  `onViewChange` is wired**, so the filter bar shows no switcher on this screen. The node mock shows only the header +
+  card grid (its filter UI collapsed); the functional `FilterBar` (search + category + sort + Рейтинг) is **retained
+  as a sanctioned content variant** — functional filtering the static mock omits. No filter/search/sort/pagination
+  semantics change.
+
+## 10.7 Dashboard screen reconciliation (2026-06-18, change `reconcile-dashboards`)
+
+- **RC-S9 — `BannerCard` → WELCOME (greeting + `OnboardingCard ×2`); page-title dropped.** Дашборд/specialist
+  (`2860:3751`) + /company (`3371:5387`) lead with a WELCOME = a greeting `SectionHeader` (name-bound) + two
+  `OnboardingCard`s (the "pic" tiles: a profile-completion tile carrying the real `completion` as its `ProgressBar`
+  value + a how-it-works tile). The former `BannerCard` is removed from both dashboards (it stays a kit block for
+  other surfaces), and the `Section title="Дашборд"` page-title is dropped (the node CONTENT leads with WELCOME).
+  The BOARD becomes a 2-col `Split` — col1 «Активные задачи» (`SectionHeader` + Tabs + `GigCard` feed) ‖ col2
+  «найти гиг»/«Найти новый проект» (`SearchPanel` specialist / `CreateGigCTA` company) + «Сообщения»
+  (`MessagesPanel`), each section `SectionHeader`-led. New VM fields `greeting` + `onboarding` replace `banner`.
+- **RC-S10 — specialist attention strip binds live notifications; company hides it; Tabs are the col1 Menu-switcher.**
+  The WELCOME-2 «row of 6× attention card» binds the user's recent `Notification`s via `getDashboardAttention`
+  (newest-first, cap 6; eventType→`AttentionType` accent; embed = the linked gig as a `GigCardVM`). It renders on
+  the **specialist** dashboard when non-empty and is **not rendered** on the **company** dashboard (the mock's
+  `Frame 342 hidden=true`). The company node shows a `Menu-switcher` tab strip in col1; the existing status Tabs are
+  kept as that Menu-switcher for **both** roles — for the specialist (whose node shows a plain feed) the Tabs are a
+  **sanctioned content variant** (functional filtering the static feed omits). No tab/count data changes.
+
+## 10.6 Profile screen reconciliation (2026-06-18, change `reconcile-profile-screen`)
+
+- **RC-S7 — ID-block real stats are a sanctioned content variant; placeholder honored.** Профиль/specialist
+  (`2860:2103`) shows only the «на стадии разработки» analytics placeholder in the ID block. `getProfile` already
+  splits analytics into that **placeholder** (`stats: statsPlaceholder()`, rendered in the ID-block right panel —
+  *honored*) and the **real** numeric stats (`header.stats` = Рейтинг / Завершено задач / Повторные заказы, in
+  `ProfileHeader`). Per "system > single screen", the real stats are kept as a **sanctioned content variant** (a
+  functional enhancement the static mock lacks) — the placeholder is NOT dropped. F3 parity for the ID block is at
+  the layout-grammar + flow level, not a literal element-count match.
+- **RC-S8 — ID block adopts `SpecialtyTag` + a `tag/status` availability pill; page-title removed.** `ProfileHeader`
+  now renders the specialty via the `SpecialtyTag` primitive (white `surface/inverse` chip, `brand/default` mono),
+  NOT the ad-hoc `rounded-pill border` pill, and adds a token-pure availability pill (online → `status/completed`
+  dot + «В сети», offline → `text/subtle` dot + «Не в сети», mirroring the `Avatar` online dot). The composed
+  `/profile` screen drops the `Section title="Профиль"` heading — the node CONTENT leads with the ID block. The
+  2-col BLOCK already reconciled via the Phase-0 blocks (`SectionHeader`/`JobExperienceCard`).
+
+## 10.4 Onboarding/auth blocks (2026-06-18, change `add-onboarding-and-auth-blocks`)
+
+- **RC-B2 — TermsTabs normalized to the canonical `Tabs` (no 5th toggle).** The Figma gig-apply toggle
+  (`2860:2413`, a `#01030e` segmented pill with a 20%-white active segment) is a screen-level one-off. `TermsTabs`
+  already composes the canonical `Tabs` primitive; the segmented-pill is **normalized to it**, NOT reproduced as a
+  bespoke toggle. (Four tab/segment treatments already exist — switcher, Menu-switcher, switch-bar, Tabs — and no
+  fifth is added.)
+- **RC-B3 — AuthStepDots vs StepIndicator.** The Figma auth `counter` (`3179:3997`) is a minimal dot indicator
+  (active 8px / inactive 6px). The pre-Figma `StepIndicator` (numbered + labelled) diverges; **AuthStepDots** is the
+  Figma-authoritative auth indicator. `StepIndicator` is kept (labelled variant) but **superseded for auth** — the
+  Phase-1 `reconcile-auth-and-onboarding` swaps `RegisterWizard` onto AuthStepDots. (Inactive dot 6px is sub-token —
+  rendered as `h-1.5` smaller + dimmed; active 8px = `h-2`.)
+- **RC-B4 — `Textarea` not `CoverLetterTextarea`.** The multi-line field is a generic `Textarea` primitive (sibling
+  of `Input`, `overlay/fill` surface); the gig-apply cover letter is an instance — no domain-named bespoke block.
+
+## 10.3 Attention palette (2026-06-17, change `reconcile-attention-card-and-settings-composites`)
+
+- **RC-B1 — added the `attention/*` token group (6 colours + 6 glow gradients).** The AttentionCard's
+  notification-**type** accents are a palette distinct from `status/*` (e.g. `attention/rejected #9ca3af` is
+  neutral gray, NOT `status/rejected` red; `attention/accepted #16a34a` ≠ `status/completed #10b981`). Per the
+  generativity principle, they were added as semantic tokens — `attention.{status-change #7c3aed, message
+  #2563eb, deadline #ea580c, accepted #16a34a, rejected #9ca3af, payment #0891b2}` + matching
+  `gradient/attention-*-glow` (radial, mirroring `status-completed-glow`). `AttentionCard` maps `type → token`
+  in one component (no per-variant copies); the embedded gig/message block keeps its own gig-status styling.
+  Cited from `docs/figma-components-export.md` (per-type attention map).
 
 ## 10.2 Primitive-layer token decisions (2026-06-17, change `add-missing-primitives`)
 

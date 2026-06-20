@@ -1,21 +1,23 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * Register page — the composed 3-step onboarding wizard (compose-auth-onboarding, Phase 2). Supersedes the prior
- * hardcoded-Figma/hex spec: the page is now composed from the kit (AuthLayout + StepIndicator + RoleCards + form
- * primitives), token-pure. These tests assert the new composed structure, not raw hex values.
+ * Register page — the composed 3-step onboarding wizard reconciled to its Figma auth nodes
+ * (reconcile-auth-and-onboarding, Phase 1). The page composes from the kit (AuthLayout + AuthHeader [Logomark +
+ * heading + AuthStepDots dot counter] + RoleCards + form primitives), token-pure. These tests assert the
+ * reconciled composed structure, not raw hex values.
  */
 test.describe('Register Page Redesign (composed wizard)', () => {
-  test('displays the Russian heading "Регистрация"', async ({ page }) => {
+  test('displays the Figma node heading "Создайте свой аккаунт"', async ({ page }) => {
     await page.goto('/register');
-    await expect(page.getByRole('heading', { name: 'Регистрация' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Создайте свой аккаунт' })).toBeVisible();
   });
 
-  test('shows the 3-step indicator', async ({ page }) => {
+  test('shows the AuthStepDots dot counter (not the labelled StepIndicator)', async ({ page }) => {
     await page.goto('/register');
-    await expect(page.getByText('Роль')).toBeVisible();
-    await expect(page.getByText('Доступ')).toBeVisible();
-    await expect(page.getByText('Профиль', { exact: true })).toBeVisible();
+    const dots = page.getByRole('progressbar');
+    await expect(dots).toHaveAttribute('aria-valuenow', '1');
+    await expect(dots).toHaveAttribute('aria-valuemax', '3');
+    await expect(page.getByText('Доступ')).toHaveCount(0); // step labels removed
   });
 
   test('role cards display Russian text and are both visible (no preselection)', async ({ page }) => {
@@ -56,7 +58,7 @@ test.describe('Register Page Redesign (composed wizard)', () => {
   test('is responsive on a mobile viewport', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto('/register');
-    await expect(page.getByRole('heading', { name: 'Регистрация' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Создайте свой аккаунт' })).toBeVisible();
     await expect(page.getByTestId('role-client')).toBeVisible();
   });
 });

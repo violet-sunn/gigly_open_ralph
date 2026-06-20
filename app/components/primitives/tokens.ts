@@ -48,7 +48,7 @@ export const BUTTON_VARIANT: Record<ButtonVariant, string> = {
   // danger: destructive (session-delete). Tinted status-rejected fill + status-rejected text on a
   // border/default frame. Token-pure; the Figma iOS-red vs status-rejected delta is logged in
   // DESIGN_SYSTEM_SPEC §10.1 (no near-duplicate `accents/red` token minted).
-  danger: "bg-status-rejected/20 text-status-rejected border border-border hover:bg-status-rejected/30",
+  danger: "bg-tint-danger text-status-rejected border border-border hover:bg-tint-danger-hover",
 };
 
 // ---- IconButton (Figma button_icon: square 40×40, radius/sm, icon-rail glyph) --------

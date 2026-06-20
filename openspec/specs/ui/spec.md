@@ -4172,6 +4172,308 @@ render/state tests, and MUST keep the token pipeline green.
 
 ---
 
+<!-- Merged on archive from change: reconcile-attention-card-and-settings-composites (2026-06-17). Source delta retained in openspec/archive/reconcile-attention-card-and-settings-composites/specs/ui/spec.md -->
+
+## ADDED Requirements
+
+### Requirement: Attention Notification Accent Tokens
+A semantic `attention/*` colour token group MUST exist in `design-tokens.json`, encoding the six
+notification-**type** accents (distinct from the gig-`status/*` palette). Each token MUST be a single
+canonical value; AttentionCard MUST reference these tokens, never raw hex.
+
+#### Scenario: Six attention accents are named and distinct from status
+- GIVEN the notification types status-change, message, deadline, accepted, rejected, payment
+- WHEN `design-tokens.json` `color-semantic.attention` is inspected
+- THEN it MUST define `status-change` (#7c3aed), `message` (#2563eb), `deadline` (#ea580c),
+  `accepted` (#16a34a), `rejected` (#9ca3af, neutral), `payment` (#0891b2)
+- AND these MUST be separate tokens from `status/*` (e.g. `attention/rejected` is gray, not `status/rejected` red)
+- AND the generated `scripts/generated-tokens.{js,css}` MUST emit the group and stay in sync with the JSON
+
+#### Scenario: Per-type glow is tokenised, not raw
+- GIVEN the AttentionCard ambient glow keyed to each accent
+- WHEN the glow is implemented
+- THEN it MUST derive from a `gradient/attention-*-glow` token (mirroring `gradient/status-completed-glow`)
+  — NO raw hex radial-gradient literal in component source
+
+### Requirement: AttentionCard Block
+An `AttentionCard` block MUST exist, modelling Figma `attention card` (`3367:3916`). It MUST be **data-driven
+by notification type** (one implementation; no per-variant copies), with the type accent driving the marker,
+the left `border-l-4` accent, and the ambient glow, while the **embedded gig/message block keeps its own
+gig-status styling**. It MUST be token-pure and declare a typed view-model.
+
+#### Scenario: Type drives the accent in one code path
+- GIVEN `AttentionCard` rendered for each of the six types from fixtures
+- WHEN each renders
+- THEN the marker fill, the left accent, and the glow MUST all resolve to that type's `attention/*` token
+- AND there MUST be a single component (a `type → token` map), not six hand-written variants
+
+#### Scenario: Shell geometry and structure match the source
+- GIVEN any AttentionCard
+- WHEN it renders
+- THEN it MUST be a `radius/xl` card with a `border/default` hairline, a header (marker + title + relative
+  date), an embedded content block, and a full-width CTA whose fill is the type accent token
+- AND the left accent MUST be a 4px left edge in the type accent token
+
+#### Scenario: Embedded block keeps its own gig-status glow
+- GIVEN a variant whose embedded block is a gig card (e.g. accepted / rejected / payment)
+- WHEN it renders
+- THEN the embedded block MUST use its gig-status accent (independent of the outer attention accent)
+- AND the message-type variant MUST embed a message preview block instead
+
+#### Scenario: Token-pure
+- GIVEN the `AttentionCard` file
+- WHEN the token-purity lint runs
+- THEN it MUST report zero new off-token literals
+
+### Requirement: Settings Field Blocks (ToggleField, CheckField)
+`ToggleField` and `CheckField` blocks MUST exist, modelling Figma `toggle field` (`3138:3199`) and
+`check field` (`3138:3148`). Both MUST be token-pure and declare typed view-models.
+
+#### Scenario: ToggleField is a titled+described toggle row
+- GIVEN `<ToggleField>` with a title, description, and `checked`
+- WHEN it renders
+- THEN it MUST show the title (label type), the description (muted body), and a `Toggle` primitive reflecting `checked`
+- AND toggling MUST invoke its `onChange`
+
+#### Scenario: CheckField is a single-select list
+- GIVEN `<CheckField>` with options where one is selected
+- WHEN it renders
+- THEN each row MUST show a circle (unselected) / check-circle (selected) indicator + a label, composing the
+  `Radio` primitive (the Figma circle/check-circle maps to the exported radio-off/radio-on assets — not redrawn)
+- AND selecting a row MUST invoke `onChange` with that row's key
+
+### Requirement: SessionRow Block
+A `SessionRow` block MUST exist, modelling Figma `session` (`3149:2645`) with `Default | active | delete`
+states, reusing existing primitives. It MUST be token-pure.
+
+#### Scenario: Three states reuse existing primitives
+- GIVEN `state="Default"`, `state="active"`, `state="delete"`
+- WHEN each renders
+- THEN Default MUST show title + description + a remove affordance (`IconButton`)
+- AND active MUST show the «Текущий» pill via `StatusBadge variant="current"` (no bespoke pill)
+- AND delete MUST show the destructive `Button variant="danger"` (no raw red literal)
+
+#### Scenario: Token-pure
+- GIVEN the `SessionRow` file
+- WHEN the token-purity lint runs
+- THEN it MUST report zero new off-token literals
+
+### Requirement: FileChip Block
+A `FileChip` block MUST exist, modelling Figma `file` (`3600:5262`): a row with an optional file-type icon,
+filename, and size, on the `overlay/line` surface. It MUST be token-pure and declare a typed view-model.
+
+#### Scenario: Renders name + size on the overlay token surface
+- GIVEN `<FileChip name="ТЗ.doc" size="15 MB">`
+- WHEN it renders
+- THEN it MUST show the name and the size on an `overlay/line` token fill at `radius/md`
+- AND the file-type icon MUST render when provided; the file-earmark glyph is a residual (routed to Figma
+  export), so the icon slot is optional, NOT redrawn
+- AND the typography MUST use family tokens (sans per the RC-S2 decision), no raw font-family literal
+
+### Requirement: New Composites Are Catalogued and Validated
+Every block added by this change MUST appear in the workbench catalog with its states, MUST have render/state
+tests, and MUST keep the token pipeline + lint green.
+
+#### Scenario: Workbench shows the new blocks
+- GIVEN the workbench catalog registry
+- WHEN the catalog renders
+- THEN it MUST include `AttentionCard` (all six types), `ToggleField`, `CheckField`, `SessionRow`
+  (Default/active/delete), and `FileChip`, each mapped to a `reference`
+
+#### Scenario: Render tests, lints, and build pass
+- GIVEN `__tests__/unit/components/domain-blocks.test.tsx` extended for the new blocks
+- WHEN `npm run test:unit`, `npm run lint:tokens`, `npm run validate:tokens`, and `npm run build` run
+- THEN the new render/state tests MUST pass; the token-purity lint MUST report no new off-token literals;
+  the generated token outputs MUST stay in sync with the JSON (the `attention/*` group included);
+  and the build MUST pass
+
+---
+
+<!-- Merged on archive from change: add-profile-and-gig-detail-blocks (2026-06-17). Source delta retained in openspec/archive/add-profile-and-gig-detail-blocks/specs/ui/spec.md. NB the RequirementCard + CriteriaList requirements below RECONCILE (supersede) their prior inline presentations in the domain-blocks vocabulary. -->
+
+## ADDED Requirements
+
+### Requirement: SectionHeader Block
+A `SectionHeader` block MUST exist, modelling Figma `H/H1/BLOCK` (`3371:5248`): the «БЛОК» section
+heading — a `type/h1` (24px, mono) title with an optional trailing icon and an optional count. It MUST be
+token-pure, and the hand-rolled section headings in `TagList`, `CategoryTags`, and `ExperienceList` MUST adopt it.
+
+#### Scenario: Renders the title at the h1 (24 mono) role
+- GIVEN `<SectionHeader title="Стек">`
+- WHEN it renders
+- THEN the title MUST use `text-h1 font-h1` (Figma H2 = 24px, the mono family) — NOT `text-h2` (18 sans)
+- AND the file MUST be token-pure (no raw hex/px)
+
+#### Scenario: Optional trailing icon and count
+- GIVEN `<SectionHeader title="Стек" icon={ICON.gear} count={5}>`
+- WHEN it renders
+- THEN a trailing icon MUST render when `icon` is set, and a count when `count` is set
+
+#### Scenario: Hand-rolled headings adopt SectionHeader
+- GIVEN `TagList`, `CategoryTags`, `ExperienceList` (which rendered section titles as `text-h2 font-h2`)
+- WHEN they are inspected after the change
+- THEN each MUST render its section title via `SectionHeader` (no bespoke heading span)
+
+### Requirement: JobExperienceCard Block
+A `JobExperienceCard` block MUST exist, modelling Figma `job experience` (`3088:3896`): a `border/default`
+(frame-stroke) card with company + period, a role line, and a description. `ExperienceList` MUST compose it
+instead of inlining the entry. It MUST be token-pure and declare a typed view-model.
+
+#### Scenario: Renders company, period, role, description
+- GIVEN `<JobExperienceCard>` with company, period, title (role), description
+- WHEN it renders
+- THEN it MUST show the company, the period (muted), the role line, and the description (muted body)
+- AND the role-line colour MUST be `text-brand-default` (RC-S1 — the Figma role-blue normalised to brand/default), not a raw hex
+
+#### Scenario: ExperienceList composes JobExperienceCard
+- GIVEN `ExperienceList` with experience entries
+- WHEN it renders
+- THEN each entry MUST be a `JobExperienceCard` (not inlined markup)
+- AND the token-purity lint MUST report zero new off-token literals
+
+### Requirement: CriteriaRow Item
+A `CriteriaRow` item component MUST exist, modelling Figma `критерий` (`2932:7224`): a numbered left block in
+the brand accent + an on-accent digit + a title + optional description. It MUST be token-pure and is the item
+`CriteriaList` maps over (NOT a parallel list block).
+
+#### Scenario: Numbered row with on-accent digit
+- GIVEN `<CriteriaRow index={1} title="Data Fetching" description="…">`
+- WHEN it renders
+- THEN the number block MUST use `bg-brand-default` with the digit in `text-surface-level-0` (on-accent dark)
+- AND it MUST show the title (strong) and the description (muted) when present
+- AND it MUST be token-pure (no raw hex/px)
+
+### Requirement: RequirementCard Tile Presentation
+`RequirementCard` MUST render the Figma `требование` tile (`2932:7177`) — superseding any prior presentation: a
+`border/default` (frame-stroke) hairline card at `radius/md`, a `justify-between` column with a min height, an
+18px (sans) title and a 14px muted description. It MUST be token-pure and keep `RequirementCardVM` so
+`GigDetail.tsx` is unaffected.
+
+#### Scenario: Renders as a frame-stroke tile
+- GIVEN `<RequirementCard>` with a title and body
+- WHEN it renders
+- THEN the container MUST use `border-overlay-line-strong` (frame-stroke) at `radius/md`
+- AND the title MUST be `text-h2 font-h2` (18 sans) and the body `text-body font-body text-muted`
+- AND the layout MUST be a `justify-between` column
+- AND the existing `RequirementCardVM` MUST keep compiling in `GigDetail.tsx`
+
+### Requirement: CriteriaList Numbered Presentation
+`CriteriaList` MUST render the Figma `критерии успеха` list as **numbered** `CriteriaRow` items (title +
+optional description) — superseding the prior met/unmet checklist. The VM item gains an optional `description`;
+`met` becomes optional/ignored and back-compatible so `GigDetail.tsx` still compiles.
+
+#### Scenario: Renders numbered CriteriaRow items
+- GIVEN `<CriteriaList>` with N items
+- WHEN it renders
+- THEN it MUST render N `CriteriaRow` items numbered 1..N (each label as title, + description when present)
+- AND it MUST NOT render the prior met/unmet `verified` checklist asset
+- AND the prior `CriteriaListVM` items (`{ label, met? }`) MUST keep compiling
+
+### Requirement: Profile/Gig-detail Blocks Catalogued and Tested
+Every block added or reconciled by this change MUST appear in the workbench catalog with its states, MUST have
+render tests, and MUST keep the suite + lints green.
+
+#### Scenario: Workbench + tests
+- GIVEN the workbench catalog registry and `__tests__/unit/components/domain-blocks.test.tsx`
+- WHEN the catalog renders and `npm run test:unit`, `npm run lint:tokens`, `npm run build` run
+- THEN the catalog MUST include `SectionHeader`, `JobExperienceCard`, the reconciled `RequirementCard` tile,
+  and the reconciled numbered `CriteriaList`
+- AND the render tests MUST pass, the token-purity lint MUST report no new off-token literals, and the build MUST pass
+
+---
+
+<!-- Merged on archive from change: add-onboarding-and-auth-blocks (2026-06-18). Source delta retained in openspec/archive/add-onboarding-and-auth-blocks/specs/ui/spec.md -->
+
+## ADDED Requirements
+
+### Requirement: Textarea Primitive
+A `Textarea` primitive MUST exist (`app/components/primitives/Textarea.tsx`), modelling the Figma cover-letter
+field (`2860:2430`): a multi-line input on an `overlay/fill` surface with a `border/default` hairline at
+`radius/md`, top-aligned text, and a muted placeholder. It MUST be token-pure and is the field the gig-apply
+cover letter composes (no domain-named bespoke block).
+
+#### Scenario: Renders a multi-line field token-pure
+- GIVEN `<Textarea placeholder="…">`
+- WHEN it renders
+- THEN it MUST render a `<textarea>` on `bg-overlay-fill` with `border-border` at `rounded-md` and a
+  `placeholder:text-muted` placeholder
+- AND the file MUST be token-pure (no raw hex/px)
+
+#### Scenario: Disabled state
+- GIVEN `<Textarea disabled>`
+- WHEN it renders
+- THEN the `<textarea>` MUST be disabled and de-emphasised via the `opacity/disabled` token
+
+### Requirement: AuthStepDots Primitive
+An `AuthStepDots` primitive MUST exist, modelling the Figma auth `counter` (`3179:3997`): a row of N dots where
+the **active** dot is larger and brand-coloured and the inactive dots are smaller and dimmed. It MUST be
+token-pure and is the authoritative auth step indicator (distinct from the labelled `StepIndicator`).
+
+#### Scenario: Marks the active step
+- GIVEN `<AuthStepDots count={3} current={1}>`
+- WHEN it renders
+- THEN it MUST render 3 dots; the dot at index 1 MUST use the `brand/default` token and be visually larger
+- AND the other dots MUST be dimmed (a translucent/muted token), smaller
+- AND the file MUST be token-pure (no raw hex/px)
+
+#### Scenario: Accessible
+- GIVEN any `AuthStepDots`
+- WHEN it renders
+- THEN it MUST expose the progress to assistive tech (e.g. an `aria-label` describing step current of count)
+
+### Requirement: Logomark Primitive
+A `Logomark` primitive MUST exist, rendering the **exported** Gigly brand mark
+(`public/assets/design-system/brand/gigly-logo.svg`, Figma `3179:3571`) — never a redrawn glyph (F4). It MUST
+support an optional wordmark lockup and be token-pure.
+
+#### Scenario: Renders the exported asset
+- GIVEN `<Logomark />`
+- WHEN it renders
+- THEN it MUST render an `<img>` whose source is the exported `gigly-logo.svg` asset
+- AND it MUST carry an accessible name (e.g. `alt="Gigly"`)
+- AND it MUST NOT inline a redrawn logo path
+
+### Requirement: OnboardingCard Block
+An `OnboardingCard` block MUST exist, modelling the Figma welcome "pic" (`3082:3820`) — distinct from
+`BannerCard`: a `radius/lg` card with an `overlay/fill` scrim, an optional bleed image (residual — exported or
+omitted, not redrawn), a `type/h3` title + `type/body` subtitle, an inline `ProgressBar` primitive, and a
+**secondary** `Button`. It MUST be token-pure and declare a typed view-model.
+
+#### Scenario: Composes ProgressBar + secondary Button on a scrim
+- GIVEN `<OnboardingCard>` with title, subtitle, progress, and a CTA
+- WHEN it renders
+- THEN it MUST show the title (`text-h2 font-h2`, the type/h3 role) and subtitle (`text-body … text-muted`)
+- AND it MUST render the `ProgressBar` primitive at the given value
+- AND it MUST render a `Button variant="secondary"` for the CTA
+- AND the container MUST use `radius/lg` with an `overlay/fill` scrim (token), no raw hex
+
+#### Scenario: Bleed image is an optional residual
+- GIVEN an OnboardingCard with and without an `art` image
+- WHEN each renders
+- THEN the image MUST render via an exported `ImageRef` when present and be omitted otherwise (not redrawn)
+
+### Requirement: TermsTabs Uses the Canonical Tabs (no bespoke toggle)
+`TermsTabs` MUST continue to compose the canonical `Tabs` primitive; the Figma gig-apply segmented-pill toggle
+(`2860:2413`) MUST be **normalized to `Tabs`**, NOT reproduced as a fifth bespoke toggle treatment.
+
+#### Scenario: TermsTabs renders canonical tabs
+- GIVEN `<TermsTabs>` (proposed / client)
+- WHEN it renders
+- THEN it MUST render the two tabs via the `Tabs` primitive (`role="tab"` elements)
+- AND no bespoke segmented-pill toggle component may be introduced for it
+
+### Requirement: Onboarding/Auth Primitives & Block Catalogued and Tested
+Every primitive/block added by this change MUST appear in the workbench catalog with its states, MUST have
+render tests, and MUST keep the suite + lints green.
+
+#### Scenario: Workbench + tests
+- GIVEN the workbench catalog registry and the primitive/block test files
+- WHEN the catalog renders and `npm run test:unit`, `npm run lint:tokens`, `npm run build` run
+- THEN the catalog MUST include `Textarea`, `AuthStepDots`, `Logomark`, and `OnboardingCard`
+- AND the new render tests MUST pass, the token-purity lint MUST report no new off-token literals, and the build MUST pass
+
+---
+
 <!-- Merged on archive from change: typography-system (2026-06-14). Source delta retained in openspec/archive/typography-system/specs/ui/spec.md -->
 
 ## ADDED Requirements
@@ -4672,8 +4974,8 @@ Icon/asset-bearing blocks MUST use the exported assets via the primitives' `Icon
 glyphs; the known asset residuals MUST be flagged rather than re-drawn.
 
 #### Scenario: Icon-bearing blocks use exported assets
-- GIVEN SidebarNav (nav icons + logo), Topbar (bell/gear), NotificationItem (type icon), ChatPanel composer (send),
-  CriteriaList (met indicator)
+- GIVEN SidebarNav (nav icons + logo), Topbar (bell/gear), NotificationItem (type icon), ChatPanel composer (send)
+  (NB: CriteriaList no longer bears an icon — reconciled to numbered криterий rows, see the add-profile-and-gig-detail-blocks fold)
 - WHEN their icon usage is inspected
 - THEN each MUST render via the primitives' `Icon`/`ICON` registry (exported `public/assets/design-system/*`), not
   an inline redrawn glyph
@@ -5101,9 +5403,12 @@ pixel-diff is achieved only once external prerequisites land.
 > the full unit suite, and a visual fidelity review. F1 ≤1% deferred (substitute font + cosmic banner raster).
 
 ### Requirement: CLIENT Dashboard Composed from Blocks
-The CLIENT `/dashboard` body MUST be a composition-pure `@composed-screen` (`ClientDashboard`) composing `BannerCard`
-+ `Tabs` + `GigCard·grid` + `CreateGigCTA` + `MessagesPanel` via layout primitives only (no `className`/`style`/raw
-markup; imports only kit/`lib`/`actions`/`react`/`next`), rendered by the dashboard page for `role === 'CLIENT'`.
+The CLIENT `/dashboard` body MUST be a composition-pure `@composed-screen` (`ClientDashboard`) composing a WELCOME
+(greeting `SectionHeader` + `OnboardingCard ×2`) + a 2-col BOARD (`Tabs` + `GigCard` feed ‖ `CreateGigCTA` +
+`MessagesPanel`) via layout primitives only (no `className`/`style`/raw markup; imports only
+kit/`lib`/`actions`/`react`/`next`), rendered by the dashboard page for `role === 'CLIENT'`. *(Reconciled to
+Дашборд/company `3371:5387` by `reconcile-dashboards` — `BannerCard` is replaced by the WELCOME greeting +
+OnboardingCards and the body is a 2-col BOARD; see that change's section below.)*
 
 #### Scenario: Composed CLIENT dashboard
 - GIVEN a CLIENT loads `/dashboard`
@@ -5143,7 +5448,7 @@ The composed dashboard MUST be functional and match the design's logical parity.
 
 #### Scenario: Gig links, create flow, status tabs
 - GIVEN the composed CLIENT dashboard
-- THEN a `GigCard` MUST open `/gigs/[id]`; `CreateGigCTA` (and the banner CTA) MUST open `/gigs/new`; and the `Tabs`
+- THEN a `GigCard` MUST open `/gigs/[id]`; `CreateGigCTA` MUST open `/gigs/new`; and the `Tabs`
   (Все / В работе / На проверке / Завершённые, with real counts) MUST filter the `GigCard·grid` by status (F3)
 
 **Acceptance Criteria:**
@@ -5181,10 +5486,12 @@ The change MUST pass F3 + F5 + the functional/E2E suite; the F1 ≤1% pixel-diff
 > (`status: 'rejected'`); PENDING-application cards reflect the pending state (`review` / «На рассмотрении»).
 
 ### Requirement: SPECIALIST Dashboard Composed from Blocks
-The SPECIALIST `/dashboard` body MUST be a composition-pure `@composed-screen` (`SpecialistDashboard`) composing
-`BannerCard` + `SearchPanel` + `Tabs` + `GigCard·grid` + `MessagesPanel` via layout primitives only (no
-`className`/`style`/raw markup; imports only kit/`lib`/`actions`/`react`/`next`), rendered by the dashboard page for
-`role === 'SPECIALIST'`.
+The SPECIALIST `/dashboard` body MUST be a composition-pure `@composed-screen` (`SpecialistDashboard`) composing a
+WELCOME (greeting `SectionHeader` + `OnboardingCard ×2`) + a 2-col BOARD (`Tabs` + `GigCard` feed ‖ `SearchPanel` +
+`MessagesPanel`) + the 6× `AttentionCard` strip via layout primitives only (no `className`/`style`/raw markup;
+imports only kit/`lib`/`actions`/`react`/`next`), rendered by the dashboard page for `role === 'SPECIALIST'`.
+*(Reconciled to Дашборд/specialist `2860:3751` by `reconcile-dashboards` — `BannerCard` is replaced by the WELCOME
+greeting + OnboardingCards and the notification strip is added; see that change's section below.)*
 
 #### Scenario: Composed SPECIALIST dashboard
 - GIVEN a SPECIALIST loads `/dashboard`
@@ -5268,6 +5575,12 @@ The change MUST pass F3 + F5 + the functional/E2E suite; the F1 ≤1% pixel-diff
 - F1 diff produced; composed layout visually faithful; ≤1% deferred to the font licence + banner-raster export
 
 ## ADDED Requirements (compose-gig-search — Phase 2 screen)
+
+> **Superseded in part by `reconcile-gig-browse` (Phase 1, RC-S11, node `2860:2056`)** — the screen now leads with a
+> `SectionHeader` «Поиск проектов» and the grid/list `ViewToggle` is **hoisted into that header row** (no longer
+> rendered "via `FilterBar`", and the `Section title="Поиск гигов"` header is gone). See the dated
+> `## MODIFIED + ADDED Requirements (reconcile-gig-browse — Phase 1 screen)` section below; the data-binding /
+> preserved-query requirements here remain in force.
 
 > The SPECIALIST `/gigs` browse/search screen composed from the kit (`FilterBar` + `ViewToggle` + `GigCard·(grid/list)`
 > + a "Найдено N" `ResultCount`) inside the layout's `AppShell`, **preserving** the existing OPEN-gig query (search /
@@ -5509,9 +5822,10 @@ GigCardVM[]` (COMPLETED/PAID assigned gigs), the aggregate `rating` (via `getRat
 
 ### Requirement: Profile Blocks (composition-gap fills)
 The four blocks named by this composition but absent from the kit MUST be implemented token-pure, each with a fixture
-and a barrel export: `ProfileHeader` (avatar + name + role tag + phone-verified badge + member-since + inline stats +
-optional owner edit affordance), `TagList` (titled `Tag` list), `CategoryTags` (the five `CategoryTag`s with favorites
-emphasised), `ExperienceList` (bio + work-experience entries).
+and a barrel export: `ProfileHeader` (avatar + name + the specialty via the `SpecialtyTag` primitive + an availability
+status pill + phone-verified badge + member-since + inline stats + optional owner edit affordance — reconciled to the
+Figma ID block by `reconcile-profile-screen`; see that change's section below), `TagList` (titled `Tag` list),
+`CategoryTags` (the five `CategoryTag`s with favorites emphasised), `ExperienceList` (bio + work-experience entries).
 
 #### Scenario: The four blocks are token-pure kit blocks
 - GIVEN `app/components/blocks/{ProfileHeader,TagList,CategoryTags,ExperienceList}.tsx`
@@ -5870,13 +6184,15 @@ frame).
 
 ### Requirement: Auth Onboarding Composed from Blocks
 The `/register` body MUST be a composition-pure `@composed-screen` (`RegisterWizard`) composing `AuthLayout` +
-`StepIndicator` + `RoleCards` + form primitives, and `/auth` MUST likewise be recomposed from the kit — both via layout
-primitives only (no `className`/`style`/raw styled markup or hex literals; imports only kit/`lib`/`react`/`next`/
-`@/app/actions`).
+`AuthHeader` (Logomark + heading + `AuthStepDots`) + `RoleCards` + form primitives, and `/auth` MUST likewise be
+recomposed from the kit — both via layout primitives only (no `className`/`style`/raw styled markup or hex literals;
+imports only kit/`lib`/`react`/`next`/`@/app/actions`). *(Reconciled to the Figma auth nodes by
+`reconcile-auth-and-onboarding` — the wizard now leads each step with `AuthHeader`/`AuthStepDots`, NOT the labelled
+`StepIndicator`; see that change's section below.)*
 
 #### Scenario: Register is a composed wizard
 - GIVEN `app/register/RegisterWizard.tsx`
-- THEN it MUST carry the `@composed-screen` marker, compose `AuthLayout` + `StepIndicator` + `RoleCards` + form
+- THEN it MUST carry the `@composed-screen` marker, compose `AuthLayout` + `AuthHeader` + `RoleCards` + form
   primitives (`Input`/`PasswordInput`/`Select`) via layout primitives, import only kit/`lib`/`react`/`next`/
   `@/app/actions`, and contain **no** `className=`/`style=`/hex literals
 
@@ -5888,17 +6204,17 @@ primitives only (no `className`/`style`/raw styled markup or hex literals; impor
   `/register?role=`) — both inside `AuthLayout`, with the exported checkerboard footer rendered
 
 **Acceptance Criteria:**
-- `RegisterWizard` is an F5-pure `@composed-screen` (AuthLayout + StepIndicator + RoleCards + form primitives); `/auth` recomposed from the kit; no className/style/hex
+- `RegisterWizard` is an F5-pure `@composed-screen` (AuthLayout + AuthHeader + RoleCards + form primitives); `/auth` recomposed from the kit; no className/style/hex
 - The pages render the composed screens; the exported checkerboard footer renders
 
 ### Requirement: Three-Step Wizard with Role-Specific Profile Step
-The wizard MUST present **3 steps** — role → credentials → role-specific profile — with a `StepIndicator`, and step 3
-MUST differ by role (the `reg-customer` company profile vs the `reg-specialist` profile) with dropdowns bound to the
-datasets.
+The wizard MUST present **3 steps** — role → credentials → role-specific profile — with the `AuthStepDots` counter
+(via the `AuthHeader` block), and step 3 MUST differ by role (the `reg-customer` company profile vs the
+`reg-specialist` profile) with dropdowns bound to the datasets.
 
 #### Scenario: Three steps with a step indicator
 - GIVEN the `/register` wizard
-- THEN a `StepIndicator` MUST show three steps (role · credentials · profile); step 1 MUST present `RoleCards`
+- THEN the `AuthStepDots` counter (via `AuthHeader`) MUST show three steps (role · credentials · profile); step 1 MUST present `RoleCards`
   («Профиль Компании» / «Профиль специалиста»); step 2 MUST present email + password + a **confirm-password** field with
   a client-side match check; and Next/Back navigation MUST move between steps
 
@@ -5915,12 +6231,14 @@ datasets.
 - THEN step 1 MUST preselect that role; an absent/invalid `?role=` MUST start with no preselection
 
 **Acceptance Criteria:**
-- 3 steps (role → credentials → profile) with a `StepIndicator`; confirm-password with a client-side match check
+- 3 steps (role → credentials → profile) with the `AuthStepDots` counter (via `AuthHeader`); confirm-password with a client-side match check
 - Step 3 role-specific (CLIENT company fields vs SPECIALIST fields + dropdowns from the datasets); `?role=` preselects step 1
 
 ### Requirement: StepIndicator + RoleCards (composition-gap fill)
 The `StepIndicator` primitive and the `RoleCards` block MUST be implemented (both named by this composition; neither
-existed token-pure — a legacy hex `RoleCard` is replaced).
+existed token-pure — a legacy hex `RoleCard` is replaced). *(`StepIndicator` is **superseded for the auth path** by
+`AuthStepDots`/`AuthHeader` (`reconcile-auth-and-onboarding`) — it remains a token-pure kit primitive but the
+`/register` wizard no longer consumes it; `RoleCards` is unchanged and still composed.)*
 
 #### Scenario: StepIndicator is a token-pure primitive
 - GIVEN `app/components/primitives/StepIndicator.tsx`
@@ -6171,3 +6489,690 @@ The change MUST pass the generativity gate + F5 + F3 + the functional/E2E suite;
 **Acceptance Criteria:**
 - `lint:generativity` + F5 + F3 + `build` + `test:unit` + admin E2E green; existing admin integration tests green
 - No full-screen F1 (no mock); the proof is generativity + behavior preservation; the `DataTable` addition logged
+
+## MODIFIED + ADDED Requirements (reconcile-auth-and-onboarding — Phase 1 screen)
+
+> The `/register` 3-step wizard reconciled to its 5 Figma auth/onboarding nodes (step 1 = role-select `3179:3179`;
+> step 2 = create-account/specialist `3179:3863` & /company `3195:4564`; step 3 = welcome/specialist `3195:4282` &
+> /company `3195:4704`). The labelled `StepIndicator` was swapped for the authoritative `AuthStepDots` dot counter,
+> and each step now leads with the new `AuthHeader` block (Logomark → heading + subtitle → counter) — the F5
+> composition lint forbids heading markup/`className` in the screen, so the «HEADER» lockup is a block. `registerUser`,
+> the confirm-password check, `?role=` preselect, and register→`/dashboard` are unchanged; the full step-3 profile
+> field set is kept as a sanctioned content variant of the welcome node (which shows fewer fields). Recorded as
+> RC-S4/S5/S6 in `docs/DESIGN_SYSTEM_SPEC.md` §10.5. Verified by E2E (`compose-auth-onboarding` 5/5 + the updated auth
+> suite — `register-page-redesign`/`registration`/`auth-navigation`/`auth-flow`, 44/44) + 2 new `AuthHeader` render
+> tests + the 933-test unit suite + F5/token-purity/build. **F1 ≤1% remains deferred** on the font-licence gate
+> (Phase 2 `refidelity-from-figma-references`); here F1 = structural match to each node.
+
+### Requirement: Register Wizard Composes the Figma Auth/Onboarding Nodes
+The `/register` screen (`app/register/RegisterWizard.tsx`) MUST remain a single kit-composed 3-step wizard
+(`AuthLayout` + blocks + primitives + data, no bespoke markup) whose three steps reconcile to the Figma nodes:
+**step 1** = create-account role-select (`3179:3179`), **step 2** = create-account/specialist (`3179:3863`) &
+/company (`3195:4564`), **step 3** = welcome/specialist (`3195:4282`) & /company (`3195:4704`). It MUST use the
+authoritative `AuthStepDots` counter (NOT the labelled `StepIndicator`), lead steps 1–2 with the `Logomark`, and
+carry a per-step heading + subtitle matching each node's copy. It MUST be token-pure (F2) and composition-pure
+(F5), and MUST preserve `registerUser`, the confirm-password mismatch check, `?role=` preselect, and the flow
+that lands a completed registration on `/dashboard`.
+
+#### Scenario: Step indicator is the AuthStepDots counter with 3-step parity
+- GIVEN the `/register` wizard on any step
+- WHEN it renders
+- THEN it MUST render the `AuthStepDots` primitive with `count = 3` and `current` equal to the active step index
+- AND it MUST advance the active dot across steps (1/3 → 2/3 → 3/3) and expose the step via the primitive's
+  `aria-label`/`progressbar` role
+- AND it MUST NOT render the labelled `StepIndicator` (the "Роль/Доступ/Профиль" text labels) on the auth path
+
+#### Scenario: Steps 1–2 lead with the Logomark and a node heading
+- GIVEN the role-select step (1) and the credentials step (2)
+- WHEN each renders
+- THEN each MUST render the `Logomark` primitive (the exported brand mark) above the counter
+- AND each MUST render the node's heading + subtitle (e.g. step 1 "Создайте свой аккаунт" / "Выберите свою роль…",
+  step 2 "…" / "Введите свои учётные данные.")
+
+#### Scenario: Step 1 composes the role selector
+- GIVEN the role-select step
+- WHEN it renders
+- THEN it MUST render the `RoleCards` block (the `roleplay` ×2 selector) and `?role=` MUST preselect the matching
+  card (`aria-pressed="true"`)
+- AND the primary «Далее» button MUST be disabled until a role is chosen
+
+#### Scenario: Step 2 composes the credential inputs token-pure
+- GIVEN the credentials step
+- WHEN it renders
+- THEN it MUST render the email + password + confirm-password inputs from kit primitives plus the
+  primary/secondary buttons
+- AND a confirm-password mismatch MUST surface the existing inline error and block advancing
+- AND the step MUST carry no raw hex/px/styling literals
+
+#### Scenario: Step 3 composes the role-specific profile and completes registration
+- GIVEN the welcome/profile step for each role
+- WHEN it renders and is submitted with valid data
+- THEN it MUST render the role-specific profile fields (specialist: display name + position + tech stack + the
+  Select dropdowns; company: company name + INN + contact + phone) from kit primitives, led by the counter at 3/3
+- AND submitting MUST invoke the unchanged `registerUser`, persist the profile, and land on `/dashboard`
+
+#### Scenario: Composition- and token-purity
+- GIVEN `RegisterWizard.tsx`
+- WHEN the token-purity + composition lints run
+- THEN the screen MUST report no off-token literals and no bespoke styling/markup (it composes
+  `AuthLayout + RoleCards + primitives + data` only)
+
+**Acceptance Criteria:**
+- `RegisterWizard` is an F5-pure `@composed-screen` using `AuthHeader`/`AuthStepDots` (not `StepIndicator`), Logomark on steps 1–2, per-step node headings
+- `registerUser`/validation/`?role=` preselect/register→`/dashboard` preserved; F2 + F5 lints green
+
+### Requirement: AuthHeader Block (auth «HEADER» lockup)
+An `AuthHeader` block MUST exist (`app/components/blocks/AuthHeader.tsx`) with a typed `AuthHeaderVM`
+(`{ heading, subtitle?, step, totalSteps, showLogomark? }`), modelling the Figma auth «HEADER» lockup: an optional
+`Logomark` → a `type/h1` heading + `type/body` muted subtitle → the `AuthStepDots` counter. It MUST be token-pure,
+composed from primitives + layout + tokens, catalogued in the workbench, and rendered from a fixture.
+
+#### Scenario: Composes Logomark + heading/subtitle + AuthStepDots
+- GIVEN `<AuthHeader vm={…}>` with `showLogomark: true`
+- WHEN it renders
+- THEN it MUST render the `Logomark` (exported asset), the heading at the `type/h1` role + the muted subtitle, and the
+  `AuthStepDots` counter marking the current step (`aria-valuenow = step + 1`, `aria-valuemax = totalSteps`)
+
+#### Scenario: Welcome step omits the Logomark
+- GIVEN `<AuthHeader vm={…}>` without `showLogomark`
+- WHEN it renders
+- THEN it MUST NOT render the `Logomark` (the welcome node leads with the heading only)
+
+**Acceptance Criteria:**
+- `AuthHeader` token-pure block + `AuthHeaderVM` + fixture + workbench entry + render tests; `lint:tokens` passes
+
+### Requirement: Welcome-Step Field Set Is a Sanctioned Content Variant
+The Figma welcome node shows `Input + Select ×2`; the implemented step 3 MUST keep the **full profile field set**
+that `registerUser` persists. This divergence MUST be treated as a **sanctioned content variant** of the node's
+layout grammar (heading + counter + labelled fields + back/primary buttons), recorded in the design-system
+reconciliation notes — NOT resolved by dropping persisted fields. F3 parity for step 3 is asserted at the
+layout-grammar + flow level, not a literal field-count match.
+
+#### Scenario: Full field set is preserved and the divergence is recorded
+- GIVEN the welcome/profile step
+- WHEN it renders
+- THEN it MUST present every field `registerUser` consumes for the role (no field dropped to match the node's
+  count)
+- AND the field-count divergence from the Figma node MUST be documented as a sanctioned content variant in the
+  reconciliation note (`docs/DESIGN_SYSTEM_SPEC.md` §10.5, RC-S6)
+
+**Acceptance Criteria:**
+- Step 3 keeps the full `registerUser` field set per role; the field-count divergence is logged as a sanctioned content variant (RC-S6)
+
+### Requirement: Auth Reconciliation Keeps the Suite and Lints Green
+Reconciling the wizard MUST update the affected E2E/integration assertions to the new composition (dot counter +
+Logomark + headings) while preserving every behavioural assertion (role preselect, mismatch, register→dashboard),
+and MUST keep the build, token-purity lint, and unit/E2E suites green.
+
+#### Scenario: Tests updated to the reconciled composition, suite green
+- GIVEN `__tests__/e2e/compose-auth-onboarding.spec.ts` and the other affected auth tests
+- WHEN they run after the reconciliation
+- THEN the `StepIndicator` label assertions MUST be replaced by `AuthStepDots`/aria assertions
+- AND the behavioural assertions (`?role=` preselect, confirm-password mismatch, full register → `/dashboard`,
+  specialist vs company step-3 fields) MUST still pass
+- AND `npm run build`, `npm run lint:tokens`, and `npm run test:unit` MUST pass
+
+**Acceptance Criteria:**
+- The affected auth E2E specs assert `AuthStepDots`/aria + the node heading (no removed `StepIndicator` labels); behavioural assertions intact
+- `build` + `lint:tokens` + `test:unit` + the auth E2E set green
+
+## MODIFIED + ADDED Requirements (reconcile-profile-screen — Phase 1 screen)
+
+> `/profile` (own + the `/profile/[userId]` public view) reconciled to **Профиль/specialist (`2860:2103`)**. The
+> BLOCK section already reconciled in `add-profile-and-gig-detail-blocks` (TagList/CategoryTags/ExperienceList adopt
+> `SectionHeader`/`JobExperienceCard`); this change closes the **ID block** + a stray page-title: `ProfileHeader`
+> now renders the specialty via the `SpecialtyTag` primitive (white `surface/inverse` chip, `brand/default` mono —
+> not the ad-hoc `rounded-pill border` pill) and adds a token-pure availability status pill (online →
+> `status/completed` dot + «В сети», offline → `text/subtle` dot + «Не в сети», mirroring the `Avatar` dot); the
+> composed screen drops the `Section title="Профиль"` heading (the node CONTENT leads with the ID block). `getProfile`,
+> the `ProfileHeaderVM`, the edit flow, and the read-only public view are unchanged; the mock's «на стадии разработки»
+> analytics placeholder is honored, and the real numeric stats are kept as a sanctioned content variant. Recorded as
+> RC-S7/S8 in `docs/DESIGN_SYSTEM_SPEC.md` §10.6. Verified by E2E (`compose-profile` 3/3 — composed render · public
+> read-only · edit round-trip) + 4 new `ProfileHeader` render tests + the 937-test unit suite + F5/token-purity/build.
+> **F1 ≤1% remains deferred** on the font-licence gate (Phase 2 `refidelity-from-figma-references`); here F1 =
+> structural match to the node.
+
+### Requirement: Profile Screen Reconciled to the Figma Profile Node
+The `/profile` screen (`app/(protected)/profile/Profile.tsx`, shared by own + public `/profile/[userId]`) MUST
+remain a composition-pure `@composed-screen` inside the layout's `AppShell`, reconciled to **Профиль/specialist
+(`2860:2103`)**: an **ID block** (`ProfileHeader` ‖ the analytics placeholder `StatPanel`) followed by the 2-column
+**BLOCK** (`TagList` + `ExperienceList` ‖ `CategoryTags` + the realized `GigCard` feed), each section led by a
+`SectionHeader`. The screen MUST NOT render a `"Профиль"` page-title heading (the node CONTENT leads with the ID
+block). It MUST be token-pure (F2) and composition-pure (F5), and MUST preserve the profile data binding, the
+owner edit affordance → `/profile/edit`, and the read-only public view.
+
+#### Scenario: Composes the ID block + 2-col BLOCK without a page title
+- GIVEN a SPECIALIST profile at `/profile`
+- WHEN it renders
+- THEN it MUST render the `ProfileHeader` ID block and the analytics placeholder `StatPanel` as the ID-block row
+- AND it MUST render the 2-col BLOCK — `TagList` («Стек») + `ExperienceList` («Опыт») in one column and
+  `CategoryTags` + the realized `GigCard` feed in the other — each section headed by a `SectionHeader`
+- AND it MUST NOT render a `"Профиль"` page-title heading
+- AND the screen MUST contain no `className=`/`style=`/hex literals (F5)
+
+#### Scenario: Honors the analytics placeholder
+- GIVEN the ID-block row
+- WHEN it renders
+- THEN the right panel MUST show the «на стадии разработки» analytics placeholder
+  («Здесь будет ваша статистика»), the mock's deferred-feature widget
+
+#### Scenario: Profile data + edit flow preserved
+- GIVEN the composed profile
+- WHEN an owner views `/profile` and a non-owner views `/profile/[userId]`
+- THEN the real profile data MUST bind (name, specialty, verify, tech stack, categories, experience, realized gigs)
+- AND the owner MUST see the edit affordance → `/profile/edit` (a save round-trips), and the non-owner MUST NOT see
+  any edit affordance
+
+**Acceptance Criteria:**
+- `Profile` is an F5-pure `@composed-screen` (ID block + 2-col BLOCK, no `"Профиль"` page-title); placeholder honored
+- `getProfile`/edit flow/read-only public view preserved; F2 + F5 lints green
+
+### Requirement: ProfileHeader ID Block Uses SpecialtyTag + a Status Pill
+The `ProfileHeader` block MUST render the ID block per the Figma node: the avatar with its online/offline state,
+the name (display type), the **specialty via the `SpecialtyTag` primitive** (white chip, brand-blue mono — NOT an
+ad-hoc bordered pill), a **token-pure availability status pill** (online/offline, with a dot), the phone-verified
+row, and the member-since line, plus the optional owner edit affordance. It MUST be token-pure.
+
+#### Scenario: Specialty renders via SpecialtyTag
+- GIVEN `<ProfileHeader vm={…}>` with a `roleTag`
+- WHEN it renders
+- THEN the specialty MUST render via the `SpecialtyTag` primitive (the `bg-surface-inverse` chip with
+  `text-brand-default` mono text), not the ad-hoc `rounded-pill border` pill
+- AND the `roleTag` text MUST still be visible (e.g. "Senior Frontend Engineer")
+
+#### Scenario: Availability status pill with a dot
+- GIVEN `<ProfileHeader vm={…}>` with `online: true` and with `online: false`
+- WHEN each renders
+- THEN the ID block MUST show a token-pure availability status pill carrying a dot, reflecting the online/offline
+  state — no raw hex/px literals
+
+#### Scenario: Verify + member-since preserved, token-pure
+- GIVEN any `ProfileHeader`
+- WHEN it renders
+- THEN it MUST keep the phone-verified row ("Номер телефона верифицирован") and the member-since line
+- AND the file MUST be token-pure (no raw hex/px)
+
+**Acceptance Criteria:**
+- `ProfileHeader` renders the specialty via `SpecialtyTag` + an availability status pill (online/offline dot); verify + member-since kept; token-pure
+
+### Requirement: ID-Block Real Stats Are a Sanctioned Content Variant
+The static node shows only the «на стадии разработки» analytics placeholder in the ID block; the implementation
+MUST honor that placeholder AND MAY retain the real numeric stats (Рейтинг / Завершено задач / Повторные заказы,
+from `header.stats`) as a **sanctioned content variant** — a functional enhancement the mock lacks. This MUST be
+recorded in the design-system reconciliation note, NOT resolved by dropping the placeholder. F3 parity for the ID
+block is asserted at the layout-grammar + flow level, not a literal element-count match.
+
+#### Scenario: Placeholder honored, real stats retained and recorded
+- GIVEN the ID block
+- WHEN it renders
+- THEN the «на стадии разработки» placeholder MUST be present (honored)
+- AND retaining the real numeric stats MUST be documented as a sanctioned content variant in the reconciliation
+  note (`docs/DESIGN_SYSTEM_SPEC.md` §10.6, RC-S7)
+
+**Acceptance Criteria:**
+- The placeholder is honored and the real numeric stats are retained + logged as a sanctioned content variant (RC-S7)
+
+### Requirement: Profile Reconciliation Keeps the Suite Green
+Reconciling the profile MUST update the affected E2E/unit assertions to the new ID-block composition (SpecialtyTag
++ status pill, no page-title) while preserving every behavioural assertion (data binding, owner edit round-trip,
+read-only public view), and MUST keep the build, token-purity lint, and unit/E2E suites green.
+
+#### Scenario: Tests updated to the reconciled composition, suite green
+- GIVEN `__tests__/e2e/compose-profile.spec.ts` and the ProfileHeader render test
+- WHEN they run after the reconciliation
+- THEN they MUST assert the `SpecialtyTag` specialty chip + the availability status pill (and not a removed
+  page-title), while the data-binding, edit-round-trip, and read-only assertions still pass
+- AND `npm run build`, `npm run lint:tokens`, and `npm run test:unit` MUST pass
+
+**Acceptance Criteria:**
+- The affected E2E/unit assert the SpecialtyTag chip + status pill (no removed page-title); behavioural assertions intact
+- `build` + `lint:tokens` + `test:unit` + the `compose-profile` E2E green
+
+## MODIFIED + ADDED Requirements (reconcile-dashboards — Phase 1 screen)
+
+> Both `/dashboard` screens reconciled to **Дашборд/specialist (`2860:3751`)** + **Дашборд/company (`3371:5387`)**.
+> The former `BannerCard` + flat stack is replaced by a WELCOME (greeting `SectionHeader` + `OnboardingCard ×2`, the
+> profile-completion tile carrying the real `completion` as its `ProgressBar` value) and a 2-col `Split` BOARD — col1
+> «Активные задачи» (`SectionHeader` + the status `Tabs` Menu-switcher + the `GigCard` feed) ‖ col2 «найти
+> гиг»/«Найти новый проект» (`SearchPanel` specialist / `CreateGigCTA` company) + «Сообщения» (`MessagesPanel`). The
+> specialist adds the 6× `AttentionCard` strip bound to live `Notification`s via `getDashboardAttention` (newest-first,
+> cap 6, eventType→`AttentionType`, gig embed); the company hides it (mock `Frame 342 hidden=true`). The `Section
+> title="Дашборд"` page-title is dropped. VM change: `banner` → `greeting` + `onboarding` (+ specialist `attention`);
+> `completion`/`gigCards`/`tabs`/`messages` preserved. Recorded as RC-S9/S10 in `docs/DESIGN_SYSTEM_SPEC.md` §10.7.
+> Verified by E2E (`compose-specialist-dashboard` 4/4 + `compose-client-dashboard` 3/3) + the two dashboard-vm
+> integration tests (5/5) + the 937-test unit suite + F5/token-purity/build. **F1 ≤1% remains deferred** on the
+> font-licence gate (Phase 2 `refidelity-from-figma-references`); here F1 = structural match to each node.
+
+### Requirement: Dashboard Screens Reconciled to the Figma Nodes
+Both `/dashboard` screens (`SpecialistDashboard.tsx`, `ClientDashboard.tsx`) MUST remain composition-pure
+`@composed-screen`s inside the layout's `AppShell`, reconciled to their Figma nodes: a **WELCOME** section
+(a greeting heading + **two `OnboardingCard`s**) replacing the former `BannerCard`, followed by a **2-column
+BOARD** — col1 «Активные задачи» (`SectionHeader` + the Tabs/Menu-switcher status filter + the `GigCard` feed),
+col2 «Сообщения» (`SectionHeader` + the `MessagesPanel`) plus the role's find-project affordance (specialist:
+`SearchPanel`; company: `CreateGigCTA`). The screens MUST NOT render a `"Дашборд"` page-title heading. They MUST be
+token-pure (F2) and composition-pure (F5), and MUST preserve the status tabs + counts, the gig-link navigation, the
+find-project search (specialist), and the create-gig affordance (company).
+
+#### Scenario: WELCOME composes a greeting + two OnboardingCards (no BannerCard)
+- GIVEN either dashboard
+- WHEN it renders
+- THEN it MUST render a greeting heading (name-bound, via `SectionHeader`) and **two `OnboardingCard`s**
+- AND it MUST NOT render the former `BannerCard` headline
+
+#### Scenario: BOARD is a 2-col Split with SectionHeader-led columns
+- GIVEN either dashboard
+- WHEN it renders
+- THEN the BOARD MUST be a 2-col layout: col1 «Активные задачи» (`SectionHeader` + the status Tabs + the `GigCard`
+  feed) and col2 «Сообщения» (`SectionHeader` + the `MessagesPanel`) plus the role's find-project affordance
+  (specialist `SearchPanel` / company `CreateGigCTA`)
+- AND each column section MUST be headed by a `SectionHeader`
+
+#### Scenario: No page-title; status tabs + navigation preserved
+- GIVEN either dashboard
+- WHEN it renders and is interacted with
+- THEN it MUST NOT render a `"Дашборд"` page-title heading
+- AND the status Tabs (with counts) MUST still render and filter the `GigCard` feed, a `GigCard` MUST still open its
+  gig detail, the specialist `SearchPanel` MUST still route to `/gigs`, and the company `CreateGigCTA` MUST still
+  link to `/gigs/new`
+- AND the screen MUST contain no `className=`/`style=`/hex literals (F5)
+
+**Acceptance Criteria:**
+- Both dashboards are F5-pure `@composed-screen`s: WELCOME (greeting + OnboardingCard×2) + 2-col BOARD; no `BannerCard`, no `"Дашборд"` page-title
+- Tabs + counts, gig-link, specialist search → `/gigs`, company create → `/gigs/new` preserved; F2 + F5 lints green
+
+### Requirement: Dashboard VMs Bind WELCOME + Attention from Live Data
+`SpecialistDashboardData` and `ClientDashboardData` MUST replace `banner` with `greeting: string` +
+`onboarding: OnboardingCardVM[]`, and `SpecialistDashboardData` MUST add `attention: AttentionCardVM[]`. The
+`getSpecialistDashboard`/`getClientDashboard` mappers MUST bind these from live data: the greeting from the user's
+name, the onboarding tiles from the real profile-completion (`completion`), and (specialist) the attention strip
+from the user's recent notifications via a `getDashboardAttention(userId)` helper. `completion`, `gigCards`, `tabs`,
+and `messages` MUST be preserved.
+
+#### Scenario: Mapper emits greeting + onboarding + (specialist) attention
+- GIVEN `getSpecialistDashboard(userId)` / `getClientDashboard(userId)`
+- THEN each MUST return `greeting` (name-bound), `onboarding` (≥2 `OnboardingCardVM`s, the first carrying the real
+  `completion` as its progress), `gigCards`, `tabs` (with counts), and `messages` — and NOT a `banner`
+- AND `getSpecialistDashboard` MUST additionally return `attention: AttentionCardVM[]` (≤6, newest-first) mapped
+  from the user's recent `Notification`s; each item's `type` is a valid `AttentionType` and its `embed` is a gig
+  card or a message preview
+- AND the returned objects MUST be assignable to the view-model contracts (`import type`)
+
+#### Scenario: Attention helper maps notifications to typed cards
+- GIVEN `getDashboardAttention(userId)`
+- THEN it MUST return at most 6 `AttentionCardVM`s, newest-first, each with a valid `AttentionType` and a populated
+  `embed` (gig `GigCardVM` when a gig is linked, else a message-style preview); an empty list when the user has no
+  notifications
+
+**Acceptance Criteria:**
+- Both VMs expose `greeting` + `onboarding` (no `banner`); specialist adds `attention` (≤6, typed, gig/message embed)
+- `getDashboardAttention` maps recent notifications newest-first (cap 6); `[]` when none
+
+### Requirement: Attention Strip Is Specialist-Only; Tabs Retained as a Sanctioned Variant
+The 6× `AttentionCard` strip MUST render on the **specialist** dashboard (a `SectionHeader` + a row of the
+`attention` cards) when non-empty, and MUST NOT render on the **company** dashboard (the mock's `hidden=true`
+strip). The col1 status Tabs MUST be kept for **both** roles as the «Активные задачи» Menu-switcher — matching the
+company node and retained for the specialist as a **sanctioned content variant** (functional filtering the static
+specialist feed omits), recorded in the reconciliation note.
+
+#### Scenario: Specialist shows the strip; company hides it
+- GIVEN a specialist with ≥1 notification and a company user
+- WHEN each dashboard renders
+- THEN the specialist dashboard MUST render the `AttentionCard` strip under its `SectionHeader`
+- AND the company dashboard MUST NOT render any `AttentionCard` strip
+
+#### Scenario: Tabs retained for both roles, divergence recorded
+- GIVEN either dashboard
+- WHEN it renders
+- THEN col1 «Активные задачи» MUST include the status Tabs (the Menu-switcher) over the `GigCard` feed
+- AND the specialist-tabs retention (vs the static node's plain feed) MUST be documented as a sanctioned content
+  variant in the reconciliation note (`docs/DESIGN_SYSTEM_SPEC.md` §10.7, RC-S10)
+
+**Acceptance Criteria:**
+- Specialist renders the live attention strip (when non-empty); company renders none
+- Tabs kept for both as the col1 Menu-switcher; the specialist retention logged as a sanctioned content variant (RC-S10)
+
+### Requirement: Dashboard Reconciliation Keeps the Suite Green
+Reconciling the dashboards MUST update the affected E2E/integration assertions to the new composition (greeting +
+OnboardingCards + 2-col BOARD + specialist attention strip, no page-title, no `banner`) while preserving every
+behavioural assertion (tabs + counts, gig-link, search, create), and MUST keep the build, token-purity lint, and
+unit/E2E suites green.
+
+#### Scenario: Tests updated to the reconciled composition, suite green
+- GIVEN `__tests__/e2e/compose-{specialist,client}-dashboard.spec.ts` and
+  `__tests__/integration/{specialist,client}-dashboard-vm.test.ts`
+- WHEN they run after the reconciliation
+- THEN the `BannerCard`/page-title assertions MUST be replaced by greeting + OnboardingCard + 2-col-BOARD (+ the
+  specialist attention strip) assertions, and the VM tests MUST assert `greeting`/`onboarding`/`attention` (not
+  `banner`)
+- AND the behavioural assertions (five/four tabs + counts, gig-link → gig detail, specialist search → `/gigs`,
+  company create → `/gigs/new`) MUST still pass
+- AND `npm run build`, `npm run lint:tokens`, and `npm run test:unit` MUST pass
+
+**Acceptance Criteria:**
+- The affected E2E/VM tests assert the reconciled composition (greeting/onboarding/attention, no `banner`/page-title); behavioural assertions intact
+- `build` + `lint:tokens` + `test:unit` + the two dashboard E2E suites green
+
+## MODIFIED + ADDED Requirements (reconcile-gig-browse — Phase 1 screen)
+
+> The `/gigs` browse screen (`GigSearch`) reconciled to **Поиск проектов/specialist (`2860:2056`)**. The former
+> `Section title="Поиск гигов"` page-title is replaced by a **HEADER row** = a `SectionHeader` («Поиск проектов»,
+> the БЛОК heading) + the grid/list **`switcher`** (`ViewToggle`) right-aligned in that same row, over the `GigCard`
+> grid (`Grid columns={3}`) / list (`Stack`) spanning the full `Status` set. The switcher is **hoisted out of the
+> `FilterBar`** (which now renders its `ViewToggle` only when `onViewChange` is wired) and still drives the `view`
+> URL param. The functional `FilterBar` (search + category + sort + Рейтинг) is retained as a **sanctioned content
+> variant** the static mock collapses; the server query, gig-link navigation, and `PaginationControls` are unchanged.
+> Recorded as RC-S11 in `docs/DESIGN_SYSTEM_SPEC.md` §10.8. Verified by E2E (`compose-gig-search` 6/6, incl. the new
+> reconciled-HEADER test) + `gig-pagination` 6/6 + the `domain-blocks` FilterBar unit test (42/42) + the 937-test
+> unit suite + F2/F5/build. **F1 ≤1% remains deferred** on the font-licence gate (Phase 2
+> `refidelity-from-figma-references`); here F1 = structural match to the node in both grid and list layouts.
+
+### Requirement: Gig Browse Screen Reconciled to the Figma Node
+The `/gigs` browse screen (`app/(protected)/gigs/GigSearch.tsx`) MUST remain a composition-pure `@composed-screen`
+inside the layout's `AppShell`, reconciled to its Figma node `2860:2056`: a **HEADER row** composed of a
+`SectionHeader` (title «Поиск проектов», the БЛОК heading role) on the left and the grid/list **`switcher`**
+(`ViewToggle`) right-aligned in the same row, followed by the **`GigCard` grid** (`Grid columns={3}` for
+`view="grid"`, a `Stack` for `view="list"`). The screen MUST NOT render the former `Section title="Поиск гигов"`
+page-title heading, and MUST NOT render the grid/list switcher inside the `FilterBar`. The screen MUST be token-pure
+(F2) and composition-pure (F5), and MUST preserve the search/category/sort/Рейтинг filtering, the grid⇄list view
+toggle, the gig-open navigation (`/gigs/[id]?from=browse&…`), and the pagination beneath it.
+
+#### Scenario: HEADER composes a SectionHeader + the grid/list switcher (no page-title)
+- GIVEN the gig browse screen
+- WHEN it renders
+- THEN it MUST render a `SectionHeader` titled «Поиск проектов» and the grid/list `switcher` (`ViewToggle`) in the
+  same header row
+- AND it MUST NOT render the former `Section title="Поиск гигов"` page-title heading
+- AND the grid/list switcher MUST NOT be rendered inside the `FilterBar`
+
+#### Scenario: CONTENT is a GigCard grid/list spanning the full status set
+- GIVEN the gig browse screen with gigs across the status set
+  (`open | in-progress | review | verification | completed | rejected`)
+- WHEN it renders in `view="grid"`
+- THEN the cards MUST render in a `Grid columns={3}` of `GigCard`s, each opening its gig detail
+  (`/gigs/[id]?from=browse&…`) on activation
+- AND when `view="list"` the cards MUST render in a `Stack`
+- AND a `GigCard` MUST render its status pill for each status value present
+
+#### Scenario: Filters/search/pagination preserved; composition-pure
+- GIVEN the gig browse screen
+- WHEN it is interacted with
+- THEN the `FilterBar` search + category + sort + Рейтинг controls MUST still drive their URL params, the header
+  switcher MUST still toggle the `view` URL param, and `PaginationControls` MUST still render and paginate beneath the
+  screen
+- AND the screen MUST contain no `className=`/`style=`/hex literals (F5)
+
+**Acceptance Criteria:**
+- `GigSearch` is an F5-pure `@composed-screen`: HEADER (`SectionHeader` «Поиск проектов» + header-row `ViewToggle`) + `GigCard` grid/list; no `Section title="Поиск гигов"` page-title, no switcher inside the `FilterBar`
+- Search/category/sort/Рейтинг filtering, grid⇄list toggle, gig-open (`from=browse`), and pagination preserved; F2 + F5 lints green
+
+### Requirement: Switcher Hoisted to the Header; Filters Retained as a Sanctioned Variant
+The grid/list `switcher` MUST live in the `SectionHeader` HEADER row (matching node `2860:2056`), not inside the
+`FilterBar`; the `ViewToggle` primitive is reused verbatim (same `view`/`onChange` contract) with only its placement
+changed, and `FilterBar` MUST render its `ViewToggle` only when `onViewChange` is wired. The functional `FilterBar`
+(search + category + sort + Рейтинг) MUST be retained as a **sanctioned content variant** — the node mock shows only
+the header + card grid (its filter UI collapsed), and the filtering is kept because it provides functional value the
+static mock omits — recorded in the reconciliation note.
+
+#### Scenario: Switcher in the header, single instance
+- GIVEN the gig browse screen
+- WHEN it renders
+- THEN exactly one grid/list switcher MUST render, located in the `SectionHeader` header row (not in the `FilterBar`)
+- AND toggling it MUST switch the `GigCard` layout between the `Grid` (grid) and the `Stack` (list)
+
+#### Scenario: Retained filter affordance recorded as a sanctioned variant
+- GIVEN the reconciled screen retains the `FilterBar` search/category/sort/Рейтинг controls the node mock omits
+- WHEN the reconciliation is documented
+- THEN the retention MUST be recorded as a sanctioned content variant in the reconciliation note
+  (`docs/DESIGN_SYSTEM_SPEC.md` §10.8, RC-S11) with the node id `2860:2056`
+
+**Acceptance Criteria:**
+- Switcher hoisted to the `SectionHeader` row (single instance); `FilterBar` `ViewToggle` gated on `onViewChange`
+- The retained functional filters logged as a sanctioned content variant (RC-S11)
+
+### Requirement: Gig Browse Reconciliation Keeps the Suite Green
+Reconciling the gig browse screen MUST update the affected E2E assertions to the new composition (the «Поиск
+проектов» `SectionHeader` + the header-row switcher + the `GigCard` grid, no `Section title=` page-title, no
+switcher inside the `FilterBar`) while preserving every behavioural assertion (search, category/sort/Рейтинг
+filtering, grid⇄list toggle, gig-open, pagination), and MUST keep the build, token-purity lint, composition lint, and
+unit/E2E suites green.
+
+#### Scenario: Tests updated to the reconciled composition, suite green
+- GIVEN `__tests__/e2e/compose-gig-search.spec.ts` (the browse composition spec, extended)
+- WHEN it runs after the reconciliation
+- THEN the old `Section title="Поиск гигов"` / filter-bar-switcher assertions MUST be replaced by the
+  `SectionHeader` «Поиск проектов» + header-row switcher + `GigCard` grid assertions
+- AND the behavioural assertions (search submits, category/sort/Рейтинг filter, grid⇄list toggle, gig-open
+  `/gigs/[id]?from=browse`, pagination) MUST still pass
+- AND `npm run build`, `npm run lint:tokens`, `node scripts/design-system/validate-composition.js`, and
+  `npm run test:unit` MUST pass
+
+**Acceptance Criteria:**
+- The browse E2E spec asserts the reconciled HEADER (SectionHeader + header-row switcher, no page-title, no filter-bar switcher); behavioural assertions intact
+- `build` + `lint:tokens` + `validate-composition` + `test:unit` + `compose-gig-search` E2E green
+
+## MODIFIED + ADDED Requirements (adopt-design-fonts — Phase 0, full-design re-ground)
+
+> The type layer re-grounded on `gigly_full_design`'s **sanctioned free-Cyrillic substitution** (README + `HANDOFF.md`
+> + `styles.css`), replacing the dev-stage Inter + JetBrains Mono guesses: **NKDuy Mono → Handjet** (`--font-mono`,
+> the accent/pixel face — display/h1/logo/mono), **Vremena Grotesk → Manrope** (`--font-grotesk`, NEW — numbers/price/
+> term, message bodies, job-experience), **SF Compact → system stack** (`--font-sans`). Handjet + Manrope self-host
+> via `next/font/google` (Cyrillic subset, variable axes, no runtime Google request); the `--font-sans`/`--font-mono`
+> contract names stay stable so heading/body roles re-resolve with no per-token re-tagging. **The F1 font-licence cap
+> is retired** (`docs/TYPOGRAPHY.md`) — the ≤1% gate's only remaining dependency is the Phase-4 re-baseline. Verified
+> by `validate:tokens` (in sync; `grotesk` present), `lint:tokens`, `lint:composition`, `build` (self-hosted), and the
+> 937-test unit suite.
+
+### Requirement: Type Layer Binds the Sanctioned Design Fonts
+The type layer MUST bind the design's sanctioned free-Cyrillic substitution: `--font-mono` (accent — `display / h1 /
+mono / mono-small`) MUST resolve **Handjet**; `--font-sans` (`h2 / title / body / label / label-bioname / caption`)
+MUST resolve a **system font stack**; `--font-grotesk` (NEW) MUST resolve **Manrope**. Handjet + Manrope MUST be
+self-hosted at build via `next/font/google` (Cyrillic subset, no runtime Google request). Inter and JetBrains Mono
+MUST NOT remain wired as the type families. The `--font-sans` / `--font-mono` contract names MUST be preserved
+(consumers + the semantic `fontFamily.*` tokens unchanged).
+
+#### Scenario: The three families resolve to the sanctioned substitutes
+- GIVEN the running app
+- WHEN `font-mono` (display/h1), `font-sans` (body), and `font-grotesk` elements render
+- THEN `--font-mono` MUST resolve Handjet, `--font-sans` the system stack, `--font-grotesk` Manrope
+- AND `app/fonts.ts` MUST self-host Handjet + Manrope via `next/font/google` and MUST NOT load Inter or JetBrains Mono
+
+#### Scenario: Token pipeline regenerated and in sync
+- GIVEN `design-tokens.json` `font.family` updated (accent → Handjet, primary → system, + `grotesk` → Manrope) and
+  regenerated `scripts/generated-tokens.{js,css}`
+- THEN `npm run validate:tokens` MUST pass, a `font-grotesk` Tailwind utility MUST exist, and the family descriptions
+  MUST name the real substitutes (no "dev sub: Inter / JetBrains Mono")
+
+**Acceptance Criteria:**
+- `app/fonts.ts` loads Handjet (`--font-mono`) + Manrope (`--font-grotesk`) via `next/font/google`; `--font-sans` is the system stack; no Inter/JetBrains in the type layer
+- `validate:tokens` + `lint:tokens` + `lint:composition` + `build` + `test:unit` green; the `font-mono`-class assertion still holds
+
+### Requirement: Grotesk (Manrope) Family Available for the Vremena Roles
+The type system MUST expose a `font-grotesk` family (Manrope) — a `fontFamily.grotesk` token + `--font-grotesk`
+variable + Tailwind `font-grotesk` utility — for the Vremena Grotesk roles (numbers, gig price/term, message bodies,
+job-experience). It MUST be wired + exercised (token + utility + a workbench typography sample); per-screen adoption
+MAY land incrementally with the Phase-3 reconciliations.
+
+#### Scenario: font-grotesk is wired and exercised
+- GIVEN the regenerated tokens + Tailwind config
+- THEN a `font-grotesk` (Manrope) sample MUST render in the workbench typography catalog, the `font-grotesk` utility
+  MUST be available to screens, and applying it MUST introduce no off-token literal (token-purity stays green)
+
+**Acceptance Criteria:**
+- `fontFamily.grotesk` + `--font-family-grotesk` present in the generated outputs; `type/grotesk` in the workbench catalog
+
+### Requirement: The F1 Font-Licence Cap Is Retired
+The "type fidelity is CAPPED — fonts not web-embeddable" framing MUST be retired across the docs + planning risk
+lists, replaced by the sanctioned substitution as system fact. `docs/TYPOGRAPHY.md` MUST state the resolved
+Handjet / Manrope / system mapping, and no doc/planning MUST state that the font licence caps the F1 ≤1% gate.
+
+#### Scenario: Docs and planning no longer frame type fidelity as capped
+- GIVEN `docs/TYPOGRAPHY.md` and the planning docs after this change
+- THEN they MUST describe the Handjet / Manrope / system substitution as the sanctioned target
+- AND they MUST NOT state that the font licence caps F1; the gate's only remaining dependency is the Phase-4 re-baseline
+
+**Acceptance Criteria:**
+- `docs/TYPOGRAPHY.md` names the sanctioned trio (cap retired); the planning font-risk is struck; no live "font caps F1" claim remains
+
+## ADDED Requirements (reconcile-tokens-to-full-design — Phase 1, full-design re-ground)
+
+> The token SSOT re-synced to `gigly_full_design/design-system/fig-tokens.css` (189 tokens) — the core values already
+> AGREED; this closes the residual additive gaps + one value correction. Added: the **per-status radial/border/text
+> triads** (5 `gradient.status-*-glow` + a new `color-semantic.status-border.*` namespace; the 6 `status.*` text leaves
+> unchanged), the **`sm`/`lg` shadows**, the **`80`/`96` spacing** (5xl/6xl). Pinned the **category↔hue** mapping to the
+> design's `Category.jsx`: `marketing` corrected **#0088ff → #4cacff** (the Category blue; SUPERSEDES §10.1 RC-S3),
+> `design` relabeled **rose** (#f45fb1), the rest confirmed. `status.open` text kept gray (#8a8f99 vs the Figma white)
+> for legibility. All additive — no legacy key removed; regenerated `scripts/generated-tokens.{js,css}`. Recorded as
+> RC-T1–T4 in `docs/DESIGN_SYSTEM_SPEC.md` §10.9. Verified by `validate:tokens` (45 colours, in sync, no parody),
+> `lint:tokens` (baseline unchanged), `lint:composition`, `build`, and the 937-test unit suite.
+
+### Requirement: Per-Status Radial/Border/Text Triads Are Token-Backed
+The token SSOT MUST provide, for each of the 6 statuses (`open, review, in-progress, verification, completed,
+rejected`), the full triad from `fig-tokens.css` `--status-{name}-*` (Figma keys mapped **new → open**, **testing →
+verification**): the **text** colour (the existing `color-semantic.status.{name}` leaf), a **radial** glow
+(`gradient.status-{name}-glow`), and a **border** tint (`color-semantic.status-border.{name}`). The additions MUST NOT
+restructure the existing `color-semantic.status.{name}` leaves, and the generated outputs MUST be regenerated so every
+new colour leaf + radial appears in `generated-tokens.{js,css}`.
+
+#### Scenario: All six statuses expose a radial + border + text; existing leaves unchanged
+- GIVEN `openspec/specs/ui/design-tokens.json` after the change
+- THEN each status MUST have a `color-semantic.status.{name}` text leaf, a `gradient.status-{name}-glow` radial, and a
+  `color-semantic.status-border.{name}` border leaf
+- AND the existing `status.*` leaves (and `text-/bg-/border-status-*` utilities) MUST be preserved unchanged
+- AND `npm run validate:tokens` MUST pass (no drift; `gradient` + `boxShadow` groups non-empty)
+
+### Requirement: Shadow + Spacing Scales Completed; Category Mapping Pinned (Legacy Keys Kept)
+`effect.shadow` MUST add `sm` (`0 1 2 0 rgba(0,0,0,0.3)`) and `lg` (`0 8 24 0 rgba(0,0,0,0.5)`), keeping `card`/
+`popover` as legacy aliases; `numbers.spacing` MUST add `20` (80px) and `24` (96px) keeping the existing numeric keys;
+the `numbers.corner` radius scale MUST be verified complete (xl 16 = `special`, xs 2 = `lt`) without change. The 5
+`color-semantic.category` keys MUST be pinned to the design's `Category.jsx` hues — `marketing` #4cacff, `design`
+#f45fb1 (rose), `programming` #0cc671, `development` #05c9e6, `coding` #f27c0d — with the `marketing` correction
+(#0088ff → #4cacff) and the `status.open` gray-vs-white divergence recorded in `docs/DESIGN_SYSTEM_SPEC.md`.
+
+#### Scenario: Scales extended + categories pinned, nothing removed
+- GIVEN the SSOT after the change
+- THEN `effect.shadow` MUST include `sm`/`md`/`lg`/`focus` (+ legacy `card`/`popover`), `numbers.spacing` MUST include
+  `20`/`24`, and `color-semantic.category` MUST be `marketing #4cacff` / `design #f45fb1` (rose) / `programming #0cc671`
+  / `development #05c9e6` / `coding #f27c0d`
+- AND no previously present token key may be removed, and `npm run validate:tokens` MUST still find the 5 categories
+
+### Requirement: Token Reconciliation Keeps the Pipeline Green
+Regenerating the tokens MUST keep the build, token validator, token-purity lint, and unit suite green, with the
+generated outputs in sync with the JSON SSOT.
+
+#### Scenario: Deterministic gates pass after regeneration
+- GIVEN the updated SSOT + regenerated `scripts/generated-tokens.{js,css}`
+- WHEN `npm run validate:tokens`, `npm run lint:tokens`, `npm run build`, and `npm run clean:test-db && npm run test:unit` run
+- THEN all MUST pass — tokens valid + in sync, no new off-token literal (purity baseline unchanged), the app builds, and
+  the unit suite is green
+
+**Acceptance Criteria:**
+- 6 status radials + 6 status borders; `shadow.sm`/`lg`; spacing `80`/`96`; category pinned (marketing #4cacff, design rose); no legacy key removed
+- `validate:tokens` (45 colours, in sync) + `lint:tokens` + `lint:composition` + `build` + `test:unit` green; RC-T1–T4 in §10.9 (RC-S3 superseded on marketing)
+
+## ADDED Requirements (add-light-theme — Phase 1, runtime theming)
+
+> The net-new **light theme** (`gigly_full_design/ТЗ — Светлая тема`). The token appearance layer (colours, shadows,
+> gradients) is now emitted to Tailwind as `var(--*)` refs, with the dark values in `generated-tokens.css` `:root` and
+> the light overrides under `[data-theme="light"]` (imported by `globals.css`) — so every **token-pure** utility
+> switches at runtime. **Dark stays the default and visually unchanged** (dark var values == the prior literals);
+> `brand.default #0088ff` + the font families are theme-invariant; status stays one-to-one (radial glow → flat 8–10%
+> fill on light). A `lib/theme.ts` controller + a no-flash boot `<script>` in `app/layout.tsx` + a Settings → Внешний
+> вид `Select` persist the choice in `localStorage['gigly-theme']`. Recorded as RC-T5–T7 in `docs/DESIGN_SYSTEM_SPEC.md`
+> §10.10. Verified by `validate:tokens` (48 colours, var-backed, dark+light layers in sync), `lint:tokens`,
+> `lint:composition`, `build`, the 937-test unit suite, and the `theme-switch` E2E (3/3).
+
+### Requirement: Token Appearance Layer Is Runtime-Themeable via [data-theme]
+The colour/shadow/gradient tokens MUST resolve through runtime CSS variables that switch on the root `[data-theme]`
+attribute (Tailwind consumes `var(--<key>)`; `generated-tokens.css` defines each token's dark value in `:root` and its
+light override in `[data-theme="light"]`; `app/globals.css` imports that layer). Dark MUST remain the default and be
+visually unchanged (dark var values equal the prior literals). No Tailwind `/opacity` modifier may be used on a
+var-backed colour — an alpha fill MUST be a dedicated full-value token (`color-semantic.tint.*`).
+
+#### Scenario: Utilities resolve through switchable vars; dark default unregressed
+- GIVEN the regenerated token pipeline
+- THEN `tokens.colors/boxShadow/gradient[key]` MUST be `var(--…)`, `:root` MUST carry the dark values, and
+  `[data-theme="light"]` MUST carry the light overrides; `globals.css` MUST import the layer
+- AND with no/`dark` `data-theme` the app renders the (unchanged) dark theme; under `data-theme="light"` token-pure
+  utilities render the light values
+- AND no component uses a `/opacity` modifier on a var colour (alpha fills use `tint.*` tokens)
+
+### Requirement: Light Token Values — Depth via Shadow + Grey; Brand & Type Invariant
+The themeable tokens MUST carry `light` values per `ТЗ` (surfaces `#f4f5f7`/`#ffffff`/`#eceef1`; hairlines `#e6e8ec`;
+navy-tinted shadows; status radial glows → flat 8–10% fills; overlays → dark hairlines). `brand.default #0088ff` and
+the font families MUST NOT receive a light override; status hues stay one-to-one across themes.
+
+#### Scenario: Light values present; brand/type invariant; status one-to-one
+- GIVEN `design-tokens.json` after the change
+- THEN the themeable surface/text/border/overlay/status/shadow tokens MUST carry a `light` value, and `brand.default`
+  + the font families MUST NOT
+- AND each status keeps its distinct hue in light (one-to-one lifecycle mapping preserved)
+
+### Requirement: Theme Switch Persists and Applies Without Flash
+A controller (`lib/theme.ts`) MUST set `<html data-theme>`, persist to `localStorage['gigly-theme']`, and restore on
+load; `app/layout.tsx` MUST apply the stored theme before first paint via an inline boot script; Settings → Внешний
+вид MUST expose the Тёмная/Светлая control. Dark is the default when unset.
+
+#### Scenario: Toggle flips + persists + survives reload; dark default
+- GIVEN the default (dark) app
+- WHEN the user switches to Светлая in Settings → Внешний вид
+- THEN `<html data-theme="light">`, the UI re-renders light, `localStorage['gigly-theme']="light"`, and a reload
+  restores light with no flash-of-dark; an unset/`dark` value renders dark
+
+**Acceptance Criteria:**
+- Colours/shadows/gradients are `var(--*)`; `:root` (dark) + `[data-theme="light"]` (light) layers in sync + imported; dark default unchanged
+- Light values present (brand + fonts invariant; status one-to-one); no `/opacity` on var colours (tint tokens instead)
+- Switch persists in `localStorage['gigly-theme']` + applies before paint; `validate:tokens`/`lint:tokens`/`build`/`test:unit` + `theme-switch` E2E green
+
+## ADDED Requirements (light-theme-screen-audit — Phase 1, light-theme acceptance pass)
+
+> The light-theme acceptance pass (closes `add-light-theme`'s deferred scope; `ТЗ — Светлая тема` §3/§5/§8.4/§9). A
+> deterministic **WCAG-AA contrast gate** (`scripts/design-system/validate-contrast.js`, `lint:contrast`) audits every
+> text×surface token pair in BOTH themes — body 4.5:1 (`text.strong/muted/subtle`), large 3:1 for `status.*` labels
+> (preserves the vivid one-to-one hues + keeps the shipped dark theme unchanged). The **74 legacy raw-literals → 0**:
+> the dead-duplicate auth trees (`components/auth/*` + `app/components/auth/*`, both unimported) were deleted, `/login`
+> + `InfoIcon` token-migrated, and `token-purity-baseline.json` emptied so the purity lint is **fail-on-all**. The logo
+> reads on light via a `surface.logo-plate` token (transparent dark / dark island light, ТЗ §5). A `suppressHydration
+> Warning` on `<html>` resolves the theme-boot-script hydration warning. Verified by `lint:contrast`, `lint:tokens`
+> (0 baseline), `validate:tokens` (49 colours), `lint:composition`, `build`, the 911-test unit suite, and the
+> `theme-coverage`/`theme-switch`/`login-role-param`/`auth-navigation` E2E. Recorded as RC-T8–T11 in
+> `docs/DESIGN_SYSTEM_SPEC.md` §10.11.
+
+### Requirement: WCAG-AA Contrast Is Enforced in Both Themes
+A deterministic gate (`scripts/design-system/validate-contrast.js`, `npm run lint:contrast`) MUST compute the WCAG
+contrast ratio for every audited text×surface token pair using the SSOT values for both themes (dark = `value`, light
+= `light ?? value`) and MUST fail when a pair is below its threshold — **≥4.5:1** body (`text.strong/muted/subtle`),
+**≥3:1** large (`status.*` labels). Documented exceptions (white-on-brand button; dark specialty chip) MUST be an
+explicit allowlist; `text.disabled` is WCAG-exempt.
+
+#### Scenario: Contrast gate passes AA both themes and fails on a violation
+- GIVEN the token SSOT
+- WHEN `npm run lint:contrast` runs
+- THEN it MUST PASS only if every audited pair meets its AA threshold in both themes, and MUST FAIL (exit 1) on a
+  planted below-AA value, naming the pair + theme + ratio
+
+### Requirement: No Raw Colour Literals Remain (Purity Lint Fail-on-All)
+`token-purity-baseline.json` MUST be empty and `lint:tokens` MUST fail on any raw hex/rgba literal. Legacy files MUST
+be token-migrated or deleted-if-dead; the dead-duplicate auth trees MUST be removed rather than re-baselined.
+
+#### Scenario: Empty baseline; any literal fails
+- GIVEN the codebase after the audit
+- THEN `token-purity-baseline.json` MUST be `{}`, `lint:tokens` MUST PASS, and introducing any raw literal MUST fail it
+- AND the unused `components/auth/*` + `app/components/auth/*` trees MUST be deleted; `/login` + `InfoIcon` token-pure
+
+### Requirement: The Logo Reads On Light; Every Screen Renders In Both Themes
+`Logomark` MUST render legibly on a light surface (the `surface.logo-plate` token — transparent on dark, a dark island
+on light), brand + Handjet invariant. A `theme-coverage` E2E MUST load the key public + protected routes under both
+themes, asserting the page background switched (themed) and no console error, capturing a screenshot per (route ×
+theme). The theme boot script's pre-hydration mutation of `<html>` MUST not produce a hydration warning
+(`suppressHydrationWarning`).
+
+#### Scenario: Logo legible on light; routes render themed without console errors
+- GIVEN `data-theme="light"`
+- THEN the `Logomark` mark MUST read against the light surface (dark plate), and each audited route under both themes
+  MUST render with the themed page background and no console error (incl. no hydration warning)
+
+**Acceptance Criteria:**
+- `lint:contrast` PASS (AA both themes) + fails on a planted below-AA value; status classified large, exceptions allowlisted
+- `token-purity-baseline.json` empty + `lint:tokens` fail-on-all; dead auth trees deleted; `/login` + `InfoIcon` token-migrated
+- `surface.logo-plate` makes the logo read on light; `suppressHydrationWarning` on `<html>`; `theme-coverage` both-themes render green
+- `validate:tokens` (49) + `lint:composition` + `build` + `test:unit` (911) + theme/auth E2E green

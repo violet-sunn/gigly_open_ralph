@@ -1,18 +1,22 @@
 import { test, expect } from '@playwright/test'
 
 /**
- * compose-auth-onboarding (Phase 2) — verifies /register is the kit-composed 3-step wizard (AuthLayout + StepIndicator
- * + RoleCards + form primitives): the step indicator + role cards render, ?role= preselects, confirm-password mismatch
- * is flagged, and a full register lands on /dashboard with the profile persisted. The exported checkerboard footer
- * renders. All four reference frames exist → composed to match; F1 ≤1% deferred on the font-licence gate.
+ * compose-auth-onboarding (reconcile-auth-and-onboarding, Phase 1) — verifies /register is the kit-composed 3-step
+ * wizard reconciled to its Figma auth nodes (AuthLayout + AuthHeader [Logomark + heading + AuthStepDots dot counter]
+ * + RoleCards + form primitives): the dot counter + Logomark + node heading + role cards render, ?role= preselects,
+ * confirm-password mismatch is flagged, and a full register lands on /dashboard with the profile persisted. The
+ * exported checkerboard footer renders. F1 ≤1% deferred on the font-licence gate (Phase 2).
  */
 test.describe('compose-auth-onboarding — composed registration wizard', () => {
-  test('shows the 3-step indicator, role cards, heading, and the checkerboard footer asset', async ({ page }) => {
+  test('shows the AuthStepDots counter, Logomark, node heading, role cards, and the checkerboard footer asset', async ({ page }) => {
     await page.goto('/register')
-    await expect(page.getByRole('heading', { name: 'Регистрация' })).toBeVisible()
-    await expect(page.getByText('Роль')).toBeVisible()
-    await expect(page.getByText('Доступ')).toBeVisible()
-    await expect(page.getByText('Профиль', { exact: true })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Создайте свой аккаунт' })).toBeVisible()
+    // the authoritative dot counter (not the labelled StepIndicator) — step 1 of 3
+    const dots = page.getByRole('progressbar')
+    await expect(dots).toHaveAttribute('aria-valuenow', '1')
+    await expect(dots).toHaveAttribute('aria-valuemax', '3')
+    await expect(page.getByText('Доступ')).toHaveCount(0) // StepIndicator labels are gone
+    await expect(page.getByAltText('Gigly')).toBeVisible() // Logomark (exported asset)
     await expect(page.getByTestId('role-client')).toBeVisible()
     await expect(page.getByTestId('role-specialist')).toBeVisible()
     await expect(page.locator('img[src="/assets/design-system/patterns/checkerboard.svg"]')).toBeVisible()

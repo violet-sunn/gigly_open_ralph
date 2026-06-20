@@ -8,6 +8,10 @@ import { PrismaLibSql } from '@prisma/adapter-libsql'
  * ViewToggle + GigCard·(grid/list) + "Найдено N"), that search / category filter / grid⇄list / gig links work, and
  * that the existing pagination/query is preserved. Seeds a SPECIALIST + a client + OPEN gigs (with categories) into the
  * E2E db (file:./test.db, same as the dev server).
+ *
+ * reconcile-gig-browse (RC-S11, node 2860:2056): the screen now leads with a `SectionHeader` «Поиск проектов» + the
+ * grid/list switcher hoisted into that header row (no more `Section title="Поиск гигов"` page-title, no switcher
+ * inside the FilterBar). The behavioural flow (search/category/sort/Рейтинг/grid⇄list/gig-open/pagination) is preserved.
  */
 let specId: string
 let specEmail: string
@@ -72,6 +76,23 @@ test.describe('compose-gig-search — composed SPECIALIST gig search', () => {
     await expect(page.getByText(/Найдено 3/)).toBeVisible() // ResultCount (3 OPEN gigs)
     await expect(page.getByText('E2E Search Design Gig')).toBeVisible() // a GigCard
     await expect(page.getByText('E2E Search Dev Gig')).toBeVisible()
+  })
+
+  test('reconciled HEADER: SectionHeader «Поиск проектов» + the grid/list switcher in the header row (no page-title)', async ({
+    page,
+  }) => {
+    await setE2ESession(page, { id: specId, email: specEmail, role: 'SPECIALIST' })
+    await page.goto('/gigs')
+
+    // The БЛОК SectionHeader (node 2860:2056) — the former "Поиск гигов" page-title is gone.
+    await expect(page.getByText('Поиск проектов')).toBeVisible()
+    await expect(page.getByText('Поиск гигов')).toHaveCount(0)
+
+    // Exactly one grid/list switcher renders (hoisted into the header, not inside the FilterBar).
+    await expect(page.getByRole('button', { name: 'Сетка' })).toHaveCount(1)
+    await expect(page.getByRole('button', { name: 'Список' })).toHaveCount(1)
+    // The switcher sits OUTSIDE the FilterBar's <form role="search">.
+    await expect(page.getByRole('search').getByRole('button', { name: 'Список' })).toHaveCount(0)
   })
 
   test('search narrows the results (URL ?search=)', async ({ page }) => {

@@ -5,6 +5,7 @@ import { getLedger, getFinanceStats } from '@/lib/finances'
 import { getDisputeList, getDisputeDetail } from '@/lib/disputes'
 import { getPreferences, type Preferences } from '@/lib/preferences'
 import { getRecentMessages } from '@/app/actions/message'
+import { getNotificationDisplayText, getNotificationIcon } from '@/lib/notification-utils'
 import type {
   GigCardVM,
   GigHeaderVM,
@@ -17,7 +18,9 @@ import type {
   CategoryTagsVM,
   ExperienceListVM,
   MessagesPanelVM,
-  BannerCardVM,
+  OnboardingCardVM,
+  AttentionCardVM,
+  AttentionType,
   ConversationItemVM,
   ChatHeaderVM,
   MessageBubbleVM,
@@ -81,9 +84,57 @@ export async function toGigCardVM(gig: GigForCard, layout: 'grid' | 'list' = 'gr
 /** A GigCardVM carrying its raw lifecycle status, so the dashboard tabs can filter the grid client-side. */
 export type ClientGigCard = GigCardVM & { rawStatus: string }
 
+/** The two dashboard onboarding tiles (Figma WELCOME "pic" cards): a profile-completion tile + a how-it-works tile. */
+const dashboardOnboarding = (completion: number): OnboardingCardVM[] => [
+  { title: 'Заполните профиль', subtitle: 'Расскажите о себе, чтобы получать больше предложений', progress: completion, cta: { label: 'Заполнить профиль' } },
+  { title: 'Как это работает', subtitle: 'Короткий гайд по платформе Gigly', progress: 0, cta: { label: 'Смотреть' } },
+]
+
+/** Notification event → AttentionCard type (the 6-colour notification accent map). */
+const ATTENTION_TYPE: Record<string, AttentionType> = {
+  application_submitted: 'status-change',
+  application_accepted: 'accepted',
+  application_rejected: 'rejected',
+  application_withdrawn: 'status-change',
+  work_submitted: 'status-change',
+  work_approved: 'accepted',
+  payment_marked: 'payment',
+  dispute_opened: 'status-change',
+  dispute_resolved: 'status-change',
+}
+
+/**
+ * The dashboard notification strip (Figma «attention card» row): the user's recent Notifications (newest-first, cap
+ * 6) mapped to AttentionCardVMs — `type` from the eventType accent map, glyph/title from the notification utils, and
+ * the linked gig embedded as a GigCardVM (every notification carries a gig). Empty when the user has no notifications.
+ */
+export async function getDashboardAttention(userId: string): Promise<AttentionCardVM[]> {
+  const notifications = await prisma.notification.findMany({
+    where: { userId },
+    include: { gig: true },
+    orderBy: { createdAt: 'desc' },
+    take: 6,
+  })
+  return Promise.all(
+    notifications.map(async (n) => {
+      const type: AttentionType =
+        (n.eventType ? ATTENTION_TYPE[n.eventType] : undefined) ?? (n.type === 'MESSAGE' ? 'message' : 'status-change')
+      return {
+        type,
+        marker: getNotificationIcon(n.type),
+        title: getNotificationDisplayText(n),
+        date: new Date(n.createdAt).toLocaleDateString('ru-RU'),
+        cta: 'Открыть',
+        embed: { kind: 'gig' as const, gig: await toGigCardVM(n.gig) },
+      }
+    }),
+  )
+}
+
 export interface ClientDashboardData {
   completion: number
-  banner: BannerCardVM
+  greeting: string
+  onboarding: OnboardingCardVM[]
   gigCards: ClientGigCard[]
   tabs: { value: string; label: string; count?: number }[]
   messages: MessagesPanelVM
@@ -123,13 +174,9 @@ export async function getClientDashboard(userId: string): Promise<ClientDashboar
     unread: 0,
   }))
 
-  const banner: BannerCardVM = {
-    headline: 'Найдите сильного специалиста за часы',
-    body: `Профиль заполнен на ${completion}%`,
-    cta: { label: 'Создать гиг', href: '/gigs/new' },
-  }
+  const greeting = `Здравствуйте, ${cp?.companyName || user?.email || 'компания'}`
 
-  return { completion, banner, gigCards, tabs, messages: { conversations } }
+  return { completion, greeting, onboarding: dashboardOnboarding(completion), gigCards, tabs, messages: { conversations } }
 }
 
 /** A GigCardVM carrying the dashboard tab it belongs to, so the specialist dashboard tabs can filter the grid. */
@@ -137,7 +184,10 @@ export type SpecialistGigCard = GigCardVM & { tabKey: string }
 
 export interface SpecialistDashboardData {
   completion: number
-  banner: BannerCardVM
+  greeting: string
+  onboarding: OnboardingCardVM[]
+  /** The 6× notification strip (Figma WELCOME-2) — specialist only; empty when there are no notifications. */
+  attention: AttentionCardVM[]
   gigCards: SpecialistGigCard[]
   tabs: { value: string; label: string; count?: number }[]
   messages: MessagesPanelVM
@@ -151,7 +201,7 @@ export interface SpecialistDashboardData {
  * Все only (status «Отклонён»), so no data is lost while the five primary tabs match the design exactly.
  */
 export async function getSpecialistDashboard(userId: string): Promise<SpecialistDashboardData> {
-  const [user, applications, assignedGigs, recent] = await Promise.all([
+  const [user, applications, assignedGigs, recent, attention] = await Promise.all([
     prisma.user.findUnique({ where: { id: userId }, include: { specialistProfile: true } }),
     prisma.application.findMany({
       where: { specialistId: userId },
@@ -163,6 +213,7 @@ export async function getSpecialistDashboard(userId: string): Promise<Specialist
       orderBy: { updatedAt: 'desc' },
     }),
     getRecentMessages(),
+    getDashboardAttention(userId),
   ])
 
   // Заявки — PENDING applications; the card reflects the pending application (→ 'review' / На рассмотрении).
@@ -209,13 +260,17 @@ export async function getSpecialistDashboard(userId: string): Promise<Specialist
     unread: 0,
   }))
 
-  // Welcome banner (no CTA — the working find-project action is the SearchPanel, since BannerCard's CTA is decorative).
-  const banner: BannerCardVM = {
-    headline: 'Находите интересные гиги и зарабатывайте больше',
-    body: `Профиль заполнен на ${completion}%`,
-  }
+  const greeting = `Здравствуйте, ${sp?.displayName || user?.email || 'специалист'}`
 
-  return { completion, banner, gigCards, tabs, messages: { conversations } }
+  return {
+    completion,
+    greeting,
+    onboarding: dashboardOnboarding(completion),
+    attention,
+    gigCards,
+    tabs,
+    messages: { conversations },
+  }
 }
 
 // ---- Gig search / browse (compose-gig-search) -----------------------------

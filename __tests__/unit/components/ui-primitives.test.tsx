@@ -6,6 +6,9 @@ import {
   Button,
   IconButton,
   Input,
+  Textarea,
+  AuthStepDots,
+  Logomark,
   PasswordInput,
   SearchInput,
   Select,
@@ -58,7 +61,7 @@ describe("ui-primitives / Button — all variants + states", () => {
     const { container } = render(<Button variant="danger">Удалить</Button>);
     const btn = container.firstElementChild as HTMLButtonElement;
     expect(btn.className).toContain("text-status-rejected");
-    expect(btn.className).toContain("bg-status-rejected/20");
+    expect(btn.className).toContain("bg-tint-danger");
     expect(btn.className).not.toMatch(/#[0-9a-f]{3,6}/i);
   });
 
@@ -214,7 +217,7 @@ describe("ui-primitives / Select — collapsed / expanded / disabled + option st
     const opts = screen.getAllByRole("option");
     expect(opts).toHaveLength(2);
     const selected = opts.find((o) => o.getAttribute("aria-selected") === "true")!;
-    expect(selected.className).toContain("bg-brand-default/10");
+    expect(selected.className).toContain("bg-tint-brand");
   });
 
   it("disabled trigger does not open", () => {
@@ -334,7 +337,7 @@ describe("ui-primitives / StatusBadge — 6 statuses × pill/inline-dot/current"
     expect(dot.querySelector('[aria-hidden="true"]')?.className).toContain("bg-status-completed");
 
     const { container: cur } = render(<StatusBadge variant="current" />);
-    expect(cur.firstElementChild?.className).toContain("bg-brand-default/10");
+    expect(cur.firstElementChild?.className).toContain("bg-tint-brand");
     expect(screen.getByText("Текущий")).toBeInTheDocument();
   });
 });
@@ -395,5 +398,50 @@ describe("ui-primitives / ProgressBar — token track/fill, percentage width", (
   it("clamps out-of-range values", () => {
     const { container } = render(<ProgressBar value={140} />);
     expect((container.querySelector("[role=progressbar] > div") as HTMLElement).style.width).toBe("100%");
+  });
+});
+
+describe("ui-primitives / Textarea — multi-line cover-letter field", () => {
+  it("renders a textarea on the overlay/fill token surface, token-pure", () => {
+    const { container } = render(<Textarea placeholder="Опишите опыт…" />);
+    const ta = container.querySelector("textarea")!;
+    expect(ta).toBeInTheDocument();
+    expect(ta.className).toContain("bg-overlay-fill");
+    expect(ta.className).toContain("border-border");
+    expect(ta.className).toContain("rounded-md");
+    expect(ta.className).not.toMatch(/#[0-9a-f]{3,6}/i);
+  });
+
+  it("disables via the opacity token", () => {
+    const { container } = render(<Textarea disabled />);
+    const ta = container.querySelector("textarea")!;
+    expect(ta).toBeDisabled();
+    expect(ta.className).toContain("disabled:opacity-disabled");
+  });
+});
+
+describe("ui-primitives / AuthStepDots — Figma counter dots", () => {
+  it("marks the active step (larger, brand) among count dots, with an accessible label", () => {
+    const { container } = render(<AuthStepDots count={3} current={1} />);
+    const dots = container.querySelectorAll('[role="progressbar"] > span');
+    expect(dots).toHaveLength(3);
+    expect(dots[1].className).toContain("bg-brand-default");
+    expect(dots[1].className).toContain("h-2"); // active is larger
+    expect(dots[0].className).toContain("opacity-disabled"); // inactive dimmed
+    expect(screen.getByRole("progressbar")).toHaveAttribute("aria-label", "Шаг 2 из 3");
+  });
+});
+
+describe("ui-primitives / Logomark — exported brand asset (F4)", () => {
+  it("renders the exported gigly-logo asset with an accessible name", () => {
+    const { container } = render(<Logomark />);
+    const img = container.querySelector("img")!;
+    expect(img.getAttribute("src")).toContain("gigly-logo");
+    expect(img).toHaveAttribute("alt", "Gigly");
+  });
+
+  it("optionally renders the wordmark", () => {
+    render(<Logomark withWordmark />);
+    expect(screen.getByText("Gigly")).toBeInTheDocument();
   });
 });

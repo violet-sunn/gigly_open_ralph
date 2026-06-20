@@ -1,36 +1,30 @@
-import localFont from "next/font/local";
+import { Handjet, Manrope } from "next/font/google";
 
 /*
- * Type layer — dev-stage substitutes (see docs/TYPOGRAPHY.md).
+ * Type layer — the design's SANCTIONED free-Cyrillic substitution (gigly_full_design/HANDOFF.md;
+ * docs/TYPOGRAPHY.md). The redesign's intended families are not web-embeddable, so the design fixes
+ * concrete OFL substitutes, now adopted as system fact:
+ *   - accent / pixel : NKDuy Mono     -> Handjet   -> --font-mono   (logo, pixel headings, mono data)
+ *   - grotesk / nums : Vremena Grotesk -> Manrope  -> --font-grotesk (gig price/term, message bodies, job-experience)
+ *   - primary / body : SF Compact      -> system   -> --font-sans   (set in globals.css; no web font)
  *
- * The redesign's intended families (SF Compact display/UI, NKDy Mono) are NOT
- * web-embeddable, so we self-host the closest freely-licensed (SIL OFL) substitutes:
- *   - sans  : Inter         (closest resemblance to SF Compact)        -> --font-sans
- *   - mono  : JetBrains Mono (substitute for NKDy Mono)                 -> --font-mono
- *
- * Loaded via next/font/local (self-hosted woff2 in app/fonts) for deterministic,
- * offline-safe builds. `display: 'swap'` + adjustFontFallback (size-adjusted
- * fallback metrics) prevent layout shift. To swap in a real licensed font later,
- * replace the `src` files here — the --font-sans / --font-mono contract stays stable.
+ * Handjet + Manrope are first-party Google OFL fonts; `next/font/google` SELF-HOSTS them at build
+ * (no runtime Google request) and handles the Cyrillic subset + variable axes (so heading weights
+ * 500/600 are native — no shipped-weight gap). The --font-sans / --font-mono contract names are kept
+ * stable; `--font-mono` now resolves the Handjet pixel/accent face. To swap in licensed originals
+ * later, replace these loaders — the variable contract stays.
  */
 
-export const fontSans = localFont({
-  src: [
-    { path: "./fonts/Inter-400.woff2", weight: "400", style: "normal" },
-    { path: "./fonts/Inter-500.woff2", weight: "500", style: "normal" },
-    { path: "./fonts/Inter-600.woff2", weight: "600", style: "normal" },
-    { path: "./fonts/Inter-700.woff2", weight: "700", style: "normal" },
-  ],
-  variable: "--font-sans",
-  display: "swap",
-  adjustFontFallback: "Arial",
-  fallback: ["-apple-system", "system-ui", "Segoe UI", "Roboto", "sans-serif"],
-});
-
-export const fontMono = localFont({
-  src: [{ path: "./fonts/JetBrainsMono-400.woff2", weight: "400", style: "normal" }],
+export const fontMono = Handjet({
+  subsets: ["latin", "cyrillic"],
   variable: "--font-mono",
   display: "swap",
-  adjustFontFallback: "Arial",
   fallback: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+});
+
+export const fontGrotesk = Manrope({
+  subsets: ["latin", "cyrillic"],
+  variable: "--font-grotesk",
+  display: "swap",
+  fallback: ["system-ui", "Segoe UI", "Roboto", "sans-serif"],
 });

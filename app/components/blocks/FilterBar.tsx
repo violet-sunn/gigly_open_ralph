@@ -33,6 +33,10 @@ interface FilterBarProps {
  * filter/search UI (search on Enter; category/sort/Рейтинг Selects; grid⇄list). All additive — passing only `vm` +
  * `variant` (workbench/fixtures) keeps the original presentational behaviour. Composed from primitives + layout
  * primitives + tokens. Token-pure.
+ *
+ * reconcile-gig-browse (RC-S11): the grid/list `ViewToggle` renders ONLY when wired (`onViewChange` present). The
+ * gig-browse screen hoists the switcher into its `SectionHeader` header row per node `2860:2056`, so it passes no
+ * `onViewChange` here and the filter bar shows no switcher.
  */
 export function FilterBar({
   vm,
@@ -107,7 +111,7 @@ export function FilterBar({
                 }}
               />
             )}
-            <ViewToggle view={vm.view} onChange={onViewChange} />
+            {onViewChange && <ViewToggle view={vm.view} onChange={onViewChange} />}
           </>
         )}
       </Stack>

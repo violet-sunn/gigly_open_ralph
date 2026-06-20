@@ -2,6 +2,7 @@ import { CategoryTag, IconButton, ICON } from "@/app/components/primitives";
 import { Panel } from "@/app/components/layout/Panel";
 import { Stack } from "@/app/components/layout/Stack";
 import { cx } from "@/app/components/layout/scale";
+import { SectionHeader } from "./SectionHeader";
 import type { CategoryTagsVM } from "./view-models";
 
 /**
@@ -15,7 +16,7 @@ export function CategoryTags({ vm, onEdit }: { vm: CategoryTagsVM; onEdit?: () =
     <Panel surface={1} radius="lg" padding={6}>
       <Stack gap={5}>
         <Stack axis="row" gap={3} align="center" justify="between">
-          <span className="text-h2 font-h2 text-strong">{vm.title}</span>
+          <SectionHeader vm={{ title: vm.title }} />
           {onEdit && <IconButton icon={ICON.gear} onClick={onEdit} aria-label="Редактировать" />}
         </Stack>
         <Stack axis="row" gap={2}>

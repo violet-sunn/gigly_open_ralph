@@ -1,3 +1,12 @@
+/*
+ * add-light-theme: the generated CSS-var layer is now LOAD-BEARING. It defines every appearance
+ * token in :root (dark, the default) and overrides the themeable ones under [data-theme="light"].
+ * Tailwind's colour/shadow/gradient utilities resolve through these vars (tailwind.config.ts emits
+ * var(--token)), so the whole token-pure UI switches theme at runtime via the root data-theme attr.
+ * (@import must precede the @tailwind directives per CSS ordering rules.)
+ */
+@import "../scripts/generated-tokens.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,14 +14,20 @@
 /*
  * Design tokens are the single source of truth (docs/DESIGN_SYSTEM_SPEC.md ->
  * openspec/specs/ui/design-tokens.json -> scripts/generated-tokens.{js,css}).
- * Tailwind consumes them via tailwind.config.ts, so the base layer below resolves
- * colours/radii through token-backed Tailwind utilities at build time (no runtime
- * CSS-var dependency). The previous inlined parody token block + shadcn HSL layer
- * were removed in `design-token-engine`; the optional CSS-var mirror lives in
- * scripts/generated-tokens.css for code that prefers var(--token).
+ * Tailwind consumes them via tailwind.config.ts; the colour/shadow/gradient utilities now resolve
+ * through the runtime CSS vars imported above (so [data-theme] switches them). The previous inlined
+ * parody token block + shadcn HSL layer were removed in `design-token-engine`.
  */
 
 @layer base {
+  /*
+   * --font-sans is the SF Compact "primary" role → the system stack (adopt-design-fonts; the design
+   * substitutes SF Compact with a system font, not a web font). --font-mono (Handjet) and
+   * --font-grotesk (Manrope) are next/font-provided on <html>; this anchors the sans contract.
+   */
+  :root {
+    --font-sans: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
+  }
   * {
     @apply border-border;
   }

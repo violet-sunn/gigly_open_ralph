@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="styles.css">
+</helmet>
+<div style="min-height:100vh; background:#01030e; padding:48px; display:flex; flex-direction:column; gap:48px; font-family:'Handjet',monospace;">
+
+  <div style="display:flex; align-items:center; gap:20px;">
+    <x-import component-from-global-scope="Logomark" from="./design-system/Components.bundle.js" size="l" hint-size="120px,44px"></x-import>
+    <div style="font-family:'Handjet',monospace; color:#5a5f6b; font-size:18px; letter-spacing:1px;">ДИЗАЙН-СИСТЕМА · ИНВЕНТАРЬ</div>
+  </div>
+
+  <!-- Buttons -->
+  <section style="display:flex; flex-direction:column; gap:16px;">
+    <div style="color:#0088ff; font-family:'Handjet',monospace; font-size:22px; letter-spacing:1px;">КНОПКИ</div>
+    <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:center;">
+      <x-import component-from-global-scope="Button" from="./design-system/Components.bundle.js" property="primary" text="Отправить заявку" hint-size="200px,44px"></x-import>
+      <x-import component-from-global-scope="Button" from="./design-system/Components.bundle.js" property="secondary" text="Мои условия" hint-size="160px,44px"></x-import>
+      <x-import component-from-global-scope="Button" from="./design-system/Components.bundle.js" property="tetriary" text="Отмена" hint-size="120px,44px"></x-import>
+      <x-import component-from-global-scope="ButtonIcon" from="./design-system/Components.bundle.js" hint-size="44px,44px"></x-import>
+    </div>
+  </section>
+
+  <!-- Inputs -->
+  <section style="display:flex; flex-direction:column; gap:16px;">
+    <div style="color:#0088ff; font-family:'Handjet',monospace; font-size:22px; letter-spacing:1px;">ПОЛЯ И СЕЛЕКТ</div>
+    <div style="display:flex; gap:24px; flex-wrap:wrap; align-items:flex-start;">
+      <x-import component-from-global-scope="InputField" from="./design-system/Components.bundle.js" text="example@gmail.com" hint-size="320px,48px"></x-import>
+      <x-import component-from-global-scope="Select" from="./design-system/Components.bundle.js" hint-size="320px,48px"></x-import>
+      <x-import component-from-global-scope="CheckField" from="./design-system/Components.bundle.js" hint-size="320px,90px"></x-import>
+    </div>
+  </section>
+
+  <!-- Tags / Categories / Status -->
+  <section style="display:flex; flex-direction:column; gap:16px;">
+    <div style="color:#0088ff; font-family:'Handjet',monospace; font-size:22px; letter-spacing:1px;">ТЕГИ · КАТЕГОРИИ · СТАТУСЫ</div>
+    <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+      <x-import component-from-global-scope="Tag" from="./design-system/Components.bundle.js" color="blue" text1="React" hint-size="64px,28px"></x-import>
+      <x-import component-from-global-scope="Tag" from="./design-system/Components.bundle.js" color="green" text1="Node.js" hint-size="72px,28px"></x-import>
+      <x-import component-from-global-scope="Tag" from="./design-system/Components.bundle.js" color="orange" text1="Anti-captcha" hint-size="96px,28px"></x-import>
+      <x-import component-from-global-scope="Category" from="./design-system/Components.bundle.js" color="rose" text1="Дизайн" hint-size="80px,28px"></x-import>
+    </div>
+    <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+      <x-import component-from-global-scope="Status" from="./design-system/Components.bundle.js" status="открыт" text1="Открыт" hint-size="110px,32px"></x-import>
+      <x-import component-from-global-scope="Status" from="./design-system/Components.bundle.js" status="в работе" text1="В работе" hint-size="110px,32px"></x-import>
+      <x-import component-from-global-scope="Status" from="./design-system/Components.bundle.js" status="на проверке" text1="На проверке" hint-size="120px,32px"></x-import>
+      <x-import component-from-global-scope="Status" from="./design-system/Components.bundle.js" status="завершён" text1="Завершён" hint-size="120px,32px"></x-import>
+      <x-import component-from-global-scope="Status" from="./design-system/Components.bundle.js" status="отклонён" text1="Отклонён" hint-size="120px,32px"></x-import>
+    </div>
+  </section>
+
+  <!-- Gig cards -->
+  <section style="display:flex; flex-direction:column; gap:16px;">
+    <div style="color:#0088ff; font-family:'Handjet',monospace; font-size:22px; letter-spacing:1px;">КАРТОЧКИ ГИГОВ</div>
+    <div style="display:flex; gap:24px; flex-wrap:wrap; align-items:flex-start;">
+      <x-import component-from-global-scope="Gig" from="./design-system/Components.bundle.js" status="в работе" hint-size="560px,300px"></x-import>
+      <x-import component-from-global-scope="Gig" from="./design-system/Components.bundle.js" status="звершен" hint-size="560px,300px"></x-import>
+    </div>
+  </section>
+
+  <!-- Profile / Bio / Messages -->
+  <section style="display:flex; flex-direction:column; gap:16px;">
+    <div style="color:#0088ff; font-family:'Handjet',monospace; font-size:22px; letter-spacing:1px;">ПРОФИЛЬ · БИО · СООБЩЕНИЯ</div>
+    <div style="display:flex; gap:24px; flex-wrap:wrap; align-items:flex-start;">
+      <x-import component-from-global-scope="ProfileFrame" from="./design-system/Components.bundle.js" view="full" hint-size="280px,80px"></x-import>
+      <x-import component-from-global-scope="Bio" from="./design-system/Components.bundle.js" hint-size="320px,80px"></x-import>
+      <x-import component-from-global-scope="Notification" from="./design-system/Components.bundle.js" hint-size="380px,120px"></x-import>
+      <x-import component-from-global-scope="Massage" from="./design-system/Components.bundle.js" hint-size="240px,200px"></x-import>
+    </div>
+  </section>
+
+  <!-- Navigation -->
+  <section style="display:flex; flex-direction:column; gap:16px;">
+    <div style="color:#0088ff; font-family:'Handjet',monospace; font-size:22px; letter-spacing:1px;">НАВИГАЦИЯ</div>
+    <div style="display:flex; gap:24px; flex-wrap:wrap; align-items:flex-start;">
+      <x-import component-from-global-scope="SideBar" from="./design-system/Components.bundle.js" property1="full" hint-size="280px,640px"></x-import>
+      <x-import component-from-global-scope="HEADER" from="./design-system/Components.bundle.js" type="header 1" text1="ДАШБОРД" hint-size="800px,80px"></x-import>
+    </div>
+  </section>
+
+</div>
+</x-dc>
+</body>
+</html>

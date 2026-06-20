@@ -5,66 +5,94 @@
     "generatedBy": "node scripts/parse-design-tokens.js -> scripts/generated-tokens.{js,css}",
     "note": "Canonical semantic tokens. Names follow the DESIGN_SYSTEM_SPEC taxonomy (namespace/role -> nested namespace.role -> flattened namespace-role); values are Figma variables. Status/category keep the SSOT semantic names (Figma drift: new->open, testing->verification). Alpha tints are stored as rgba() so the parser's hex->rgba pass is a no-op and JSON<->generated stay in sync.",
     "reconciled": "2026-06-17 — fixed border.default (was #3a3d45=Figma text/disabled -> #5a6070=Figma border/strong) and brand.hover (was #4cacff=color/primary/hover -> #0099ff=Figma brand/hover; the old light tint preserved as brand.highlight). Added text.disabled, brand.highlight, brand.dark-600, accent.pink, overlay.*, effect.shadow.focus/md, effect.backdrop.*, gradient.status-completed-glow, spacing 16(=64px), corner.full. Typography rewritten to real Figma metrics + per-role family + letterSpacing.",
-    "residual": "Exact font FILES (SF Compact / NKDy Mono web licence) remain owned by typography-system; font.family still binds dev-stage substitutes (Inter, JetBrains Mono) via the --font-sans/--font-mono contract. Type tokens here now carry the real Figma metrics + which family (sans/mono) each role uses."
+    "fonts": "Resolved (adopt-design-fonts, 2026-06-19): font.family binds the design's sanctioned free-Cyrillic substitution — NKDuy Mono → Handjet (--font-mono), Vremena Grotesk → Manrope (--font-grotesk), SF Compact → system stack (--font-sans); Handjet + Manrope self-host via next/font/google. The F1 type cap is retired (docs/TYPOGRAPHY.md). Type tokens carry the real Figma metrics + per-role family alias (sans/mono)."
   },
 
   "color-semantic": {
     "surface": {
-      "level-0": { "value": "#01030e", "description": "Page / darkest background (Figma surface/primary)" },
-      "level-1": { "value": "#0e101a", "description": "Recessed surface — wells, inner fields (Figma surface/tetriary)" },
-      "level-2": { "value": "#10121c", "description": "Card / input surface, dominant (Figma surface/secondary)" },
-      "level-3": { "value": "#1a1a24", "description": "Elevated surface — gig card base (Figma 'gig bg')" },
-      "level-3-hover": { "value": "#1a1d2a", "description": "Elevated hover variant (Figma surface/elevated)" },
-      "inverse": { "value": "#ffffff", "description": "White chip surface — specialty tag (Figma Специальность white fill); the surface mirror of text/inverse" }
+      "_theme": "add-light-theme: `light` siblings build depth via grey layers (app warm-grey → white cards float). Dark = default/unchanged.",
+      "level-0": { "value": "#01030e", "light": "#f4f5f7", "description": "Page / darkest background (Figma surface/primary) → light warm-grey app bg" },
+      "level-1": { "value": "#0e101a", "light": "#eceef1", "description": "Recessed surface — wells, inner fields (Figma surface/tetriary) → light sunken" },
+      "level-2": { "value": "#10121c", "light": "#ffffff", "description": "Card / input surface, dominant (Figma surface/secondary) → light white card" },
+      "level-3": { "value": "#1a1a24", "light": "#ffffff", "description": "Elevated surface — gig card base (Figma 'gig bg') → light white card" },
+      "level-3-hover": { "value": "#1a1d2a", "light": "#eef0f3", "description": "Elevated hover variant (Figma surface/elevated)" },
+      "inverse": { "value": "#ffffff", "light": "#0e121b", "description": "Chip surface — specialty tag. Dark: white fill. Light: inverts to a dark chip (ТЗ §5) so it reads on white." },
+      "logo-plate": { "value": "transparent", "light": "#01030e", "description": "Logomark backing (light-theme-screen-audit, ТЗ §5): transparent on dark (white mark reads on the dark page), a dark island on light (so the white mark reads on white)." }
     },
     "text": {
-      "strong": { "value": "#ffffff", "description": "Primary text, active glyphs (Figma text/primary)" },
-      "inverse": { "value": "#ffffff", "description": "Text on brand/coloured fills" },
-      "muted": { "value": "#8a8f99", "description": "Muted text & icon strokes (Figma text/secondary)" },
-      "subtle": { "value": "#9fa0a4", "description": "De-emphasized text / progress track (raw in designs; not a Figma variable)" },
-      "disabled": { "value": "#3a3d45", "description": "Disabled text (Figma text/disabled — previously mislabeled as border.default)" }
+      "strong": { "value": "#ffffff", "light": "#0e121b", "description": "Primary text, active glyphs (Figma text/primary)" },
+      "inverse": { "value": "#ffffff", "description": "Text on brand/coloured fills — white in BOTH themes (brand stays #0088ff)" },
+      "muted": { "value": "#8a8f99", "light": "#565c66", "description": "Muted text & icon strokes (Figma text/secondary) — light darkened to clear WCAG-AA body (≥4.5) on level-0/1" },
+      "subtle": { "value": "#9fa0a4", "light": "#565c66", "description": "De-emphasized text / progress track — light = muted (AA body on near-white surfaces)" },
+      "disabled": { "value": "#3a3d45", "light": "#aab0bb", "description": "Disabled text (Figma text/disabled — previously mislabeled as border.default)" }
     },
     "border": {
-      "default": { "value": "#5a6070", "description": "Borders / dividers (Figma border/strong) — corrected from #3a3d45" }
+      "default": { "value": "#5a6070", "light": "#e6e8ec", "description": "Borders / dividers (Figma border/strong) → light hairline" }
     },
     "brand": {
-      "default": { "value": "#0088ff", "description": "Brand primary — CTAs, active, accents (Figma brand/default)" },
-      "hover": { "value": "#0099ff", "description": "Brand hover, +1 lightness step (Figma brand/hover) — corrected from #4cacff" },
+      "default": { "value": "#0088ff", "description": "Brand primary — CTAs, active, accents (Figma brand/default). THEME-INVARIANT (the brand anchor)." },
+      "hover": { "value": "#0099ff", "light": "#0077e0", "description": "Brand hover — dark lightens (+1 step), light DARKENS (ТЗ §4, different hover physics)" },
       "pressed": { "value": "#0077e6", "description": "Brand pressed/active, darker (Figma brand/active)" },
       "highlight": { "value": "#4cacff", "description": "Light brand tint — link hover / highlight (Figma color/primary/hover); was previously brand.hover" },
       "dark-600": { "value": "#1379f3", "description": "Dark-theme brand 600 step (Figma dark/brand/600)" }
     },
     "status": {
-      "open": { "value": "#8a8f99", "description": "Открыт (neutral) — Figma status 'new'" },
-      "review": { "value": "#f59e0b", "description": "На рассмотрении (amber)" },
-      "in-progress": { "value": "#3b82f6", "description": "В работе (blue) — distinct from brand" },
-      "verification": { "value": "#8b5cf6", "description": "На проверке (purple) — Figma status 'testing'" },
-      "completed": { "value": "#10b981", "description": "Завершён (green)" },
+      "open": { "value": "#8a8f99", "light": "#767b85", "description": "Открыт (neutral) — Figma status 'new'; light darkened for AA-large on near-white" },
+      "review": { "value": "#f59e0b", "light": "#b45309", "description": "На рассмотрении (amber) — light = amber-700 (vivid amber fails AA on white; hue preserved)" },
+      "in-progress": { "value": "#3b82f6", "description": "В работе (blue) — distinct from brand; AA-large both themes" },
+      "verification": { "value": "#8b5cf6", "description": "На проверке (purple) — Figma status 'testing'; AA-large both themes" },
+      "completed": { "value": "#10b981", "light": "#047857", "description": "Завершён (green) — light = emerald-700 (vivid green fails AA on white; hue preserved)" },
       "rejected": { "value": "#ef4444", "description": "Отклонён (red)" }
     },
     "category": {
-      "marketing": { "value": "#0088ff", "description": "Маркетинг (blue)" },
-      "design": { "value": "#f45fb1", "description": "Дизайн (pink)" },
-      "programming": { "value": "#0cc671", "description": "Программирование (green)" },
-      "development": { "value": "#05c9e6", "description": "Разработка (teal)" },
-      "coding": { "value": "#f27c0d", "description": "Кодинг (orange)" }
+      "marketing": { "value": "#4cacff", "description": "Маркетинг (blue) — Figma Category blue rgb(76,172,255); = brand.highlight, NOT brand.default #0088ff (corrected 2026-06-19)" },
+      "design": { "value": "#f45fb1", "description": "Дизайн (rose) — Figma Category rose rgb(244,95,177)" },
+      "programming": { "value": "#0cc671", "description": "Программирование (green) — Figma Category green rgb(12,198,113)" },
+      "development": { "value": "#05c9e6", "description": "Разработка (teal) — Figma Category teal rgb(5,201,230)" },
+      "coding": { "value": "#f27c0d", "description": "Кодинг (orange) — Figma Category orange rgb(242,124,13)" }
+    },
+    "status-border": {
+      "_note": "Per-status 30% border tints (Figma --status-{name}-border). Triad partner of color-semantic.status.* (text) + gradient.status-*-glow (radial). open from Figma status/new (white-based).",
+      "open": { "value": "rgba(255, 255, 255, 0.3)", "description": "Открыт border (Figma status/new/border)" },
+      "review": { "value": "rgba(245, 158, 11, 0.3)", "description": "На рассмотрении border (Figma status/review/border)" },
+      "in-progress": { "value": "rgba(59, 130, 246, 0.3)", "description": "В работе border (Figma status/in-progress/border)" },
+      "verification": { "value": "rgba(139, 92, 246, 0.3)", "description": "На проверке border (Figma status/testing/border)" },
+      "completed": { "value": "rgba(16, 185, 129, 0.3)", "description": "Завершён border (Figma status/completed/border)" },
+      "rejected": { "value": "rgba(239, 68, 68, 0.3)", "description": "Отклонён border (Figma status/rejected/border)" }
     },
     "accent": {
       "pink": { "value": "#ff2d55", "description": "Accent pink — gig company avatar fill (Figma Accents/Pink)" }
     },
+    "tint": {
+      "_note": "add-light-theme: full-value alpha fills (NOT Tailwind /opacity modifiers, which can't apply to var() colours). brand on light is muted per ТЗ §4. Replaces bg-brand-default/10 + bg-status-rejected/20|30.",
+      "brand": { "value": "rgba(0, 136, 255, 0.1)", "light": "rgba(0, 136, 255, 0.08)", "description": "10% brand fill — selected option, out-bubble, status pill (light muted, ТЗ §4)" },
+      "danger": { "value": "rgba(239, 68, 68, 0.2)", "description": "20% danger fill — destructive button bg" },
+      "danger-hover": { "value": "rgba(239, 68, 68, 0.3)", "description": "30% danger fill — destructive button hover" }
+    },
+    "attention": {
+      "_note": "Notification-TYPE accents for the AttentionCard (Figma attention card 3367:3916). A DISTINCT palette from status/* — e.g. attention/rejected is neutral gray, not status/rejected red; attention/accepted #16a34a ≠ status/completed #10b981.",
+      "status-change": { "value": "#7c3aed", "description": "Смена статуса — purple" },
+      "message": { "value": "#2563eb", "description": "Новое сообщение — blue" },
+      "deadline": { "value": "#ea580c", "description": "Приближается дедлайн — orange" },
+      "accepted": { "value": "#16a34a", "description": "Заявка принята — green" },
+      "rejected": { "value": "#9ca3af", "description": "Заявка отклонена — neutral gray (NOT status/rejected red)" },
+      "payment": { "value": "#0891b2", "description": "Получена оплата — cyan" }
+    },
     "overlay": {
-      "fill": { "value": "rgba(255, 255, 255, 0.05)", "description": "5% white subtle fill over dark surfaces (Figma ФОН 1 #ffffff0d)" },
-      "line": { "value": "rgba(255, 255, 255, 0.08)", "description": "8% white hairline — gig card contour (Figma Контур #ffffff14)" },
-      "line-strong": { "value": "rgba(255, 255, 255, 0.2)", "description": "20% white frame border — job card (Figma frame stroke #ffffff33)" },
-      "header": { "value": "rgba(255, 255, 255, 0.01)", "description": "1% white glass header fill (Figma BG/Header 1 #ffffff03)" }
+      "_theme": "add-light-theme: dark = white tints (glow on dark); light = dark tints (hairlines on white), else they vanish.",
+      "fill": { "value": "rgba(255, 255, 255, 0.05)", "light": "rgba(16, 24, 40, 0.04)", "description": "Subtle fill over surfaces (Figma ФОН 1)" },
+      "line": { "value": "rgba(255, 255, 255, 0.08)", "light": "rgba(16, 24, 40, 0.08)", "description": "Hairline — gig card contour (Figma Контур)" },
+      "line-strong": { "value": "rgba(255, 255, 255, 0.2)", "light": "rgba(16, 24, 40, 0.12)", "description": "Frame border — job card (Figma frame stroke)" },
+      "header": { "value": "rgba(255, 255, 255, 0.01)", "light": "rgba(16, 24, 40, 0.02)", "description": "Glass header fill (Figma BG/Header 1)" }
     }
   },
 
   "font": {
-    "_residual": "exact reference font FILES + a licensed SF Compact / NKDy Mono remain capped (docs/TYPOGRAPHY.md). typography-system binds dev-stage substitutes (Inter, JetBrains Mono) via the --font-sans/--font-mono contract. Each type role below now records its Figma family: sans = primary (SF Compact / Inter), mono = accent (NKDuy Mono / JetBrains).",
+    "_residual": "Fonts adopted as system fact (adopt-design-fonts; docs/TYPOGRAPHY.md) — the design's sanctioned free-Cyrillic substitution: accent NKDuy Mono → Handjet (--font-mono), grotesk Vremena Grotesk → Manrope (--font-grotesk), primary SF Compact → system stack (--font-sans). Handjet + Manrope self-host via next/font/google. Each type role records its family alias (sans/mono); grotesk is available for the Vremena roles (numbers/price/term, message bodies, job-experience), adopted per-screen during the reconciliations.",
     "family": {
-      "sans": { "value": "var(--font-sans), -apple-system, system-ui, Segoe UI, Roboto, sans-serif", "description": "UI/body 'primary' — SF Compact (dev sub: Inter)" },
-      "mono": { "value": "var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace", "description": "Display/data 'accent' — NKDuy Mono (dev sub: JetBrains Mono)" }
+      "sans": { "value": "var(--font-sans), -apple-system, system-ui, Segoe UI, Roboto, sans-serif", "description": "UI/body 'primary' — SF Compact (sub: system stack)" },
+      "mono": { "value": "var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace", "description": "Display/data 'accent' — NKDuy Mono (sub: Handjet pixel face)" },
+      "grotesk": { "value": "var(--font-grotesk), system-ui, Segoe UI, Roboto, sans-serif", "description": "Grotesk/numbers — Vremena Grotesk (sub: Manrope)" }
     },
     "typography": {
       "display": { "value": { "fontSize": 32, "lineHeight": 37, "fontWeight": 600, "letterSpacing": -0.5, "family": "mono" }, "description": "Figma Heading/H1 — page title (НКDuy Mono)" },
@@ -82,11 +110,14 @@
 
   "effect": {
     "shadow": {
+      "_theme": "add-light-theme: `light` shadows are navy-tinted + softer (depth via shadow on white, ТЗ §2/§7). focus (brand ring) is theme-invariant.",
       "none": { "value": { "offsetX": 0, "offsetY": 0, "radius": 0, "spread": 0, "color": "#00000000" } },
-      "focus": { "value": { "offsetX": 0, "offsetY": 0, "radius": 0, "spread": 2, "color": "#0088ff66" }, "description": "Figma Shadow/focus — 2px brand focus ring (40% brand)" },
-      "card": { "value": { "offsetX": 0, "offsetY": 2, "radius": 8, "spread": 0, "color": "#00000029" }, "description": "Soft card elevation (SSOT scale)" },
-      "md": { "value": { "offsetX": 0, "offsetY": 4, "radius": 12, "spread": 0, "color": "#00000066" }, "description": "Figma Shadow/md — gig card drop shadow (40% black)" },
-      "popover": { "value": { "offsetX": 0, "offsetY": 8, "radius": 24, "spread": 0, "color": "#00000033" }, "description": "Popover/dropdown elevation (SSOT scale)" }
+      "sm": { "value": { "offsetX": 0, "offsetY": 1, "radius": 2, "spread": 0, "color": "#0000004d" }, "light": { "offsetX": 0, "offsetY": 1, "radius": 2, "spread": 0, "color": "#1018280f" }, "description": "Figma Shadow/sm — subtle elevation" },
+      "lg": { "value": { "offsetX": 0, "offsetY": 8, "radius": 24, "spread": 0, "color": "#00000080" }, "light": { "offsetX": 0, "offsetY": 8, "radius": 24, "spread": 0, "color": "#1018281a" }, "description": "Figma Shadow/lg — high elevation, modal/popover" },
+      "focus": { "value": { "offsetX": 0, "offsetY": 0, "radius": 0, "spread": 2, "color": "#0088ff66" }, "description": "Figma Shadow/focus — 2px brand focus ring (theme-invariant)" },
+      "card": { "value": { "offsetX": 0, "offsetY": 2, "radius": 8, "spread": 0, "color": "#00000029" }, "light": { "offsetX": 0, "offsetY": 1, "radius": 3, "spread": 0, "color": "#1018280f" }, "description": "Soft card elevation (ТЗ §2 light card)" },
+      "md": { "value": { "offsetX": 0, "offsetY": 4, "radius": 12, "spread": 0, "color": "#00000066" }, "light": { "offsetX": 0, "offsetY": 2, "radius": 8, "spread": 0, "color": "#10182814" }, "description": "Figma Shadow/md — gig card drop shadow (ТЗ §7 light glass→card)" },
+      "popover": { "value": { "offsetX": 0, "offsetY": 8, "radius": 24, "spread": 0, "color": "#00000033" }, "light": { "offsetX": 0, "offsetY": 8, "radius": 24, "spread": 0, "color": "#1018281f" }, "description": "Popover/dropdown elevation" }
     },
     "backdrop": {
       "_note": "Backdrop-filter recipes (not box-shadows). Documentation-only — applied in components via Tailwind backdrop-blur utilities; the parser does not emit these.",
@@ -102,8 +133,20 @@
     },
     "status-completed-glow": {
       "value": "radial-gradient(closest-side, rgba(16, 185, 129, 0.5) 0%, rgba(16, 185, 129, 0.1) 50%, rgba(16, 185, 129, 0) 100%)",
-      "description": "Figma status/completed/bg RADIAL — green glow behind a completed gig card"
-    }
+      "light": "linear-gradient(0deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.08) 100%)",
+      "description": "Figma status/completed/bg RADIAL — green glow (dark) → flat 8% fill (light, ТЗ §6)"
+    },
+    "status-open-glow": { "value": "radial-gradient(closest-side, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0) 100%)", "light": "linear-gradient(0deg, rgba(138, 143, 153, 0.1) 0%, rgba(138, 143, 153, 0.1) 100%)", "description": "status/new RADIAL — white glow (dark) → flat neutral fill (light)" },
+    "status-in-progress-glow": { "value": "radial-gradient(closest-side, rgba(59, 130, 246, 0.5) 0%, rgba(59, 130, 246, 0.1) 50%, rgba(59, 130, 246, 0) 100%)", "light": "linear-gradient(0deg, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0.08) 100%)", "description": "status/in-progress — blue glow → flat 8% (light)" },
+    "status-review-glow": { "value": "radial-gradient(closest-side, rgba(245, 158, 11, 0.5) 0%, rgba(245, 158, 11, 0.1) 50%, rgba(245, 158, 11, 0) 100%)", "light": "linear-gradient(0deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%)", "description": "status/review — amber glow → flat 10% (light)" },
+    "status-verification-glow": { "value": "radial-gradient(closest-side, rgba(139, 92, 246, 0.5) 0%, rgba(139, 92, 246, 0.1) 50%, rgba(139, 92, 246, 0) 100%)", "light": "linear-gradient(0deg, rgba(139, 92, 246, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%)", "description": "status/testing — purple glow → flat 8% (light)" },
+    "status-rejected-glow": { "value": "radial-gradient(closest-side, rgba(239, 68, 68, 0.5) 0%, rgba(239, 68, 68, 0.1) 50%, rgba(239, 68, 68, 0) 100%)", "light": "linear-gradient(0deg, rgba(239, 68, 68, 0.08) 0%, rgba(239, 68, 68, 0.08) 100%)", "description": "status/rejected — red glow → flat 8% (light)" },
+    "attention-status-change-glow": { "value": "radial-gradient(closest-side, rgba(124, 58, 237, 0.4) 0%, rgba(124, 58, 237, 0.1) 50%, rgba(124, 58, 237, 0) 100%)", "description": "AttentionCard glow — Смена статуса (attention/status-change)" },
+    "attention-message-glow": { "value": "radial-gradient(closest-side, rgba(37, 99, 235, 0.4) 0%, rgba(37, 99, 235, 0.1) 50%, rgba(37, 99, 235, 0) 100%)", "description": "AttentionCard glow — Новое сообщение (attention/message)" },
+    "attention-deadline-glow": { "value": "radial-gradient(closest-side, rgba(234, 88, 12, 0.4) 0%, rgba(234, 88, 12, 0.1) 50%, rgba(234, 88, 12, 0) 100%)", "description": "AttentionCard glow — Приближается дедлайн (attention/deadline)" },
+    "attention-accepted-glow": { "value": "radial-gradient(closest-side, rgba(22, 163, 74, 0.4) 0%, rgba(22, 163, 74, 0.1) 50%, rgba(22, 163, 74, 0) 100%)", "description": "AttentionCard glow — Заявка принята (attention/accepted)" },
+    "attention-rejected-glow": { "value": "radial-gradient(closest-side, rgba(156, 163, 175, 0.4) 0%, rgba(156, 163, 175, 0.1) 50%, rgba(156, 163, 175, 0) 100%)", "description": "AttentionCard glow — Заявка отклонена (attention/rejected, neutral)" },
+    "attention-payment-glow": { "value": "radial-gradient(closest-side, rgba(8, 145, 178, 0.4) 0%, rgba(8, 145, 178, 0.1) 50%, rgba(8, 145, 178, 0) 100%)", "description": "AttentionCard glow — Получена оплата (attention/payment)" }
   },
 
   "numbers": {
@@ -118,9 +161,12 @@
       "8": { "value": 32 },
       "10": { "value": 40 },
       "12": { "value": 48 },
-      "16": { "value": 64, "description": "Figma spacing/4xl" }
+      "16": { "value": 64, "description": "Figma spacing/4xl" },
+      "20": { "value": 80, "description": "Figma spacing/5xl" },
+      "24": { "value": 96, "description": "Figma spacing/6xl" }
     },
     "corner": {
+      "_note": "Complete vs Figma radius scale: xs=2 (Figma lt), sm=4, md=8, lg=12, xl=16 (Figma special), full (Figma radius/full). pill/circular are SSOT extras.",
       "xs": { "value": 2 },
       "sm": { "value": 4 },
       "md": { "value": 8 },

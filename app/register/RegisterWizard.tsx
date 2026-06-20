@@ -6,18 +6,37 @@ import { useRouter } from "next/navigation";
 import { Section } from "@/app/components/layout/Section";
 import { Stack } from "@/app/components/layout/Stack";
 import { AuthLayout } from "@/app/components/templates/AuthLayout";
-import { Input, PasswordInput, Select, StepIndicator, Button } from "@/app/components/primitives";
-import { RoleCards, Notice, type Role } from "@/app/components/blocks";
+import { Input, PasswordInput, Select, Button } from "@/app/components/primitives";
+import { RoleCards, Notice, AuthHeader, type Role } from "@/app/components/blocks";
+import type { AuthHeaderVM } from "@/app/components/blocks";
 import { registerUser } from "@/app/actions/auth";
 import { SPECIALIZATIONS, EXPERIENCE_LEVELS, TIMEZONES } from "@/lib/profiles";
 
 type ActionState = { error?: string } | null;
-const STEPS = ["Роль", "Доступ", "Профиль"];
+const TOTAL_STEPS = 3;
 const opts = (xs: readonly string[]) => xs.map((v) => ({ value: v, label: v }));
 
 /**
- * RegisterWizard — the /register 3-step onboarding wizard, composed purely from the kit (compose-auth-onboarding,
- * Phase 2). AuthLayout + StepIndicator + RoleCards + form primitives. Step 1 role (preselected from ?role=), step 2
+ * Per-step AuthHeader VM, reconciling each wizard step to its Figma node: step 1 = create-account role-select
+ * (3179:3179), step 2 = create-account/specialist (3179:3863) & /company (3195:4564), step 3 = welcome/specialist
+ * (3195:4282) & /company (3195:4704). Steps 1–2 lead with the Logomark; the welcome step (3) omits it.
+ */
+function headerFor(step: number, role: Role | null): AuthHeaderVM {
+  if (step === 0) {
+    return { heading: "Создайте свой аккаунт", subtitle: "Выберите свою роль в Gigly.", step, totalSteps: TOTAL_STEPS, showLogomark: true };
+  }
+  if (step === 1) {
+    return { heading: "Создайте свой аккаунт", subtitle: "Введите свои учётные данные.", step, totalSteps: TOTAL_STEPS, showLogomark: true };
+  }
+  return role === "CLIENT"
+    ? { heading: "Добро пожаловать", subtitle: "Настройте свой аккаунт.", step, totalSteps: TOTAL_STEPS }
+    : { heading: "Настройте свой аккаунт", subtitle: "Введите данные.", step, totalSteps: TOTAL_STEPS };
+}
+
+/**
+ * RegisterWizard — the /register 3-step onboarding wizard, composed purely from the kit (reconcile-auth-and-onboarding,
+ * Phase 1). AuthLayout + AuthHeader (Logomark + heading + AuthStepDots, reconciled to the Figma auth nodes) +
+ * RoleCards + form primitives. Step 1 role (preselected from ?role=), step 2
  * credentials (email + password + confirm-password, client-side match check), step 3 the role-specific profile (the
  * reg-customer company fields vs the reg-specialist fields with dataset-bound dropdowns). Submitting posts the full
  * FormData to the (kept) registerUser, which persists the profile. Token-pure (no className/style); inputs stay mounted
@@ -43,8 +62,8 @@ export function RegisterWizard({ role: initialRole }: { role?: Role | null }) {
 
   return (
     <AuthLayout>
-      <Section title="Регистрация" gap={6}>
-        <StepIndicator steps={STEPS} current={step} />
+      <Section gap={6}>
+        <AuthHeader vm={headerFor(step, role)} />
 
         <form action={action}>
           <Stack gap={5}>

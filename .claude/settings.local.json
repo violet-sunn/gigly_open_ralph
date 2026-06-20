@@ -260,7 +260,23 @@
       "Bash(ls openspec/changes/)",
       "Bash(cp app/components/primitives/SpecialtyTag.tsx /tmp/st.bak)",
       "Bash(sed -i 's/px-2 text-brand-default/px-2 text-[#123456]/' app/components/primitives/SpecialtyTag.tsx)",
-      "Bash(mv openspec/changes/add-missing-primitives openspec/archive/add-missing-primitives)"
+      "Bash(mv openspec/changes/add-missing-primitives openspec/archive/add-missing-primitives)",
+      "Bash(cp app/components/blocks/FileChip.tsx /tmp/fc.bak)",
+      "Bash(sed -i 's/bg-overlay-line/bg-[#abcdef]/' app/components/blocks/FileChip.tsx)",
+      "Bash(mv openspec/changes/reconcile-attention-card-and-settings-composites openspec/archive/reconcile-attention-card-and-settings-composites)",
+      "Bash(mv openspec/changes/add-profile-and-gig-detail-blocks openspec/archive/add-profile-and-gig-detail-blocks)",
+      "Bash(cp app/components/primitives/Textarea.tsx /tmp/ta.bak)",
+      "Bash(sed -i 's/bg-overlay-fill/bg-[#012345]/' app/components/primitives/Textarea.tsx)",
+      "Bash(mv openspec/changes/add-onboarding-and-auth-blocks openspec/archive/add-onboarding-and-auth-blocks)",
+      "Bash(mv openspec/changes/reconcile-gig-browse openspec/archive/reconcile-gig-browse)",
+      "Bash(ls openspec/changes)",
+      "Bash(mv openspec/changes/adopt-design-fonts openspec/archive/adopt-design-fonts)",
+      "Bash(rmdir openspec/changes/adopt-design-fonts)",
+      "Bash(ls -1 openspec/changes/)",
+      "Bash(rm -rf openspec/changes/reconcile-gig-detail-apply)",
+      "Bash(grep -rn \"reconcile-gig-detail-apply\" openspec/planning/)",
+      "Bash(cp scripts/generated-tokens.css /tmp/gt.css.bak)",
+      "Bash(sed -i 's/\\\\[data-theme=\"light\"\\\\] {/[data-theme=\"light\"] {\\\\n  --surface-level-0: #ff0000;/' scripts/generated-tokens.css)"
     ]
   }
 }

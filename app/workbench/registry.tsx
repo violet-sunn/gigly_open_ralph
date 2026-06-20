@@ -95,6 +95,8 @@ const TYPES: [string, string][] = [
   ["type/label", "text-label font-label"],
   ["type/caption", "text-caption font-caption"],
   ["type/mono", "text-mono font-mono"],
+  // grotesk = Manrope (Vremena Grotesk role): numbers / price / term, message bodies, job-experience.
+  ["type/grotesk", "text-body font-grotesk"],
 ];
 const SHADOWS: [string, string][] = [
   ["shadow/none", "shadow-none"],
@@ -451,6 +453,43 @@ const primitiveEntries: CatalogEntry[] = [
     ),
   },
   {
+    id: "Textarea",
+    kind: "primitive",
+    title: "Textarea (cover-letter field)",
+    reference: REF.frames,
+    Story: () => (
+      <Stack gap={3}>
+        <P.Textarea placeholder="Кратко опишите ваш опыт…" />
+        <P.Textarea defaultValue="Есть опыт миграции на Next.js 14 (App Router, RSC)." disabled />
+      </Stack>
+    ),
+  },
+  {
+    id: "AuthStepDots",
+    kind: "primitive",
+    title: "AuthStepDots (auth counter)",
+    reference: REF.frames,
+    Story: () => (
+      <Stack gap={3}>
+        <P.AuthStepDots count={3} current={0} />
+        <P.AuthStepDots count={3} current={1} />
+        <P.AuthStepDots count={3} current={2} />
+      </Stack>
+    ),
+  },
+  {
+    id: "Logomark",
+    kind: "primitive",
+    title: "Logomark (mark + wordmark)",
+    reference: REF.frames,
+    Story: () => (
+      <Row>
+        <P.Logomark />
+        <P.Logomark withWordmark />
+      </Row>
+    ),
+  },
+  {
     id: "StepIndicator",
     kind: "primitive",
     title: "StepIndicator",
@@ -502,8 +541,46 @@ const blockEntries: CatalogEntry[] = [
       </Stack>
     ),
   },
+  {
+    id: "ProfileHeader",
+    kind: "block",
+    title: "ProfileHeader (ID block — SpecialtyTag + status pill)",
+    reference: REF.frames,
+    Story: () => (
+      <Stack gap={4}>
+        <B.ProfileHeader vm={F.profileHeaderFixture} />
+        <B.ProfileHeader vm={{ ...F.profileHeaderFixture, online: true }} onEdit={() => {}} />
+      </Stack>
+    ),
+  },
   { id: "ClientCard", kind: "block", title: "ClientCard", reference: REF.frames, Story: () => <B.ClientCard vm={F.clientCardFixture} /> },
   { id: "BannerCard", kind: "block", title: "BannerCard", reference: REF.frames, Story: () => <B.BannerCard vm={F.bannerCardFixture} /> },
+  {
+    id: "OnboardingCard",
+    kind: "block",
+    title: "OnboardingCard (welcome 'pic')",
+    reference: REF.frames,
+    Story: () => (
+      <Grid columns={2} gap={4}>
+        {F.onboardingCardFixtures.map((vm, i) => (
+          <B.OnboardingCard key={i} vm={vm} />
+        ))}
+      </Grid>
+    ),
+  },
+  {
+    id: "AuthHeader",
+    kind: "block",
+    title: "AuthHeader (auth HEADER lockup)",
+    reference: REF.frames,
+    Story: () => (
+      <Grid columns={3} gap={4}>
+        {F.authHeaderFixtures.map((vm, i) => (
+          <B.AuthHeader key={i} vm={vm} />
+        ))}
+      </Grid>
+    ),
+  },
   {
     id: "StatPanel",
     kind: "block",
@@ -516,7 +593,21 @@ const blockEntries: CatalogEntry[] = [
       </Stack>
     ),
   },
-  { id: "RequirementCard", kind: "block", title: "RequirementCard", reference: REF.frames, Story: () => <B.RequirementCard vm={F.requirementCardFixture} /> },
+  { id: "SectionHeader", kind: "block", title: "SectionHeader (H/H1/BLOCK)", reference: REF.frames, Story: () => <B.SectionHeader vm={F.sectionHeaderFixture} /> },
+  {
+    id: "JobExperienceCard",
+    kind: "block",
+    title: "JobExperienceCard",
+    reference: REF.frames,
+    Story: () => (
+      <Stack gap={3}>
+        {F.jobExperienceCardFixtures.map((vm, i) => (
+          <B.JobExperienceCard key={i} vm={vm} />
+        ))}
+      </Stack>
+    ),
+  },
+  { id: "RequirementCard", kind: "block", title: "RequirementCard (требование tile)", reference: REF.frames, Story: () => <B.RequirementCard vm={F.requirementCardFixture} /> },
   { id: "CriteriaList", kind: "block", title: "CriteriaList", reference: REF.frames, Story: () => <B.CriteriaList vm={F.criteriaListFixture} /> },
   { id: "DataTable", kind: "block", title: "DataTable (generativity-proof addition)", reference: REF.library, Story: () => <B.DataTable columns={F.dataTableFixture.columns} rows={F.dataTableFixture.rows} /> },
   {
@@ -569,6 +660,59 @@ const blockEntries: CatalogEntry[] = [
           <B.NotificationItem key={vm.id} vm={vm} />
         ))}
       </Stack>
+    ),
+  },
+  {
+    id: "AttentionCard",
+    kind: "block",
+    title: "AttentionCard (6 notification types)",
+    reference: REF.frames,
+    Story: () => (
+      <Grid columns={3} gap={4}>
+        {F.attentionCardFixtures.map((vm) => (
+          <B.AttentionCard key={vm.type} vm={vm} />
+        ))}
+      </Grid>
+    ),
+  },
+  {
+    id: "ToggleField",
+    kind: "block",
+    title: "ToggleField (settings row)",
+    reference: REF.frames,
+    Story: () => <B.ToggleField vm={F.toggleFieldFixture} />,
+  },
+  {
+    id: "CheckField",
+    kind: "block",
+    title: "CheckField (single-select)",
+    reference: REF.frames,
+    Story: () => <B.CheckField vm={F.checkFieldFixture} />,
+  },
+  {
+    id: "SessionRow",
+    kind: "block",
+    title: "SessionRow (Default / active / delete)",
+    reference: REF.frames,
+    Story: () => (
+      <Stack gap={2}>
+        {F.sessionRowFixtures.map((vm) => (
+          <B.SessionRow key={vm.state} vm={vm} />
+        ))}
+      </Stack>
+    ),
+  },
+  {
+    id: "FileChip",
+    kind: "block",
+    title: "FileChip (attachment)",
+    reference: REF.frames,
+    Story: () => (
+      <Row>
+        {F.fileChipFixtures.map((vm) => (
+          <B.FileChip key={vm.name} vm={vm} />
+        ))}
+      </Row>
     ),
   },
   { id: "MessagesPanel", kind: "block", title: "MessagesPanel", reference: REF.frames, Story: () => <B.MessagesPanel vm={F.messagesPanelFixture} /> },

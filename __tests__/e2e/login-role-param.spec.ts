@@ -17,7 +17,7 @@ test.describe('Login Page Role Parameter Handling', () => {
 
     // Check if it has the blue border class
     const specialistClasses = await specialistCard.getAttribute('class');
-    expect(specialistClasses).toContain('border-[#0265dc]');
+    expect(specialistClasses).toContain('border-brand-default');
   });
 
   test('Login with CLIENT role parameter shows client card selected', async ({ page }) => {
@@ -35,7 +35,7 @@ test.describe('Login Page Role Parameter Handling', () => {
 
     // Check if it has the blue border class
     const clientClasses = await clientCard.getAttribute('class');
-    expect(clientClasses).toContain('border-[#0265dc]');
+    expect(clientClasses).toContain('border-brand-default');
   });
 
   test('Login without role parameter shows no role cards', async ({ page }) => {
@@ -77,9 +77,9 @@ test.describe('Login Page Role Parameter Handling', () => {
     await page.waitForSelector('h1:has-text("Вход")');
 
     // Verify auth container styling - target the inner container with bg-[#060813]
-    const authContainer = page.locator('div.bg-\\[\\#060813\\]').first();
+    const authContainer = page.locator('div.bg-surface-level-2').first();
     await expect(authContainer).toBeVisible();
-    await expect(authContainer).toHaveCSS('background-color', 'rgb(6, 8, 19)'); // #060813
+    await expect(authContainer).toHaveCSS('background-color', 'rgb(16, 18, 28)'); // surface-level-2 dark (#10121c)
     await expect(authContainer).toHaveCSS('border-radius', '25px');
 
     // Verify heading
@@ -90,7 +90,7 @@ test.describe('Login Page Role Parameter Handling', () => {
 
     // Verify input fields styling
     const emailInput = page.locator('input[name="email"]');
-    await expect(emailInput).toHaveCSS('background-color', 'rgb(16, 18, 28)'); // #10121c
+    await expect(emailInput).toHaveCSS('background-color', 'rgb(14, 16, 26)'); // surface-level-1 dark (#0e101a)
     await expect(emailInput).toHaveCSS('border-radius', '20px');
     await expect(emailInput).toHaveCSS('padding-left', '20px');
 
@@ -113,7 +113,7 @@ test.describe('Login Page Role Parameter Handling', () => {
 
     // Verify container adapts to mobile
     await page.waitForSelector('h1:has-text("Вход")');
-    const authContainer = page.locator('div.bg-\\[\\#060813\\]').first();
+    const authContainer = page.locator('div.bg-surface-level-2').first();
     await expect(authContainer).toBeVisible();
 
     // Verify all elements are still functional

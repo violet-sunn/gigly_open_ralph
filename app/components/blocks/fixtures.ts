@@ -31,6 +31,16 @@ import type {
   TopbarVM,
   FilterBarVM,
   Status,
+  AttentionCardVM,
+  AttentionType,
+  ToggleFieldVM,
+  CheckFieldVM,
+  SessionRowVM,
+  FileChipVM,
+  SectionHeaderVM,
+  JobExperienceCardVM,
+  OnboardingCardVM,
+  AuthHeaderVM,
 } from "./view-models";
 
 const STATUSES: Status[] = ["open", "review", "in-progress", "verification", "completed", "rejected"];
@@ -225,11 +235,26 @@ export const requirementCardFixture: RequirementCardVM = {
 
 export const criteriaListFixture: CriteriaListVM = {
   items: [
-    { label: "Адаптивная вёрстка (mobile-first)", met: true },
-    { label: "Lighthouse Performance ≥ 90", met: true },
-    { label: "Передача исходников", met: false },
+    { label: "Data Fetching", description: "Серверные компоненты для тяжёлых выборок; Client Components только для интерактива." },
+    { label: "Lighthouse Performance ≥ 90", description: "LCP/FCP в зелёной зоне на мобильном профиле." },
+    { label: "Передача исходников", description: "Репозиторий + краткая записка по архитектуре." },
   ],
 };
+
+export const sectionHeaderFixture: SectionHeaderVM = { title: "Стек", count: 6 };
+export const onboardingCardFixtures: OnboardingCardVM[] = [
+  { title: "Заполните профиль", subtitle: "Добавьте стек и технологии", progress: 40, cta: { label: "Заполнить профиль" } },
+  { title: "Как это работает", subtitle: "Короткий гайд по платформе", progress: 0, cta: { label: "Смотреть" } },
+];
+export const onboardingCardFixture: OnboardingCardVM = onboardingCardFixtures[0];
+export const authHeaderFixtures: AuthHeaderVM[] = [
+  { heading: "Создайте свой аккаунт", subtitle: "Выберите свою роль в Gigly.", step: 0, totalSteps: 3, showLogomark: true },
+  { heading: "Создайте свой аккаунт", subtitle: "Введите свои учётные данные.", step: 1, totalSteps: 3, showLogomark: true },
+  { heading: "Настройте свой аккаунт", subtitle: "Введите данные.", step: 2, totalSteps: 3 },
+];
+export const authHeaderFixture: AuthHeaderVM = authHeaderFixtures[0];
+export const jobExperienceCardFixtures: JobExperienceCardVM[] = experienceListFixture.entries;
+export const jobExperienceCardFixture: JobExperienceCardVM = experienceListFixture.entries[0];
 
 export const termsTabsFixture: TermsTabsVM = {
   proposed: [
@@ -329,3 +354,54 @@ export const filterBarFixture: FilterBarVM = {
     { value: "design", label: "Дизайн", count: 27 },
   ],
 };
+
+// ---- AttentionCard (per-type) + settings/chat composites -----------------
+const attentionGigEmbed: GigCardVM = { ...gigCardFixtures.find((g) => g.layout === "grid")! };
+const ATTENTION_SAMPLE: Record<AttentionType, { marker: string; title: string; cta: string }> = {
+  "status-change": { marker: "👀", title: "Новый статус", cta: "К проекту" },
+  message: { marker: "💬", title: "Новые сообщения", cta: "Ответить" },
+  deadline: { marker: "⏳", title: "Скоро дедлайн", cta: "Сдать" },
+  accepted: { marker: "🤝", title: "Заявка принята", cta: "Приступить" },
+  rejected: { marker: "⛔", title: "Заявка отклонена", cta: "Найти проекты" },
+  payment: { marker: "💰", title: "Получена оплата", cta: "Оставить отзыв" },
+};
+export const attentionCardFixtures: AttentionCardVM[] = (
+  Object.keys(ATTENTION_SAMPLE) as AttentionType[]
+).map((type) => ({
+  type,
+  marker: ATTENTION_SAMPLE[type].marker,
+  title: ATTENTION_SAMPLE[type].title,
+  date: "1 нед.",
+  cta: ATTENTION_SAMPLE[type].cta,
+  embed:
+    type === "message"
+      ? { kind: "message", name: "Кристина", preview: "Можете прислать файл ТЗ и ссылку на макет?", unread: 5 }
+      : { kind: "gig", gig: { ...attentionGigEmbed, status: type === "rejected" ? "rejected" : "in-progress" } },
+}));
+export const attentionCardFixture: AttentionCardVM = attentionCardFixtures[0];
+
+export const toggleFieldFixture: ToggleFieldVM = {
+  title: "Категория уведомлений",
+  description: "Уведомления о новых заявках и сообщениях",
+  checked: true,
+};
+
+export const checkFieldFixture: CheckFieldVM = {
+  options: [
+    { key: "all", label: "Все уведомления" },
+    { key: "important", label: "Только важные" },
+  ],
+  value: "important",
+};
+
+export const sessionRowFixtures: SessionRowVM[] = [
+  { state: "Default", title: "Chrome · Windows", description: "Москва · 2 часа назад" },
+  { state: "active", title: "Текущая сессия", description: "Этот браузер" },
+  { state: "delete", title: "Удалить аккаунт", description: "Удаление аккаунта необратимо. Все данные будут стёрты." },
+];
+
+export const fileChipFixtures: FileChipVM[] = [
+  { name: "ТЗ.doc", size: "15 MB" },
+  { name: "Макет.fig", size: "8 MB" },
+];
+export const fileChipFixture: FileChipVM = fileChipFixtures[0];

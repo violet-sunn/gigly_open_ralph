@@ -6,8 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Section } from "@/app/components/layout/Section";
 import { Grid } from "@/app/components/layout/Grid";
 import { Stack } from "@/app/components/layout/Stack";
-import { FilterBar, GigCard, ResultCount } from "@/app/components/blocks";
-import type { SelectOption } from "@/app/components/primitives";
+import { FilterBar, GigCard, ResultCount, SectionHeader } from "@/app/components/blocks";
+import { ViewToggle, type SelectOption } from "@/app/components/primitives";
 import type { GigSearchData } from "@/lib/view-models";
 
 /**
@@ -45,7 +45,13 @@ export function GigSearch({
   const cards = data.gigCards;
 
   return (
-    <Section title="Поиск гигов" gap={6}>
+    <Section gap={6}>
+      {/* HEADER (node 2860:2056): the БЛОК SectionHeader + the grid/list switcher, right-aligned in one row. The
+          switcher lives here (not in the FilterBar) per the node, and drives the `view` URL param. */}
+      <Stack axis="row" gap={3} align="center" justify="between">
+        <SectionHeader vm={{ title: "Поиск проектов" }} />
+        <ViewToggle view={data.view} onChange={(v) => set("view", v, "grid")} />
+      </Stack>
       <FilterBar
         vm={data.filterBar}
         onSearch={(q) => set("search", q.trim())}
@@ -58,7 +64,6 @@ export function GigSearch({
         ratingOptions={ratingOptions}
         ratingValue={params.get("minRating") ?? ""}
         onRating={(r) => set("minRating", r)}
-        onViewChange={(v) => set("view", v, "grid")}
         openSelect={open}
         onToggleSelect={setOpen}
       />

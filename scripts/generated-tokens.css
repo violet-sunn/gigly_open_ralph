@@ -1,6 +1,6 @@
 /* Auto-generated design tokens */
 /* Source: openspec/specs/ui/design-tokens.json */
-/* Generated: 2026-06-17T17:03:37.975Z */
+/* Generated: 2026-06-20T14:52:23.875Z */
 /* To regenerate: node scripts/parse-design-tokens.js */
 
 :root {
@@ -12,6 +12,7 @@
   --surface-level-3: #1a1a24;
   --surface-level-3-hover: #1a1d2a;
   --surface-inverse: #ffffff;
+  --surface-logo-plate: transparent;
   --text-strong: #ffffff;
   --text-inverse: #ffffff;
   --text-muted: #8a8f99;
@@ -29,12 +30,27 @@
   --status-verification: #8b5cf6;
   --status-completed: #10b981;
   --status-rejected: #ef4444;
-  --category-marketing: #0088ff;
+  --category-marketing: #4cacff;
   --category-design: #f45fb1;
   --category-programming: #0cc671;
   --category-development: #05c9e6;
   --category-coding: #f27c0d;
+  --status-border-open: rgba(255, 255, 255, 0.3);
+  --status-border-review: rgba(245, 158, 11, 0.3);
+  --status-border-in-progress: rgba(59, 130, 246, 0.3);
+  --status-border-verification: rgba(139, 92, 246, 0.3);
+  --status-border-completed: rgba(16, 185, 129, 0.3);
+  --status-border-rejected: rgba(239, 68, 68, 0.3);
   --accent-pink: #ff2d55;
+  --tint-brand: rgba(0, 136, 255, 0.1);
+  --tint-danger: rgba(239, 68, 68, 0.2);
+  --tint-danger-hover: rgba(239, 68, 68, 0.3);
+  --attention-status-change: #7c3aed;
+  --attention-message: #2563eb;
+  --attention-deadline: #ea580c;
+  --attention-accepted: #16a34a;
+  --attention-rejected: #9ca3af;
+  --attention-payment: #0891b2;
   --overlay-fill: rgba(255, 255, 255, 0.05);
   --overlay-line: rgba(255, 255, 255, 0.08);
   --overlay-line-strong: rgba(255, 255, 255, 0.2);
@@ -43,6 +59,7 @@
   /* Design Tokens - Typography (Font Families) */
   --font-family-sans: var(--font-sans), -apple-system, system-ui, Segoe UI, Roboto, sans-serif;
   --font-family-mono: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-family-grotesk: var(--font-grotesk), system-ui, Segoe UI, Roboto, sans-serif;
   --font-family-display: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-family-h1: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-family-h2: var(--font-sans), -apple-system, system-ui, Segoe UI, Roboto, sans-serif;
@@ -103,6 +120,8 @@
 
   /* Design Tokens - Effects (Shadows) */
   --shadow-none: 0px 0px 0px 0px rgba(0, 0, 0, 0.00);
+  --shadow-sm: 0px 1px 2px 0px rgba(0, 0, 0, 0.30);
+  --shadow-lg: 0px 8px 24px 0px rgba(0, 0, 0, 0.50);
   --shadow-focus: 0px 0px 0px 2px rgba(0, 136, 255, 0.40);
   --shadow-card: 0px 2px 8px 0px rgba(0, 0, 0, 0.16);
   --shadow-md: 0px 4px 12px 0px rgba(0, 0, 0, 0.40);
@@ -120,6 +139,8 @@
   --spacing-10: 40px;
   --spacing-12: 48px;
   --spacing-16: 64px;
+  --spacing-20: 80px;
+  --spacing-24: 96px;
 
   /* Design Tokens - Border Radius */
   --radius-xs: 2px;
@@ -153,4 +174,50 @@
   /* Design Tokens - Gradients */
   --gradient-brand-glow: linear-gradient(90deg, rgba(0, 136, 255, 0.10) 0%, rgba(0, 136, 255, 0.083) 11%, rgba(0, 136, 255, 0) 75%);
   --gradient-status-completed-glow: radial-gradient(closest-side, rgba(16, 185, 129, 0.5) 0%, rgba(16, 185, 129, 0.1) 50%, rgba(16, 185, 129, 0) 100%);
+  --gradient-status-open-glow: radial-gradient(closest-side, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0) 100%);
+  --gradient-status-in-progress-glow: radial-gradient(closest-side, rgba(59, 130, 246, 0.5) 0%, rgba(59, 130, 246, 0.1) 50%, rgba(59, 130, 246, 0) 100%);
+  --gradient-status-review-glow: radial-gradient(closest-side, rgba(245, 158, 11, 0.5) 0%, rgba(245, 158, 11, 0.1) 50%, rgba(245, 158, 11, 0) 100%);
+  --gradient-status-verification-glow: radial-gradient(closest-side, rgba(139, 92, 246, 0.5) 0%, rgba(139, 92, 246, 0.1) 50%, rgba(139, 92, 246, 0) 100%);
+  --gradient-status-rejected-glow: radial-gradient(closest-side, rgba(239, 68, 68, 0.5) 0%, rgba(239, 68, 68, 0.1) 50%, rgba(239, 68, 68, 0) 100%);
+  --gradient-attention-status-change-glow: radial-gradient(closest-side, rgba(124, 58, 237, 0.4) 0%, rgba(124, 58, 237, 0.1) 50%, rgba(124, 58, 237, 0) 100%);
+  --gradient-attention-message-glow: radial-gradient(closest-side, rgba(37, 99, 235, 0.4) 0%, rgba(37, 99, 235, 0.1) 50%, rgba(37, 99, 235, 0) 100%);
+  --gradient-attention-deadline-glow: radial-gradient(closest-side, rgba(234, 88, 12, 0.4) 0%, rgba(234, 88, 12, 0.1) 50%, rgba(234, 88, 12, 0) 100%);
+  --gradient-attention-accepted-glow: radial-gradient(closest-side, rgba(22, 163, 74, 0.4) 0%, rgba(22, 163, 74, 0.1) 50%, rgba(22, 163, 74, 0) 100%);
+  --gradient-attention-rejected-glow: radial-gradient(closest-side, rgba(156, 163, 175, 0.4) 0%, rgba(156, 163, 175, 0.1) 50%, rgba(156, 163, 175, 0) 100%);
+  --gradient-attention-payment-glow: radial-gradient(closest-side, rgba(8, 145, 178, 0.4) 0%, rgba(8, 145, 178, 0.1) 50%, rgba(8, 145, 178, 0) 100%);
+}
+
+[data-theme="light"] {
+  --surface-level-0: #f4f5f7;
+  --surface-level-1: #eceef1;
+  --surface-level-2: #ffffff;
+  --surface-level-3: #ffffff;
+  --surface-level-3-hover: #eef0f3;
+  --surface-inverse: #0e121b;
+  --surface-logo-plate: #01030e;
+  --text-strong: #0e121b;
+  --text-muted: #565c66;
+  --text-subtle: #565c66;
+  --text-disabled: #aab0bb;
+  --border-default: #e6e8ec;
+  --brand-hover: #0077e0;
+  --status-open: #767b85;
+  --status-review: #b45309;
+  --status-completed: #047857;
+  --tint-brand: rgba(0, 136, 255, 0.08);
+  --overlay-fill: rgba(16, 24, 40, 0.04);
+  --overlay-line: rgba(16, 24, 40, 0.08);
+  --overlay-line-strong: rgba(16, 24, 40, 0.12);
+  --overlay-header: rgba(16, 24, 40, 0.02);
+  --shadow-sm: 0px 1px 2px 0px rgba(16, 24, 40, 0.06);
+  --shadow-lg: 0px 8px 24px 0px rgba(16, 24, 40, 0.10);
+  --shadow-card: 0px 1px 3px 0px rgba(16, 24, 40, 0.06);
+  --shadow-md: 0px 2px 8px 0px rgba(16, 24, 40, 0.08);
+  --shadow-popover: 0px 8px 24px 0px rgba(16, 24, 40, 0.12);
+  --gradient-status-completed-glow: linear-gradient(0deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.08) 100%);
+  --gradient-status-open-glow: linear-gradient(0deg, rgba(138, 143, 153, 0.1) 0%, rgba(138, 143, 153, 0.1) 100%);
+  --gradient-status-in-progress-glow: linear-gradient(0deg, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0.08) 100%);
+  --gradient-status-review-glow: linear-gradient(0deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%);
+  --gradient-status-verification-glow: linear-gradient(0deg, rgba(139, 92, 246, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%);
+  --gradient-status-rejected-glow: linear-gradient(0deg, rgba(239, 68, 68, 0.08) 0%, rgba(239, 68, 68, 0.08) 100%);
 }

@@ -1,6 +1,7 @@
 import { Tag, IconButton, ICON, type Category } from "@/app/components/primitives";
 import { Panel } from "@/app/components/layout/Panel";
 import { Stack } from "@/app/components/layout/Stack";
+import { SectionHeader } from "./SectionHeader";
 import type { TagListVM } from "./view-models";
 
 /** Cycle the five category colours so a stack of tech tags reads like the mock. */
@@ -16,7 +17,7 @@ export function TagList({ vm, onEdit }: { vm: TagListVM; onEdit?: () => void }) 
     <Panel surface={1} radius="lg" padding={6}>
       <Stack gap={5}>
         <Stack axis="row" gap={3} align="center" justify="between">
-          <span className="text-h2 font-h2 text-strong">{vm.title}</span>
+          <SectionHeader vm={{ title: vm.title }} />
           {onEdit && <IconButton icon={ICON.gear} onClick={onEdit} aria-label="Редактировать" />}
         </Stack>
         <Stack axis="row" gap={2}>

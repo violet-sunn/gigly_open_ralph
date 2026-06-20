@@ -72,7 +72,7 @@ export function Select({
                   isDisabled
                     ? "cursor-default opacity-disabled text-strong"
                     : isSelected
-                      ? "cursor-pointer bg-brand-default/10 text-brand-default"
+                      ? "cursor-pointer bg-tint-brand text-brand-default"
                       : "cursor-pointer text-strong hover:bg-surface-level-3-hover",
                 )}
               >

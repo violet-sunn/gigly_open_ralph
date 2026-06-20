@@ -98,16 +98,18 @@ function flattenObject(obj, prefix = '', result = {}) {
 
 console.log('📦 Extracting tokens...\n');
 
-// Extract color tokens
+// Extract color tokens (dark = .value; light = optional .light sibling — add-light-theme)
 const colorTokens = {};
+const colorTokensLight = {};
 if (tokens['color-semantic']) {
   const flatColors = flattenObject(tokens['color-semantic']);
   for (const [key, token] of Object.entries(flatColors)) {
-    const resolvedValue = resolveTokenReference(token.value, tokens);
-    const finalValue = hexToRgba(resolvedValue);
-    colorTokens[key] = finalValue;
+    colorTokens[key] = hexToRgba(resolveTokenReference(token.value, tokens));
+    if (token.light !== undefined) {
+      colorTokensLight[key] = hexToRgba(resolveTokenReference(token.light, tokens));
+    }
   }
-  console.log(`✓ Extracted ${Object.keys(colorTokens).length} color tokens`);
+  console.log(`✓ Extracted ${Object.keys(colorTokens).length} color tokens (${Object.keys(colorTokensLight).length} light overrides)`);
 }
 
 // Extract typography tokens
@@ -162,18 +164,22 @@ if (tokens.font && tokens.font.family) {
   console.log(`✓ Extracted ${Object.keys(fontFamilyTokens).length} font family tokens`);
 }
 
-// Extract shadow tokens
+// Extract shadow tokens (dark + optional .light, add-light-theme)
+const shadowStr = (v) => {
+  const { offsetX = 0, offsetY = 0, radius = 0, spread = 0, color = '#000000' } = v;
+  return `${offsetX}px ${offsetY}px ${radius}px ${spread}px ${hexToRgba(color)}`;
+};
 const shadowTokens = {};
+const shadowTokensLight = {};
 if (tokens.effect && tokens.effect.shadow) {
   const flatShadows = flattenObject(tokens.effect.shadow);
   for (const [key, token] of Object.entries(flatShadows)) {
     if (token.value && typeof token.value === 'object') {
-      const { offsetX = 0, offsetY = 0, radius = 0, spread = 0, color = '#000000' } = token.value;
-      const rgbaColor = hexToRgba(color);
-      shadowTokens[key] = `${offsetX}px ${offsetY}px ${radius}px ${spread}px ${rgbaColor}`;
+      shadowTokens[key] = shadowStr(token.value);
+      if (token.light && typeof token.light === 'object') shadowTokensLight[key] = shadowStr(token.light);
     }
   }
-  console.log(`✓ Extracted ${Object.keys(shadowTokens).length} shadow tokens`);
+  console.log(`✓ Extracted ${Object.keys(shadowTokens).length} shadow tokens (${Object.keys(shadowTokensLight).length} light)`);
 }
 
 // Extract spacing tokens
@@ -234,17 +240,29 @@ if (tokens.numbers && tokens.numbers.opacity) {
   console.log(`✓ Extracted ${Object.keys(opacityTokens).length} opacity tokens`);
 }
 
-// Extract gradient tokens (CSS gradient/recipe strings)
+// Extract gradient tokens (CSS gradient/recipe strings; dark + optional .light, add-light-theme)
 const gradientTokens = {};
+const gradientTokensLight = {};
 if (tokens.gradient) {
   const flatGradient = flattenObject(tokens.gradient);
   for (const [key, token] of Object.entries(flatGradient)) {
     if (typeof token.value === 'string') gradientTokens[key] = token.value;
+    if (typeof token.light === 'string') gradientTokensLight[key] = token.light;
   }
-  console.log(`✓ Extracted ${Object.keys(gradientTokens).length} gradient tokens`);
+  console.log(`✓ Extracted ${Object.keys(gradientTokens).length} gradient tokens (${Object.keys(gradientTokensLight).length} light)`);
 }
 
 console.log('\n📝 Generating output files...\n');
+
+// add-light-theme: the appearance tokens (colours, shadows, gradients) are emitted to Tailwind as
+// var(--<key>) references so they switch at runtime via :root / [data-theme="light"]; the actual
+// dark + light values live in generated-tokens.css. Non-appearance tokens (spacing/radius/type/…)
+// stay literal. Dark values == the prior literals → the dark theme is visually unchanged.
+const toVarMap = (map, prefix) =>
+  Object.fromEntries(Object.keys(map).map((k) => [k, `var(--${prefix}${k})`]));
+const colorVarMap = toVarMap(colorTokens, '');
+const shadowVarMap = toVarMap(shadowTokens, 'shadow-');
+const gradientVarMap = toVarMap(gradientTokens, 'gradient-');
 
 // Generate JavaScript file for Tailwind config
 const jsOutput = `// Auto-generated design tokens
@@ -252,21 +270,23 @@ const jsOutput = `// Auto-generated design tokens
 // Generated: ${new Date().toISOString()}
 //
 // To regenerate: node scripts/parse-design-tokens.js
+// NOTE (add-light-theme): colors/boxShadow/gradient are var(--*) refs — values + theme overrides
+// live in generated-tokens.css (:root dark, [data-theme="light"] light).
 
 module.exports = {
-  colors: ${JSON.stringify(colorTokens, null, 2)},
+  colors: ${JSON.stringify(colorVarMap, null, 2)},
   fontFamily: ${JSON.stringify(fontFamilyTokens, null, 2)},
   fontSize: ${JSON.stringify(fontSizeTokens, null, 2)},
   lineHeight: ${JSON.stringify(lineHeightTokens, null, 2)},
   fontWeight: ${JSON.stringify(fontWeightTokens, null, 2)},
   letterSpacing: ${JSON.stringify(letterSpacingTokens, null, 2)},
-  boxShadow: ${JSON.stringify(shadowTokens, null, 2)},
+  boxShadow: ${JSON.stringify(shadowVarMap, null, 2)},
   spacing: ${JSON.stringify(spacingTokens, null, 2)},
   borderRadius: ${JSON.stringify(borderRadiusTokens, null, 2)},
   size: ${JSON.stringify(sizeTokens, null, 2)},
   zIndex: ${JSON.stringify(zIndexTokens, null, 2)},
   opacity: ${JSON.stringify(opacityTokens, null, 2)},
-  gradient: ${JSON.stringify(gradientTokens, null, 2)},
+  gradient: ${JSON.stringify(gradientVarMap, null, 2)},
 };
 `;
 
@@ -386,6 +406,16 @@ if (Object.keys(gradientTokens).length > 0) {
 }
 
 cssOutput += '}\n';
+
+// add-light-theme: [data-theme="light"] overrides — only the appearance tokens that declared a
+// `.light` value in the SSOT. Dark is the default (:root above); absence here = identical in both themes.
+const lightLines = [];
+for (const [key, value] of Object.entries(colorTokensLight)) lightLines.push(`  --${key}: ${value};`);
+for (const [key, value] of Object.entries(shadowTokensLight)) lightLines.push(`  --shadow-${key}: ${value};`);
+for (const [key, value] of Object.entries(gradientTokensLight)) lightLines.push(`  --gradient-${key}: ${value};`);
+if (lightLines.length > 0) {
+  cssOutput += `\n[data-theme="light"] {\n${lightLines.join('\n')}\n}\n`;
+}
 
 const cssPath = path.join(__dirname, 'generated-tokens.css');
 fs.writeFileSync(cssPath, cssOutput, 'utf8');

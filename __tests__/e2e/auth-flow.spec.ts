@@ -126,7 +126,7 @@ test.describe('Auth Flow E2E Tests - Backward Compatibility', () => {
   test('should allow direct access to /register without redirect (composed wizard)', async ({ page }) => {
     await page.goto('/register')
     await expect(page).toHaveURL('/register')
-    await expect(page.getByRole('heading', { name: 'Регистрация' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Создайте свой аккаунт' })).toBeVisible()
     await expect(page.getByTestId('role-client')).toBeVisible()
     await expect(page.getByTestId('role-specialist')).toBeVisible()
   })

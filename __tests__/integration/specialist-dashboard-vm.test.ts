@@ -46,7 +46,7 @@ describe('getSpecialistDashboard', () => {
     })
 
     // Assigned gigs across the work statuses (В работе / На проверке / Завершённые).
-    await createTestGig(prisma, { clientId: client.id, status: 'IN_PROGRESS', assignedSpecialistId: specialist.id })
+    const inProgressGig = await createTestGig(prisma, { clientId: client.id, status: 'IN_PROGRESS', assignedSpecialistId: specialist.id })
     await createTestGig(prisma, { clientId: client.id, status: 'REVIEW', assignedSpecialistId: specialist.id })
     await createTestGig(prisma, { clientId: client.id, status: 'COMPLETED', assignedSpecialistId: specialist.id })
     await createTestGig(prisma, {
@@ -63,6 +63,11 @@ describe('getSpecialistDashboard', () => {
     await createTestApplication(prisma, { gigId: rejGig.id, specialistId: specialist.id, status: 'REJECTED' })
     const witGig = await createTestGig(prisma, { clientId: client.id, status: 'OPEN' })
     await createTestApplication(prisma, { gigId: witGig.id, specialistId: specialist.id, status: 'WITHDRAWN' })
+
+    // A notification → the WELCOME-2 attention strip (one row per [userId, gigId]).
+    await prisma.notification.create({
+      data: { userId: specialist.id, gigId: inProgressGig.id, type: 'STATUS_CHANGE', eventType: 'work_approved' },
+    })
 
     const data = await withAuthContext(specialist, async () => getSpecialistDashboard(specialist.id))
 
@@ -89,11 +94,22 @@ describe('getSpecialistDashboard', () => {
     expect(byTab('archive')).toHaveLength(2)
     expect(byTab('archive').every((c) => c.status === 'rejected')).toBe(true)
 
-    // Assignable to GigCardVM (compile-time) + messages present + welcome banner has no CTA.
+    // Assignable to GigCardVM (compile-time) + messages present.
     const first: GigCardVM = data.gigCards[0]
     expect(typeof first.budget).toBe('string')
     expect(Array.isArray(data.messages.conversations)).toBe(true)
-    expect(data.banner.cta).toBeUndefined()
+
+    // WELCOME — greeting + two onboarding tiles (the first carries the real completion as its progress).
+    expect(data.greeting).toBeTruthy()
+    expect(data.onboarding.length).toBeGreaterThanOrEqual(2)
+    expect(data.onboarding[0].progress).toBe(data.completion)
+
+    // WELCOME-2 — the attention strip (≤6, the seeded notification → ≥1 typed card with a gig embed).
+    expect(Array.isArray(data.attention)).toBe(true)
+    expect(data.attention.length).toBeGreaterThanOrEqual(1)
+    expect(data.attention.length).toBeLessThanOrEqual(6)
+    expect(data.attention[0].type).toBe('accepted') // work_approved → accepted
+    expect(data.attention[0].embed.kind).toBe('gig')
   })
 
   it('returns an empty grid and zero tab counts for a specialist with no gigs or applications', async () => {
@@ -107,5 +123,7 @@ describe('getSpecialistDashboard', () => {
     expect(data.tabs.map((t) => t.value)).toEqual(['all', 'applications', 'in-progress', 'verification', 'completed'])
     expect(data.completion).toBeGreaterThanOrEqual(0)
     expect(data.completion).toBeLessThanOrEqual(100)
+    // No notifications → an empty attention strip (the screen hides the WELCOME-2 section).
+    expect(data.attention).toEqual([])
   })
 })

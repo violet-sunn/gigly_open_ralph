@@ -37,7 +37,7 @@ test.describe('Auth Navigation Flow', () => {
     await expect(page).toHaveURL('/login?role=SPECIALIST')
     // /login is unchanged — keeps the legacy blue-border selection state.
     const specialistCard = page.locator('[data-testid="role-specialist"]')
-    await expect(specialistCard).toHaveCSS('border-color', 'rgb(2, 101, 220)')
+    await expect(specialistCard).toHaveCSS('border-color', 'rgb(0, 136, 255)')
   })
 
   test('homepage to login flow via auth page (CLIENT)', async ({ page }) => {
@@ -47,7 +47,7 @@ test.describe('Auth Navigation Flow', () => {
     await page.click('button:has-text("Войти")')
     await expect(page).toHaveURL('/login?role=CLIENT')
     const clientCard = page.locator('[data-testid="role-client"]')
-    await expect(clientCard).toHaveCSS('border-color', 'rgb(2, 101, 220)')
+    await expect(clientCard).toHaveCSS('border-color', 'rgb(0, 136, 255)')
   })
 
   test('homepage to register flow via auth page (SPECIALIST)', async ({ page }) => {
@@ -88,7 +88,7 @@ test.describe('Auth Navigation Flow', () => {
   test('direct register access works without redirect (composed wizard)', async ({ page }) => {
     await page.goto('/register')
     await expect(page).toHaveURL('/register')
-    await expect(page.getByRole('heading', { name: 'Регистрация' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Создайте свой аккаунт' })).toBeVisible()
     await expect(page.getByTestId('role-client')).toBeVisible()
     await expect(page.getByTestId('role-specialist')).toBeVisible()
   })
@@ -97,7 +97,7 @@ test.describe('Auth Navigation Flow', () => {
     await page.goto('/login?role=SPECIALIST')
     await expect(page).toHaveURL('/login?role=SPECIALIST')
     const specialistCard = page.locator('[data-testid="role-specialist"]')
-    await expect(specialistCard).toHaveCSS('border-color', 'rgb(2, 101, 220)')
+    await expect(specialistCard).toHaveCSS('border-color', 'rgb(0, 136, 255)')
   })
 
   test('direct register with role parameter preserves role (composed wizard)', async ({ page }) => {

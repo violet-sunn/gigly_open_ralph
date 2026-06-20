@@ -5,6 +5,7 @@ import "@testing-library/jest-dom/vitest";
 import {
   GigCard,
   ProfileCard,
+  ProfileHeader,
   ClientCard,
   BannerCard,
   StatPanel,
@@ -14,11 +15,21 @@ import {
   DataTable,
   RequirementCard,
   CriteriaList,
+  CriteriaRow,
+  SectionHeader,
+  JobExperienceCard,
+  OnboardingCard,
+  AuthHeader,
   TermsTabs,
   ApplyPanel,
   MessageBubble,
   ConversationItem,
   NotificationItem,
+  AttentionCard,
+  ToggleField,
+  CheckField,
+  SessionRow,
+  FileChip,
   MessagesPanel,
   ChatPanel,
   SidebarNav,
@@ -49,6 +60,15 @@ import {
   sidebarNavSpecialistCollapsed,
   topbarFixture,
   filterBarFixture,
+  attentionCardFixtures,
+  toggleFieldFixture,
+  checkFieldFixture,
+  sessionRowFixtures,
+  fileChipFixtures,
+  sectionHeaderFixture,
+  jobExperienceCardFixtures,
+  onboardingCardFixture,
+  authHeaderFixtures,
 } from "@/app/components/blocks/fixtures";
 
 // Every block renders every §3.2 variant from fixtures (F3), composed from primitives + tokens (F2/F5),
@@ -83,6 +103,34 @@ describe("domain-blocks / ProfileCard — {compact, full}", () => {
   });
 });
 
+describe("domain-blocks / ProfileHeader — ID block (SpecialtyTag + status pill)", () => {
+  it("renders the specialty via SpecialtyTag (not a bordered pill) + the verify row", () => {
+    render(<ProfileHeader vm={profileHeaderFixture} />);
+    const specialty = screen.getByText("Senior Frontend Engineer");
+    expect(specialty.className).toContain("bg-surface-inverse"); // SpecialtyTag white chip
+    expect(specialty.className).toContain("text-brand-default"); // brand-blue mono
+    expect(specialty.className).not.toContain("rounded-pill"); // not the old ad-hoc pill
+    expect(screen.getByText("Номер телефона верифицирован")).toBeInTheDocument();
+  });
+
+  it("renders an offline availability pill when not online", () => {
+    render(<ProfileHeader vm={profileHeaderFixture} />); // fixture has no `online`
+    expect(screen.getByText("Не в сети")).toBeInTheDocument();
+  });
+
+  it("renders an online availability pill when online", () => {
+    render(<ProfileHeader vm={{ ...profileHeaderFixture, online: true }} />);
+    expect(screen.getByText("В сети")).toBeInTheDocument();
+  });
+
+  it("shows the owner edit affordance only when onEdit is provided", () => {
+    const { rerender } = render(<ProfileHeader vm={profileHeaderFixture} />);
+    expect(screen.queryByRole("button", { name: "Редактировать профиль" })).toBeNull();
+    rerender(<ProfileHeader vm={profileHeaderFixture} onEdit={() => {}} />);
+    expect(screen.getByRole("button", { name: "Редактировать профиль" })).toBeInTheDocument();
+  });
+});
+
 describe("domain-blocks / ClientCard, StatPanel, BannerCard, RequirementCard, CriteriaList", () => {
   it("ClientCard renders name, rating and meta", () => {
     const { container } = render(<ClientCard vm={clientCardFixture} />);
@@ -108,16 +156,84 @@ describe("domain-blocks / ClientCard, StatPanel, BannerCard, RequirementCard, Cr
     expect(container.querySelector("img")).toBeNull(); // residual: no redrawn raster
   });
 
-  it("RequirementCard renders title, body and an exported icon", () => {
+  it("RequirementCard renders as a frame-stroke tile (title + body + optional icon)", () => {
     const { container } = render(<RequirementCard vm={requirementCardFixture} />);
+    const tile = container.firstElementChild as HTMLElement;
+    expect(tile.className).toContain("border-overlay-line-strong");
+    expect(tile.className).toContain("rounded-md");
+    expect(tile.className).toContain("justify-between");
     expect(screen.getByText("Определение готовности")).toBeInTheDocument();
-    expect(container.querySelector('img[src*="verified"]')).not.toBeNull();
   });
 
-  it("CriteriaList marks met (verified asset) vs unmet (token circle)", () => {
+  it("CriteriaList renders numbered криterий rows (CriteriaRow), no met/unmet checklist", () => {
     const { container } = render(<CriteriaList vm={criteriaListFixture} />);
-    expect(container.querySelectorAll('img[src*="verified"]').length).toBe(2); // 2 met
-    expect(container.querySelectorAll('.rounded-circular.border').length).toBe(1); // 1 unmet
+    // numbered 1..N, digit on the brand-accent block
+    expect(screen.getByText("1")).toBeInTheDocument();
+    expect(screen.getByText(String(criteriaListFixture.items.length))).toBeInTheDocument();
+    expect(container.querySelector(".bg-brand-default")).not.toBeNull();
+    expect(container.querySelector('img[src*="verified"]')).toBeNull(); // no checklist asset anymore
+    expect(screen.getByText(criteriaListFixture.items[0].label)).toBeInTheDocument();
+  });
+});
+
+describe("domain-blocks / SectionHeader, JobExperienceCard, CriteriaRow (profile + gig-detail)", () => {
+  it("SectionHeader renders the title at the h1 (24 mono) role + optional count", () => {
+    const { container } = render(<SectionHeader vm={sectionHeaderFixture} />);
+    const title = screen.getByText("Стек");
+    expect(title.className).toContain("text-h1");
+    expect(title.className).toContain("font-h1");
+    expect(screen.getByText("6")).toBeInTheDocument(); // count
+  });
+
+  it("JobExperienceCard renders company/period/role (brand-default) + description on a frame-stroke card", () => {
+    const vm = jobExperienceCardFixtures[0];
+    const { container } = render(<JobExperienceCard vm={vm} />);
+    expect((container.firstElementChild as HTMLElement).className).toContain("border-overlay-line-strong");
+    expect(screen.getByText(vm.company)).toBeInTheDocument();
+    expect(screen.getByText(vm.period)).toBeInTheDocument();
+    const role = screen.getByText(vm.title!);
+    expect(role.className).toContain("text-brand-default"); // RC-S1: #006ccb → brand/default
+  });
+
+  it("CriteriaRow renders an on-accent digit + title + description", () => {
+    const { container } = render(<CriteriaRow index={3} title="Data Fetching" description="RSC first" />);
+    const digit = screen.getByText("3");
+    expect(digit.className).toContain("bg-brand-default");
+    expect(digit.className).toContain("text-surface-level-0"); // on-accent dark digit
+    expect(screen.getByText("Data Fetching")).toBeInTheDocument();
+    expect(screen.getByText("RSC first")).toBeInTheDocument();
+  });
+
+  it("OnboardingCard composes ProgressBar + secondary Button on an overlay scrim", () => {
+    const { container } = render(<OnboardingCard vm={onboardingCardFixture} />);
+    expect((container.firstElementChild as HTMLElement).className).toContain("rounded-lg");
+    expect(container.querySelector(".bg-overlay-fill")).not.toBeNull(); // scrim
+    const title = screen.getByText(onboardingCardFixture.title);
+    expect(title.className).toContain("text-h2"); // type/h3 role
+    const bar = screen.getByRole("progressbar");
+    expect(bar).toHaveAttribute("aria-valuenow", String(onboardingCardFixture.progress));
+    const cta = screen.getByRole("button", { name: onboardingCardFixture.cta.label });
+    expect(cta.className).toContain("border-border"); // secondary variant
+  });
+
+  it("AuthHeader composes Logomark + heading/subtitle + AuthStepDots, marking the current step", () => {
+    const vm = authHeaderFixtures[1]; // step 2 (index 1), showLogomark
+    render(<AuthHeader vm={vm} />);
+    // Logomark (steps 1–2) renders the exported asset
+    expect(screen.getByAltText("Gigly")).toBeInTheDocument();
+    // heading at the h1/mono role + muted subtitle
+    const heading = screen.getByRole("heading", { name: vm.heading });
+    expect(heading.className).toContain("text-h1");
+    expect(screen.getByText(vm.subtitle!).className).toContain("text-muted");
+    // the dot counter reflects the current step (1-based of total)
+    const dots = screen.getByRole("progressbar");
+    expect(dots).toHaveAttribute("aria-valuenow", String(vm.step + 1));
+    expect(dots).toHaveAttribute("aria-valuemax", String(vm.totalSteps));
+  });
+
+  it("AuthHeader omits the Logomark on the welcome step", () => {
+    render(<AuthHeader vm={authHeaderFixtures[2]} />); // step 3, no logomark
+    expect(screen.queryByAltText("Gigly")).toBeNull();
   });
 });
 
@@ -221,7 +337,7 @@ describe("domain-blocks / messaging — MessageBubble, ConversationItem, Notific
     const { container: cOut } = render(<MessageBubble vm={outVm} />);
     expect(cOut.firstElementChild?.className).toContain("justify-end");
     const bubbleOut = cOut.firstElementChild?.firstElementChild as HTMLElement;
-    expect(bubbleOut.className).toContain("bg-brand-default/10");
+    expect(bubbleOut.className).toContain("bg-tint-brand");
   });
 
   it("ConversationItem shows an unread badge only when unread", () => {
@@ -285,14 +401,94 @@ describe("domain-blocks / shell — SidebarNav, Topbar, FilterBar", () => {
     expect(screen.getByText("3")).toBeInTheDocument(); // unread count
   });
 
-  it("FilterBar full renders search, select and view toggle; search-only hides the rest", () => {
+  it("FilterBar full renders search, select and (only when wired) the view toggle; search-only hides the rest", () => {
     const { container: full } = render(<FilterBar vm={filterBarFixture} variant="full" />);
     expect(full.querySelector('input[type="search"]')).not.toBeNull();
     expect(full.querySelector('[aria-haspopup="listbox"]')).not.toBeNull(); // Select
-    expect(full.querySelector('[aria-pressed]')).not.toBeNull(); // ViewToggle segment
+    // reconcile-gig-browse (RC-S11): the switcher renders ONLY when `onViewChange` is wired (it now lives in the
+    // gig-browse SectionHeader header row). With no handler the filter bar shows no ViewToggle.
+    expect(full.querySelector('[aria-pressed]')).toBeNull();
+
+    const { container: wired } = render(
+      <FilterBar vm={filterBarFixture} variant="full" onViewChange={() => {}} />,
+    );
+    expect(wired.querySelector('[aria-pressed]')).not.toBeNull(); // ViewToggle segment
 
     const { container: searchOnly } = render(<FilterBar vm={filterBarFixture} variant="search-only" />);
     expect(searchOnly.querySelector('input[type="search"]')).not.toBeNull();
     expect(searchOnly.querySelector('[aria-haspopup="listbox"]')).toBeNull();
+  });
+});
+
+describe("domain-blocks / AttentionCard — 6 types, data-driven accent (one component)", () => {
+  it("each type drives marker/accent/glow/CTA from its attention token", () => {
+    expect(attentionCardFixtures).toHaveLength(6);
+    for (const vm of attentionCardFixtures) {
+      const { container, unmount } = render(<AttentionCard vm={vm} />);
+      const panel = container.firstElementChild as HTMLElement;
+      // left inset accent + glow keyed to the type token
+      expect(panel.className).toContain(`border-l-attention-${vm.type}`);
+      expect(container.querySelector(`.bg-attention-${vm.type}-glow`)).not.toBeNull();
+      // marker fill + CTA fill from the same token
+      expect(container.querySelector(`.bg-attention-${vm.type}`)).not.toBeNull();
+      // CTA present (getAll: status-change's "К проекту" also matches the embedded GigCard CTA — collision is by design)
+      expect(within(container).getAllByRole("button", { name: vm.cta }).length).toBeGreaterThanOrEqual(1);
+      unmount();
+    }
+  });
+
+  it("embedded gig keeps its OWN gig-status styling (independent of the attention accent)", () => {
+    const rejected = attentionCardFixtures.find((v) => v.type === "rejected")!;
+    const { container } = render(<AttentionCard vm={rejected} />);
+    // outer accent is the neutral attention/rejected; the embedded GigCard carries its gig-status accent
+    expect(container.querySelector(".border-t-status-rejected")).not.toBeNull();
+  });
+
+  it("the message type embeds a message preview, not a gig", () => {
+    const msg = attentionCardFixtures.find((v) => v.type === "message")!;
+    render(<AttentionCard vm={msg} />);
+    expect(screen.getByText("Кристина")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "К проекту" })).toBeNull(); // no embedded GigCard CTA
+  });
+});
+
+describe("domain-blocks / settings + chat composites", () => {
+  it("ToggleField shows title + description + Toggle and fires onChange", () => {
+    const onChange = vi.fn();
+    render(<ToggleField vm={toggleFieldFixture} onChange={onChange} />);
+    expect(screen.getByText("Категория уведомлений")).toBeInTheDocument();
+    expect(screen.getByText(toggleFieldFixture.description!)).toBeInTheDocument();
+    screen.getByRole("switch").click();
+    expect(onChange).toHaveBeenCalledWith(false);
+  });
+
+  it("CheckField marks the selected row and fires onChange with its key", () => {
+    const onChange = vi.fn();
+    render(<CheckField vm={checkFieldFixture} onChange={onChange} />);
+    const radios = screen.getAllByRole("radio");
+    expect(radios).toHaveLength(2);
+    const selected = radios.find((r) => r.getAttribute("aria-checked") === "true")!;
+    expect(selected).toHaveAccessibleName(/важные/);
+    screen.getByRole("radio", { name: /Все уведомления/ }).click();
+    expect(onChange).toHaveBeenCalledWith("all");
+  });
+
+  it("SessionRow renders the right primitive per state", () => {
+    const { container: def } = render(<SessionRow vm={sessionRowFixtures[0]} />);
+    expect(within(def).getByRole("button", { name: "Удалить сессию" })).toBeInTheDocument(); // IconButton close
+
+    render(<SessionRow vm={sessionRowFixtures[1]} />);
+    expect(screen.getByText("Текущий")).toBeInTheDocument(); // StatusBadge variant="current"
+
+    const { container: del } = render(<SessionRow vm={sessionRowFixtures[2]} />);
+    const danger = del.querySelector("button")!;
+    expect(danger.className).toContain("text-status-rejected"); // Button variant="danger"
+  });
+
+  it("FileChip shows name + size on the overlay/line token surface", () => {
+    const { container } = render(<FileChip vm={fileChipFixtures[0]} />);
+    expect(screen.getByText("ТЗ.doc")).toBeInTheDocument();
+    expect(screen.getByText("15 MB")).toBeInTheDocument();
+    expect((container.firstElementChild as HTMLElement).className).toContain("bg-overlay-line");
   });
 });

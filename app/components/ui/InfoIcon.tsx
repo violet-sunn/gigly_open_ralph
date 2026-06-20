@@ -19,13 +19,12 @@ export function InfoIcon({ className = '', onClick, onKeyDown }: InfoIconProps) 
 
   return (
     <span
-      className={`inline-flex items-center justify-center cursor-pointer transition-colors ${className}`}
+      className={`inline-flex items-center justify-center cursor-pointer transition-colors min-w-[44px] min-h-[44px] ${className}`}
       onClick={onClick}
       onKeyDown={handleKeyDown}
       tabIndex={0}
       role="button"
       aria-label="More information"
-      style={{ minWidth: '44px', minHeight: '44px' }}
     >
       <svg
         width="16"

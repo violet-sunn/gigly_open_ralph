@@ -95,7 +95,20 @@ export interface CategoryTagsVM {
 export interface ExperienceListVM {
   title: string; // «Опыт»
   bio?: string;
-  entries: { company: string; title?: string; period: string; description?: string }[];
+  entries: JobExperienceCardVM[];
+}
+/** A work-experience entry (Figma `job experience` 3088:3896). */
+export interface JobExperienceCardVM {
+  company: string;
+  title?: string; // role line
+  period: string;
+  description?: string;
+}
+/** Section heading (Figma `H/H1/BLOCK` 3371:5248) — type/h1 (24 mono) + optional icon/count. */
+export interface SectionHeaderVM {
+  title: string;
+  icon?: IconRef;
+  count?: number;
 }
 export interface ProfileCardVM {
   avatar: ImageRef;
@@ -204,7 +217,8 @@ export interface RequirementCardVM {
   icon?: IconRef;
 }
 export interface CriteriaListVM {
-  items: { label: string; met?: boolean }[];
+  /** Figma `критерий` rows — numbered title (+ optional description). `met` is legacy/optional. */
+  items: { label: string; description?: string; met?: boolean }[];
 }
 export interface TermsTabsVM {
   proposed: TermRow[];
@@ -219,4 +233,70 @@ export interface BannerCardVM {
   body?: string;
   cta?: { label: string; href: string };
   art?: ImageRef;
+}
+/** Auth-flow HEADER lockup (Figma create-account/welcome nodes) — Logomark + heading/subtitle + AuthStepDots. */
+export interface AuthHeaderVM {
+  heading: string;
+  subtitle?: string;
+  /** 0-based index of the current wizard step. */
+  step: number;
+  /** Total steps in the flow (the dot counter length). */
+  totalSteps: number;
+  /** Lead with the brand mark (steps 1–2 per Figma; the welcome step omits it). */
+  showLogomark?: boolean;
+}
+
+/** Dashboard onboarding tile (Figma welcome "pic" 3082:3820) — distinct from BannerCard. */
+export interface OnboardingCardVM {
+  title: string;
+  subtitle?: string;
+  progress: number; // 0–100
+  cta: { label: string };
+  /** Optional bleed image (residual — exported or omitted, not redrawn). */
+  art?: ImageRef;
+}
+
+// ---- Attention card & settings/chat composites (reconcile-attention-card-and-settings-composites) ----
+/** Notification-TYPE accents (DISTINCT from gig status) — drive the AttentionCard accent/glow. */
+export type AttentionType =
+  | "status-change"
+  | "message"
+  | "deadline"
+  | "accepted"
+  | "rejected"
+  | "payment";
+/** The block embedded inside an AttentionCard — a gig card (keeps its own gig-status styling) or a message preview. */
+export type AttentionEmbed =
+  | { kind: "gig"; gig: GigCardVM }
+  | { kind: "message"; name: string; preview: string; unread: number };
+export interface AttentionCardVM {
+  type: AttentionType;
+  /** Emoji/marker glyph shown in the type-coloured marker. */
+  marker: string;
+  title: string;
+  date: string;
+  cta: string;
+  embed: AttentionEmbed;
+}
+export interface ToggleFieldVM {
+  title: string;
+  description?: string;
+  checked: boolean;
+}
+export interface CheckFieldVM {
+  /** Single-select list (Figma circle / check-circle) — maps to the radio-off/radio-on assets. */
+  options: { key: string; label: string }[];
+  value: string;
+}
+export type SessionState = "Default" | "active" | "delete";
+export interface SessionRowVM {
+  title: string;
+  description?: string;
+  state: SessionState;
+}
+export interface FileChipVM {
+  name: string;
+  size: string;
+  /** Optional file-type icon. The Figma file-earmark glyph is a residual (route to Figma export). */
+  icon?: IconRef;
 }
