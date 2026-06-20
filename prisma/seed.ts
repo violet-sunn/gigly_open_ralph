@@ -2463,14 +2463,14 @@ async function main() {
   console.log('Creating categories...');
 
   const SEED_CATEGORIES = [
-    { slug: 'marketing', name: 'Маркетинг', order: 0 },
-    { slug: 'design', name: 'Дизайн', order: 1 },
-    { slug: 'programming', name: 'Программирование', order: 2 },
-    { slug: 'development', name: 'Разработка', order: 3 },
-    { slug: 'coding', name: 'Кодинг', order: 4 },
+    { slug: 'marketing', name: 'Маркетинг', order: 0, color: 'blue' },
+    { slug: 'design', name: 'Дизайн', order: 1, color: 'rose' },
+    { slug: 'programming', name: 'Программирование', order: 2, color: 'green' },
+    { slug: 'development', name: 'Разработка', order: 3, color: 'teal' },
+    { slug: 'coding', name: 'Кодинг', order: 4, color: 'orange' },
   ];
   for (const c of SEED_CATEGORIES) {
-    await prisma.category.upsert({ where: { slug: c.slug }, update: { name: c.name, order: c.order }, create: c });
+    await prisma.category.upsert({ where: { slug: c.slug }, update: { name: c.name, order: c.order, color: c.color }, create: c });
   }
   console.log(`  ✓ Upserted ${SEED_CATEGORIES.length} categories`);
 

@@ -7176,3 +7176,42 @@ theme). The theme boot script's pre-hydration mutation of `<html>` MUST not prod
 - `token-purity-baseline.json` empty + `lint:tokens` fail-on-all; dead auth trees deleted; `/login` + `InfoIcon` token-migrated
 - `surface.logo-plate` makes the logo read on light; `suppressHydrationWarning` on `<html>`; `theme-coverage` both-themes render green
 - `validate:tokens` (49) + `lint:composition` + `build` + `test:unit` (911) + theme/auth E2E green
+
+## ADDED Requirements (add-bio-block — Phase 3, kit gap)
+
+> The design's identity row `bio` (Figma 2931:2365) + `bio/message/COMPANY` (2931:2366) added as a single `Bio` block
+> over the existing primitives (Avatar + name + verify-patch + Rating stars + `Специальность`), with `sizeFor:
+> gig|acc-bio` × `user: specialist|company` — the two nodes collapse into one block (the `user: 'company'` variant
+> omits `Специальность`). Adopted in `ChatHeader` (renders `Bio`; `ChatHeaderVM` preserved + optional `specialty`) and
+> the gig-detail CONDITIONS column (a company `Bio` from `getGigDetail`'s new `bio: BioVM`); `ClientCard` stays (dispute
+> detail). Recorded RC-S13 in `docs/DESIGN_SYSTEM_SPEC.md` §10.12. Verified by 3 `Bio` render tests + `compose-chats` /
+> `compose-gig-detail-apply` E2E + the 921-test unit suite.
+
+### Requirement: Bio Block (Avatar + Name + Verify + Stars + Specialty), Variant-Typed
+A `Bio` block MUST render the identity row from primitives only (no `className`/`style`/hex; Avatar + name + the
+`verified` patch icon (F4) + Rating + the `SpecialtyTag` `Специальность` + an optional presence line), typed by
+`BioVM` with `sizeFor: 'gig' | 'acc-bio'` and `user: 'specialist' | 'company'`. The `company` variant MUST omit
+`Специальность` (covering `bio/message/COMPANY`). Token-pure (F2).
+
+#### Scenario: Bio renders its parts across variants
+- GIVEN a specialist `BioVM` (acc-bio, with rating + verified + specialty) and a company one
+- THEN the specialist `Bio` MUST show avatar + name + the verify-patch + Rating stars + the `Специальность`; the
+  company `Bio` MUST show avatar + name + verify + rating and MUST NOT render a `Специальность`
+- AND the block MUST contain no `className=`/`style=`/hex literals (composing only kit primitives)
+
+### Requirement: ChatHeader and Gig-Detail Conditions Adopt Bio
+`ChatHeader` MUST render the `Bio` block (mapping `ChatHeaderVM` → `BioVM`; `ChatHeaderVM` gains an optional
+`specialty`, existing fields preserved). `getGigDetail` MUST provide a company `bio: BioVM` (from the gig's client) and
+the gig-detail screen MUST render `<Bio>` as the conditions bio, staying composition-pure (F5).
+
+#### Scenario: The chat header and gig-detail conditions render via Bio
+- GIVEN a chat thread and a gig-detail view
+- THEN `ChatHeader` MUST render through `Bio` (avatar/name/verify/rating/presence, + specialty when present) with its
+  existing `ChatHeaderVM` honored, and the gig-detail conditions MUST render a company `Bio` from `data.bio`
+- AND both the chat and gig-detail screens MUST stay composition-pure and their E2E green
+
+**Acceptance Criteria:**
+- `Bio` block + `BioVM` (sizeFor gig|acc-bio × user specialist|company; company omits `Специальность`); token-pure; F4 verify asset
+- `ChatHeader` renders via `Bio` (`ChatHeaderVM` += optional `specialty`); `getGigDetail` returns `bio`; gig-detail renders `Bio` (F5)
+- 3-variant render tests; `build` + `lint:tokens` + `lint:composition` + `test:unit` (921) + chat/gig-detail E2E green
+- The two-nodes→one-block (`user` axis) decision recorded (§10.12 / RC-S13)

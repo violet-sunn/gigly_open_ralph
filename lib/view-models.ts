@@ -23,6 +23,7 @@ import type {
   AttentionType,
   ConversationItemVM,
   ChatHeaderVM,
+  BioVM,
   MessageBubbleVM,
   FilterBarVM,
   RequirementCardVM,
@@ -51,6 +52,17 @@ const GIG_STATUS: Record<string, Status> = {
 }
 const money = (kopecks: number): string => `${new Intl.NumberFormat('ru-RU').format(kopecks / 100)} ₽`
 
+/**
+ * Display status (reconcile-data-model-to-design): «На рассмотрении» is a DERIVED display state — an OPEN gig that
+ * has ≥1 application renders as `review` (amber), OPEN with 0 applications stays `open` (Открыт). The stored
+ * Gig.status enum + the lifecycle are unchanged; this is read-time only. (`review` = На рассмотрении; REVIEW maps to
+ * `verification` = На проверке.)
+ */
+export function gigDisplayStatus(status: string, applicationCount = 0): Status {
+  if (status === 'OPEN' && applicationCount > 0) return 'review'
+  return GIG_STATUS[status] ?? 'open'
+}
+
 type GigForCard = {
   id: string
   title: string
@@ -60,6 +72,7 @@ type GigForCard = {
   budget: number
   deadlineDays: number
   assignedSpecialistId: string | null
+  applicationCount?: number
 }
 
 /** Map a gig to its GigCardVM (the gig's assigned specialist supplies the rating when present). */
@@ -72,7 +85,7 @@ export async function toGigCardVM(gig: GigForCard, layout: 'grid' | 'list' = 'gr
     title: gig.title,
     category: (gig.categorySlug as Category | null) ?? 'development',
     tags: gig.tags ? gig.tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
-    status: GIG_STATUS[gig.status] ?? 'open',
+    status: gigDisplayStatus(gig.status, gig.applicationCount ?? 0),
     budget: money(gig.budget),
     deadlineDays: gig.deadlineDays,
     rating,
@@ -118,7 +131,8 @@ export async function getDashboardAttention(userId: string): Promise<AttentionCa
   return Promise.all(
     notifications.map(async (n) => {
       const type: AttentionType =
-        (n.eventType ? ATTENTION_TYPE[n.eventType] : undefined) ?? (n.type === 'MESSAGE' ? 'message' : 'status-change')
+        (n.eventType ? ATTENTION_TYPE[n.eventType] : undefined) ??
+        (n.type === 'MESSAGE' ? 'message' : n.type === 'PAYMENT' ? 'payment' : 'status-change')
       return {
         type,
         marker: getNotificationIcon(n.type),
@@ -144,7 +158,11 @@ export interface ClientDashboardData {
 export async function getClientDashboard(userId: string): Promise<ClientDashboardData> {
   const [user, gigs, recent] = await Promise.all([
     prisma.user.findUnique({ where: { id: userId }, include: { clientProfile: true } }),
-    prisma.gig.findMany({ where: { clientId: userId }, orderBy: { createdAt: 'desc' } }),
+    prisma.gig.findMany({
+      where: { clientId: userId },
+      orderBy: { createdAt: 'desc' },
+      include: { _count: { select: { applications: true } } },
+    }),
     getRecentMessages(),
   ])
 
@@ -154,7 +172,8 @@ export async function getClientDashboard(userId: string): Promise<ClientDashboar
   const completion = Math.round((filled / fields.length) * 100)
 
   const gigCards: ClientGigCard[] = await Promise.all(
-    gigs.map(async (g) => ({ ...(await toGigCardVM(g)), rawStatus: g.status })),
+    // applicationCount drives the «На рассмотрении» derived status for the client's own OPEN gigs.
+    gigs.map(async (g) => ({ ...(await toGigCardVM({ ...g, applicationCount: g._count.applications })), rawStatus: g.status })),
   )
 
   const countBy = (pred: (s: string) => boolean) => gigCards.filter((g) => pred(g.rawStatus)).length
@@ -307,7 +326,7 @@ export interface GigSearchData {
  * owns the query (the single source of truth for search/tags/budget/sort/category/rating/pagination); this only maps.
  */
 export async function getGigSearch(input: {
-  gigs: BrowseGig[]
+  gigs: (BrowseGig & { _count?: { applications: number } })[]
   count: number
   page: number
   totalPages: number
@@ -315,7 +334,10 @@ export async function getGigSearch(input: {
   view: 'grid' | 'list'
   query: string
 }): Promise<GigSearchData> {
-  const gigCards = await Promise.all(input.gigs.map((g) => toBrowseGigCardVM(g, input.view)))
+  const gigCards = await Promise.all(
+    // applicationCount drives the «На рассмотрении» derived status for OPEN gigs on browse.
+    input.gigs.map((g) => toBrowseGigCardVM({ ...g, applicationCount: g._count?.applications ?? 0 }, input.view)),
+  )
   const filterBar: FilterBarVM = { query: input.query, view: input.view, filters: [] }
   return {
     gigCards,
@@ -351,6 +373,7 @@ export interface GigDetailData {
   requirements: RequirementCardVM[]
   criteria: CriteriaListVM
   client: ClientCardVM
+  bio: BioVM
   clientId: string
   terms: TermsTabsVM
   chat: ChatPanelVM
@@ -408,7 +431,7 @@ export async function getGigDetail(
 
   const header: GigHeaderVM = {
     title: gig.title,
-    status: GIG_STATUS[gig.status] ?? 'open',
+    status: gigDisplayStatus(gig.status, gig.applications.length),
     budget: money(gig.budget),
     deadlineDays: gig.deadlineDays,
     category: (gig.categorySlug as Category | null) ?? 'development',
@@ -434,6 +457,16 @@ export async function getGigDetail(
     name: gig.client.clientProfile?.companyName || gig.client.email,
     rating: await getRatingForUser(gig.clientId),
     meta: [{ key: 'Email', value: gig.client.email }],
+  }
+
+  // The CONDITIONS company bio (add-bio-block): the gig owner as a company Bio (no `Специальность`).
+  const bio: BioVM = {
+    avatar: '',
+    name: client.name,
+    verified: client.rating.verified,
+    rating: client.rating,
+    user: 'company',
+    sizeFor: 'acc-bio',
   }
 
   // Terms: proposed = the viewer's application counter (fallback to the gig's when no counter); client = the gig's.
@@ -497,6 +530,7 @@ export async function getGigDetail(
     requirements,
     criteria,
     client,
+    bio,
     clientId: gig.clientId,
     terms,
     chat,

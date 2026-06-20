@@ -65,6 +65,10 @@ export async function getDisputeList(opts?: {
  * A dispute's detail (for the DisputeDetail block, which pairs this with a ClientCard). §5 has no DisputeDetailVM,
  * so this returns a lib-local detail shape. Returns null when the dispute does not exist.
  */
+const money = (kopecks: number): string => `${new Intl.NumberFormat('ru-RU').format(kopecks / 100)} ₽`
+const entryRole = (r: string): 'specialist' | 'company' | 'moderator' =>
+  r === 'company' || r === 'moderator' ? r : 'specialist'
+
 export async function getDisputeDetail(id: string) {
   const d = await prisma.dispute.findUnique({
     where: { id },
@@ -73,6 +77,7 @@ export async function getDisputeDetail(id: string) {
       opener: { include: { specialistProfile: true, clientProfile: true } },
       resolvedBy: true,
       resolutionLog: true,
+      timeline: { orderBy: { createdAt: 'asc' } },
     },
   })
   if (!d) return null
@@ -80,7 +85,19 @@ export async function getDisputeDetail(id: string) {
     id: d.id,
     gig: d.gig?.title ?? '',
     opener: openerName(d.opener),
+    openerRole: (d.openerRole === 'company' ? 'company' : d.openerRole === 'specialist' ? 'specialist' : '') as
+      | 'specialist'
+      | 'company'
+      | '',
+    amount: money(d.amount),
     reason: d.reason,
+    evidence: d.evidence ? d.evidence.split(',').map((s) => s.trim()).filter(Boolean) : [],
+    timeline: d.timeline.map((e) => ({
+      authorRole: entryRole(e.authorRole),
+      authorName: e.authorName,
+      text: e.text,
+      at: new Date(e.createdAt).toLocaleDateString('ru-RU'),
+    })),
     status: toDesignStatus(d.status),
     resolution: d.resolution,
     resolvedBy: d.resolvedBy?.email ?? null,

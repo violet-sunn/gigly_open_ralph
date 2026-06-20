@@ -7,6 +7,18 @@ import { getSession } from '@/lib/session'
 import { sanitizeInput } from '@/lib/sanitize'
 import { createNotification } from '@/lib/notifications'
 
+/** The six DATA-MODEL dispute reasons. A submitted reason not in this set normalizes to «Другое». */
+const DISPUTE_REASONS = [
+  'Оплата не поступила',
+  'Результат не соответствует ТЗ',
+  'Заказчик не выходит на связь',
+  'Исполнитель не выходит на связь',
+  'Просрочен срок выполнения',
+  'Другое',
+] as const
+const normalizeReason = (r: string): string =>
+  (DISPUTE_REASONS as readonly string[]).includes(r) ? r : 'Другое'
+
 /**
  * Open a dispute on a gig. Participant-only (the gig's client or assigned specialist), one per [gigId, openerId],
  * on a real two-party engagement (an assigned specialist exists). The other participant is notified (fire-and-forget).
@@ -21,11 +33,16 @@ export async function openDispute(
   }
 
   const gigId = formData.get('gigId') as string
-  const reason = sanitizeInput((formData.get('reason') as string) || '').trim()
+  const rawReason = sanitizeInput((formData.get('reason') as string) || '').trim()
+  const description = sanitizeInput((formData.get('description') as string) || '').trim()
+  const evidence = sanitizeInput((formData.get('evidence') as string) || '').trim() // CSV of file names (optional)
 
-  if (!reason) {
+  if (!rawReason && !description) {
     return { error: 'A reason is required to open a dispute.' }
   }
+  // Normalize to the DATA-MODEL enum; a free-text legacy reason becomes «Другое» + the opening timeline entry.
+  const reason = normalizeReason(rawReason)
+  const openingText = description || (reason === 'Другое' ? rawReason : '')
 
   const gig = await prisma.gig.findUnique({ where: { id: gigId } })
   if (!gig) {
@@ -51,8 +68,20 @@ export async function openDispute(
     return { error: 'You already have a dispute on this gig.' }
   }
 
+  // Capture role + amount at open (point-in-time, per DATA-MODEL).
+  const openerRole = gig.clientId === session.userId ? 'company' : 'specialist'
   await prisma.dispute.create({
-    data: { gigId, openerId: session.userId, reason },
+    data: {
+      gigId,
+      openerId: session.userId,
+      openerRole,
+      amount: gig.budget,
+      reason,
+      evidence,
+      ...(openingText
+        ? { timeline: { create: { authorRole: openerRole, authorName: '', text: openingText } } }
+        : {}),
+    },
   })
 
   // Notify the other participant (fire-and-forget).
@@ -85,9 +114,17 @@ export async function resolveDispute(
   }
 
   const disputeId = formData.get('disputeId') as string
-  const resolution = sanitizeInput((formData.get('resolution') as string) || '').trim()
+  const note = sanitizeInput((formData.get('resolution') as string) || '').trim()
   const statusRaw = (formData.get('status') as string) || 'RESOLVED'
   const status = statusRaw === 'REJECTED' ? 'REJECTED' : 'RESOLVED'
+  // The moderator verdict (DATA-MODEL): in favour of specialist / company / a 50% split. Prefixed onto the resolution.
+  const VERDICTS: Record<string, string> = {
+    specialist: 'В пользу специалиста',
+    company: 'В пользу заказчика',
+    split_50: 'Частичный возврат 50%',
+  }
+  const verdict = VERDICTS[(formData.get('verdict') as string) || '']
+  const resolution = verdict ? (note ? `${verdict} — ${note}` : verdict) : note
 
   if (!resolution) {
     return { error: 'A resolution note is required.' }
@@ -122,6 +159,8 @@ export async function resolveDispute(
           resolution,
           resolvedById: session.userId,
           resolutionLogId: log.id,
+          // Closing timeline entry (DATA-MODEL DisputeEntry, moderator).
+          timeline: { create: { authorRole: 'moderator', authorName: 'Модератор', text: resolution } },
         },
       })
     })

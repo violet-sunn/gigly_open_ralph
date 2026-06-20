@@ -276,7 +276,9 @@
       "Bash(rm -rf openspec/changes/reconcile-gig-detail-apply)",
       "Bash(grep -rn \"reconcile-gig-detail-apply\" openspec/planning/)",
       "Bash(cp scripts/generated-tokens.css /tmp/gt.css.bak)",
-      "Bash(sed -i 's/\\\\[data-theme=\"light\"\\\\] {/[data-theme=\"light\"] {\\\\n  --surface-level-0: #ff0000;/' scripts/generated-tokens.css)"
+      "Bash(sed -i 's/\\\\[data-theme=\"light\"\\\\] {/[data-theme=\"light\"] {\\\\n  --surface-level-0: #ff0000;/' scripts/generated-tokens.css)",
+      "Bash(DATABASE_URL=\"file:./prisma/dev.db\" npx prisma migrate dev --name reconcile_data_model_to_design --skip-generate)",
+      "Bash(DATABASE_URL=\"file:./prisma/dev.db\" npx prisma db push --accept-data-loss)"
     ]
   }
 }

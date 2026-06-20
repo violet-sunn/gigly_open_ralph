@@ -2,7 +2,7 @@
 
 import { prisma } from '@/lib/prisma';
 
-type NotificationType = 'MESSAGE' | 'APPLICATION' | 'STATUS_CHANGE';
+type NotificationType = 'MESSAGE' | 'APPLICATION' | 'STATUS_CHANGE' | 'PAYMENT';
 
 interface NotificationData {
   userId: string;

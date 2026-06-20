@@ -192,7 +192,7 @@ describe('Gig Lifecycle Notification Tests', () => {
         where: {
           userId: specialist.id,
           gigId: gig.id,
-          type: 'STATUS_CHANGE',
+          type: 'PAYMENT', // reconcile-data-model-to-design: payment is now a first-class notification type
           eventType: 'payment_marked',
         },
       });

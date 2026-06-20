@@ -23,6 +23,7 @@ import type {
   ApplyPanelVM,
   MessageBubbleVM,
   ChatHeaderVM,
+  BioVM,
   ConversationItemVM,
   NotificationItemVM,
   MessagesPanelVM,
@@ -196,7 +197,13 @@ export const disputeDetailFixture: DisputeDetailVM = {
   id: "d1",
   gig: "Лендинг для финтех-стартапа",
   opener: "Иван Петров",
-  reason: "Объём работ значительно вырос относительно исходного описания задачи.",
+  openerRole: "specialist",
+  amount: "150 000 ₽",
+  reason: "Результат не соответствует ТЗ",
+  evidence: ["ТЗ.pdf", "переписка.png"],
+  timeline: [
+    { authorRole: "specialist", authorName: "Иван Петров", text: "Объём работ значительно вырос относительно исходного описания.", at: "10.06.2026" },
+  ],
   status: "open",
   resolution: "",
   resolvedBy: null,
@@ -208,7 +215,14 @@ export const disputeDetailResolvedFixture: DisputeDetailVM = {
   id: "d2",
   gig: "Миграция на PostgreSQL",
   opener: "ООО Ромашка",
-  reason: "Работа не соответствует согласованным критериям приёмки.",
+  openerRole: "company",
+  amount: "200 000 ₽",
+  reason: "Результат не соответствует ТЗ",
+  evidence: [],
+  timeline: [
+    { authorRole: "company", authorName: "ООО Ромашка", text: "Работа не соответствует согласованным критериям приёмки.", at: "08.06.2026" },
+    { authorRole: "moderator", authorName: "Модератор", text: "В пользу заказчика — бюджет возвращён.", at: "09.06.2026" },
+  ],
   status: "completed",
   resolution: "Спор разрешён в пользу заказчика; бюджет возвращён.",
   resolvedBy: "admin@gigly.ru",
@@ -287,6 +301,35 @@ export const chatHeaderFixture: ChatHeaderVM = {
   verified: true,
   rating: { value: 5, count: 45, verified: true },
   presence: "был(-а) недавно",
+};
+
+// Bio block — the 4 variants (sizeFor × user). Specialist shows `Специальность`; company omits it.
+export const bioSpecialistFixture: BioVM = {
+  avatar: "",
+  name: "Тимур Камальтдинов",
+  verified: true,
+  rating: { value: 5, count: 45, verified: true },
+  specialty: "[Senior Frontend Engineer]",
+  presence: "был(-а) недавно",
+  sizeFor: "acc-bio",
+  user: "specialist",
+};
+export const bioCompanyFixture: BioVM = {
+  avatar: "",
+  name: "ООО Ромашка",
+  verified: true,
+  rating: { value: 4, count: 12, verified: true },
+  sizeFor: "acc-bio",
+  user: "company",
+};
+export const bioGigFixture: BioVM = {
+  avatar: "",
+  name: "Иван Петров",
+  verified: false,
+  rating: { value: 4, count: 8, verified: false },
+  specialty: "[Backend]",
+  sizeFor: "gig",
+  user: "specialist",
 };
 
 export const conversationItemFixtures: ConversationItemVM[] = [

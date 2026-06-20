@@ -16,6 +16,7 @@ import {
   RequirementCard,
   CriteriaList,
   CriteriaRow,
+  Bio,
   SectionHeader,
   JobExperienceCard,
   OnboardingCard,
@@ -69,6 +70,9 @@ import {
   jobExperienceCardFixtures,
   onboardingCardFixture,
   authHeaderFixtures,
+  bioSpecialistFixture,
+  bioCompanyFixture,
+  bioGigFixture,
 } from "@/app/components/blocks/fixtures";
 
 // Every block renders every §3.2 variant from fixtures (F3), composed from primitives + tokens (F2/F5),
@@ -490,5 +494,27 @@ describe("domain-blocks / settings + chat composites", () => {
     expect(screen.getByText("ТЗ.doc")).toBeInTheDocument();
     expect(screen.getByText("15 MB")).toBeInTheDocument();
     expect((container.firstElementChild as HTMLElement).className).toContain("bg-overlay-line");
+  });
+});
+
+describe("domain-blocks / Bio — bio (2931:2365) + bio/message/COMPANY (2931:2366) → one block (user axis)", () => {
+  it("specialist acc-bio shows name + verify-patch + rating + Специальность", () => {
+    const { container } = render(<Bio vm={bioSpecialistFixture} />);
+    expect(screen.getByText("Тимур Камальтдинов")).toBeInTheDocument();
+    expect(screen.getByText("[Senior Frontend Engineer]")).toBeInTheDocument(); // SpecialtyTag
+    expect(container.querySelector('img[src*="verified"]')).not.toBeNull(); // verify-patch (F4)
+    expect(container.querySelectorAll('img[src*="star"]').length).toBeGreaterThan(0); // Rating stars
+  });
+
+  it("company variant omits Специальность (covers bio/message/COMPANY)", () => {
+    render(<Bio vm={bioCompanyFixture} />);
+    expect(screen.getByText("ООО Ромашка")).toBeInTheDocument();
+    expect(screen.queryByText(/Senior|\[/)).toBeNull(); // no specialty chip for a company
+  });
+
+  it("gig sizeFor renders the compact variant (no crash, name present)", () => {
+    render(<Bio vm={bioGigFixture} />);
+    expect(screen.getByText("Иван Петров")).toBeInTheDocument();
+    expect(screen.getByText("[Backend]")).toBeInTheDocument();
   });
 });

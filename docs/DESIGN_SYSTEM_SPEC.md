@@ -691,6 +691,20 @@ and a both-themes render sweep.
 *Pipeline:* `validate:tokens` 49 colours (+`logo-plate`); `lint:contrast` PASS (AA both themes); `lint:tokens` 0
 baseline (fail-on-all); `lint:composition` + `build` + `test:unit` (911) + `theme-coverage`/`theme-switch`/auth E2E green.
 
+## 10.12 Bio block (2026-06-20, change `add-bio-block`)
+
+- **RC-S13 — `bio` (2931:2365) + `bio/message/COMPANY` (2931:2366) → one `Bio` block (user axis).** The design's
+  identity row (Avatar + name + verify-patch + Rating stars + `Специальность`) is added as a single `Bio` block over
+  the existing primitives, with `sizeFor: gig|acc-bio` × `user: specialist|company`. The two Figma nodes collapse into
+  one block: the **`user: 'company'`** variant omits `Специальность` (covering `bio/message/COMPANY`) — the §3.2
+  "reconcile to a minimal set" principle, avoiding a near-duplicate component. `ChatHeader` is re-implemented to render
+  `Bio` (its `ChatHeaderVM` contract preserved, `+ optional specialty`), and the gig-detail CONDITIONS column adopts a
+  company `Bio` (bound from `getGigDetail`'s new `bio: BioVM`). `ClientCard` stays (still used by the dispute detail).
+  Verified by `Bio` 3-variant render tests + the `compose-chats` / `compose-gig-detail-apply` E2E.
+
+*Pipeline:* `lint:tokens` (Bio token-pure) + `lint:composition` (GigDetail F5) + `build` + `test:unit` (921) +
+`compose-chats`/`compose-gig-detail-apply` E2E green.
+
 ## 10.5 Auth/onboarding screen reconciliation (2026-06-18, change `reconcile-auth-and-onboarding`)
 
 - **RC-S4 — `AuthHeader` block added for the auth «HEADER» lockup.** The five Figma auth nodes

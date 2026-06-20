@@ -11,6 +11,7 @@ import {
   GigHeader,
   RequirementCard,
   CriteriaList,
+  Bio,
   ClientCard,
   TermsTabs,
   ApplyPanel,
@@ -272,6 +273,8 @@ export function GigDetail({ data }: { data: GigDetailData }) {
         </Stack>
 
         <Stack gap={6}>
+          {/* CONDITIONS lead: the company bio (acc-bio Bio block) + the client meta card. */}
+          <Bio vm={data.bio} />
           <ClientCard vm={data.client} />
         </Stack>
       </Split>

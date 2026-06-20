@@ -130,7 +130,10 @@ export default async function GigBrowsePage({
       orderBy,
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
-      include: { client: { select: { email: true, clientProfile: true } } },
+      include: {
+        client: { select: { email: true, clientProfile: true } },
+        _count: { select: { applications: true } }, // drives the «На рассмотрении» derived status
+      },
     }),
     prisma.gig.count({ where }),
   ])

@@ -173,19 +173,35 @@ model Dispute {
   gig             Gig            @relation(fields: [gigId], references: [id])
   openerId        String
   opener          User           @relation("DisputesOpened", fields: [openerId], references: [id])
-  reason          String
+  openerRole      String         @default("") // "specialist" | "company" — set at creation (DATA-MODEL)
+  amount          Int            @default(0) // gig budget frozen at open (kopecks)
+  reason          String // one of the 6 DATA-MODEL DisputeReason values (validated in the action)
+  evidence        String         @default("") // CSV/JSON of file names (SQLite has no array); names only, no upload backend
   status          String         @default("OPEN") // OPEN | RESOLVED | REJECTED
-  resolution      String         @default("")
+  resolution      String         @default("") // moderator verdict: specialist | company | split_50 + note
   resolvedById    String?
   resolvedBy      User?          @relation("DisputesResolved", fields: [resolvedById], references: [id])
   resolutionLogId String?        @unique
   resolutionLog   ModerationLog? @relation(fields: [resolutionLogId], references: [id])
+  timeline        DisputeEntry[]
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 
   @@unique([gigId, openerId])
   @@index([status])
   @@index([gigId])
+}
+
+model DisputeEntry {
+  id         String   @id @default(cuid())
+  disputeId  String
+  dispute    Dispute  @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  authorRole String // "specialist" | "company" | "moderator"
+  authorName String   @default("")
+  text       String
+  createdAt  DateTime @default(now())
+
+  @@index([disputeId])
 }
 
 model Message {
@@ -208,9 +224,10 @@ model Notification {
   user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   gigId      String
   gig        Gig       @relation(fields: [gigId], references: [id], onDelete: Cascade)
-  type       String    @default("MESSAGE")
+  type       String    @default("MESSAGE") // MESSAGE | APPLICATION | STATUS_CHANGE | PAYMENT (DATA-MODEL)
   eventType  String?
   eventData  String?
+  text       String? // optional denormalized display text (derived text in notification-utils stays primary)
   lastReadAt DateTime?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
@@ -241,6 +258,7 @@ model Category {
   slug        String @id
   name        String
   order       Int    @default(0)
+  color       String @default("blue") // design hue: blue|rose|green|teal|orange (DATA-MODEL §Category)
   gigs        Gig[]
   favoritedBy User[] @relation("FavoriteCategories")
 }

@@ -132,11 +132,32 @@ export interface LedgerTableVM {
 export interface DisputeListVM {
   disputes: { id: string; gig: string; status: Status; opener: string }[];
 }
+/** The six DATA-MODEL dispute reasons (DisputeReason). SQLite stores the raw String; this is the typed contract. */
+export type DisputeReason =
+  | "Оплата не поступила"
+  | "Результат не соответствует ТЗ"
+  | "Заказчик не выходит на связь"
+  | "Исполнитель не выходит на связь"
+  | "Просрочен срок выполнения"
+  | "Другое";
+
+/** One entry in a dispute's timeline (DATA-MODEL DisputeEntry). */
+export interface DisputeEntryVM {
+  authorRole: "specialist" | "company" | "moderator";
+  authorName: string;
+  text: string;
+  at: string;
+}
+
 export interface DisputeDetailVM {
   id: string;
   gig: string;
   opener: string;
-  reason: string;
+  openerRole: "specialist" | "company" | "";
+  amount: Money;
+  reason: DisputeReason | string;
+  evidence: string[];
+  timeline: DisputeEntryVM[];
   status: Status;
   resolution: string;
   resolvedBy?: string | null;
@@ -176,12 +197,26 @@ export interface MessageBubbleVM {
   /** Long-form day label (e.g. «1 апреля 2026 г.») — ChatPanel inserts a day separator when it changes. */
   date?: DateISO;
 }
+/** Bio block (Figma `bio` 2931:2365 + `bio/message/COMPANY` 2931:2366 → one block). The identity row:
+ *  avatar + name + verify-patch + stars + `Специальность`. `user: 'company'` omits the specialty. */
+export interface BioVM {
+  avatar: ImageRef;
+  name: string;
+  verified?: boolean;
+  rating?: RatingVM;
+  specialty?: string; // `Специальность` — shown for specialists (omitted when user === 'company')
+  presence?: string; // «был(-а) недавно»
+  sizeFor?: "gig" | "acc-bio";
+  user?: "specialist" | "company";
+}
+
 export interface ChatHeaderVM {
   avatar: ImageRef;
   name: string;
   verified: boolean;
   rating?: RatingVM;
   presence?: string; // «был(-а) недавно»
+  specialty?: string; // counterparty `Специальность` (add-bio-block) — surfaced via the Bio block
 }
 export interface ConversationItemVM {
   id: string;

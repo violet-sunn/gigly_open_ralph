@@ -569,7 +569,7 @@ export async function markAsPaid(
     createNotification(
       gig.assignedSpecialistId,
       gigId,
-      'STATUS_CHANGE',
+      'PAYMENT',
       'payment_marked',
       { clientId: session.userId, paidAt: paidAt.toISOString() }
     )

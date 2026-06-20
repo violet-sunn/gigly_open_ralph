@@ -40,6 +40,11 @@ export function getNotificationDisplayText(notification: {
     }
   }
 
+  // PAYMENT notifications (DATA-MODEL payment type)
+  if (type === 'PAYMENT') {
+    return 'Payment has been marked as paid';
+  }
+
   // STATUS_CHANGE notifications
   if (type === 'STATUS_CHANGE') {
     switch (eventType) {
@@ -67,6 +72,8 @@ export function getNotificationIcon(type: string): string {
       return '📝';
     case 'STATUS_CHANGE':
       return '🔄';
+    case 'PAYMENT':
+      return '💰';
     case 'MESSAGE':
     default:
       return '💬';

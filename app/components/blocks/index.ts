@@ -31,6 +31,7 @@ export { CriteriaRow } from "./CriteriaRow";
 export { TermsTabs } from "./TermsTabs";
 export { ApplyPanel } from "./ApplyPanel";
 export { MessageBubble } from "./MessageBubble";
+export { Bio } from "./Bio";
 export { ChatHeader } from "./ChatHeader";
 export { ConversationItem } from "./ConversationItem";
 export { NotificationItem } from "./NotificationItem";
