@@ -1,9 +1,6 @@
 import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
-import { Suspense } from 'react'
 import { GigDetail } from './GigDetail'
-import { Breadcrumb } from '@/app/components/Breadcrumb'
-import { BackButton } from '@/app/components/BackButton'
 import { markNotificationAsRead } from '@/app/actions/notification'
 import { getGigDetail } from '@/lib/view-models'
 
@@ -17,7 +14,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
   if (!data) {
     return (
       <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8 text-center shadow-md">
-        <h2 className="text-2xl font-bold text-white">Gig not found</h2>
+        <h2 className="text-2xl font-bold text-white">Гиг не найден</h2>
       </div>
     )
   }
@@ -31,27 +28,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
     }
   }
 
-  const breadcrumbItems =
-    session.role === 'SPECIALIST'
-      ? [
-          { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Browse Gigs', href: '/gigs' },
-          { label: data.header.title, current: true },
-        ]
-      : [
-          { label: 'Dashboard', href: '/dashboard' },
-          { label: data.header.title, current: true },
-        ]
-
-  return (
-    <>
-      <Breadcrumb items={breadcrumbItems} />
-      <div className="mb-6">
-        <Suspense fallback={<div className="h-8" />}>
-          <BackButton />
-        </Suspense>
-      </div>
-      <GigDetail data={data} />
-    </>
-  )
+  // The gig-detail screen is rebuilt directly on the gigly_full_design prototype's own markup (GigDetail.tsx) — it
+  // ships its own «← Назад к гигам» link, so no breadcrumb / back-button chrome is layered on here.
+  return <GigDetail data={data} />
 }

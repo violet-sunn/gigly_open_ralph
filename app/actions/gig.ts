@@ -524,6 +524,57 @@ export async function approveWork(
   redirect(`/gigs/${gigId}`)
 }
 
+/**
+ * Return submitted work for revision (REVIEW → IN_PROGRESS) — the gig-detail «Вернуть на доработку» action from the
+ * `gigly_full_design` prototype's owner approve-state. Owner-gated, mirrors approveWork: the client sends the work back
+ * so the assigned specialist can resubmit. No work is discarded; only the lifecycle status reverts.
+ */
+export async function requestRevision(
+  prevState: { error?: string } | null,
+  formData: FormData
+) {
+  const session = await getSession()
+  if (!session) redirect('/login')
+
+  if (session.role !== 'CLIENT') {
+    return { error: 'Only clients can return work for revision.' }
+  }
+
+  const gigId = formData.get('gigId') as string
+
+  const gig = await prisma.gig.findUnique({ where: { id: gigId } })
+
+  if (!gig) {
+    return { error: 'This gig no longer exists or has been removed.' }
+  }
+
+  if (gig.status !== 'REVIEW') {
+    return { error: 'Work can only be returned while it is under review.' }
+  }
+
+  if (gig.clientId !== session.userId) {
+    return { error: 'Only the client who posted this gig can return the work.' }
+  }
+
+  await prisma.gig.update({
+    where: { id: gigId },
+    data: { status: 'IN_PROGRESS' },
+  })
+
+  // Notify the assigned specialist that the work needs changes (fire-and-forget).
+  if (gig.assignedSpecialistId) {
+    createNotification(
+      gig.assignedSpecialistId,
+      gigId,
+      'STATUS_CHANGE',
+      'work_returned',
+      { clientId: session.userId }
+    )
+  }
+
+  redirect(`/gigs/${gigId}`)
+}
+
 export async function markAsPaid(
   prevState: { error?: string } | null,
   formData: FormData

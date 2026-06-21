@@ -1,8 +1,16 @@
 import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
 import { getClientDashboard, getSpecialistDashboard } from '@/lib/view-models'
-import { ClientDashboard } from './ClientDashboard'
-import { SpecialistDashboard } from './SpecialistDashboard'
+import { DashboardDesign, type DashboardVM } from './DashboardDesign'
+
+// Role-gating redirect notices, Russianized (the dashboard is rebuilt on the gigly_full_design prototype).
+const ERROR_MESSAGES: Record<string, string> = {
+  'browse-gigs-specialists-only':
+    'Поиск гигов доступен только специалистам. Как заказчик, вы публикуете гиги и управляете откликами.',
+  'gigs-specialists-only': 'Поиск гигов доступен только специалистам.',
+  'gig-creation-clients-only': 'Создание гигов доступно только заказчикам.',
+  'admin-access-required': 'Требуется доступ администратора.',
+}
 
 export default async function DashboardPage({
   searchParams,
@@ -12,52 +20,62 @@ export default async function DashboardPage({
   const session = await getSession()
   if (!session) redirect('/login')
 
-  // Extract error parameter for displaying error messages
   const params = await searchParams
   const errorParam = typeof params.error === 'string' ? params.error : undefined
+  const errorMessage = errorParam ? ERROR_MESSAGES[errorParam] : null
 
-  const errorMessages: Record<string, string> = {
-    'browse-gigs-specialists-only': 'Browse Gigs is only available for specialists. As a client, you can post gigs and manage applications. To view example gigs, visit the Examples page.',
-    'gigs-specialists-only': 'Browse Gigs is only available for specialists.',
-    'gig-creation-clients-only': 'Creating gigs is only available for clients.',
-    'admin-access-required': 'Admin access is required for this page.',
-  }
-
-  const errorMessage = errorParam ? errorMessages[errorParam] : null
-  const notice = errorMessage ? (
-    <div className="bg-warning-500/10 border border-warning-500/20 rounded-lg p-4 mb-6">
-      <p className="text-sm text-warning-400">{errorMessage}</p>
-    </div>
-  ) : null
-
-  // CLIENT dashboard — composed purely from the kit (compose-client-dashboard, Phase 2).
+  let vm: DashboardVM | null = null
   if (session.role === 'CLIENT') {
-    const data = await getClientDashboard(session.userId)
+    const d = await getClientDashboard(session.userId)
+    vm = {
+      role: 'CLIENT',
+      completion: d.completion,
+      onboarding: d.onboarding,
+      // Client tab filter: rawStatus (PAID folds into the «Завершённые» / COMPLETED tab).
+      gigCards: d.gigCards.map((g) => ({ ...g, filterKey: g.rawStatus === 'PAID' ? 'COMPLETED' : g.rawStatus })),
+      tabs: d.tabs,
+      attention: [],
+      messages: d.messages.conversations,
+    }
+  } else if (session.role === 'SPECIALIST') {
+    const d = await getSpecialistDashboard(session.userId)
+    vm = {
+      role: 'SPECIALIST',
+      completion: d.completion,
+      onboarding: d.onboarding,
+      gigCards: d.gigCards.map((g) => ({ ...g, filterKey: g.tabKey })),
+      tabs: d.tabs,
+      attention: d.attention,
+      messages: d.messages.conversations,
+    }
+  }
+
+  if (!vm) {
     return (
-      <>
-        {notice}
-        <ClientDashboard {...data} />
-      </>
+      <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8 text-center shadow-md">
+        <h2 className="text-2xl font-bold text-white">Личный кабинет</h2>
+        <p className="mt-2 text-sm text-neutral-strong">Вы вошли как {session.email}</p>
+        <p className="mt-4 text-sm text-warning-400">Роль аккаунта не распознана. Обратитесь в поддержку.</p>
+      </div>
     )
   }
 
-  // SPECIALIST dashboard — composed purely from the kit (compose-specialist-dashboard, Phase 2).
-  if (session.role === 'SPECIALIST') {
-    const data = await getSpecialistDashboard(session.userId)
-    return (
-      <>
-        {notice}
-        <SpecialistDashboard {...data} />
-      </>
-    )
-  }
-
-  // Unknown role — fallback notice (the shell provides the surrounding layout).
   return (
-    <div className="bg-surface-level-1 border border-neutral-weak rounded-lg p-8 text-center shadow-md">
-      <h2 className="text-3xl font-bold text-white leading-tight">Dashboard</h2>
-      <p className="mt-2 text-sm text-neutral-strong">Signed in as {session.email}</p>
-      <p className="mt-4 text-sm text-warning-400">Your account role is not recognized. Please contact support.</p>
-    </div>
+    <>
+      {errorMessage && (
+        <div
+          style={{
+            marginBottom: 16,
+            borderRadius: 8,
+            background: 'rgba(245,158,11,0.1)',
+            boxShadow: 'inset 0 0 0 1px rgba(245,158,11,0.3)',
+            padding: 14,
+          }}
+        >
+          <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 13, color: '#f59e0b' }}>{errorMessage}</span>
+        </div>
+      )}
+      <DashboardDesign vm={vm} />
+    </>
   )
 }

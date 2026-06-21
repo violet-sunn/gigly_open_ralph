@@ -1,7 +1,7 @@
 import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
 import { CATEGORIES } from '@/lib/categories'
-import { CreateGig } from './CreateGig'
+import { CreateGigDesign } from './CreateGigDesign'
 
 /**
  * «Создать гиг» (reconcile-create-gig) — the guided-brief gig-creation screen. CLIENT-only; passes the category
@@ -14,5 +14,5 @@ export default async function NewGigPage() {
 
   const categoryOptions = CATEGORIES.map((c) => ({ key: c.slug, label: c.name }))
 
-  return <CreateGig categoryOptions={categoryOptions} />
+  return <CreateGigDesign categoryOptions={categoryOptions} />
 }

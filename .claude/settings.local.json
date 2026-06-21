@@ -280,7 +280,9 @@
       "Bash(DATABASE_URL=\"file:./prisma/dev.db\" npx prisma migrate dev --name reconcile_data_model_to_design --skip-generate)",
       "Bash(DATABASE_URL=\"file:./prisma/dev.db\" npx prisma db push --accept-data-loss)",
       "Bash(awk -F: '$1>=1500 && $1<=2100')",
-      "Bash(awk -F: '$1<1440')"
+      "Bash(awk -F: '$1<1440')",
+      "Read(//c/c/Users/apiso/Documents/gigly_open_ralph/gigly_full_design/**)",
+      "mcp__ide__getDiagnostics"
     ]
   }
 }

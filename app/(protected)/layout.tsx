@@ -1,38 +1,40 @@
-/* @composed-screen */
 import type { ReactNode } from 'react'
 import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/session'
 import { prisma } from '@/lib/prisma'
-import { AppShell } from '@/app/components/templates/AppShell'
-import { SidebarNavLive, TopbarLive } from '@/app/components/blocks'
+import { AppShellDesign } from '@/app/_design/AppShellDesign'
 import { getUnreadChatCount } from '@/lib/view-models'
 
 /**
- * Protected app shell (compose-shell-cutover, Phase 2). A composition-pure screen: AppShell template +
- * SidebarNav/Topbar blocks (via the live wrappers) + page content. Desktop-only. Preserves the session guard
- * (getSession → /login), logout, the NotificationBell, and the #main-content focus target (provided by AppShell).
+ * Protected app shell — rebuilt on the gigly_full_design prototype's own shell markup (AppShellDesign: sidebar with the
+ * profile/role/nav + the «ПРОЕКТ»-style header zone). Preserves the session guard (getSession → /login), logout, the
+ * NotificationBell, and the #main-content focus target (provided by AppShellDesign). Desktop-only.
  */
 export default async function ProtectedLayout({ children }: { children: ReactNode }) {
   const session = await getSession()
   if (!session) redirect('/login')
 
   const role = session.role === 'SPECIALIST' ? 'SPECIALIST' : 'CLIENT'
-  const [gigs, unread, unreadChats] = await Promise.all([
+  const [gigs, unreadChats, user] = await Promise.all([
     prisma.gig.count({
       where: role === 'CLIENT' ? { clientId: session.userId } : { assignedSpecialistId: session.userId },
     }),
-    prisma.notification.count({ where: { userId: session.userId, lastReadAt: null } }),
     getUnreadChatCount({ userId: session.userId, role: session.role }),
+    prisma.user.findUnique({
+      where: { id: session.userId },
+      include: { specialistProfile: true, clientProfile: true },
+    }),
   ])
 
-  const profile = { avatar: '', name: session.email, roleTag: session.role }
+  const name =
+    role === 'SPECIALIST'
+      ? user?.specialistProfile?.displayName || session.email
+      : user?.clientProfile?.companyName || session.email
+  const sub = role === 'SPECIALIST' ? 'Специалист' : 'Компания'
 
   return (
-    <AppShell
-      sidebar={<SidebarNavLive role={role} counts={{ gigs, chats: unreadChats }} profile={profile} />}
-      topbar={<TopbarLive profile={profile} unread={unread} />}
-    >
+    <AppShellDesign role={role} counts={{ gigs, chats: unreadChats }} profile={{ name, sub }}>
       {children}
-    </AppShell>
+    </AppShellDesign>
   )
 }

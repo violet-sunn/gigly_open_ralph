@@ -1,0 +1,74 @@
+/* ============================================================
+   GIGLY design-project tokens — ported verbatim from
+   gigly_full_design/styles.css (the prototype's global token layer).
+   Loaded by screens rebuilt directly on the design's own markup so
+   the inline `var(--surface-card)` / `font-family:'Handjet'` styles
+   resolve EXACTLY as in the prototype. Token VALUES and the literal
+   font families are unchanged — this is the design's source, not a
+   re-derivation. Light overrides key off the same `data-theme` attr
+   the app already toggles (lib/theme.ts).
+   NOTE: only the token + font layer is imported here — the prototype's
+   body/reset rules are intentionally omitted so Tailwind's base layer
+   on kit screens is untouched (the design vars are additive).
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Handjet:wght@100..900&family=Inter:wght@100..900&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@100..800&family=Manrope:wght@200..800&display=swap');
+@import './fig-tokens.css';
+
+:root {
+  --surface-app:        #01030e;
+  --surface-sidebar:    #0a0c14;
+  --surface-card:       #0e101a;
+  --surface-sunken:     #10121c;
+  --surface-secondary:  #1c2230;
+  --border-strong:      #313643;
+  --hairline-05: rgba(255,255,255,0.05);
+  --hairline-06: rgba(255,255,255,0.06);
+  --hairline-08: rgba(255,255,255,0.08);
+  --hairline-10: rgba(255,255,255,0.1);
+  --hairline-12: rgba(255,255,255,0.12);
+  --text-1: #ffffff;
+  --text-2: #cfd2d8;
+  --text-3: #8a8f99;
+  --text-4: #5a5f6b;
+  --text-5: #3a3f4d;
+  --card-shadow: none;
+  --card-shadow-lg: 0 20px 60px rgba(0,0,0,0.6);
+  --accent-ink: #4ea3ff;
+  --nav-active-fg: #ffffff;
+  --switch-active-fg: #ffffff;
+  --surface-deep: #0b0d16;
+  --surface-them: #13161f;
+  --bubble-me: #16233a;
+  --om-accent: #0088ff;
+}
+
+html[data-theme="light"] {
+  --surface-primary:    #f4f5f7;
+  --surface-app:        #f4f5f7;
+  --surface-sidebar:    #ffffff;
+  --surface-card:       #ffffff;
+  --surface-sunken:     #eceef1;
+  --surface-secondary:  #e7ebf0;
+  --border-strong:      #d4d8df;
+  --hairline-05: rgba(16,24,40,0.05);
+  --hairline-06: rgba(16,24,40,0.07);
+  --hairline-08: rgba(16,24,40,0.10);
+  --hairline-10: rgba(16,24,40,0.12);
+  --hairline-12: rgba(16,24,40,0.16);
+  --text-1: #0e121b;
+  --text-2: #3f4654;
+  --text-3: #5b6472;
+  --text-4: #6b7280;
+  --text-5: #aab0bb;
+  --card-shadow: 0 1px 3px rgba(16,24,40,0.08);
+  --card-shadow-lg: 0 20px 60px rgba(16,24,40,0.18);
+  --accent-ink: #0a66c2;
+  --nav-active-fg: #0a66c2;
+  --switch-active-fg: #0e121b;
+  --surface-deep: #eceef1;
+  --surface-them: #eef0f3;
+  --bubble-me: #d8e9ff;
+  --om-accent: #0088ff;
+  color-scheme: light;
+}

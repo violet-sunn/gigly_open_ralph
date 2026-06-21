@@ -1,7 +1,7 @@
 import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
 import { getMyGigs } from '@/lib/view-models'
-import { MyGigs } from './MyGigs'
+import { MyGigsDesign } from './MyGigsDesign'
 
 /**
  * «Мои гиги» (reconcile-my-projects) — the viewer's own gigs with the prototype's status tabs. Role-aware (CLIENT:
@@ -12,5 +12,5 @@ export default async function MyGigsPage() {
   if (!session) redirect('/login')
 
   const data = await getMyGigs({ userId: session.userId, role: session.role })
-  return <MyGigs {...data} />
+  return <MyGigsDesign {...data} />
 }

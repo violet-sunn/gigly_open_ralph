@@ -1,7 +1,7 @@
 import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
 import { getGigApplications } from '@/lib/view-models'
-import { Applications } from './Applications'
+import { ApplicationsDesign } from './ApplicationsDesign'
 
 /**
  * Company «Отклики» screen (build-applications-screen) — the gig-scoped applicants list. Owner-gated:
@@ -15,5 +15,5 @@ export default async function GigApplicationsPage({ params }: { params: Promise<
   const data = await getGigApplications(id, { userId: session.userId, role: session.role })
   if (!data) redirect(`/gigs/${id}`)
 
-  return <Applications data={data} />
+  return <ApplicationsDesign data={data} />
 }

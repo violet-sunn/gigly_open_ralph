@@ -62,6 +62,14 @@ export interface GigCardVM {
   deadlineDays: number;
   rating: { value: number; count: number; verified: boolean };
   clientName?: string;
+  /** Company (заказчик) name for the card bio row — design GigCard. */
+  company?: string;
+  /** Gig brief (2-line clamp) — design GigCard. */
+  description?: string;
+  /** Relative post time ("2 мин", "1 ч") — design GigCard top-right. */
+  postedAt?: string;
+  /** Timeline strip (design GigCard): start/end dates + progress width ("45%"). */
+  timeline?: { start: string; end: string; progress: string };
   isCurrent?: boolean;
   layout: "grid" | "list";
 }

@@ -87,6 +87,25 @@ type GigForCard = {
   deadlineDays: number
   assignedSpecialistId: string | null
   applicationCount?: number
+  // Design GigCard fields (optional so existing callers compile; populated where available).
+  description?: string
+  createdAt?: Date
+  clientCompany?: string
+}
+
+// Gig-status → timeline progress width (design GigCard's bottom bar — там, где «в работе» ≈ 45%).
+const STATUS_PROGRESS: Record<string, string> = {
+  OPEN: '8%',
+  IN_PROGRESS: '45%',
+  REVIEW: '80%',
+  COMPLETED: '100%',
+  PAID: '100%',
+}
+function gigTimeline(createdAt: Date, deadlineDays: number, status: string): { start: string; end: string; progress: string } {
+  const start = new Date(createdAt)
+  const end = new Date(start.getTime() + deadlineDays * 86400000)
+  const fmt = (d: Date) => new Date(d).toLocaleDateString('ru-RU')
+  return { start: fmt(start), end: fmt(end), progress: STATUS_PROGRESS[status] ?? '0%' }
 }
 
 /** Map a gig to its GigCardVM (the gig's assigned specialist supplies the rating when present). */
@@ -103,6 +122,10 @@ export async function toGigCardVM(gig: GigForCard, layout: 'grid' | 'list' = 'gr
     budget: money(gig.budget),
     deadlineDays: gig.deadlineDays,
     rating,
+    company: gig.clientCompany,
+    description: gig.description,
+    postedAt: gig.createdAt ? relativeTime(gig.createdAt) : undefined,
+    timeline: gig.createdAt ? gigTimeline(gig.createdAt, gig.deadlineDays, gig.status) : undefined,
     isCurrent: gig.status === 'IN_PROGRESS',
     layout,
   }
@@ -187,7 +210,7 @@ export async function getClientDashboard(userId: string): Promise<ClientDashboar
 
   const gigCards: ClientGigCard[] = await Promise.all(
     // applicationCount drives the «На рассмотрении» derived status for the client's own OPEN gigs.
-    gigs.map(async (g) => ({ ...(await toGigCardVM({ ...g, applicationCount: g._count.applications })), rawStatus: g.status })),
+    gigs.map(async (g) => ({ ...(await toGigCardVM({ ...g, applicationCount: g._count.applications, clientCompany: cp?.companyName })), rawStatus: g.status })),
   )
 
   const countBy = (pred: (s: string) => boolean) => gigCards.filter((g) => pred(g.rawStatus)).length
@@ -238,11 +261,12 @@ export async function getSpecialistDashboard(userId: string): Promise<Specialist
     prisma.user.findUnique({ where: { id: userId }, include: { specialistProfile: true } }),
     prisma.application.findMany({
       where: { specialistId: userId },
-      include: { gig: true },
+      include: { gig: { include: { client: { include: { clientProfile: true } } } } },
       orderBy: { createdAt: 'desc' },
     }),
     prisma.gig.findMany({
       where: { assignedSpecialistId: userId, status: { in: ['IN_PROGRESS', 'REVIEW', 'COMPLETED', 'PAID'] } },
+      include: { client: { include: { clientProfile: true } } },
       orderBy: { updatedAt: 'desc' },
     }),
     getRecentMessages(),
@@ -253,18 +277,18 @@ export async function getSpecialistDashboard(userId: string): Promise<Specialist
   const pendingCards: SpecialistGigCard[] = await Promise.all(
     applications
       .filter((a) => a.status === 'PENDING')
-      .map(async (a) => ({ ...(await toGigCardVM(a.gig)), status: 'review' as Status, tabKey: 'applications' })),
+      .map(async (a) => ({ ...(await toGigCardVM({ ...a.gig, clientCompany: a.gig.client?.clientProfile?.companyName })), status: 'review' as Status, tabKey: 'applications' })),
   )
   // Rejected/withdrawn — surfaced under Все only (status 'rejected' / Отклонён). Reconciliation: no data lost.
   const archivedCards: SpecialistGigCard[] = await Promise.all(
     applications
       .filter((a) => a.status === 'REJECTED' || a.status === 'WITHDRAWN')
-      .map(async (a) => ({ ...(await toGigCardVM(a.gig)), status: 'rejected' as Status, tabKey: 'archive' })),
+      .map(async (a) => ({ ...(await toGigCardVM({ ...a.gig, clientCompany: a.gig.client?.clientProfile?.companyName })), status: 'rejected' as Status, tabKey: 'archive' })),
   )
   // Assigned gigs — В работе / На проверке / Завершённые (standard toGigCardVM status mapping).
   const assignedCards: SpecialistGigCard[] = await Promise.all(
     assignedGigs.map(async (g) => ({
-      ...(await toGigCardVM(g)),
+      ...(await toGigCardVM({ ...g, clientCompany: g.client?.clientProfile?.companyName })),
       tabKey: g.status === 'IN_PROGRESS' ? 'in-progress' : g.status === 'REVIEW' ? 'verification' : 'completed',
     })),
   )
@@ -328,15 +352,19 @@ export async function getMyGigs(viewer: { userId: string; role: string }): Promi
   let gigCards: MyGigCard[]
 
   if (viewer.role === 'CLIENT') {
-    const gigs = await prisma.gig.findMany({
-      where: { clientId: viewer.userId },
-      orderBy: { createdAt: 'desc' },
-      include: { _count: { select: { applications: true } } },
-    })
+    const [me, gigs] = await Promise.all([
+      prisma.user.findUnique({ where: { id: viewer.userId }, include: { clientProfile: true } }),
+      prisma.gig.findMany({
+        where: { clientId: viewer.userId },
+        orderBy: { createdAt: 'desc' },
+        include: { _count: { select: { applications: true } } },
+      }),
+    ])
+    const company = me?.clientProfile?.companyName
     gigCards = await Promise.all(
       gigs.map(async (g) => {
         const applicationCount = g._count.applications
-        const card = await toGigCardVM({ ...g, applicationCount })
+        const card = await toGigCardVM({ ...g, applicationCount, clientCompany: company })
         const tabKey =
           g.status === 'OPEN'
             ? applicationCount > 0
@@ -354,11 +382,12 @@ export async function getMyGigs(viewer: { userId: string; role: string }): Promi
     const [applications, assignedGigs] = await Promise.all([
       prisma.application.findMany({
         where: { specialistId: viewer.userId },
-        include: { gig: true },
+        include: { gig: { include: { client: { include: { clientProfile: true } } } } },
         orderBy: { createdAt: 'desc' },
       }),
       prisma.gig.findMany({
         where: { assignedSpecialistId: viewer.userId, status: { in: ['IN_PROGRESS', 'REVIEW', 'COMPLETED', 'PAID'] } },
+        include: { client: { include: { clientProfile: true } } },
         orderBy: { updatedAt: 'desc' },
       }),
     ])
@@ -366,12 +395,12 @@ export async function getMyGigs(viewer: { userId: string; role: string }): Promi
     const pending: MyGigCard[] = await Promise.all(
       applications
         .filter((a) => a.status === 'PENDING')
-        .map(async (a) => ({ ...(await toGigCardVM(a.gig)), status: 'review' as Status, tabKey: 'apps' })),
+        .map(async (a) => ({ ...(await toGigCardVM({ ...a.gig, clientCompany: a.gig.client?.clientProfile?.companyName })), status: 'review' as Status, tabKey: 'apps' })),
     )
     // Assigned gigs — В работе / На проверке / Завершённые (standard toGigCardVM status mapping).
     const assigned: MyGigCard[] = await Promise.all(
       assignedGigs.map(async (g) => ({
-        ...(await toGigCardVM(g)),
+        ...(await toGigCardVM({ ...g, clientCompany: g.client?.clientProfile?.companyName })),
         tabKey: g.status === 'IN_PROGRESS' ? 'in-progress' : g.status === 'REVIEW' ? 'verification' : 'completed',
       })),
     )

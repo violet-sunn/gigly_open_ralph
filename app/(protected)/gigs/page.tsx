@@ -2,7 +2,7 @@ import { getSession } from '@/lib/session'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import { Suspense } from 'react'
-import { GigSearch } from './GigSearch'
+import { GigSearchDesign } from './GigSearchDesign'
 import PaginationControls from '@/app/components/PaginationControls'
 import { getGigSearch } from '@/lib/view-models'
 import { CATEGORIES, isCategorySlug } from '@/lib/categories'
@@ -159,7 +159,7 @@ export default async function GigBrowsePage({
   return (
     <>
       <Suspense fallback={null}>
-        <GigSearch
+        <GigSearchDesign
           data={data}
           categoryOptions={categoryOptions}
           sortOptions={sortOptions}

@@ -1,0 +1,221 @@
+/* Generated from Figma Variables. First mode = :root default.
+   FLOAT tokens are unitless — multiply by 1px in calc() where a length is needed. */
+
+:root {
+  --1: rgba(255,255,255,0.05); /* @kind color */
+  --accents-green: rgb(52,199,89); /* @kind color */
+  --accents-indigo: rgb(97,85,245); /* @kind color */
+  --accents-mint: rgb(0,200,179); /* @kind color */
+  --accents-orange: rgb(255,141,40); /* @kind color */
+  --accents-pink: rgb(255,45,85); /* @kind color */
+  --accents-red: rgb(255,56,60); /* @kind color */
+  --accents-teal: rgb(0,195,208); /* @kind color */
+  --accents-yellow: rgb(255,204,0); /* @kind color */
+  --avatar-size-md: 32;
+  --avatar-size-profile: 40;
+  --avatar-size-sm: 24;
+  --bg-header-1: rgba(255,255,255,0.01); /* @kind color */
+  --bg-success-weak-default: var(--dark-green-100); /* @kind color */
+  --bg-surface-level-0: var(--dark-brand-1300); /* @kind color */
+  --bg-surface-level-1: var(--dark-brand-1200); /* @kind color */
+  --bg-surface-level-2: var(--dark-brand-1100); /* @kind color */
+  --black-100: rgba(12,12,13,0.05); /* @kind color */
+  --black-200: rgba(12,12,13,0.1); /* @kind color */
+  --border-brand-default: var(--light-blue-900); /* @kind color */
+  --border-defaut: rgb(58,63,77); /* @kind color */
+  --border-error: rgb(239,68,68); /* @kind color */
+  --border-focus: rgb(0,136,255); /* @kind color */
+  --border-light: rgb(42,46,55); /* @kind color */
+  --border-neutral-strong: var(--dark-brand-1000); /* @kind color */
+  --border-neutral-weak: var(--dark-brand-1000-2); /* @kind color */
+  --border-strong: rgb(90,96,112); /* @kind color */
+  --brand-active: rgb(0,119,230); /* @kind color */
+  --brand-default: rgb(0,136,255); /* @kind color */
+  --brand-focus: rgb(0,136,255); /* @kind color */
+  --brand-hover: rgb(0,153,255); /* @kind color */
+  --color-2-2: rgb(1,3,14); /* @kind color */
+  --color-2: rgb(0,136,255); /* @kind color */
+  --color-primary-hover: rgb(76,172,255); /* @kind color */
+  --color-surface-primary: rgb(1,3,14); /* @kind color */
+  --color-surface-secondary: rgb(16,18,28); /* @kind color */
+  --color: rgb(0,136,255); /* @kind color */
+  --dark-brand-1000-2: rgb(49,54,67); /* @kind color */
+  --dark-brand-1000: rgb(36,41,53); /* @kind color */
+  --dark-brand-1100: rgb(16,18,28); /* @kind color */
+  --dark-brand-1200: rgb(6,8,19); /* @kind color */
+  --dark-brand-1300: rgb(1,3,14); /* @kind color */
+  --dark-brand-500: rgb(3,103,224); /* @kind color */
+  --dark-brand-600: rgb(19,121,243); /* @kind color */
+  --dark-brand-800: rgb(84,163,246); /* @kind color */
+  --dark-gray-600: rgb(178,178,178); /* @kind color */
+  --dark-gray-75: rgb(38,38,38); /* @kind color */
+  --dark-gray-800: rgb(235,235,235); /* @kind color */
+  --dark-gray-900: rgb(255,255,255); /* @kind color */
+  --dark-green-100: rgb(4,67,41); /* @kind color */
+  --dark-green-900: rgb(67,199,143); /* @kind color */
+  --dark-orange-1000: rgb(255,181,88); /* @kind color */
+  --depth-025: 1;
+  --depth-0: 0;
+  --depth-100: 4;
+  --error-default-2: rgb(239,68,68); /* @kind color */
+  --error-hover-2: rgb(220,38,38); /* @kind color */
+  --font-family-accent: "NKDuy Mono";
+  --font-family-primary: "SF Compact";
+  --font-letterspacing-caption: 0.2;
+  --font-letterspacing-default: 0;
+  --font-letterspacing-h1: -0.5;
+  --font-letterspacing-h2: -0.3;
+  --font-letterspacing-label: 0.3;
+  --font-lineheight-body: 19;
+  --font-lineheight-caption: 13;
+  --font-lineheight-default-data: 17;
+  --font-lineheight-h1: 37;
+  --font-lineheight-h2: 29;
+  --font-lineheight-h3: 23;
+  --font-lineheight-label: 15;
+  --font-lineheight-small-data: 13;
+  --font-size-body: 15;
+  --font-size-caption: 11;
+  --font-size-default-data: 14;
+  --font-size-h1: 32;
+  --font-size-h2: 24;
+  --font-size-h3: 18;
+  --font-size-label: 13;
+  --font-size-small-data: 12;
+  --font-weight-bold: 700;
+  --font-weight-medium: 500;
+  --font-weight-regular: 400;
+  --font-weight-semibold: 600;
+  --frame-stroke: rgba(255,255,255,0.2); /* @kind color */
+  --gig-bg: rgb(26,26,36); /* @kind color */
+  --gigcard-bg: rgba(16,18,28,0.6); /* @kind color */
+  --gigcard-blur: 20;
+  --gigcard-border: rgba(255,255,255,0.08); /* @kind color */
+  --icon-neutral-strong: var(--dark-gray-800); /* @kind color */
+  --icon-neutral-weak: var(--dark-gray-600); /* @kind color */
+  --icon-warning-hover: var(--dark-orange-1000); /* @kind color */
+  --light-blue-900: rgb(2,101,220); /* @kind color */
+  --light-gray-50: rgb(255,255,255); /* @kind color */
+  --line-height-40: 40;
+  --radius-0: 0;
+  --radius-full: 6666;
+  --radius-lg: 12;
+  --radius-lt: 2;
+  --radius-md: 8;
+  --radius-sm: 4;
+  --radius-special: 16;
+  --shadow-focus-blur: 0;
+  --shadow-focus-color: rgba(0,136,255,0.4); /* @kind color */
+  --shadow-focus-spread: 2;
+  --shadow-focus-x: 0;
+  --shadow-focus-y: 0;
+  --shadow-lg-blur: 24;
+  --shadow-lg-color: rgba(0,0,0,0.5); /* @kind color */
+  --shadow-lg-spread: 0;
+  --shadow-lg-x: 0;
+  --shadow-lg-y: 8;
+  --shadow-md-blur: 12;
+  --shadow-md-color: rgba(0,0,0,0.4); /* @kind color */
+  --shadow-md-spread: 0;
+  --shadow-md-x: 0;
+  --shadow-md-y: 4;
+  --shadow-sm-blur: 2;
+  --shadow-sm-color: rgba(0,0,0,0.3); /* @kind color */
+  --shadow-sm-spread: 0;
+  --shadow-sm-x: 0;
+  --shadow-sm-y: 1;
+  --spacing-0: 0;
+  --spacing-2xl: 40;
+  --spacing-3xl: 48;
+  --spacing-4xl: 64;
+  --spacing-5xl: 80;
+  --spacing-6xl: 96;
+  --spacing-lg: 24;
+  --spacing-md: 16;
+  --spacing-sm2: 12;
+  --spacing-sm: 8;
+  --spacing-xl: 32;
+  --spacing-xs: 4;
+  --status-completed-bg-radial-1: rgba(16,185,129,0.5); /* @kind color */
+  --status-completed-bg-radial-2: rgba(16,185,129,0.1); /* @kind color */
+  --status-completed-bg-radial-3: rgba(16,185,129,0); /* @kind color */
+  --status-completed-border: rgba(16,185,129,0.3); /* @kind color */
+  --status-completed-text: rgb(16,185,129); /* @kind color */
+  --status-in-progress-bg-radial-1: rgba(59,130,246,0.5); /* @kind color */
+  --status-in-progress-bg-radial-2: rgba(59,130,246,0.1); /* @kind color */
+  --status-in-progress-bg-radial-3: rgba(59,130,246,0); /* @kind color */
+  --status-in-progress-border: rgba(59,130,246,0.3); /* @kind color */
+  --status-in-progress-text: rgb(59,130,246); /* @kind color */
+  --status-new-bg-radial-1: rgba(255,255,255,0.5); /* @kind color */
+  --status-new-bg-radial-2: rgba(255,255,255,0.1); /* @kind color */
+  --status-new-bg-radial-3: rgba(255,255,255,0); /* @kind color */
+  --status-new-border: rgba(255,255,255,0.3); /* @kind color */
+  --status-new-text: rgb(255,255,255); /* @kind color */
+  --status-rejected-bg-radial-1: rgba(239,68,68,0.5); /* @kind color */
+  --status-rejected-bg-radial-2: rgba(239,68,68,0.1); /* @kind color */
+  --status-rejected-bg-radial-3: rgba(239,68,68,0); /* @kind color */
+  --status-rejected-border: rgba(239,68,68,0.3); /* @kind color */
+  --status-rejected-text: rgb(239,68,68); /* @kind color */
+  --status-review-bg-radial-1: rgba(245,158,11,0.5); /* @kind color */
+  --status-review-bg-radial-2: rgba(245,158,11,0.1); /* @kind color */
+  --status-review-bg-radial-3: rgba(245,158,11,0); /* @kind color */
+  --status-review-border: rgba(245,158,11,0.3); /* @kind color */
+  --status-review-text: rgb(245,158,11); /* @kind color */
+  --status-testing-bg-radial-1: rgba(139,92,246,0.5); /* @kind color */
+  --status-testing-bg-radial-2: rgba(139,92,246,0.1); /* @kind color */
+  --status-testing-bg-radial-3: rgba(139,92,246,0); /* @kind color */
+  --status-testing-border: rgba(139,92,246,0.3); /* @kind color */
+  --status-testing-text: rgb(139,92,246); /* @kind color */
+  --string: "Inter";
+  --success-default: rgb(16,185,129); /* @kind color */
+  --success-hover: rgb(5,150,105); /* @kind color */
+  --surface-elevated: rgb(26,29,42); /* @kind color */
+  --surface-primary: rgb(1,3,14); /* @kind color */
+  --surface-secondary: rgb(16,18,28); /* @kind color */
+  --surface-tetriary: rgb(14,16,26); /* @kind color */
+  --text-brand-default: var(--dark-brand-600); /* @kind color */
+  --text-brand-hover: var(--dark-brand-800); /* @kind color */
+  --text-disabled: rgb(58,61,69); /* @kind color */
+  --text-inverse: rgb(1,3,14); /* @kind color */
+  --text-neutral-inverted: var(--dark-gray-75); /* @kind color */
+  --text-neutral-strong: var(--dark-gray-900); /* @kind color */
+  --text-neutral-weak: var(--dark-gray-600); /* @kind color */
+  --text-neutral-weaker: var(--dark-gray-600); /* @kind color */
+  --text-other-link-default: var(--dark-gray-900); /* @kind color */
+  --text-primary: rgb(255,255,255); /* @kind color */
+  --text-secondary: rgb(138,143,153); /* @kind color */
+  --text-success-default: var(--dark-green-900); /* @kind color */
+  --text-tetriary: rgb(90,95,107); /* @kind color */
+  --token: rgba(255,255,255,0.08); /* @kind color */
+  --warning-default: rgb(245,158,11); /* @kind color */
+}
+
+:root[data-theme="dark"], .dark {
+  --accents-green: rgb(48,209,88); /* @kind color */
+  --accents-green: rgb(74,233,104); /* @kind color */
+  --accents-indigo: rgb(109,124,255); /* @kind color */
+  --accents-indigo: rgb(167,170,255); /* @kind color */
+  --accents-mint: rgb(0,218,195); /* @kind color */
+  --accents-mint: rgb(84,223,203); /* @kind color */
+  --accents-orange: rgb(255,146,48); /* @kind color */
+  --accents-orange: rgb(255,160,86); /* @kind color */
+  --accents-pink: rgb(255,138,196); /* @kind color */
+  --accents-pink: rgb(255,55,95); /* @kind color */
+  --accents-red: rgb(255,66,69); /* @kind color */
+  --accents-red: rgb(255,97,101); /* @kind color */
+  --accents-teal: rgb(0,210,224); /* @kind color */
+  --accents-teal: rgb(59,221,236); /* @kind color */
+  --accents-yellow: rgb(254,223,67); /* @kind color */
+  --accents-yellow: rgb(255,214,0); /* @kind color */
+}
+
+:root[data-theme="light"], .light {
+  --accents-green: rgb(0,137,50); /* @kind color */
+  --accents-indigo: rgb(86,74,222); /* @kind color */
+  --accents-mint: rgb(0,133,117); /* @kind color */
+  --accents-orange: rgb(197,83,0); /* @kind color */
+  --accents-pink: rgb(231,18,77); /* @kind color */
+  --accents-red: rgb(233,21,45); /* @kind color */
+  --accents-teal: rgb(0,129,152); /* @kind color */
+  --accents-yellow: rgb(161,106,0); /* @kind color */
+}
