@@ -57,6 +57,9 @@ export async function getDisputeList(opts?: {
       gig: d.gig?.title ?? '',
       status: toDesignStatus(d.status),
       opener: openerName(d.opener),
+      reason: d.reason,
+      amount: `${new Intl.NumberFormat('ru-RU').format(d.amount / 100)} ₽`,
+      created: new Date(d.createdAt).toLocaleDateString('ru-RU'),
     })),
   }
 }

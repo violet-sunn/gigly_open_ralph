@@ -150,7 +150,16 @@ export interface LedgerTableVM {
   balance: Money;
 }
 export interface DisputeListVM {
-  disputes: { id: string; gig: string; status: Status; opener: string }[];
+  disputes: {
+    id: string;
+    gig: string;
+    status: Status;
+    opener: string;
+    /** Design list row extras (reconcile-disputes): reason · opener · created + the gig amount. */
+    reason?: string;
+    amount?: Money;
+    created?: string;
+  }[];
 }
 /** The six DATA-MODEL dispute reasons (DisputeReason). SQLite stores the raw String; this is the typed contract. */
 export type DisputeReason =

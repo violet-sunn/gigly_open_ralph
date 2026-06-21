@@ -1,7 +1,7 @@
 import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
 import { getNewDisputeContext } from '@/lib/disputes'
-import { NewDispute } from './NewDispute'
+import { NewDisputeDesign } from './NewDisputeDesign'
 
 /**
  * «Открыть спор» (reconcile-disputes-flow) — the dedicated open-dispute screen, gig-scoped via `?gig=<id>`.
@@ -15,5 +15,5 @@ export default async function NewDisputePage({ searchParams }: { searchParams: P
   const ctx = gig ? await getNewDisputeContext(gig, { userId: session.userId, role: session.role }) : null
   if (!ctx) redirect('/disputes')
 
-  return <NewDispute gigId={ctx.gigId} gigTitle={ctx.gigTitle} />
+  return <NewDisputeDesign gigId={ctx.gigId} gigTitle={ctx.gigTitle} />
 }

@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/session'
 import { getConversations, getChatThread } from '@/lib/view-models'
 import { markNotificationAsRead } from '@/app/actions/notification'
-import { Chats } from './Chats'
+import { ChatsDesign } from './ChatsDesign'
 
 export default async function ChatsPage({
   searchParams,
@@ -29,5 +29,5 @@ export default async function ChatsPage({
     }
   }
 
-  return <Chats conversations={conversations} thread={thread} selectedGigId={selectedGigId} />
+  return <ChatsDesign conversations={conversations} thread={thread} selectedGigId={selectedGigId} />
 }

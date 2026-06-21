@@ -1,32 +1,20 @@
 import type { ReactNode } from 'react'
 import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
-import { prisma } from '@/lib/prisma'
-import { AppShell } from '@/app/components/templates/AppShell'
-import { TopbarLive } from '@/app/components/blocks'
-import { AdminNavLive } from './AdminNavLive'
+import { AppShellDesign } from '@/app/_design/AppShellDesign'
 
 /**
- * Admin shell (prove-extensibility-admin, Phase 2) — the AppShell template + the admin SidebarNav/Topbar (replacing the
- * legacy MainNav), so the admin moderation screens sit in the same shell as every other Phase-2 screen. Preserves the
- * session + ADMIN guard.
+ * Admin shell — rebuilt on the gigly_full_design prototype's shell (AppShellDesign in `admin` mode: the design sidebar
+ * with the admin nav + «Админ» role indicator + the «МОДЕРАЦИЯ» header zone). Preserves the session + ADMIN guard.
  */
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const session = await getSession()
   if (!session) redirect('/login')
   if (session.role !== 'ADMIN') redirect('/dashboard')
 
-  const unread = await prisma.notification.count({
-    where: { userId: session.userId, lastReadAt: null },
-  })
-  const profile = { avatar: '', name: session.email, roleTag: session.role }
-
   return (
-    <AppShell
-      sidebar={<AdminNavLive profile={profile} />}
-      topbar={<TopbarLive profile={profile} unread={unread} />}
-    >
+    <AppShellDesign role="CLIENT" counts={{}} admin profile={{ name: session.email, sub: 'Админ' }}>
       {children}
-    </AppShell>
+    </AppShellDesign>
   )
 }

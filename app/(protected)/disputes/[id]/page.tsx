@@ -1,7 +1,7 @@
 import { redirect, notFound } from 'next/navigation'
 import { getSession } from '@/lib/session'
 import { getDispute } from '@/lib/view-models'
-import { DisputeView } from '../DisputeView'
+import { DisputeDetailDesign } from '../DisputeDetailDesign'
 
 export default async function DisputeDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await getSession()
@@ -17,5 +17,5 @@ export default async function DisputeDetailPage({ params }: { params: Promise<{ 
     notFound()
   }
 
-  return <DisputeView dispute={dispute} isAdmin={session.role === 'ADMIN'} />
+  return <DisputeDetailDesign dispute={dispute} isAdmin={session.role === 'ADMIN'} />
 }

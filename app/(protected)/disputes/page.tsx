@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/session'
 import { getDisputes } from '@/lib/view-models'
-import { Disputes } from './Disputes'
+import { DisputesDesign } from './DisputesDesign'
 
 export default async function DisputesPage() {
   const session = await getSession()
@@ -11,5 +11,5 @@ export default async function DisputesPage() {
 
   const data = await getDisputes({ userId: session.userId, role: session.role })
 
-  return <Disputes {...data} />
+  return <DisputesDesign {...data} />
 }

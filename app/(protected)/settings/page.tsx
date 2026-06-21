@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/session'
 import { getSettings } from '@/lib/view-models'
-import { Settings } from './Settings'
+import { SettingsDesign } from './SettingsDesign'
 
 export default async function SettingsPage() {
   const session = await getSession()
@@ -11,5 +11,5 @@ export default async function SettingsPage() {
 
   const data = await getSettings({ userId: session.userId, email: session.email, sid: session.sid })
 
-  return <Settings {...data} />
+  return <SettingsDesign {...data} />
 }

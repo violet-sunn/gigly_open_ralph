@@ -1,7 +1,7 @@
 import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
 import { getAdminDashboard } from '@/lib/view-models'
-import { AdminDashboard } from './AdminDashboard'
+import { AdminConsoleDesign } from './AdminConsoleDesign'
 
 export default async function AdminDashboardPage() {
   const session = await getSession()
@@ -11,5 +11,5 @@ export default async function AdminDashboardPage() {
 
   const data = await getAdminDashboard()
 
-  return <AdminDashboard {...data} />
+  return <AdminConsoleDesign {...data} />
 }

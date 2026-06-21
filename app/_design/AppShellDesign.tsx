@@ -13,12 +13,15 @@ import { Icon } from "@/app/components/primitives";
 import { ICON } from "@/app/components/primitives/tokens";
 import { NotificationBell } from "@/app/components/NotificationBell";
 import { logoutUser } from "@/app/actions/auth";
-import { buildSidebarNav, markActive, type NavRole, type NavCounts } from "@/lib/nav";
+import { buildSidebarNav, buildAdminNav, markActive, type NavRole, type NavCounts } from "@/lib/nav";
 import { getStoredTheme, applyTheme, type Theme } from "@/lib/theme";
 import "./tokens.css";
 
 // pathname → the design's uppercase RU page title (Gigly App.dc.html TITLES). Most-specific prefix first.
 function pageTitle(pathname: string): string {
+  if (pathname === "/admin") return "МОДЕРАЦИЯ";
+  if (pathname.startsWith("/admin/users")) return "ПОЛЬЗОВАТЕЛИ";
+  if (pathname.startsWith("/admin/gigs")) return "ГИГИ";
   if (pathname === "/dashboard") return "ДАШБОРД";
   if (pathname === "/gigs/new") return "СОЗДАТЬ ГИГ";
   if (/^\/gigs\/[^/]+\/applications/.test(pathname)) return "ОТКЛИКИ";
@@ -42,16 +45,18 @@ export function AppShellDesign({
   profile,
   role,
   counts,
+  admin = false,
   children,
 }: {
   profile: { name: string; sub: string };
   role: NavRole;
   counts: NavCounts;
+  admin?: boolean;
   children: React.ReactNode;
 }) {
   const pathname = usePathname() ?? "";
   const router = useRouter();
-  const items = markActive(buildSidebarNav(role, counts), pathname);
+  const items = markActive(admin ? buildAdminNav() : buildSidebarNav(role, counts), pathname);
   const title = pageTitle(pathname);
 
   const [theme, setTheme] = useState<Theme>("dark");
@@ -67,8 +72,9 @@ export function AppShellDesign({
     if (e.key === "Enter") router.push(q.trim() ? `/gigs?search=${encodeURIComponent(q.trim())}` : "/gigs");
   };
 
-  const roleSegs: [string, boolean][] =
-    role === "SPECIALIST"
+  const roleSegs: [string, boolean][] = admin
+    ? [["Специалист", false], ["Компания", false], ["Админ", true]]
+    : role === "SPECIALIST"
       ? [["Специалист", true], ["Компания", false]]
       : [["Специалист", false], ["Компания", true]];
 

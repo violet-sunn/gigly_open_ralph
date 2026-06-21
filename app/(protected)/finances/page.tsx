@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/session'
 import { getFinances } from '@/lib/view-models'
-import { Finances } from './Finances'
+import { FinancesDesign } from './FinancesDesign'
 
 export default async function FinancesPage() {
   const session = await getSession()
@@ -11,5 +11,5 @@ export default async function FinancesPage() {
 
   const data = await getFinances({ userId: session.userId, role: session.role })
 
-  return <Finances {...data} />
+  return <FinancesDesign {...data} />
 }

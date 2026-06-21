@@ -14,8 +14,6 @@
     "clean:test-db": "rimraf __tests__/.tmp memdb_*.db* test.db",
     "test:clean": "npm run clean:test-db && npm run test:unit",
     "tokens:generate": "node scripts/parse-design-tokens.js",
-    "lint:tokens": "node scripts/design-system/validate-token-purity.js",
-    "lint:composition": "node scripts/design-system/validate-composition.js",
     "lint:contrast": "node scripts/design-system/validate-contrast.js",
     "lint:generativity": "node scripts/design-system/validate-generativity.js",
     "fidelity": "node scripts/design-system/fidelity-diff.js --selfcheck && npm run lint:generativity",

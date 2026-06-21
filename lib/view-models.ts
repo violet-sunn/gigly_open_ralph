@@ -792,6 +792,8 @@ export interface ProfileData {
   categories?: CategoryTagsVM // SPECIALIST only
   experience?: ExperienceListVM // SPECIALIST only
   realized: GigCardVM[] // SPECIALIST: COMPLETED/PAID assigned gigs (empty for CLIENT)
+  /** CLIENT only — the company «Реквизиты» (design company profile). */
+  company?: { inn: string; kpp: string }
   rating: { value: number; count: number; verified: boolean }
   isOwner: boolean
 }
@@ -917,7 +919,7 @@ export async function getProfile(
       ],
     }
 
-    return { role: 'CLIENT', header, stats: statsPlaceholder(), realized: [], rating, isOwner }
+    return { role: 'CLIENT', header, stats: statsPlaceholder(), realized: [], company: { inn: cp.inn, kpp: cp.kpp }, rating, isOwner }
   }
 
   // User exists but the role's profile is unset → not-set-up.
@@ -1199,6 +1201,9 @@ export interface AdminDashboardData {
   disputes: DisputeListVM
   /** Recent moderation-log entries («Журнал модерации»), newest first. */
   log: AdminLogRow[]
+  /** Top users/gigs for the consolidated console «Пользователи»/«Гиги» panels (full lists at /admin/users · /admin/gigs). */
+  users: AdminUserRow[]
+  gigs: AdminGigRow[]
 }
 
 /** Russian labels for the moderation-log action codes (incl. RESOLVE_DISPUTE from the disputes flow). */
@@ -1210,13 +1215,15 @@ const MODERATION_ACTION_LABEL: Record<string, string> = {
 }
 
 export async function getAdminDashboard(): Promise<AdminDashboardData> {
-  const [totalUsers, totalGigs, suspendedUsers, closedGigs, disputes, logEntries] = await Promise.all([
+  const [totalUsers, totalGigs, suspendedUsers, closedGigs, disputes, logEntries, usersList, gigsList] = await Promise.all([
     prisma.user.count(),
     prisma.gig.count(),
     prisma.user.count({ where: { suspended: true } }),
     prisma.gig.count({ where: { closedByAdmin: true } }),
     getDisputeList({ status: 'OPEN' }), // the «Споры на модерации» queue
     prisma.moderationLog.findMany({ orderBy: { createdAt: 'desc' }, take: 10, include: { admin: true } }),
+    getAdminUsers({ page: 1 }),
+    getAdminGigs({ page: 1 }),
   ])
   return {
     stats: {
@@ -1234,6 +1241,8 @@ export async function getAdminDashboard(): Promise<AdminDashboardData> {
       actor: l.admin?.email ?? '—',
       at: new Date(l.createdAt).toLocaleString('ru-RU'),
     })),
+    users: usersList.rows.slice(0, 6),
+    gigs: gigsList.rows.slice(0, 6),
   }
 }
 
