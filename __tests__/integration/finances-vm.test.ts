@@ -40,9 +40,10 @@ describe('getFinances', () => {
     // CLIENT pays the totalAmount (budget + fee) → 110 000 ₽
     expect(data.ledger.entries[0].amount).toContain('110')
     expect(data.ledger.balance).toContain('110')
-    // Stats: realized label «Оплачено» for a CLIENT
-    expect(data.stats.stats.some((s) => s.label === 'Оплачено')).toBe(true)
-    expect(data.stats.stats.some((s) => s.label === 'Ожидает')).toBe(true)
+    // Stats: role-aware figures for a CLIENT (reconcile-finances-and-admin)
+    expect(data.stats.stats.some((s) => s.label === 'Выплачено')).toBe(true)
+    expect(data.stats.stats.some((s) => s.label === 'В резерве')).toBe(true)
+    expect(data.stats.stats.some((s) => s.label === 'Сервисный сбор')).toBe(true)
   })
 
   it('reflects a SPECIALIST’s PAID gig: amount is the budget (no fee)', async () => {
@@ -69,10 +70,22 @@ describe('getFinances', () => {
     expect(data.stats.stats.some((s) => s.label === 'Заработано')).toBe(true)
   })
 
-  it('returns an empty ledger for a user with no PAID gigs', async () => {
+  it('an IN_PROGRESS gig appears in the operations ledger (lifecycle, not PAID-only)', async () => {
     const prisma = getTestPrismaClient()
     const client = await createTestUser(prisma, { role: 'CLIENT' })
-    await createTestGig(prisma, { clientId: client.id, status: 'COMPLETED' }) // not PAID
+    await createTestGig(prisma, { clientId: client.id, status: 'IN_PROGRESS', title: 'Активный', totalAmount: 5500000 })
+
+    const data = await getFinances({ userId: client.id, role: 'CLIENT' })
+    expect(data.ledger.entries).toHaveLength(1)
+    expect(data.ledger.entries[0].label).toBe('Активный')
+    expect(data.ledger.entries[0].status).toBe('in-progress')
+    expect(data.ledger.balance).toContain('0') // balance is PAID-only; nothing realized yet
+  })
+
+  it('returns an empty operations ledger for a user with no lifecycle gigs (e.g. only OPEN)', async () => {
+    const prisma = getTestPrismaClient()
+    const client = await createTestUser(prisma, { role: 'CLIENT' })
+    await createTestGig(prisma, { clientId: client.id, status: 'OPEN' }) // OPEN is not an operation
 
     const data = await getFinances({ userId: client.id, role: 'CLIENT' })
 

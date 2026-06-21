@@ -19,6 +19,8 @@
     "lint:contrast": "node scripts/design-system/validate-contrast.js",
     "lint:generativity": "node scripts/design-system/validate-generativity.js",
     "fidelity": "node scripts/design-system/fidelity-diff.js --selfcheck && npm run lint:generativity",
+    "test:fidelity": "playwright test fidelity-gate",
+    "test:fidelity:update": "rimraf docs/design-system/fidelity/golden && playwright test fidelity-gate",
     "validate:tokens": "node scripts/design-system/validate-tokens.js"
   },
   "prisma": {

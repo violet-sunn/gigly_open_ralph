@@ -129,7 +129,16 @@ export interface StatPanelVM {
   stats: StatVM[];
 }
 export interface LedgerTableVM {
-  entries: { date: DateISO; label: string; amount: Money; status: Status }[];
+  entries: {
+    date: DateISO;
+    label: string;
+    amount: Money;
+    status: Status;
+    /** Optional counterparty line under the label (reconcile-finances-and-admin). */
+    subtitle?: string;
+    /** Optional status-badge label override (e.g. «Оплачено» for PAID, which has no design Status). */
+    statusLabel?: string;
+  }[];
   balance: Money;
 }
 export interface DisputeListVM {

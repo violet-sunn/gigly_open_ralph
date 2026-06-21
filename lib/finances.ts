@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import type { LedgerTableVM, StatPanelVM } from '@/app/components/blocks/view-models'
+import type { LedgerTableVM, StatPanelVM, Status } from '@/app/components/blocks/view-models'
 
 /**
  * LOGICAL finances view — NO payment gateway, NO real money movement, NO DB writes.
@@ -26,46 +26,78 @@ const ownerWhere = (userId: string, role: Role) =>
 const amountOf = (gig: { totalAmount: number; budget: number }, role: Role): number =>
   role === 'CLIENT' ? gig.totalAmount : gig.budget
 
+// The lifecycle statuses shown as operations + their design Status tone / badge label (reconcile-finances-and-admin).
+const OPERATION_STATUSES = ['IN_PROGRESS', 'REVIEW', 'COMPLETED', 'PAID'] as const
+const OP_DESIGN: Record<string, { tone: Status; label?: string }> = {
+  IN_PROGRESS: { tone: 'in-progress' },
+  REVIEW: { tone: 'verification' },
+  COMPLETED: { tone: 'completed' },
+  PAID: { tone: 'completed', label: 'Оплачено' }, // the design Status enum has no `paid`
+}
+
 /**
- * The realized ledger — the user's PAID gigs (the logical transactions), newest first, plus the summed balance.
+ * The operations ledger — the user's gigs across the lifecycle (В работе / На проверке / Завершён / Оплачено), newest
+ * first, with role-aware amounts + the counterparty subtitle. The «Баланс» footer is the realized (PAID) total.
  */
 export async function getLedger(userId: string, role: Role): Promise<LedgerTableVM> {
-  const paid = await prisma.gig.findMany({
-    where: { ...ownerWhere(userId, role), status: 'PAID' },
-    orderBy: { paidAt: 'desc' },
+  const gigs = await prisma.gig.findMany({
+    where: { ...ownerWhere(userId, role), status: { in: [...OPERATION_STATUSES] } },
+    orderBy: { updatedAt: 'desc' },
+    include: {
+      client: { include: { clientProfile: true } },
+      assignedSpecialist: { include: { specialistProfile: true } },
+    },
   })
 
-  const entries = paid.map((g) => ({
-    date: (g.paidAt ?? g.updatedAt).toISOString(),
-    label: g.title,
-    amount: money(amountOf(g, role)),
-    // The design Status enum has no `paid`; a realized payment maps to the terminal `completed` (green).
-    status: 'completed' as const,
-  }))
+  const entries = gigs.map((g) => {
+    const d = OP_DESIGN[g.status] ?? { tone: 'completed' as Status }
+    const counterparty =
+      role === 'CLIENT'
+        ? g.assignedSpecialist?.specialistProfile?.displayName || g.assignedSpecialist?.email || '—'
+        : g.client?.clientProfile?.companyName || g.client?.email || '—'
+    return {
+      date: (g.paidAt ?? g.updatedAt).toISOString(),
+      label: g.title,
+      subtitle: counterparty,
+      amount: money(amountOf(g, role)),
+      status: d.tone,
+      statusLabel: d.label,
+    }
+  })
 
-  const total = paid.reduce((sum, g) => sum + amountOf(g, role), 0)
+  // Balance = realized (PAID) only — settled money, not the in-flight reserve.
+  const total = gigs.filter((g) => g.status === 'PAID').reduce((sum, g) => sum + amountOf(g, role), 0)
   return { entries, balance: money(total) }
 }
 
 /**
- * Finance stat tiles that reflect payment statuses: realized (PAID) vs pending (COMPLETED-but-unpaid), per role.
+ * Finance stat tiles (reconcile-finances-and-admin) — 3 role-aware figures over the lifecycle (logical amounts):
+ *  - CLIENT:     Выплачено (PAID totalAmount) · В резерве (IN_PROGRESS + REVIEW totalAmount) · Сервисный сбор (PAID fee)
+ *  - SPECIALIST: Заработано (PAID budget) · На проверке (REVIEW budget) · В работе (IN_PROGRESS budget)
  */
 export async function getFinanceStats(userId: string, role: Role): Promise<StatPanelVM> {
   const where = ownerWhere(userId, role)
-  const [paid, completed] = await Promise.all([
+  const [paid, inProgress, review] = await Promise.all([
     prisma.gig.findMany({ where: { ...where, status: 'PAID' } }),
-    prisma.gig.findMany({ where: { ...where, status: 'COMPLETED' } }),
+    prisma.gig.findMany({ where: { ...where, status: 'IN_PROGRESS' } }),
+    prisma.gig.findMany({ where: { ...where, status: 'REVIEW' } }),
   ])
+  const sum = (gigs: typeof paid, pick: (g: (typeof paid)[number]) => number) => gigs.reduce((s, g) => s + pick(g), 0)
 
-  const realized = paid.reduce((sum, g) => sum + amountOf(g, role), 0)
-  const pending = completed.reduce((sum, g) => sum + amountOf(g, role), 0)
-  const realizedLabel = role === 'CLIENT' ? 'Оплачено' : 'Заработано'
-
+  if (role === 'CLIENT') {
+    return {
+      stats: [
+        { label: 'Выплачено', value: money(sum(paid, (g) => g.totalAmount)) },
+        { label: 'В резерве', value: money(sum(inProgress, (g) => g.totalAmount) + sum(review, (g) => g.totalAmount)) },
+        { label: 'Сервисный сбор', value: money(sum(paid, (g) => g.serviceFee)) },
+      ],
+    }
+  }
   return {
     stats: [
-      { label: realizedLabel, value: money(realized) },
-      { label: 'Ожидает', value: money(pending) },
-      { label: 'Выполнено', value: paid.length },
+      { label: 'Заработано', value: money(sum(paid, (g) => g.budget)) },
+      { label: 'На проверке', value: money(sum(review, (g) => g.budget)) },
+      { label: 'В работе', value: money(sum(inProgress, (g) => g.budget)) },
     ],
   }
 }

@@ -7562,3 +7562,128 @@ reuses `ProgressBar` with its new `tone` prop; `CriteriaEditor` exposes add/remo
 - `createGig` success redirect `/dashboard` → `/gigs/new/success` (only action change); success screen «Гиг опубликован» + «К моим гигам»/«Создать ещё»
 - the createGig redirect-asserting test files updated to the new target (validation + fee assertions kept); F2 + F5 lints + `build` + `test:unit` + `compose-create-gig` E2E green; F1 = structural (≤1% Phase 4)
 - Reconciliation decisions recorded (§10.19 / RC-S34–S36)
+
+### Requirement: Admin Dashboard Shows Stats, Dispute Queue, and Moderation Log
+The admin dashboard (`/admin`, ADMIN-only) MUST remain a composition-pure `@composed-screen` and MUST render: the
+platform **stats** (`StatPanel`: users / gigs / suspended / closed), a **«Споры на модерации»** queue of OPEN disputes
+(via `DisputeList`, with a count; each row linking to `/disputes/[id]` to resolve), a **«Журнал модерации»** of recent
+`ModerationLog` entries (via `DataTable`: Действие / Кто / Когда), and the links to the «Пользователи» and «Гиги»
+moderation pages. `getAdminDashboard()` MUST return the stats + the OPEN dispute list + the recent log rows. The
+paginated `/admin/users` and `/admin/gigs` pages are unchanged. The screen MUST be token-pure (F2) and
+composition-pure (F5); all on-screen text Russian.
+
+#### Scenario: The dashboard renders the queue and the log
+- GIVEN an ADMIN on `/admin` with OPEN disputes and prior moderation actions
+- WHEN it renders
+- THEN it MUST show the stats cards, a «Споры на модерации» list of the OPEN disputes (each linking to its dispute), and
+  a «Журнал модерации» list of the recent moderation-log entries (action + actor + time)
+- AND the «Пользователи» / «Гиги» links MUST remain; the screen MUST contain no `className=`/`style=`/hex literals (F5)
+
+#### Scenario: The dispute queue links to the resolve panel
+- GIVEN an OPEN dispute in the queue
+- WHEN the admin opens it
+- THEN it MUST navigate to `/disputes/[id]` (the admin verdict resolve panel)
+
+#### Scenario: getAdminDashboard returns stats + disputes + log
+- GIVEN `getAdminDashboard()`
+- THEN it MUST return the four stat tiles, the OPEN dispute list, and the recent `ModerationLog` rows (action label +
+  actor + time)
+
+**Acceptance Criteria:**
+- `/admin` renders stats + «Споры на модерации» (OPEN `DisputeList`, count, → `/disputes/[id]`) + «Журнал модерации» (`DataTable`) + the «Пользователи»/«Гиги» links; F5-pure
+- `getAdminDashboard()` returns stats + open disputes + recent log; reuses `DisputeList`/`DataTable`/`StatPanel` (no new blocks); moderation actions + the paginated users/gigs pages unchanged
+- F2 + F5 lints + `build` + `test:unit` + `compose-admin-dashboard` E2E green; F1 = structural vs the prototype admin frame (≤1% Phase 4)
+- Reconciliation decisions recorded (§10.20 / RC-S38)
+
+### Requirement: Onboarding Wizard Reconciled to the Prototype
+The `/register` onboarding wizard MUST remain a composition-pure `@composed-screen` inside `AuthLayout`, reconciled to
+`Онбординг.dc.html` as a 3-step flow — step 1 role («Создайте свой аккаунт» / «Выберите свою роль в Gigly.», `RoleCards`),
+step 2 credentials (email + password + confirm), step 3 the role-aware profile (CLIENT «Добро пожаловать» / SPECIALIST
+«Настройте свой аккаунт») — with the `AuthHeader` + `AuthStepDots` 3-dot indicator. It MUST additionally render: the
+**footer legal links** («Политика конфиденциальности» · «Условия пользования» · «Помощь») via the `AuthLayout` footer
+slot, the **step-3 consent disclaimer** «Нажимая «Продолжить», вы соглашаетесь с Политикой конфиденциальности и Условиями
+пользования платформы», and the step-3 submit CTA **«Продолжить»**. The role-aware **field sets are kept** (CLIENT:
+companyName/ИНН/contactPerson/phoneNumber; SPECIALIST: displayName/position/techStack/specialization/experienceLevel/
+timezone) and `registerUser` is unchanged (same persistence, redirect to `/dashboard`). The screen MUST be token-pure
+(F2) and composition-pure (F5); all on-screen text Russian.
+
+#### Scenario: The wizard renders the reconciled chrome
+- GIVEN a visitor on `/register`
+- WHEN the wizard renders
+- THEN the footer MUST show «Политика конфиденциальности», «Условия пользования», «Помощь»
+- AND on step 3 it MUST show the consent disclaimer and a «Продолжить» submit CTA
+- AND the screen MUST contain no `className=`/`style=`/hex literals (F5)
+
+#### Scenario: The 3-step flow still registers successfully
+- GIVEN a visitor completing role → credentials → role-specific profile
+- WHEN they submit «Продолжить»
+- THEN `registerUser` MUST create the account with the role-specific fields and redirect to `/dashboard`
+
+### Requirement: AuthFooter Block
+A new `AuthFooter` block MUST render the three onboarding legal links — «Политика конфиденциальности», «Условия
+пользования», «Помощь» — token-pure, suitable for the `AuthLayout` footer slot.
+
+#### Scenario: AuthFooter renders the legal links
+- GIVEN the `AuthFooter` block
+- WHEN it renders
+- THEN it MUST show the three links and contain no `className=`/`style=`/hex literals beyond its kit primitives
+
+**Acceptance Criteria:**
+- `/register` reconciled to `Онбординг.dc.html`: footer legal links (via `AuthLayout.footer`) + step-3 consent disclaimer + «Продолжить» CTA; flow/headings/step-dots/role-awareness kept
+- new `AuthFooter` block + render test; richer schema-backed field sets kept (owner-confirmed; no `registerUser`/schema change)
+- F2 + F5 lints + `build` + `test:unit` + `compose-onboarding` E2E green; the existing register E2E kept green; F1 = structural vs the prototype onboarding frame (≤1% Phase 4)
+- Reconciliation decisions recorded (§10.21 / RC-S39–S40)
+
+### Requirement: F1 ≤1% Visual-Fidelity Gate (Golden-Image Regression)
+The project MUST provide a fidelity gate (`npm run test:fidelity`) that, for every gated **surface** in **both themes**
+(dark + light) at **1440px**, captures the live render and compares it to a committed **golden baseline** via the
+`fidelity-diff.js` engine, asserting the differing-pixel **ratio ≤ 0.01 (≤1%)** (AA/colour tolerance, dynamic regions
+masked). When a golden is absent (or `FIDELITY_UPDATE=1` / `test:fidelity:update`) the gate MUST write the golden
+instead of failing. The gate MUST emit `diff.png`, `side-by-side.png`, and `overlay-50.png` for any compared surface.
+Goldens are environment-pinned to the project's Playwright Chromium. The gated surfaces are the workbench component +
+composition catalog (`/workbench/{tokens,primitives,blocks,templates,layout,screens,generativity}` + the index) — the
+deterministic, fixture-driven fidelity capture model; live per-route screens stay covered by their `compose-*` E2E (F3)
++ the human overlay reference. The `gigly_full_design` prototype frames are the **human** F1 overlay/calibration
+reference (the registry `reference`), NOT the automated pixel target.
+
+#### Scenario: A matching render passes the ≤1% gate
+- GIVEN a committed golden for a surface×theme
+- WHEN the live render is captured and diffed
+- THEN the ratio MUST be ≤ 1% and the gate MUST pass, emitting the diff/side-by-side/overlay-50 artifacts
+
+#### Scenario: An injected offset is caught
+- GIVEN the engine and a deliberately offset render (the synthetic 4px-shift `--selfcheck`)
+- THEN the ratio MUST exceed 1% and be reported as a failure (drift detected)
+
+#### Scenario: Every component surface is gated in both themes
+- GIVEN the gate's surface manifest
+- THEN it MUST cover every `/workbench/*` component+composition surface, each captured in dark AND light
+
+### Requirement: Human F1 Reference Re-Baselined to the Prototype
+The workbench registry `reference` baselines MUST point at the `gigly_full_design` prototype imagery
+(`…/reference-renders/prototype/*` derived from the prototype `screenshots/`) as the **human** F1 overlay/calibration
+reference (replacing the stale interim lossy JPGs). The registry coverage test MUST keep asserting that every
+`reference` exists. The prototype imagery is NOT the automated pixel target (that is the golden set).
+
+#### Scenario: References resolve to the prototype imagery and exist
+- GIVEN the registry catalog
+- THEN every entry's `reference` MUST resolve to a prototype-derived image that exists on disk, and the coverage test
+  MUST pass
+
+### Requirement: Generativity Re-Proven in Both Themes
+`validate-generativity` MUST pass over the `GenerativityProbe` + the admin screens + the expanded kit — asserting **zero
+off-system values** (composition-purity + token-purity). Because the probe/admin are token-driven (F2), the proof MUST
+hold in **both** themes, verified by the probe golden in light AND dark.
+
+#### Scenario: Admin generativity = zero off-system values in both themes
+- GIVEN `validate-generativity` over the probe + admin screens
+- THEN composition-purity + token-purity MUST pass (zero off-system values), and the probe MUST render cleanly in both
+  dark and light (captured as goldens)
+
+**Acceptance Criteria:**
+- `npm run test:fidelity` gates every workbench surface in dark + light at 1440px at ≤1% vs committed goldens (via `fidelity-diff.js`), emitting diff/side-by-side/overlay-50; `test:fidelity:update` (re)writes goldens; goldens env-pinned
+- known-good control passes; the injected 4px offset fails (`--selfcheck`); a planted off-token literal fails `lint:tokens`
+- registry `reference` re-baselined to the prototype imagery (human overlay reference); coverage test green
+- `validate-generativity` = zero off-system values; the probe holds in both themes
+- the §10.x ≤1%-deferral notes flipped to "gate live"; Phase-4 planning item checked; F1 is the standing visual-regression gate (no longer structural-only)
+- Reconciliation decisions recorded (§10.22 / RC-S41–S43)

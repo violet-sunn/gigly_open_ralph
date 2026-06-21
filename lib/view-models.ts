@@ -1157,12 +1157,37 @@ export interface AdminListData<T> {
 }
 
 /** Admin dashboard stats (the four platform counts) as a StatPanelVM. Reuses the existing counts. */
-export async function getAdminDashboard(): Promise<{ stats: StatPanelVM }> {
-  const [totalUsers, totalGigs, suspendedUsers, closedGigs] = await Promise.all([
+/** A rendered moderation-log row for the admin «Журнал модерации» (reconcile-finances-and-admin). */
+export interface AdminLogRow {
+  id: string
+  action: string
+  actor: string
+  at: string
+}
+export interface AdminDashboardData {
+  stats: StatPanelVM
+  /** The OPEN dispute queue («Споры на модерации») — rows link to /disputes/[id] to resolve. */
+  disputes: DisputeListVM
+  /** Recent moderation-log entries («Журнал модерации»), newest first. */
+  log: AdminLogRow[]
+}
+
+/** Russian labels for the moderation-log action codes (incl. RESOLVE_DISPUTE from the disputes flow). */
+const MODERATION_ACTION_LABEL: Record<string, string> = {
+  SUSPEND_USER: 'Заблокирован пользователь',
+  UNSUSPEND_USER: 'Разблокирован пользователь',
+  CLOSE_GIG: 'Закрыт гиг',
+  RESOLVE_DISPUTE: 'Спор разрешён',
+}
+
+export async function getAdminDashboard(): Promise<AdminDashboardData> {
+  const [totalUsers, totalGigs, suspendedUsers, closedGigs, disputes, logEntries] = await Promise.all([
     prisma.user.count(),
     prisma.gig.count(),
     prisma.user.count({ where: { suspended: true } }),
     prisma.gig.count({ where: { closedByAdmin: true } }),
+    getDisputeList({ status: 'OPEN' }), // the «Споры на модерации» queue
+    prisma.moderationLog.findMany({ orderBy: { createdAt: 'desc' }, take: 10, include: { admin: true } }),
   ])
   return {
     stats: {
@@ -1173,6 +1198,13 @@ export async function getAdminDashboard(): Promise<{ stats: StatPanelVM }> {
         { label: 'Закрыто', value: closedGigs },
       ],
     },
+    disputes,
+    log: logEntries.map((l) => ({
+      id: l.id,
+      action: MODERATION_ACTION_LABEL[l.action] ?? l.action,
+      actor: l.admin?.email ?? '—',
+      at: new Date(l.createdAt).toLocaleString('ru-RU'),
+    })),
   }
 }
 

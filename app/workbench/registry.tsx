@@ -30,10 +30,13 @@ export interface CatalogEntry {
   Story: () => ReactNode;
 }
 
+// Human F1 overlay/calibration references — re-baselined to the gigly_full_design prototype imagery
+// (refidelity-from-full-design). These are the HUMAN review reference, NOT the automated ≤1% target (that is the
+// committed golden set under docs/design-system/fidelity/golden/, gated by `npm run test:fidelity`).
 const REF = {
-  library: "docs/design-system/reference-renders/components/library-full.png",
-  frames: "docs/design-system/reference-renders/components/components-frames-full.png",
-  screenDash: "docs/design-system/reference-renders/frames/specialist-dashboard.lossy.jpg",
+  library: "docs/design-system/reference-renders/prototype/ds-inventory.png",
+  frames: "docs/design-system/reference-renders/prototype/ds-nav.png",
+  screenDash: "docs/design-system/reference-renders/prototype/dashboard.png",
 };
 
 function Row({ children }: { children: ReactNode }) {

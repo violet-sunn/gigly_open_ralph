@@ -742,7 +742,7 @@ rail + «Сообщения» chat.
 *Pipeline:* `lint:tokens` (GigDetail/GigHeader/Bio/ConditionsPanel token-pure) + `lint:composition` (GigDetail F5, 18
 screens) + `build` (`/gigs/[id]`) + `test:unit` (923; the 1 `gig-browse-access` timeout is the known test-db pollution
 flake, green in isolation) + `compose-gig-detail-apply` E2E (5/5) green. F1 = structural/overlay match to the
-prototype; the absolute ≤1% pixel gate stays Phase 4 (`refidelity-from-full-design`).
+prototype; the absolute ≤1% pixel gate is now live (§10.22).
 
 ## 10.14 «Мои гиги» screen (2026-06-20, change `reconcile-my-projects`)
 
@@ -772,7 +772,7 @@ Reconciled the prototype `gigs` screen = **«Мои гиги»** (`ROUTES.md` L1
 
 *Pipeline:* `validate:tokens` (49) + `lint:tokens` (0 new) + `lint:composition` (MyGigs F5, 19 screens) + `build`
 (`/my-gigs` 931 B) + `test:unit` (930) + `compose-my-gigs` E2E (3/3) green. F1 = structural vs the prototype `gigs`
-frame; absolute ≤1% deferred to Phase 4.
+frame; absolute ≤1% now gated live (§10.22).
 
 ## 10.15 Chats screen + thread-header Bio completion (2026-06-20, change `reconcile-chats`)
 
@@ -794,7 +794,7 @@ Reconciled `/chats` to the prototype chats screen and **completed** the thread-h
 
 *Pipeline:* `lint:tokens` (0 new) + `lint:composition` (Chats F5) + `build` (`/chats`) + `test:unit` (930, incl. the new
 chats-vm counterparty/specialty + domain-blocks ChatHeader axis tests) + `compose-chats` E2E (4/4) green. F1 =
-structural vs the prototype `chats` frame; absolute ≤1% deferred to Phase 4.
+structural vs the prototype `chats` frame; absolute ≤1% now gated live (§10.22).
 
 ## 10.16 Settings screen + real session tracking (2026-06-20, change `reconcile-settings`)
 
@@ -819,7 +819,7 @@ Reconciled `/settings` to the prototype «Настройки» and added a real 
 
 *Pipeline:* `lint:tokens` (0 new) + `lint:composition` (Settings F5, 19 screens) + `build` (`/settings`) + `test:unit`
 (937, incl. new `session-tracking` + extended `settings-vm`/`account-preferences`; auth suite green = backward-compat) +
-`compose-settings` E2E (5/5) green. F1 = structural vs the prototype «Настройки»; absolute ≤1% deferred to Phase 4.
+`compose-settings` E2E (5/5) green. F1 = structural vs the prototype «Настройки»; absolute ≤1% now gated live (§10.22).
 
 ## 10.17 Company «Отклики» screen (2026-06-20, change `build-applications-screen`)
 
@@ -844,7 +844,7 @@ Lifted the company applicant list out of gig-detail into a dedicated, **gig-scop
 *Pipeline:* `lint:tokens` (0 new) + `lint:composition` (Applications F5, 20 screens) + `build`
 (`/gigs/[id]/applications`) + `test:unit` (942, incl. new `gig-applications-vm` + the ApplicantCard render test) +
 `build-applications-screen` (5/5) + `compose-gig-detail-apply` (5/5) E2E green. F1 = structural vs the prototype
-`applications`; absolute ≤1% deferred to Phase 4.
+`applications`; absolute ≤1% now gated live (§10.22).
 
 ## 10.18 Disputes flow UI (2026-06-20, change `reconcile-disputes-flow`)
 
@@ -866,7 +866,7 @@ finished by `reconcile-data-model-to-design`).
 
 *Pipeline:* `lint:tokens` (0 new) + `lint:composition` (NewDispute F5, 21 screens) + `build` (`/disputes/new`) +
 `test:unit` (944, incl. the verdict + timeline assertions) + `reconcile-disputes-flow` (3/3) + `compose-disputes` (6/6)
-E2E green. F1 = structural vs the prototype dispute frames; absolute ≤1% deferred to Phase 4.
+E2E green. F1 = structural vs the prototype dispute frames; absolute ≤1% now gated live (§10.22).
 
 ## 10.19 Create-gig guided brief (2026-06-20, change `reconcile-create-gig`)
 
@@ -892,7 +892,81 @@ validation + 10% fee + all Gig fields were already complete — this is a UI reb
 
 *Pipeline:* `lint:tokens` (0 new) + `lint:composition` (CreateGig + success F5, 23 screens) + `build` (`/gigs/new` +
 `/gigs/new/success`) + `test:unit` (946; 4 test files retargeted to `/gigs/new/success`) + `compose-create-gig` E2E (2/2)
-green. F1 = structural vs the prototype createGig; absolute ≤1% deferred to Phase 4.
+green. F1 = structural vs the prototype createGig; absolute ≤1% now gated live (§10.22).
+
+## 10.22 F1 ≤1% fidelity gate live + generativity re-proof (2026-06-21, change `refidelity-from-full-design`)
+
+The Phase-4 capstone — the deferred **F1 ≤1% visual-fidelity gate is now LIVE**, and the generativity proof is re-run
+against the expanded kit + light theme. Closes the `full-design-reground`.
+
+- **RC-S41 — the ≤1% gate is a self-referential golden-image regression.** `npm run test:fidelity` captures every
+  workbench surface (`/workbench/{tokens,primitives,blocks,templates,layout,screens,generativity}` + the index) in BOTH
+  themes at 1440px and diffs each vs a committed golden (`docs/design-system/fidelity/golden/*.png`) via the Phase-0
+  `fidelity-diff.js` engine, asserting the differing-pixel ratio **≤ 1%** (emitting diff / side-by-side / overlay-50).
+  `test:fidelity:update` (re)writes the goldens. Goldens are **environment-pinned** to the project's Playwright Chromium.
+  **Decision (owner-confirmed):** the automated target is the app's own goldens (regression detection); the
+  `gigly_full_design` prototype frames are the **human** F1 overlay/calibration reference (`registry.REF.*`,
+  re-baselined off the lossy JPGs to `…/reference-renders/prototype/{ds-inventory,ds-nav,dashboard}.png`). Diffing the
+  live app against the external `.dc.html` prototype at ≤1% is unsound (renderer/font/AA drift) and is NOT done.
+- **RC-S42 — scope of the gate.** It covers every component + composition surface (the deterministic, fixture-driven
+  workbench catalog, incl. the dashboard composition sample + the generativity probe) in dark + light. Live per-route
+  screens stay covered by their `compose-*` E2E (F3 parity) + the human overlay review — gating their live data on golden
+  pixels would add nondeterminism for little marginal value (a stability-driven, sanctioned scope).
+- **RC-S43 — generativity re-proven in both themes.** `validate-generativity` (composition + token-purity over the
+  `GenerativityProbe` + the admin screens + the expanded kit) passes → zero off-system values; because they are
+  token-driven (F2), they hold in light AND dark, verified by the probe golden in both themes. The synthetic engine
+  self-check (`fidelity-diff.js --selfcheck`: control passes / 4px offset fails) stays green.
+
+*Pipeline:* `validate:tokens` + `lint:tokens` + `lint:composition` (23 screens) + `lint:generativity` + `build` +
+`test:unit` (950) + `fidelity --selfcheck` + **`test:fidelity` (16/16 surface×theme ≤1%)** green. **Phase 4 complete —
+the full-design-reground is closed.**
+
+## 10.21 Onboarding wizard fidelity (2026-06-21, change `add-onboarding-screen`)
+
+A **fidelity revision** of the onboarding wizard, NOT a new screen — a diff confirmed `Онбординг.dc.html` *is* the
+`/register` 3-step wizard (role → credentials → role-aware profile), already reconciled by
+`reconcile-auth-and-onboarding` (flow, `AuthStepDots`, the role-aware step-3 «Добро пожаловать»/«Настройте свой аккаунт»
+headings). This closed the remaining gaps the diff surfaced.
+
+- **RC-S39 — the wizard chrome is reconciled.** New **`AuthFooter`** block (the legal links «Политика
+  конфиденциальности» · «Условия пользования» · «Помощь») rendered via the existing-but-unused `AuthLayout` `footer`
+  slot; the **step-3 consent disclaimer** «Нажимая «Продолжить», вы соглашаетесь…»; the step-3 submit CTA renamed
+  «Зарегистрироваться» → **«Продолжить»**.
+- **RC-S40 — the richer field sets are kept (owner-confirmed).** The wizard's schema-backed step-3 fields (CLIENT:
+  companyName/ИНН/contactPerson/phoneNumber; SPECIALIST: displayName/position/techStack/specialization/experienceLevel/
+  timezone) are kept — they persist real B2B/specialist data the app consumes; the prototype's shorter list is treated
+  as illustrative. `registerUser` + the schema are unchanged. This is the project principle in action: "it exists" ≠ done
+  (the flow needed a real revision), but a faithful UI reconcile must not regress functional data.
+
+*Pipeline:* `lint:tokens` (0 new) + `lint:composition` (RegisterWizard F5, 23 screens) + `build` (`/register`) +
+`test:unit` (950; the AuthFooter render test) + `compose-onboarding` (2/2) + the existing register E2E green. F1 =
+structural vs the prototype onboarding steps; absolute ≤1% now gated live (§10.22). **Phase 3 complete.**
+
+## 10.20 Finances figures + admin console (2026-06-21, change `reconcile-finances-and-admin`)
+
+UI + data-layer enrichment over complete backends (the finances lib, the admin stats + moderation actions +
+`ModerationLog`, and the dispute list all existed).
+
+- **RC-S37 — `/finances` shows 3 role-aware figures + lifecycle operations.** `getFinanceStats` returns the prototype
+  tiles — **company**: Выплачено (PAID totalAmount) / В резерве (IN_PROGRESS + REVIEW totalAmount) / Сервисный сбор (PAID
+  fee); **specialist**: Заработано (PAID budget) / На проверке (REVIEW budget) / В работе (IN_PROGRESS budget).
+  `getLedger` now returns the operations across **IN_PROGRESS / REVIEW / COMPLETED / PAID** (not PAID-only) with the
+  role-aware amount + a counterparty subtitle; the «Баланс» footer stays the realized (PAID) total. `LedgerTableVM`
+  entries gain `subtitle` + `statusLabel` (the latter renders «Оплачено» for PAID, which has no design `Status`). The
+  «Суммы логические…» MVP framing is kept.
+- **RC-S38 — the admin dashboard adds the dispute queue + the moderation log.** `getAdminDashboard` is extended to return
+  the OPEN dispute queue (`getDisputeList({ status: 'OPEN' })`) and the recent `ModerationLog` rows (RU action label +
+  actor + time). `AdminDashboard` renders «Споры на модерации» (`DisputeList`, each row → `/disputes/[id]` to resolve) +
+  «Журнал модерации» (`DataTable`), keeping the stats `StatPanel` + the «Пользователи»/«Гиги» links.
+- **Decisions:** the paginated `/admin/users` + `/admin/gigs` pages are **kept** (an enhancement over the prototype's
+  single-screen lists — the dashboard gains the sections, doesn't collapse them); the queue links to the existing
+  `/disputes/[id]` resolve panel (no new route); **no new blocks** (`DisputeList`/`DataTable`/`StatPanel`), **no schema
+  change**; moderation actions + `ModerationLog` unchanged.
+
+*Pipeline:* `lint:tokens` (0 new) + `lint:composition` (Finances + AdminDashboard F5, 23 screens) + `build` (`/finances`
++ `/admin`) + `test:unit` (949; the finances role-figure + lifecycle tests rewritten, a new admin-dashboard VM test) +
+`compose-finances` (3/3) + `compose-admin-dashboard` (2/2) + `admin-moderation` E2E green. F1 = structural vs the
+prototype finance + admin frames; absolute ≤1% now gated live (§10.22).
 
 ## 10.5 Auth/onboarding screen reconciliation (2026-06-18, change `reconcile-auth-and-onboarding`)
 

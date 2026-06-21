@@ -29,9 +29,12 @@ export function LedgerTable({ vm }: { vm: LedgerTableVM }) {
                 <span className="text-caption font-caption text-muted">
                   {new Date(e.date).toLocaleDateString("ru-RU")}
                 </span>
-                <span className="text-body font-body text-strong">{e.label}</span>
+                <Stack gap={1}>
+                  <span className="text-body font-body text-strong">{e.label}</span>
+                  {e.subtitle && <span className="text-caption font-caption text-muted">{e.subtitle}</span>}
+                </Stack>
                 <StatusBadge variant="inline-dot" status={e.status}>
-                  {STATUS_LABEL[e.status]}
+                  {e.statusLabel ?? STATUS_LABEL[e.status]}
                 </StatusBadge>
                 <span className="font-mono text-mono text-strong">{e.amount}</span>
               </Stack>

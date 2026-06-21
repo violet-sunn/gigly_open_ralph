@@ -9,7 +9,7 @@ export default async function AdminDashboardPage() {
     redirect('/dashboard')
   }
 
-  const { stats } = await getAdminDashboard()
+  const data = await getAdminDashboard()
 
-  return <AdminDashboard stats={stats} />
+  return <AdminDashboard {...data} />
 }

@@ -100,3 +100,38 @@ The change MUST be additive and read-only, with the suite green and no schema/se
 **Acceptance Criteria:**
 - No schema/seed/action/`resetTestDatabase` change; `LedgerTableVM` is the only (type-only) `view-models.ts` edit
 - `npm run build` + `npm run test:unit` + lints green
+
+## Reconciled Requirements (reconcile-finances-and-admin, 2026-06-21)
+
+### Requirement: Finances Summary Is Role-Aware With Three Figures
+`getFinanceStats(userId, role)` MUST return three role-aware summary tiles, summed from the gig lifecycle (logical
+amounts, no real payments): **CLIENT** → «Выплачено» (Σ PAID totalAmount) / «В резерве» (Σ IN_PROGRESS + REVIEW
+totalAmount) / «Сервисный сбор» (Σ PAID serviceFee); **SPECIALIST** → «Заработано» (Σ PAID budget) / «На проверке»
+(Σ REVIEW budget) / «В работе» (Σ IN_PROGRESS budget). The `/finances` screen MUST render them via `StatPanel`, keeping
+the «Суммы логические, без реальных платежей.» framing.
+
+#### Scenario: Role figures
+- GIVEN a CLIENT with PAID, in-progress, and on-review gigs
+- THEN `getFinanceStats` MUST return «Выплачено» (PAID totalAmount), «В резерве» (in-progress + on-review totalAmount),
+  and «Сервисный сбор» (PAID fee)
+- AND for a SPECIALIST it MUST return «Заработано» (PAID budget), «На проверке» (REVIEW budget), and «В работе»
+  (IN_PROGRESS budget)
+
+### Requirement: Operations List Spans the Gig Lifecycle
+`getLedger(userId, role)` MUST return the user's gigs across **IN_PROGRESS / REVIEW / COMPLETED / PAID** (not PAID-only),
+newest first, each as a ledger entry with: the gig title, a counterparty `subtitle`, a role-aware amount (CLIENT =
+totalAmount, SPECIALIST = budget), the status, and the date; the «Баланс» footer remains the realized (PAID) total.
+`LedgerTableVM` entries MUST carry optional `subtitle` + `statusLabel` (the latter renders «Оплачено» for PAID, which has
+no design `Status`), and `LedgerTable` MUST render them. The empty state MUST show when there are no such gigs.
+
+#### Scenario: Operations include non-paid lifecycle statuses
+- GIVEN a SPECIALIST assigned to an IN_PROGRESS gig and a PAID gig
+- WHEN `/finances` renders
+- THEN the operations list MUST include both (badges В работе and Оплачено), each with the specialist's budget amount and
+  the counterparty subtitle; a CLIENT MUST see the totalAmount amounts across the same statuses
+- AND the «Баланс» footer MUST equal the realized (PAID) total
+
+**Acceptance Criteria:**
+- `getFinanceStats` → 3 role-aware tiles; `getLedger` → lifecycle operations (subtitle + `statusLabel`); balance = PAID total; framing kept
+- F2 + F5 lints + `build` + `test:unit` (role figures) + `compose-finances` E2E green; F1 = structural (≤1% Phase 4)
+- Reconciliation decisions recorded (§10.20 / RC-S37)

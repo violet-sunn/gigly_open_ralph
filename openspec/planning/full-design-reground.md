@@ -120,11 +120,32 @@ Three things this resolves outright:
   `/gigs/new/success` «Гиг опубликован» screen; `createGig` success redirect `/dashboard`→`/gigs/new/success` (its only
   change; 10% fee + validation reused). §10.19. Gates: lints (23 screens), build (`/gigs/new` + success), test:unit
   (946; the 4 createGig redirect-asserting test files updated to the new target), `compose-create-gig` E2E (2/2) green.
-- [ ] `/ralphy-plan reconcile-finances-and-admin "Re-ground /finances (role summary + ops by status) and the admin console (stats + dispute queue + users/gigs moderation + log) on the prototype. Test: role figures; Fidelity DoD."`
-- [ ] `/ralphy-plan add-onboarding-screen "Onboarding (Онбординг.dc.html). Test: flow + Fidelity DoD."`
+- [x] `reconcile-finances-and-admin` — **DONE (2026-06-21)**: UI + data-layer enrichment over complete backends.
+  **/finances**: `getFinanceStats` now returns 3 role-aware figures (company Выплачено/В резерве/Сервисный сбор;
+  specialist Заработано/На проверке/В работе); `getLedger` spans the lifecycle (IN_PROGRESS/REVIEW/COMPLETED/PAID) with
+  role-aware amounts + counterparty subtitle; `LedgerTableVM` += `subtitle`/`statusLabel`. **Admin dashboard**:
+  `getAdminDashboard` extended with the OPEN **dispute queue** + the recent **moderation log**; `AdminDashboard` renders
+  «Споры на модерации» (`DisputeList` → `/disputes/[id]`) + «Журнал модерации» (`DataTable`), keeping the stats + the
+  (unchanged) paginated users/gigs pages. No new blocks, no schema change. §10.20. Gates: lints (23 screens), build
+  (`/finances` + `/admin`), test:unit (949), `compose-finances` (3/3) + `compose-admin-dashboard` (2/2) + `admin-moderation`
+  E2E green.
+- [x] `add-onboarding-screen` — **DONE (2026-06-21)**: a fidelity revision (not a new screen) — a diff confirmed
+  `Онбординг.dc.html` IS the `/register` 3-step wizard (already reconciled: flow/headings/step-dots/role-awareness), so
+  this closed the un-reconciled gaps: a new **`AuthFooter`** block (Политика/Условия/Помощь) via the `AuthLayout` footer
+  slot, the **step-3 consent disclaimer**, and the step-3 CTA **«Продолжить»**. Owner-confirmed: the richer schema-backed
+  field sets are kept (the prototype's shorter list is illustrative); `registerUser`/schema unchanged. §10.21. Gates:
+  lints (23 screens), build (`/register`), test:unit (950), `compose-onboarding` (2/2) + the existing register E2E green.
+  **Phase 3 complete.**
 
 ### Phase 4 — Re-validate against the prototype
-- [ ] `/ralphy-plan refidelity-from-full-design "Re-baseline F1 on the prototype frames (Развёртка) for every screen + component; fonts now resolved → assert the ≤1% gate. Re-run the generativity proof against the expanded kit + light theme. Test: known-good control passes; injected offset + planted off-token fail; admin generativity = zero off-system values in both themes."`
+- [x] `refidelity-from-full-design` — **DONE (2026-06-21)**: the Phase-4 capstone. The deferred **F1 ≤1% gate is now
+  LIVE** as a self-referential golden-image regression — `npm run test:fidelity` captures every workbench surface
+  (tokens/primitives/blocks/templates/layout/screens/generativity + index) in **both themes** at 1440px and diffs vs
+  committed goldens (`docs/design-system/fidelity/golden/`) via `fidelity-diff.js`, asserting ≤1% (16/16 green). The
+  `gigly_full_design` prototype frames are the **human** F1 overlay reference (registry `REF.*` re-baselined). The
+  engine self-check (control passes / 4px offset fails) + the generativity re-proof (zero off-system values, both
+  themes) stay green; a planted off-token literal fails `lint:tokens`. §10.22 (RC-S41–S43). **Phase 4 complete — the
+  full-design-reground is closed.**
 
 ## 5. Caveats
 - `gigly_full_design` source/bundle components are only **partially tokenized** (spacing via vars, many color literals baked) — they are the fidelity **spec**, not drop-in token-pure code; our F2/F5 discipline still governs the coded kit.

@@ -65,12 +65,14 @@ test.describe('compose-finances — composed finances screen', () => {
     await page.goto('/finances')
 
     await expect(page.getByText('Суммы логические, без реальных платежей.')).toBeVisible() // framing
-    await expect(page.getByText('Оплачено')).toBeVisible() // StatPanel tile (CLIENT realized label)
-    await expect(page.getByText('E2E Finances Paid Gig')).toBeVisible() // LedgerTable entry
+    await expect(page.getByText('Выплачено')).toBeVisible() // role figure (CLIENT realized)
+    await expect(page.getByText('В резерве')).toBeVisible() // role figure (committed-but-unpaid)
+    await expect(page.getByText('Сервисный сбор')).toBeVisible() // role figure (10% fee)
+    await expect(page.getByText('E2E Finances Paid Gig')).toBeVisible() // LedgerTable operation
     await expect(page.getByText('Баланс')).toBeVisible() // balance footer
   })
 
-  test('shows an empty state for a user with no realized payments', async ({ page }) => {
+  test('shows an empty state for a user with no lifecycle gigs', async ({ page }) => {
     await setE2ESession(page, { id: emptyId, email: emptyEmail, role: 'CLIENT' })
     await page.goto('/finances')
 

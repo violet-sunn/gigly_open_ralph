@@ -16,8 +16,8 @@ import type { LedgerTableVM, StatPanelVM } from '@/app/components/blocks/view-mo
 // ru-RU formatting uses a non-breaking-space group separator — normalise before comparing.
 const noSpace = (s: string) => s.replace(/\s/g, '')
 
-describe('finances-ledger — CLIENT realized ledger', () => {
-  it('derives entries + balance from PAID gigs (amount = totalAmount), excluding non-paid', async () => {
+describe('finances-ledger — CLIENT operations ledger', () => {
+  it('includes the lifecycle gigs (PAID + COMPLETED), excludes OPEN; balance is the PAID total', async () => {
     const prisma = getTestPrismaClient()
     const client = await createTestUser(prisma, { role: 'CLIENT' })
     await createTestGig(prisma, {
@@ -33,12 +33,15 @@ describe('finances-ledger — CLIENT realized ledger', () => {
     await createTestGig(prisma, { title: 'Open gig', clientId: client.id, status: 'OPEN' })
 
     const ledger: LedgerTableVM = await getLedger(client.id, 'CLIENT')
-    expect(ledger.entries).toHaveLength(1)
-    expect(ledger.entries[0].label).toBe('Paid gig')
-    expect(noSpace(ledger.entries[0].amount)).toBe('110000₽') // totalAmount
-    expect(ledger.entries[0].status).toBe('completed')
-    expect(typeof ledger.entries[0].date).toBe('string')
-    expect(noSpace(ledger.balance)).toBe('110000₽')
+    const labels = ledger.entries.map((e) => e.label)
+    expect(labels).toContain('Paid gig')
+    expect(labels).toContain('Completed gig')
+    expect(labels).not.toContain('Open gig') // OPEN is not an operation
+    expect(ledger.entries).toHaveLength(2)
+    const paid = ledger.entries.find((e) => e.label === 'Paid gig')!
+    expect(noSpace(paid.amount)).toBe('110000₽') // totalAmount
+    expect(paid.statusLabel).toBe('Оплачено') // PAID badge override
+    expect(noSpace(ledger.balance)).toBe('110000₽') // balance = realized (PAID) only
   })
 })
 
@@ -91,7 +94,7 @@ describe('finances-ledger — SPECIALIST realized ledger', () => {
 })
 
 describe('finances-ledger — reflects payment statuses', () => {
-  it('a COMPLETED-but-unpaid gig is not realized; marking it PAID moves it into the ledger', async () => {
+  it('a COMPLETED gig shows as an operation but is unrealized; marking it PAID realizes it into the balance', async () => {
     const prisma = getTestPrismaClient()
     const client = await createTestUser(prisma, { role: 'CLIENT' })
     const gig = await createTestGig(prisma, {
@@ -104,20 +107,20 @@ describe('finances-ledger — reflects payment statuses', () => {
     })
 
     let ledger = await getLedger(client.id, 'CLIENT')
-    expect(ledger.entries).toHaveLength(0)
-    expect(noSpace(ledger.balance)).toBe('0₽')
+    expect(ledger.entries).toHaveLength(1) // appears as an operation
+    expect(noSpace(ledger.balance)).toBe('0₽') // but not realized (balance = PAID only)
 
     // Transition COMPLETED → PAID (logical payment)
     await prisma.gig.update({ where: { id: gig.id }, data: { status: 'PAID', paidAt: new Date() } })
 
     ledger = await getLedger(client.id, 'CLIENT')
     expect(ledger.entries).toHaveLength(1)
-    expect(noSpace(ledger.balance)).toBe('110000₽')
+    expect(noSpace(ledger.balance)).toBe('110000₽') // now realized
   })
 })
 
-describe('finances-ledger — stats (paid + pending)', () => {
-  it('reflects realized and pending amounts per role', async () => {
+describe('finances-ledger — stats (role figures)', () => {
+  it('reflects the CLIENT role figures: Выплачено / В резерве / Сервисный сбор', async () => {
     const prisma = getTestPrismaClient()
     const client = await createTestUser(prisma, { role: 'CLIENT' })
     await createTestGig(prisma, {
@@ -130,26 +133,43 @@ describe('finances-ledger — stats (paid + pending)', () => {
       paidAt: new Date(),
     })
     await createTestGig(prisma, {
-      title: 'Pending',
+      title: 'Reserved',
       clientId: client.id,
       budget: 5000000,
       serviceFee: 500000,
       totalAmount: 5500000,
-      status: 'COMPLETED',
+      status: 'IN_PROGRESS', // committed-but-unpaid → «В резерве»
     })
 
     const panel: StatPanelVM = await getFinanceStats(client.id, 'CLIENT')
-    expect(panel.stats[0].label).toBe('Оплачено')
-    expect(noSpace(String(panel.stats[0].value))).toBe('110000₽') // realized (PAID totalAmount)
-    expect(panel.stats[1].label).toBe('Ожидает')
-    expect(noSpace(String(panel.stats[1].value))).toBe('55000₽') // pending (COMPLETED totalAmount)
-    expect(panel.stats[2].label).toBe('Выполнено')
-    expect(panel.stats[2].value).toBe(1) // count of PAID
+    expect(panel.stats[0].label).toBe('Выплачено')
+    expect(noSpace(String(panel.stats[0].value))).toBe('110000₽') // PAID totalAmount
+    expect(panel.stats[1].label).toBe('В резерве')
+    expect(noSpace(String(panel.stats[1].value))).toBe('55000₽') // IN_PROGRESS totalAmount
+    expect(panel.stats[2].label).toBe('Сервисный сбор')
+    expect(noSpace(String(panel.stats[2].value))).toBe('10000₽') // PAID serviceFee
+  })
+
+  it('reflects the SPECIALIST role figures: Заработано / На проверке / В работе', async () => {
+    const prisma = getTestPrismaClient()
+    const client = await createTestUser(prisma, { role: 'CLIENT' })
+    const spec = await createTestUser(prisma, { role: 'SPECIALIST' })
+    await createTestGig(prisma, { clientId: client.id, assignedSpecialistId: spec.id, budget: 10000000, status: 'PAID', paidAt: new Date() })
+    await createTestGig(prisma, { clientId: client.id, assignedSpecialistId: spec.id, budget: 4000000, status: 'REVIEW' })
+    await createTestGig(prisma, { clientId: client.id, assignedSpecialistId: spec.id, budget: 3000000, status: 'IN_PROGRESS' })
+
+    const panel = await getFinanceStats(spec.id, 'SPECIALIST')
+    expect(panel.stats[0].label).toBe('Заработано')
+    expect(noSpace(String(panel.stats[0].value))).toBe('100000₽') // PAID budget
+    expect(panel.stats[1].label).toBe('На проверке')
+    expect(noSpace(String(panel.stats[1].value))).toBe('40000₽') // REVIEW budget
+    expect(panel.stats[2].label).toBe('В работе')
+    expect(noSpace(String(panel.stats[2].value))).toBe('30000₽') // IN_PROGRESS budget
   })
 })
 
 describe('finances-ledger — empty + read-only', () => {
-  it('empty finances are graceful (no PAID gigs)', async () => {
+  it('empty finances are graceful (no lifecycle gigs)', async () => {
     const prisma = getTestPrismaClient()
     const client = await createTestUser(prisma, { role: 'CLIENT' })
     const ledger = await getLedger(client.id, 'CLIENT')

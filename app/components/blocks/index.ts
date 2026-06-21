@@ -18,6 +18,7 @@ export { BannerCard } from "./BannerCard";
 export { CreateGigCTA } from "./CreateGigCTA";
 export { OnboardingCard } from "./OnboardingCard";
 export { AuthHeader } from "./AuthHeader";
+export { AuthFooter } from "./AuthFooter";
 export { StatPanel } from "./StatPanel";
 export { LedgerTable } from "./LedgerTable";
 export { DisputeList } from "./DisputeList";

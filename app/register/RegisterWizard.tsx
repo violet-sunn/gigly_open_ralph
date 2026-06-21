@@ -7,7 +7,7 @@ import { Section } from "@/app/components/layout/Section";
 import { Stack } from "@/app/components/layout/Stack";
 import { AuthLayout } from "@/app/components/templates/AuthLayout";
 import { Input, PasswordInput, Select, Button } from "@/app/components/primitives";
-import { RoleCards, Notice, AuthHeader, type Role } from "@/app/components/blocks";
+import { RoleCards, Notice, AuthHeader, AuthFooter, type Role } from "@/app/components/blocks";
 import type { AuthHeaderVM } from "@/app/components/blocks";
 import { registerUser } from "@/app/actions/auth";
 import { SPECIALIZATIONS, EXPERIENCE_LEVELS, TIMEZONES } from "@/lib/profiles";
@@ -61,7 +61,7 @@ export function RegisterWizard({ role: initialRole }: { role?: Role | null }) {
   const canCredentials = password.length > 0 && confirm.length > 0 && !mismatch;
 
   return (
-    <AuthLayout>
+    <AuthLayout footer={<AuthFooter />}>
       <Section gap={6}>
         <AuthHeader vm={headerFor(step, role)} />
 
@@ -159,6 +159,13 @@ export function RegisterWizard({ role: initialRole }: { role?: Role | null }) {
               )}
             </div>
 
+            {/* Step 3 — consent disclaimer (Онбординг.dc.html) */}
+            {step === 2 && (
+              <Notice tone="muted">
+                Нажимая «Продолжить», вы соглашаетесь с Политикой конфиденциальности и Условиями пользования платформы
+              </Notice>
+            )}
+
             {state?.error && <Notice tone="error">{state.error}</Notice>}
 
             {/* Navigation */}
@@ -185,7 +192,7 @@ export function RegisterWizard({ role: initialRole }: { role?: Role | null }) {
               )}
               {step === 2 && (
                 <Button type="submit" variant="primary">
-                  Зарегистрироваться
+                  Продолжить
                 </Button>
               )}
             </Stack>

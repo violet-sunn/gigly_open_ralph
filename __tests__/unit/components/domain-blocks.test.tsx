@@ -25,6 +25,7 @@ import {
   JobExperienceCard,
   OnboardingCard,
   AuthHeader,
+  AuthFooter,
   TermsTabs,
   ConditionsPanel,
   GigHeader,
@@ -252,6 +253,13 @@ describe("domain-blocks / SectionHeader, JobExperienceCard, CriteriaRow (profile
   it("AuthHeader omits the Logomark on the welcome step", () => {
     render(<AuthHeader vm={authHeaderFixtures[2]} />); // step 3, no logomark
     expect(screen.queryByAltText("Gigly")).toBeNull();
+  });
+
+  it("AuthFooter renders the three legal links (add-onboarding-screen)", () => {
+    render(<AuthFooter />);
+    expect(screen.getByText("Политика конфиденциальности")).toBeInTheDocument();
+    expect(screen.getByText("Условия пользования")).toBeInTheDocument();
+    expect(screen.getByText("Помощь")).toBeInTheDocument();
   });
 });
 
