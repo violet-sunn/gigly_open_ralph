@@ -72,11 +72,15 @@ export function AppShellDesign({
     if (e.key === "Enter") router.push(q.trim() ? `/gigs?search=${encodeURIComponent(q.trim())}` : "/gigs");
   };
 
-  const roleSegs: [string, boolean][] = admin
-    ? [["Специалист", false], ["Компания", false], ["Админ", true]]
-    : role === "SPECIALIST"
-      ? [["Специалист", true], ["Компания", false]]
-      : [["Специалист", false], ["Компания", true]];
+  // The prototype's sidebar always shows all three role segments (Специалист / Компания / Админ) — a demo
+  // switcher. In the real app a user has one role, so this is a non-interactive indicator: all three are
+  // shown (matching the prototype) and the active one is highlighted.
+  const activeRole = admin ? "Админ" : role === "SPECIALIST" ? "Специалист" : "Компания";
+  const roleSegs: [string, boolean][] = [
+    ["Специалист", activeRole === "Специалист"],
+    ["Компания", activeRole === "Компания"],
+    ["Админ", activeRole === "Админ"],
+  ];
 
   return (
     <div
@@ -236,7 +240,7 @@ export function AppShellDesign({
 
         <div style={{ flex: 1 }} />
 
-        {/* help box (the prototype's «Нужна помощь?» Massage card) */}
+        {/* support card — the prototype's «Поддержка» block (copy transported verbatim) */}
         <div
           style={{
             borderRadius: 12,
@@ -245,40 +249,38 @@ export function AppShellDesign({
             padding: 14,
             display: "flex",
             flexDirection: "column",
-            gap: 8,
+            gap: 10,
           }}
         >
-          <span style={{ fontFamily: "'Handjet',monospace", fontWeight: 600, fontSize: 14, color: "var(--text-1)" }}>Нужна помощь?</span>
-          <textarea
-            placeholder="Опишите вопрос…"
-            aria-label="Поддержка"
-            style={{
-              height: 60,
-              resize: "none",
-              borderRadius: 8,
-              background: "var(--hairline-05)",
-              boxShadow: "inset 0 0 0 1px var(--hairline-08)",
-              border: "none",
-              outline: "none",
-              padding: 10,
-              color: "var(--text-1)",
-              fontFamily: "'Manrope',sans-serif",
-              fontSize: 13,
-            }}
-          />
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ color: "var(--text-3)", display: "flex" }}>
+              <QuestionIcon />
+            </span>
+            <span style={{ fontFamily: "'Handjet',monospace", fontWeight: 600, fontSize: 18, color: "var(--text-1)" }}>Поддержка</span>
+          </div>
+          <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, lineHeight: "16px", color: "var(--text-3)" }}>
+            Привет! Вы на ранней версии платформы. Если что-то пошло не так — напишите. Мы рядом и поможем разобраться.
+          </span>
           <button
             type="button"
+            aria-label="Что случилось?"
             style={{
-              height: 36,
-              border: "none",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              height: 40,
+              padding: "0 12px",
               borderRadius: 8,
-              background: "var(--surface-secondary)",
-              color: "var(--text-2)",
-              fontSize: 13,
+              background: "var(--surface-sunken)",
+              boxShadow: "inset 0 0 0 1px var(--hairline-06)",
+              border: "none",
               cursor: "pointer",
             }}
           >
-            Отправить
+            <span style={{ flex: 1, textAlign: "left", color: "var(--text-3)", fontFamily: "'Handjet',monospace", fontSize: 14 }}>Что случилось?</span>
+            <span style={{ color: "var(--text-3)", display: "flex" }}>
+              <SendIcon />
+            </span>
           </button>
         </div>
 
@@ -425,6 +427,21 @@ function SearchIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
       <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0" />
+    </svg>
+  );
+}
+function QuestionIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+      <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z" />
+    </svg>
+  );
+}
+function SendIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576zm6.787-8.201L1.591 6.602l4.339 2.76z" />
     </svg>
   );
 }
