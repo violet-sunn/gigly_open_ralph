@@ -100,6 +100,16 @@ click('profile.specialist.modal-bio','specialist',{ route:'profile' }, 'Реда
 click('profile.specialist.modal-cats','specialist',{ route:'profile' }, 'Выберите направления',
   async (page) => { await openCatsModal(page); }, 'open the "Избранные категории" modal');
 
+// success toast: open the Bio modal and Save → flash("Профиль обновлён"); toast shows ~2.6s
+click('toast.success','specialist',{ route:'profile' }, 'Профиль обновлён',
+  async (page) => { await clickContentPencil(page, 1); await page.getByText('Сохранить', { exact:true }).first().click({ timeout:3000 }); },
+  'Bio modal → Сохранить → flash toast');
+
+// destructive confirm dialog: admin moderation → block an (active) user → ask() opens the dialog
+click('confirm.destructive','admin',{ route:'dashboard' }, 'Заблокировать пользователя?',
+  async (page) => { await page.getByText('Заблокировать', { exact:false }).first().click({ timeout:4000 }); },
+  'admin moderation → block user → confirm dialog');
+
 // dispute detail / resolve — render directly from route + dispute id (ids are 1..6)
 hook('disputeDetail.specialist','specialist',{ route:'disputeDetail', dispute:1 }, TITLE.disputeDetail);
 hook('disputeDetail.company','company',{ route:'disputeDetail', dispute:1 }, TITLE.disputeDetail);
@@ -111,8 +121,6 @@ const PENDING = [
   ['search.empty','specialist','apply a filter combination that yields no results (filters are UI-only; no __giglyGo param)'],
   ['search.loading','specialist','click the "Поиск" nav item — loading lasts ~650ms (navTo timer); transient, capture-by-interaction'],
   ['gigs.loading','specialist','click the "Мои гиги" nav item — transient ~650ms loading skeleton'],
-  ['toast.success','specialist','trigger a success action (e.g. submit work / mark paid) — sets state.toast, auto-dismisses'],
-  ['confirm.destructive','company','trigger a destructive action (e.g. close gig / withdraw) — sets state.confirm'],
 ];
 
 // ---- interaction helpers --------------------------------------------------
