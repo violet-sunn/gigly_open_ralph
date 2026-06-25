@@ -130,7 +130,7 @@ describe('Login and Session Tests', () => {
     const result = await loginUser(null, formData)
 
     // Should return error
-    expect(result).toEqual({ error: 'Invalid email or password. Check your credentials and try again.' })
+    expect(result).toEqual({ error: 'Неверный email или пароль. Проверьте данные и попробуйте снова.' })
 
     // Verify no session was created
     const sessionToken = getTestSessionToken()
@@ -148,7 +148,7 @@ describe('Login and Session Tests', () => {
     const result = await loginUser(null, formData)
 
     // Should return error (same message as wrong password - don't reveal if email exists)
-    expect(result).toEqual({ error: 'Invalid email or password. Check your credentials and try again.' })
+    expect(result).toEqual({ error: 'Неверный email или пароль. Проверьте данные и попробуйте снова.' })
 
     // Verify no session was created
     const sessionToken = getTestSessionToken()
@@ -180,7 +180,7 @@ describe('Login and Session Tests', () => {
     const result = await loginUser(null, formData)
 
     // Should return suspended error
-    expect(result).toEqual({ error: 'Your account has been suspended. Contact support at support@gigly.ru for assistance.' })
+    expect(result).toEqual({ error: 'Ваш аккаунт заблокирован. Обратитесь в поддержку: support@gigly.ru.' })
 
     // Verify no session was created
     const sessionToken = getTestSessionToken()

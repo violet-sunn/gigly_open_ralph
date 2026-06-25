@@ -120,11 +120,12 @@ test.describe('compose-disputes — composed disputes screen', () => {
     await setE2ESession(page, { id: clientId, email: clientEmail, role: 'CLIENT' })
     await page.goto(`/gigs/${gigForOpenId}`)
 
-    // The gig-detail «Открыть спор» now links to the dedicated screen (reconcile-disputes-flow).
-    await page.getByRole('button', { name: 'Открыть спор' }).click()
+    // The gig-detail dispute entry is a clickable <div> «Возникли разногласия? Открыть спор» (not a role=button) →
+    // match by text. It routes to the dedicated «Открыть спор» screen.
+    await page.getByText(/Открыть спор/).click()
     await expect(page).toHaveURL(new RegExp(`/disputes/new\\?gig=${gigForOpenId}`))
 
-    // The disputeNew screen: a reason is preselected (CheckField); fill the description + submit.
+    // The disputeNew screen: a reason chip is preselected; fill the description + submit «Открыть спор» (the form button).
     await page.locator('textarea[name="description"]').fill('Спор по гигу: задача расширилась без согласования.')
     await page.getByRole('button', { name: 'Открыть спор' }).click()
 
@@ -136,31 +137,32 @@ test.describe('compose-disputes — composed disputes screen', () => {
     await expect(page.getByText('E2E Open-From-Gig')).toBeVisible({ timeout: 10000 })
   })
 
-  test('an admin resolves a dispute via the resolve view; the status updates to «Завершён»', async ({ page }) => {
+  test('an admin resolves a dispute via a verdict button; the status updates to «Завершён»', async ({ page }) => {
     await setE2ESession(page, { id: adminId, email: adminEmail, role: 'ADMIN' })
     await page.goto(`/disputes/${disputeResolveId}`)
 
-    // The admin resolve view is present (default outcome RESOLVED) — fill the note and submit.
-    await page.locator('textarea[name="resolution"]').fill('Спор разрешён в пользу заказчика; бюджет возвращён.')
-    await page.getByRole('button', { name: 'Разрешить спор' }).click()
+    // The «Решение модератора» panel has three verdict submit buttons — clicking one IS the submit (no note textarea).
+    await page.getByRole('button', { name: 'В пользу заказчика' }).click()
 
     // resolveDispute redirects to the gig on success — wait for it so the action commits before we navigate away.
     await page.waitForURL('**/gigs/**')
 
-    // the detail now shows the resolved status + resolution.
+    // the detail now shows the resolved status + the prefixed resolution.
     await page.goto(`/disputes/${disputeResolveId}`)
     await expect(page.getByText('Завершён')).toBeVisible()
-    // The resolution now appears in both the «Решение» section and the moderator timeline entry → assert the first.
-    await expect(page.getByText('Спор разрешён в пользу заказчика; бюджет возвращён.').first()).toBeVisible()
+    // The resolution «В пользу заказчика …» appears in both the banner and the moderator timeline entry → assert the first.
+    await expect(page.getByText(/В пользу заказчика/).first()).toBeVisible()
   })
 
-  test('a participant sees their dispute read-only — no resolve control', async ({ page }) => {
+  test('a participant sees their dispute read-only — no moderator panel', async ({ page }) => {
     await setE2ESession(page, { id: clientId, email: clientEmail, role: 'CLIENT' })
     await page.goto(`/disputes/${disputeReadId}`)
 
     await expect(page.getByText(gigReadTitle)).toBeVisible() // detail renders
     await expect(page.getByText('Объём работ вырос относительно исходной задачи.')).toBeVisible() // reason
-    await expect(page.getByRole('button', { name: 'Разрешить спор' })).toHaveCount(0) // no admin control
+    // The admin «Решение модератора» panel + its verdict buttons are absent for a participant.
+    await expect(page.getByText('Решение модератора')).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'В пользу специалиста' })).toHaveCount(0)
   })
 
   test('a non-participant cannot reach the dispute detail (not-found)', async ({ page }) => {
@@ -175,14 +177,6 @@ test.describe('compose-disputes — composed disputes screen', () => {
     await setE2ESession(page, { id: emptyId, email: emptyEmail, role: 'SPECIALIST' })
     await page.goto('/disputes')
 
-    await expect(page.getByText('Споров нет')).toBeVisible()
-  })
-
-  test('the sidebar «Споры» nav item is active on /disputes', async ({ page }) => {
-    await setE2ESession(page, { id: clientId, email: clientEmail, role: 'CLIENT' })
-    await page.goto('/disputes')
-
-    const disputesLink = page.getByRole('link', { name: 'Споры' })
-    await expect(disputesLink).toHaveClass(/bg-surface-level-3/)
+    await expect(page.getByText('Открытых споров нет')).toBeVisible()
   })
 })

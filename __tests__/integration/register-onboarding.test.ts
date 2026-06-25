@@ -32,10 +32,11 @@ vi.mock('next/navigation', () => ({
 import { registerUser } from '@/app/actions/auth'
 
 /**
- * compose-auth-onboarding — registerUser additively persists the step-3 role-specific profile and enforces
- * confirm-password (both backward-compatible: single-step callers, sending neither, are unaffected).
+ * reground-auth-to-design — two-phase onboarding (Auth.dc.html). registerUser (step 2 «Зарегистрироваться») creates
+ * the account + session ONLY and returns `{ ok: true }` without redirecting; it does NOT persist any profile (that is
+ * step-3's `updateProfile`). Confirm-password match and password validation are still enforced here.
  */
-describe('registerUser — onboarding profile persistence + confirm-password', () => {
+describe('registerUser — two-phase onboarding (account-only, no profile)', () => {
   const emails: string[] = []
   beforeEach(() => setTestSessionToken(undefined))
   afterEach(async () => {
@@ -56,8 +57,45 @@ describe('registerUser — onboarding profile persistence + confirm-password', (
     return fd
   }
 
-  it('persists a CLIENT ClientProfile from the step-3 fields', async () => {
+  it('creates a CLIENT account and returns { ok: true } without a profile', async () => {
     const email = `cli-${Date.now()}-${Math.random()}@example.com`
+    emails.push(email)
+    const fd = form({
+      email,
+      password: 'SecurePass123',
+      confirmPassword: 'SecurePass123',
+      role: 'CLIENT',
+    })
+    const result = await registerUser(null, fd)
+    expect(result).toEqual({ ok: true })
+
+    const prisma = getTestPrismaClient()
+    const user = await prisma.user.findUnique({ where: { email }, include: { clientProfile: true } })
+    expect(user?.role).toBe('CLIENT')
+    expect(user?.clientProfile).toBeNull()
+  })
+
+  it('creates a SPECIALIST account and returns { ok: true } without a profile', async () => {
+    const email = `spec-${Date.now()}-${Math.random()}@example.com`
+    emails.push(email)
+    const fd = form({
+      email,
+      password: 'SecurePass123',
+      confirmPassword: 'SecurePass123',
+      role: 'SPECIALIST',
+    })
+    const result = await registerUser(null, fd)
+    expect(result).toEqual({ ok: true })
+
+    const prisma = getTestPrismaClient()
+    const user = await prisma.user.findUnique({ where: { email }, include: { specialistProfile: true } })
+    expect(user?.role).toBe('SPECIALIST')
+    expect(user?.specialistProfile).toBeNull()
+  })
+
+  it('does NOT persist profile fields even when present in the payload', async () => {
+    // Profile setup is step-3's updateProfile; any profile fields posted to registerUser are ignored.
+    const email = `noprofile-${Date.now()}-${Math.random()}@example.com`
     emails.push(email)
     const fd = form({
       email,
@@ -67,42 +105,13 @@ describe('registerUser — onboarding profile persistence + confirm-password', (
       companyName: 'ООО Ромашка',
       inn: '7700000001',
       contactPerson: 'Иван Петров',
-      phoneNumber: '+7 900 000-00-00',
     })
-    await expect(registerUser(null, fd)).rejects.toThrow('NEXT_REDIRECT:/dashboard')
+    const result = await registerUser(null, fd)
+    expect(result).toEqual({ ok: true })
 
     const prisma = getTestPrismaClient()
     const user = await prisma.user.findUnique({ where: { email }, include: { clientProfile: true } })
-    expect(user?.role).toBe('CLIENT')
-    expect(user?.clientProfile?.companyName).toBe('ООО Ромашка')
-    expect(user?.clientProfile?.inn).toBe('7700000001')
-    expect(user?.clientProfile?.contactPerson).toBe('Иван Петров')
-  })
-
-  it('persists a SPECIALIST SpecialistProfile with valid dropdown values', async () => {
-    const email = `spec-${Date.now()}-${Math.random()}@example.com`
-    emails.push(email)
-    const fd = form({
-      email,
-      password: 'SecurePass123',
-      confirmPassword: 'SecurePass123',
-      role: 'SPECIALIST',
-      displayName: 'Анна Смирнова',
-      position: 'Senior Frontend',
-      techStack: 'React, TypeScript',
-      specialization: 'Frontend',
-      experienceLevel: 'SENIOR',
-      timezone: 'Europe/Moscow',
-    })
-    await expect(registerUser(null, fd)).rejects.toThrow('NEXT_REDIRECT:/dashboard')
-
-    const prisma = getTestPrismaClient()
-    const user = await prisma.user.findUnique({ where: { email }, include: { specialistProfile: true } })
-    expect(user?.role).toBe('SPECIALIST')
-    expect(user?.specialistProfile?.displayName).toBe('Анна Смирнова')
-    expect(user?.specialistProfile?.specialization).toBe('Frontend')
-    expect(user?.specialistProfile?.experienceLevel).toBe('SENIOR')
-    expect(user?.specialistProfile?.timezone).toBe('Europe/Moscow')
+    expect(user?.clientProfile).toBeNull()
   })
 
   it('rejects a confirm-password mismatch and creates no user', async () => {
@@ -113,8 +122,6 @@ describe('registerUser — onboarding profile persistence + confirm-password', (
       password: 'SecurePass123',
       confirmPassword: 'Different456',
       role: 'CLIENT',
-      companyName: 'ООО Тест',
-      inn: '7700000002',
     })
     const result = await registerUser(null, fd)
     expect(result).toEqual({ error: 'Пароли не совпадают.' })
@@ -124,44 +131,10 @@ describe('registerUser — onboarding profile persistence + confirm-password', (
     expect(user).toBeNull()
   })
 
-  it('coerces an invalid dropdown value to empty (not persisted verbatim)', async () => {
-    const email = `spec-bad-${Date.now()}-${Math.random()}@example.com`
-    emails.push(email)
-    const fd = form({
-      email,
-      password: 'SecurePass123',
-      confirmPassword: 'SecurePass123',
-      role: 'SPECIALIST',
-      displayName: 'Тест',
-      specialization: 'NotAReal__Spec',
-      experienceLevel: 'GURU',
-      timezone: 'Mars/Olympus',
-    })
-    await expect(registerUser(null, fd)).rejects.toThrow('NEXT_REDIRECT:/dashboard')
-
-    const prisma = getTestPrismaClient()
-    const user = await prisma.user.findUnique({ where: { email }, include: { specialistProfile: true } })
-    expect(user?.specialistProfile?.specialization).toBe('')
-    expect(user?.specialistProfile?.experienceLevel).toBe('')
-    expect(user?.specialistProfile?.timezone).toBe('')
-  })
-
-  it('still registers a single-step caller (no confirmPassword, no profile) — backward compatible', async () => {
-    const email = `legacy-${Date.now()}-${Math.random()}@example.com`
-    emails.push(email)
-    const fd = form({ email, password: 'SecurePass123', role: 'CLIENT' })
-    await expect(registerUser(null, fd)).rejects.toThrow('NEXT_REDIRECT:/dashboard')
-
-    const prisma = getTestPrismaClient()
-    const user = await prisma.user.findUnique({ where: { email }, include: { clientProfile: true } })
-    expect(user?.role).toBe('CLIENT')
-    expect(user?.clientProfile).toBeNull() // no profile fields supplied → no profile
-  })
-
   it('still rejects a weak password (validation preserved)', async () => {
     const email = `weak-${Date.now()}-${Math.random()}@example.com`
     emails.push(email)
-    const fd = form({ email, password: 'weak', confirmPassword: 'weak', role: 'CLIENT', companyName: 'X', inn: '1' })
+    const fd = form({ email, password: 'weak', confirmPassword: 'weak', role: 'CLIENT' })
     const result = await registerUser(null, fd)
     expect(result?.error).toBeTruthy()
 

@@ -4,11 +4,12 @@ import { PrismaClient } from '@prisma/client'
 import { PrismaLibSql } from '@prisma/adapter-libsql'
 
 /**
- * compose-client-dashboard (reconcile-dashboards, Phase 1 — reconciled to Дашборд/company 3371:5387) — verifies the
- * CLIENT /dashboard is composed from the kit (WELCOME greeting + OnboardingCard×2 → 2-col BOARD: Активные задачи Tabs +
- * GigCard feed ‖ Найти новый проект CreateGigCTA + Сообщения MessagesPanel) with real data, that gig links + the create
- * flow work, and that NO attention strip renders on company. Seeds a CLIENT + a gig directly into the E2E db
- * (file:./test.db, same as the dev server) so the dashboard has real content.
+ * compose-client-dashboard — verifies the CLIENT /dashboard rebuilt on the gigly_full_design prototype
+ * (app/(protected)/dashboard/DashboardDesign.tsx): WELCOME «Добро пожаловать в Gigly!» + the «Мои гиги»
+ * panel with the four CLIENT <div> tab chips (Все/В работе/На проверке/Завершённые — no «Заявки») + the
+ * design GigCard feed; col2 = the «Создайте новый гиг» panel + «Сообщения». The company shows NO «Требует
+ * внимания» strip (attention is empty for CLIENT), and the page title lives in the shell header
+ * (<h1>«ДАШБОРД»</h1>). Seeds a CLIENT + an OPEN gig directly into the E2E db (file:./test.db).
  */
 let userId: string
 let userEmail: string
@@ -44,25 +45,31 @@ test.beforeAll(async () => {
   await prisma.$disconnect()
 })
 
-test.describe('compose-client-dashboard — composed CLIENT dashboard', () => {
-  test('renders the composed blocks (greeting, onboarding, tabs, create CTA, gig card; no attention strip)', async ({ page }) => {
+test.describe('compose-client-dashboard — rebuilt CLIENT dashboard', () => {
+  test('renders the rebuilt blocks (welcome, мои гиги + four tabs, create panel, gig card; no attention strip)', async ({ page }) => {
     await setE2ESession(page, { id: userId, email: userEmail, role: 'CLIENT' })
     await page.goto('/dashboard')
 
-    await expect(page.getByText(/Здравствуйте/)).toBeVisible() // WELCOME greeting (no BannerCard)
-    await expect(page.getByText('Заполните профиль')).toBeVisible() // an OnboardingCard
-    await expect(page.getByText('Активные задачи')).toBeVisible() // BOARD col1 SectionHeader
-    await expect(page.getByRole('tablist')).toBeVisible() // Tabs (Menu-switcher)
-    await expect(page.getByRole('link', { name: /Создать гиг/ }).first()).toBeVisible() // CreateGigCTA
+    await expect(page.getByText('Добро пожаловать в Gigly!')).toBeVisible() // WELCOME
+    await expect(page.getByText('Заполните профиль')).toBeVisible() // an onboarding tile
+    await expect(page.getByRole('heading', { name: 'Мои гиги' })).toBeVisible() // BOARD col1 panel header
+    for (const label of ['Все', 'В работе', 'На проверке', 'Завершённые']) {
+      // CLIENT has four tabs — NO «Заявки». The only seed gig is OPEN, so no tab/card status collision.
+      await expect(page.getByText(label, { exact: true }).first()).toBeVisible()
+    }
+    await expect(page.getByRole('heading', { name: 'Создайте новый гиг' })).toBeVisible() // col2 create panel
+    await expect(page.getByRole('link', { name: /Создать гиг/ }).first()).toBeVisible() // create CTA
     await expect(page.getByText('E2E Dashboard Gig')).toBeVisible() // a GigCard
-    await expect(page.getByText('Уведомления')).toHaveCount(0) // company hides the attention strip
-    await expect(page.getByRole('heading', { name: 'Дашборд' })).toHaveCount(0) // no page-title
+    await expect(page.getByRole('heading', { name: 'Сообщения' })).toBeVisible() // col2 messages panel
+    await expect(page.getByRole('heading', { name: 'Требует внимания' })).toHaveCount(0) // company has no attention strip
+    await expect(page.getByRole('heading', { name: 'ДАШБОРД' })).toBeVisible() // title lives in the shell header now
   })
 
   test('a GigCard opens the gig detail', async ({ page }) => {
     await setE2ESession(page, { id: userId, email: userEmail, role: 'CLIENT' })
     await page.goto('/dashboard')
-    await page.getByRole('button', { name: /К проекту/ }).first().click()
+    // The compact GigCard is a Link (its footer CTA only renders on the browse screen) — click by title.
+    await page.getByRole('link', { name: /E2E Dashboard Gig/ }).first().click()
     await expect(page).toHaveURL(new RegExp(`/gigs/${gigId}`))
   })
 

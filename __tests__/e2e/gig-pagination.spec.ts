@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { PrismaClient } from '@prisma/client'
 import { PrismaLibSql } from '@prisma/adapter-libsql'
-import { createTestUser } from '../helpers/seed'
+import { createTestUser, resetE2EDb } from '../helpers/seed'
 import { createTestSession } from '../helpers/auth'
 
 // Setup test database connection for E2E tests
@@ -13,15 +13,15 @@ const prisma = new PrismaClient({
   adapter: adapter as any
 })
 
+// The rebuilt browse screen renders «Найдено» as an <h2> heading + a SEPARATE count badge <span> (not a single
+// «Найдено N» node) — scope the badge to the heading's row.
+const count = (page: import('@playwright/test').Page, n: string) =>
+  page.getByRole('heading', { name: 'Найдено' }).locator('..').getByText(n, { exact: true })
+
 test.describe('Gig Pagination E2E', () => {
   test.beforeEach(async ({ page }) => {
     // Clean up database
-    await prisma.message.deleteMany()
-    await prisma.application.deleteMany()
-    await prisma.gig.deleteMany()
-    await prisma.specialistProfile.deleteMany()
-    await prisma.clientProfile.deleteMany()
-    await prisma.user.deleteMany()
+    await resetE2EDb(prisma)
 
     // Create test users
     const client = await createTestUser(prisma, {
@@ -69,12 +69,7 @@ test.describe('Gig Pagination E2E', () => {
 
   test.afterEach(async () => {
     // Clean up
-    await prisma.message.deleteMany()
-    await prisma.application.deleteMany()
-    await prisma.gig.deleteMany()
-    await prisma.specialistProfile.deleteMany()
-    await prisma.clientProfile.deleteMany()
-    await prisma.user.deleteMany()
+    await resetE2EDb(prisma)
   })
 
   test.afterAll(async () => {
@@ -88,7 +83,7 @@ test.describe('Gig Pagination E2E', () => {
 
     // Verify we're on page 1
     await expect(page).toHaveURL('/gigs')
-    await expect(page.locator('text=Найдено 60')).toBeVisible()
+    await expect(count(page, '60')).toBeVisible()
 
     // Verify pagination controls are visible
     await expect(page.locator('nav[aria-label="Pagination"]')).toBeVisible()
@@ -97,7 +92,7 @@ test.describe('Gig Pagination E2E', () => {
     await page.click('a[aria-label="Next page"]')
     await page.waitForURL(/page=2/)
     await expect(page).toHaveURL(/page=2/)
-    await expect(page.locator('text=Найдено 60')).toBeVisible()
+    await expect(count(page, '60')).toBeVisible()
 
     // Verify page 2 is active
     await expect(page.locator('[aria-current="page"]')).toHaveText('2')
@@ -106,13 +101,13 @@ test.describe('Gig Pagination E2E', () => {
     await page.click('a[aria-label="Next page"]')
     await page.waitForURL(/page=3/)
     await expect(page).toHaveURL(/page=3/)
-    await expect(page.locator('text=Найдено 60')).toBeVisible()
+    await expect(count(page, '60')).toBeVisible()
 
     // Click Previous button
     await page.click('a[aria-label="Previous page"]')
     await page.waitForURL(/page=2/)
     await expect(page).toHaveURL(/page=2/)
-    await expect(page.locator('text=Найдено 60')).toBeVisible()
+    await expect(count(page, '60')).toBeVisible()
   })
 
   test('should navigate directly to a specific page via URL', async ({ page }) => {
@@ -122,7 +117,7 @@ test.describe('Gig Pagination E2E', () => {
 
     // Verify we're on page 2
     await expect(page).toHaveURL(/page=2/)
-    await expect(page.locator('text=Найдено 60')).toBeVisible()
+    await expect(count(page, '60')).toBeVisible()
     await expect(page.locator('[aria-current="page"]')).toHaveText('2')
   })
 
@@ -135,7 +130,7 @@ test.describe('Gig Pagination E2E', () => {
     await page.click('a[aria-label="Go to page 3"]')
     await page.waitForURL(/page=3/)
     await expect(page).toHaveURL(/page=3/)
-    await expect(page.locator('text=Найдено 60')).toBeVisible()
+    await expect(count(page, '60')).toBeVisible()
     await expect(page.locator('[aria-current="page"]')).toHaveText('3')
   })
 
@@ -146,7 +141,7 @@ test.describe('Gig Pagination E2E', () => {
 
     // Should redirect to last valid page (page 3)
     await expect(page).toHaveURL(/page=3/)
-    await expect(page.locator('text=Найдено 60')).toBeVisible()
+    await expect(count(page, '60')).toBeVisible()
 
     // Try to navigate to page 0
     await page.goto('/gigs?page=0')
@@ -154,7 +149,7 @@ test.describe('Gig Pagination E2E', () => {
 
     // Should redirect to page 1
     await expect(page).toHaveURL('/gigs')
-    await expect(page.locator('text=Найдено 60')).toBeVisible()
+    await expect(count(page, '60')).toBeVisible()
   })
 
   test('should preserve filters when paginating', async ({ page }) => {
@@ -163,7 +158,7 @@ test.describe('Gig Pagination E2E', () => {
     await page.waitForLoadState('networkidle')
 
     // Verify filtered results (30 React gigs)
-    await expect(page.locator('text=Найдено 30')).toBeVisible()
+    await expect(count(page, '30')).toBeVisible()
 
     // Navigate to page 2
     await page.click('a[aria-label="Next page"]')
@@ -172,7 +167,7 @@ test.describe('Gig Pagination E2E', () => {
     // Verify URL includes both filter and page params (PaginationControls preserves every query param)
     await expect(page).toHaveURL(/tags=React/)
     await expect(page).toHaveURL(/page=2/)
-    await expect(page.locator('text=Найдено 30')).toBeVisible()
+    await expect(count(page, '30')).toBeVisible()
   })
 
   test('should reset to page 1 when filters change', async ({ page }) => {
@@ -181,14 +176,14 @@ test.describe('Gig Pagination E2E', () => {
     await page.waitForLoadState('networkidle')
     await expect(page).toHaveURL(/page=2/)
 
-    // Change a filter via the composed FilterBar search → the screen drops `page` (resets to page 1)
-    await page.getByRole('searchbox').fill('Test Gig 05')
-    await page.getByRole('searchbox').press('Enter')
-    await page.waitForURL(/search=/)
+    // Change a filter via a native <select> (sort) → GigSearchDesign drops `page` (resets to page 1). Sort keeps all
+    // 60 gigs (text search now lives in the shell header, not a content searchbox).
+    await page.getByRole('combobox').filter({ hasText: 'Сначала новые' }).selectOption({ label: 'Дороже' })
+    await page.waitForURL(/sort=budget-desc/)
 
     // Verify pagination reset to page 1 (no page param in URL)
     await expect(page).not.toHaveURL(/page=/)
-    await expect(page.locator('text=Найдено 1')).toBeVisible()
+    await expect(count(page, '60')).toBeVisible()
   })
 
   test('should support browser back/forward navigation', async ({ page }) => {
@@ -206,18 +201,18 @@ test.describe('Gig Pagination E2E', () => {
     await page.goBack()
     await page.waitForLoadState('networkidle')
     await expect(page).toHaveURL(/page=2/)
-    await expect(page.locator('text=Найдено 60')).toBeVisible()
+    await expect(count(page, '60')).toBeVisible()
 
     await page.goBack()
     await page.waitForLoadState('networkidle')
     await expect(page).toHaveURL('/gigs')
-    await expect(page.locator('text=Найдено 60')).toBeVisible()
+    await expect(count(page, '60')).toBeVisible()
 
     // Use browser forward button
     await page.goForward()
     await page.waitForLoadState('networkidle')
     await expect(page).toHaveURL(/page=2/)
-    await expect(page.locator('text=Найдено 60')).toBeVisible()
+    await expect(count(page, '60')).toBeVisible()
   })
 
   test('should disable Previous button on first page and Next button on last page', async ({ page }) => {

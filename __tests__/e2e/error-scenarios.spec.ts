@@ -16,7 +16,7 @@
 import { test, expect } from '@playwright/test'
 import { PrismaClient } from '@prisma/client'
 import { PrismaLibSql } from '@prisma/adapter-libsql'
-import { createTestUser, createTestGig } from '../helpers/seed'
+import { createTestUser, createTestGig, resetE2EDb } from '../helpers/seed'
 import { createTestSession } from '../helpers/auth'
 
 // Setup test database connection for E2E tests
@@ -30,11 +30,8 @@ const prisma = new PrismaClient({
 
 test.describe('Error Scenarios E2E', () => {
   test.afterEach(async () => {
-    // Clean up test data in correct order (respect foreign key constraints)
-    await prisma.message.deleteMany({})
-    await prisma.application.deleteMany({})
-    await prisma.gig.deleteMany({})
-    await prisma.user.deleteMany({})
+    // FK-safe full reset (the shared E2E db may hold disputes/reviews/notifications referencing gigs+users).
+    await resetE2EDb(prisma)
   })
 
   test.afterAll(async () => {
@@ -226,7 +223,7 @@ test.describe('Error Scenarios E2E', () => {
       if (await approachField.isVisible()) {
         await approachField.fill('Буду использовать современный стек технологий с применением лучших практик разработки и тестирования кода для выполнения данного проекта')
         await page.fill('textarea[name="questions"]', 'Какие требования к производительности? Какие сроки выполнения?')
-        await page.click('button:has-text("Submit Application")')
+        await page.getByRole('button', { name: 'Отправить заявку' }).click()
 
         // Wait for either error message or redirect
         await page.waitForTimeout(2000)
@@ -326,16 +323,15 @@ test.describe('Error Scenarios E2E', () => {
       await page.goto(`http://localhost:3000/gigs/${gig.id}`)
       await page.waitForLoadState('networkidle')
 
-      // Verify work submission form is not visible (only assigned specialist can submit)
-      const workForm = page.locator('textarea[name="workDescription"]')
-      const isFormVisible = await workForm.isVisible().catch(() => false)
+      // Verify the rebuilt submit-work control is not visible (only the assigned specialist can submit).
+      const submitWork = page.getByRole('button', { name: 'Сдать работу на проверку' })
+      const isFormVisible = await submitWork.isVisible().catch(() => false)
 
       expect(isFormVisible).toBe(false)
 
-      // Verify gig status unchanged
+      // Verify gig status unchanged (REVIEW would indicate work was submitted; it stays IN_PROGRESS).
       const gigAfter = await prisma.gig.findUnique({ where: { id: gig.id } })
       expect(gigAfter?.status).toBe('IN_PROGRESS')
-      expect(gigAfter?.workSubmittedAt).toBeFalsy() // null or undefined
     })
 
     test('cannot approve work when not gig owner', async ({ page }) => {
@@ -354,7 +350,6 @@ test.describe('Error Scenarios E2E', () => {
         clientId: clientA.id,
         status: 'REVIEW',
         assignedSpecialistId: specialist.id,
-        workSubmittedAt: new Date()
       })
 
       // Create client B (different user)
@@ -379,16 +374,15 @@ test.describe('Error Scenarios E2E', () => {
       await page.goto(`http://localhost:3000/gigs/${gig.id}`)
       await page.waitForLoadState('networkidle')
 
-      // Verify approve button is not visible (only owner can approve)
-      const approveButton = page.locator('button:has-text("Approve")')
+      // Verify the «Принять работу» button is not visible (only the owner can approve).
+      const approveButton = page.getByRole('button', { name: 'Принять работу' })
       const isButtonVisible = await approveButton.isVisible().catch(() => false)
 
       expect(isButtonVisible).toBe(false)
 
-      // Verify gig status unchanged
+      // Verify gig status unchanged (COMPLETED would indicate approval; it stays REVIEW).
       const gigAfter = await prisma.gig.findUnique({ where: { id: gig.id } })
       expect(gigAfter?.status).toBe('REVIEW')
-      expect(gigAfter?.completedAt).toBeFalsy() // null or undefined
     })
 
     test('cannot mark OPEN gig as paid', async ({ page }) => {
@@ -419,8 +413,8 @@ test.describe('Error Scenarios E2E', () => {
       await page.goto(`http://localhost:3000/gigs/${gig.id}`)
       await page.waitForLoadState('networkidle')
 
-      // Verify "Mark as Paid" button is not visible (only for COMPLETED gigs)
-      const paidButton = page.locator('button:has-text("Mark as Paid")')
+      // Verify the «Отметить как оплаченный» button is not visible (only for COMPLETED gigs, owner only).
+      const paidButton = page.getByRole('button', { name: 'Отметить как оплаченный' })
       const isButtonVisible = await paidButton.isVisible().catch(() => false)
 
       expect(isButtonVisible).toBe(false)
@@ -504,7 +498,6 @@ test.describe('Error Scenarios E2E', () => {
         clientId: client.id,
         status: 'COMPLETED',
         assignedSpecialistId: assignedSpecialist.id,
-        completedAt: new Date()
       })
 
       const specialist = await createTestUser(prisma, {
@@ -556,7 +549,6 @@ test.describe('Error Scenarios E2E', () => {
         clientId: client.id,
         status: 'PAID',
         assignedSpecialistId: assignedSpecialist.id,
-        completedAt: new Date(),
         paidAt: new Date()
       })
 

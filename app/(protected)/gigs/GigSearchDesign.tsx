@@ -34,11 +34,12 @@ const countBadge: React.CSSProperties = {
   fontSize: 15,
 };
 
-function DSelect({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: SelectOption[] }) {
+function DSelect({ value, onChange, options, ariaLabel }: { value: string; onChange: (v: string) => void; options: SelectOption[]; ariaLabel: string }) {
   return (
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
+      aria-label={ariaLabel}
       style={{
         height: 48,
         padding: "0 14px",
@@ -91,9 +92,9 @@ export function GigSearchDesign({
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       {/* filter row (text search lives in the shell header → ?search=; these refine it) */}
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-        <DSelect value={params.get("category") ?? ""} onChange={(c) => set("category", c)} options={categoryOptions} />
-        <DSelect value={params.get("sort") ?? "newest"} onChange={(s) => set("sort", s, "newest")} options={sortOptions} />
-        <DSelect value={params.get("minRating") ?? ""} onChange={(r) => set("minRating", r)} options={ratingOptions} />
+        <DSelect ariaLabel="Категория" value={params.get("category") ?? ""} onChange={(c) => set("category", c)} options={categoryOptions} />
+        <DSelect ariaLabel="Сортировка" value={params.get("sort") ?? "newest"} onChange={(s) => set("sort", s, "newest")} options={sortOptions} />
+        <DSelect ariaLabel="Минимальный рейтинг" value={params.get("minRating") ?? ""} onChange={(r) => set("minRating", r)} options={ratingOptions} />
       </div>
 
       {/* Найдено */}

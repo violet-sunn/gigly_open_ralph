@@ -17,7 +17,7 @@
 import { test, expect } from '@playwright/test'
 import { PrismaClient } from '@prisma/client'
 import { PrismaLibSql } from '@prisma/adapter-libsql'
-import { createTestUser, createTestApplication } from '../helpers/seed'
+import { createTestUser, createTestApplication, resetE2EDb } from '../helpers/seed'
 import { createTestSession } from '../helpers/auth'
 
 // Setup test database connection for E2E tests
@@ -31,11 +31,8 @@ const prisma = new PrismaClient({
 
 test.describe('Complete Client Journey E2E', () => {
   test.afterEach(async () => {
-    // Clean up test data
-    await prisma.message.deleteMany({})
-    await prisma.application.deleteMany({})
-    await prisma.gig.deleteMany({})
-    await prisma.user.deleteMany({})
+    // FK-safe full reset (the shared E2E db may hold disputes/reviews/notifications referencing gigs+users).
+    await resetE2EDb(prisma)
   })
 
   test.afterAll(async () => {
@@ -92,43 +89,44 @@ test.describe('Complete Client Journey E2E', () => {
     // STEP 2: Client creates gig via UI
     // ========================================================================
 
+    // Category is the FK target for the create-gig chip — seed it idempotently (afterEach doesn't clear categories).
+    await prisma.category.upsert({
+      where: { slug: 'programming' },
+      create: { slug: 'programming', name: 'Программирование', order: 2 },
+      update: {},
+    })
+
     await page.goto('http://localhost:3000/gigs/new')
     await expect(page).toHaveURL(/\/gigs\/new/)
 
-    // Fill gig creation form with Russian data
-    await page.fill('input[name="title"]', 'Разработка REST API для мобильного приложения')
-    await page.fill('textarea[name="description"]', 'Необходимо разработать REST API для мобильного приложения. Требуется опыт работы с Node.js и PostgreSQL. Проект включает аутентификацию, работу с базой данных и документацию.')
-    await page.fill('textarea[name="acceptanceCriteria"]', 'API должен поддерживать CRUD операции для всех основных сущностей, иметь документацию в формате OpenAPI, покрытие тестами не менее 80%, и быть готовым к деплою на production.')
-    await page.fill('input[name="budget"]', '1500') // 1500 roubles
-    await page.fill('input[name="tags"]', 'React,TypeScript,Node.js')
+    // Drive the rebuilt CreateGigDesign brief by its stable name= contract (category + criteria via the editor).
+    await page.locator('input[name="title"]').fill('Разработка REST API для мобильного приложения')
+    await page.getByText('Программирование', { exact: true }).click()
+    await page.locator('textarea[name="description"]').fill('Необходимо разработать REST API для мобильного приложения. Требуется опыт работы с Node.js и PostgreSQL.')
+    await page.locator('input[name="goal"]').fill('Запустить мобильное приложение с надёжным API')
+    await page.locator('textarea[name="deliverables"]').fill('Готовый REST API с документацией OpenAPI и автотестами')
 
-    // Submit the form
-    await page.click('button[type="submit"]')
+    // One criterion, long enough to clear createGig's ≥50-char acceptanceCriteria floor.
+    await page.getByPlaceholder(/например/).fill('API проходит все интеграционные тесты и покрытие кода не ниже восьмидесяти процентов')
+    await page.getByRole('button', { name: 'Добавить' }).click()
 
-    // Wait for redirect - could be to dashboard or gig detail page
-    await page.waitForLoadState('networkidle')
+    await page.locator('input[name="budget"]').fill('1500') // 1500 roubles
+    await page.locator('input[name="deadlineDays"]').fill('14')
 
-    // Check if we were redirected to dashboard (gig created successfully)
-    const currentUrl = page.url()
-    console.log(`✓ After gig creation, redirected to: ${currentUrl}`)
+    // Publish → the rebuilt flow redirects to the dedicated success screen.
+    await page.getByRole('button', { name: 'Опубликовать гиг' }).click()
+    await page.waitForURL('**/gigs/new/success')
+    console.log('✓ Gig published, landed on /gigs/new/success')
 
-    // If redirected to dashboard, find the gig we just created
-    let gigId: string
-    if (currentUrl.includes('/gigs/')) {
-      // Redirected to gig detail page
-      gigId = currentUrl.split('/').pop() as string
-    } else {
-      // Redirected to dashboard, need to find the gig
-      const gigs = await prisma.gig.findMany({
-        where: { clientId: client.id },
-        orderBy: { createdAt: 'desc' },
-        take: 1
-      })
-      expect(gigs.length).toBeGreaterThan(0)
-      gigId = gigs[0].id
-      console.log(`✓ Found created gig: ${gigId}`)
-    }
-
+    // Look up the created gig (newest for this client).
+    const gigs = await prisma.gig.findMany({
+      where: { clientId: client.id },
+      orderBy: { createdAt: 'desc' },
+      take: 1,
+    })
+    expect(gigs.length).toBeGreaterThan(0)
+    const gigId = gigs[0].id
+    console.log(`✓ Found created gig: ${gigId}`)
     expect(gigId).toBeTruthy()
 
     // Verify gig was created in database
@@ -169,15 +167,15 @@ test.describe('Complete Client Journey E2E', () => {
     // STEP 4: Client reviews and accepts application via UI
     // ========================================================================
 
-    // Navigate to the gig detail page to see the application
-    await page.goto(`http://localhost:3000/gigs/${gigId}`)
+    // Accept moved to the dedicated applications screen (ApplicationsDesign) in the reground.
+    await page.goto(`http://localhost:3000/gigs/${gigId}/applications`)
     await page.waitForLoadState('networkidle')
 
-    // Find and click the Accept button for the application
-    const acceptButton = page.locator('button:has-text("Accept")').first()
+    // Find and click the «Принять» button on the pending applicant card.
+    const acceptButton = page.getByRole('button', { name: 'Принять' }).first()
     await expect(acceptButton).toBeVisible({ timeout: 5000 })
 
-    // Click the Accept button
+    // Click the accept button
     await acceptButton.click()
 
     // Wait for the page to reload after the server action
@@ -234,11 +232,11 @@ test.describe('Complete Client Journey E2E', () => {
     await page.goto(`http://localhost:3000/gigs/${gigId}`)
     await page.waitForLoadState('networkidle')
 
-    // Find and click the Approve Work button
-    const approveButton = page.locator('button:has-text("Approve")').first()
+    // Find and click the «Принять работу» button (rebuilt approve action).
+    const approveButton = page.getByRole('button', { name: 'Принять работу' }).first()
     await expect(approveButton).toBeVisible({ timeout: 5000 })
 
-    // Click the Approve button
+    // Click the approve button
     await approveButton.click()
 
     // Wait for the page to reload
@@ -269,11 +267,11 @@ test.describe('Complete Client Journey E2E', () => {
     await page.goto(`http://localhost:3000/gigs/${gigId}`)
     await page.waitForLoadState('networkidle')
 
-    // Find and click the Mark as Paid button
-    const markPaidButton = page.locator('button:has-text("Mark as Paid")').first()
+    // Find and click the «Отметить как оплаченный» button (rebuilt mark-paid action).
+    const markPaidButton = page.getByRole('button', { name: 'Отметить как оплаченный' }).first()
     await expect(markPaidButton).toBeVisible({ timeout: 5000 })
 
-    // Click the Mark as Paid button
+    // Click the mark-paid button
     await markPaidButton.click()
 
     // Wait for the page to reload

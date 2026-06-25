@@ -121,10 +121,13 @@ model ClientProfile {
   userId        String   @id
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   companyName   String
-  inn           String
+  inn           String   @default("")
   kpp           String   @default("")
   contactPerson String   @default("")
+  position      String   @default("")
   phoneNumber   String   @default("")
+  location      String   @default("")
+  timezone      String   @default("")
   avatarUrl     String   @default("")
   phoneVerified Boolean  @default(false)
   createdAt     DateTime @default(now())

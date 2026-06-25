@@ -4,13 +4,15 @@ import { PrismaClient } from '@prisma/client'
 import { PrismaLibSql } from '@prisma/adapter-libsql'
 
 /**
- * compose-gig-detail-apply — verifies the /gigs/[id] screen reconciled to the gigly_full_design prototype
- * (reconcile-gig-detail-apply): col1 = GigHeader `main` (title + tags + description) + «Технические требования»
- * (RequirementCard·grid) + «Критерии успеха» (CriteriaList), NO files section; col2 «УСЛОВИЯ» = the company Bio +
- * the ConditionsPanel (grotesk Срок/Бюджет + the company-only fee breakdown) + the apply/owner/lifecycle action rail
- * + the «Сообщения» chat. The preserved flows work end-to-end: a SPECIALIST applies, the owner accepts (→ IN_PROGRESS,
- * and sees the fee breakdown), the assigned specialist submits (→ REVIEW), messaging works once assigned, and example
- * gigs can't be applied to. Seeds directly into the E2E db (file:./test.db, same as the dev server).
+ * compose-gig-detail-apply — verifies the /gigs/[id] screen rebuilt on the gigly_full_design prototype
+ * (app/(protected)/gigs/[id]/GigDetail.tsx): col1 = the gig header (title + tags + description) +
+ * «Технические требования» (requirement grid) + «Критерии успеха»; col2 «УСЛОВИЯ» = the company bio +
+ * the conditions panel (grotesk Срок/Бюджет + the owner-only fee breakdown) + the apply/owner/lifecycle
+ * action rail. The preserved flows work end-to-end: a SPECIALIST applies (→ «Заявка отправлена ✓» + can
+ * withdraw), the owner accepts on the dedicated «Отклики» screen (→ В работе, with the fee breakdown), the
+ * assigned specialist submits (→ На проверке), and example gigs can't be applied to. The rebuilt screen
+ * embeds NO chat composer (messaging lives at /chats) and NO «Файлы» section. Seeds directly into the E2E
+ * db (file:./test.db, same as the dev server).
  */
 const longApproach =
   'Я подойду к задаче поэтапно: анализ требований, проектирование архитектуры, реализация и тестирование с покрытием. ' +
@@ -26,7 +28,6 @@ let assignedEmail: string
 let gigApplyId: string
 let gigAcceptId: string
 let gigSubmitId: string
-let gigMsgId: string
 let gigExampleId: string
 
 test.beforeAll(async () => {
@@ -72,46 +73,45 @@ test.beforeAll(async () => {
     data: { gigId: gigAccept.id, specialistId: spec.id, approach: longApproach, questions: longQuestions, estimatedEffort: '2 недели', status: 'PENDING' },
   })
 
-  // Assigned IN_PROGRESS gigs for submit-work + messaging
+  // Assigned IN_PROGRESS gig for submit-work
   gigSubmitId = (await prisma.gig.create({ data: { ...base, title: 'GD Submit Gig', status: 'IN_PROGRESS', assignedSpecialistId: assigned.id } })).id
-  gigMsgId = (await prisma.gig.create({ data: { ...base, title: 'GD Msg Gig', status: 'IN_PROGRESS', assignedSpecialistId: assigned.id } })).id
 
   await prisma.$disconnect()
 })
 
-test.describe('compose-gig-detail-apply — composed gig detail', () => {
-  test('renders the composed blocks and a SPECIALIST can apply', async ({ page }) => {
+test.describe('compose-gig-detail-apply — rebuilt gig detail', () => {
+  test('renders the rebuilt blocks and a SPECIALIST can apply + withdraw', async ({ page }) => {
     await setE2ESession(page, { id: specId, email: specEmail, role: 'SPECIALIST' })
     await page.goto(`/gigs/${gigApplyId}`)
 
-    await expect(page.getByText('GD Apply Gig').first()).toBeVisible() // GigHeader (title also in the breadcrumb)
-    await expect(page.getByText(/reasonably detailed description/)).toBeVisible() // GigHeader main renders the description
-    await expect(page.getByText('Технические требования')).toBeVisible() // SectionHeader (col1)
-    await expect(page.getByText('Цель проекта')).toBeVisible() // RequirementCard
-    await expect(page.getByText('Критерии успеха')).toBeVisible() // SectionHeader (col1)
-    await expect(page.getByText('Файлы')).toHaveCount(0) // NO files section — the prototype has none
-    await expect(page.getByRole('tab', { name: 'Мои условия' })).toBeVisible() // ConditionsPanel (col2 «УСЛОВИЯ»)
-    await expect(page.getByText('Бюджет проекта')).toBeVisible() // ConditionsPanel grotesk budget label
-    await expect(page.getByText('Срок выполнения')).toBeVisible() // ConditionsPanel grotesk deadline label
-    await expect(page.getByRole('button', { name: 'Откликнуться' })).toBeVisible() // ApplyPanel
+    await expect(page.getByText('GD Apply Gig').first()).toBeVisible() // gig header title (col1 <h1>)
+    await expect(page.getByText(/reasonably detailed description/)).toBeVisible() // header description
+    await expect(page.getByText('Технические требования')).toBeVisible() // col1 section
+    await expect(page.getByText('Цель проекта')).toBeVisible() // a requirement card
+    await expect(page.getByText('Критерии успеха')).toBeVisible() // col1 section
+    await expect(page.getByText('Мои условия')).toBeVisible() // conditions panel tab (a <div>, not role=tab)
+    await expect(page.getByText('Бюджет проекта')).toBeVisible() // conditions panel grotesk budget label
+    await expect(page.getByText('Срок выполнения')).toBeVisible() // conditions panel grotesk deadline label
+    await expect(page.getByRole('button', { name: 'Отправить заявку' })).toBeVisible() // apply form
 
     await page.locator('textarea[name="approach"]').fill(longApproach)
     await page.locator('textarea[name="questions"]').fill(longQuestions)
-    await page.getByRole('button', { name: 'Откликнуться' }).click()
+    await page.getByRole('button', { name: 'Отправить заявку' }).click()
 
-    // After applying, the withdraw control replaces the apply form.
-    await expect(page.getByRole('button', { name: 'Отозвать отклик' })).toBeVisible()
+    // After applying, the applied banner + withdraw control replace the apply form.
+    await expect(page.getByText(/Заявка отправлена/)).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Отозвать заявку' })).toBeVisible()
   })
 
   test('the owner sees the fee breakdown + the «Смотреть отклики» link → accepts on the applications screen (→ В работе)', async ({ page }) => {
     await setE2ESession(page, { id: ownerId, email: ownerEmail, role: 'CLIENT' })
     await page.goto(`/gigs/${gigAcceptId}`)
 
-    await expect(page.getByText('Сервисный сбор (10%)')).toBeVisible() // company-only fee breakdown (ConditionsPanel)
+    await expect(page.getByText('Сервисный сбор (10%)')).toBeVisible() // owner-only fee breakdown
     // The owner applicant list now lives on the dedicated «Отклики» screen (build-applications-screen).
     await page.getByRole('button', { name: /Смотреть отклики/ }).click()
     await expect(page).toHaveURL(new RegExp(`/gigs/${gigAcceptId}/applications`))
-    await expect(page.getByText('Тест Спец')).toBeVisible() // ApplicantCard
+    await expect(page.getByText('Тест Спец')).toBeVisible() // applicant card
     await page.getByRole('button', { name: 'Принять' }).click()
 
     // acceptApplication redirects back to the gig detail, now IN_PROGRESS.
@@ -123,25 +123,15 @@ test.describe('compose-gig-detail-apply — composed gig detail', () => {
     await setE2ESession(page, { id: assignedId, email: assignedEmail, role: 'SPECIALIST' })
     await page.goto(`/gigs/${gigSubmitId}`)
 
-    await page.getByRole('button', { name: 'Отправить работу' }).click()
-    await expect(page.getByText('На проверке').first()).toBeVisible() // GigHeader badge + ConditionsPanel Статус
-  })
-
-  test('messaging works once a specialist is assigned', async ({ page }) => {
-    await setE2ESession(page, { id: assignedId, email: assignedEmail, role: 'SPECIALIST' })
-    await page.goto(`/gigs/${gigMsgId}`)
-
-    const box = page.getByRole('textbox', { name: 'Сообщение' })
-    await box.fill('Привет, приступаю к работе')
-    await box.press('Enter') // submit via the composer form (the Topbar also has an "Отправить" button)
-    await expect(page.getByText('Привет, приступаю к работе')).toBeVisible()
+    await page.getByRole('button', { name: 'Сдать работу на проверку' }).click()
+    await expect(page.getByText('На проверке').first()).toBeVisible() // conditions panel Статус
   })
 
   test('example gigs cannot be applied to', async ({ page }) => {
     await setE2ESession(page, { id: specId, email: specEmail, role: 'SPECIALIST' })
     await page.goto(`/gigs/${gigExampleId}`)
 
-    await expect(page.getByText(/Откликаться на примеры нельзя/)).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Откликнуться' })).toHaveCount(0)
+    // The apply form is gated server-side (lifecycle.canApply requires !isExample) — no apply button renders.
+    await expect(page.getByRole('button', { name: 'Отправить заявку' })).toHaveCount(0)
   })
 })

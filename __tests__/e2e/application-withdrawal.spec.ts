@@ -1,218 +1,76 @@
 import { test, expect } from '@playwright/test'
+import { setE2ESession } from '../helpers/auth'
+import { PrismaClient } from '@prisma/client'
+import { PrismaLibSql } from '@prisma/adapter-libsql'
 
-test.describe('Application Withdrawal', () => {
-  test('specialist can withdraw PENDING application and see it in Archive', async ({ page }) => {
-    // Register as CLIENT and create a gig
-    await page.goto('/register')
-    await page.fill('input[name="email"]', `client-${Date.now()}@test.com`)
-    await page.fill('input[name="password"]', 'TestPass123')
-    await page.click('[data-testid="role-client"]')
-    await page.waitForTimeout(200) // Allow React state to flush
-    await page.click('button[type="submit"]')
+/**
+ * application-withdrawal — the SPECIALIST withdrawal interaction on the rebuilt /gigs/[id]
+ * (app/(protected)/gigs/[id]/GigDetail.tsx). A specialist with a PENDING application sees the
+ * «Заявка отправлена ✓» banner + «Отозвать заявку»; withdrawing (withdrawApplication server action)
+ * clears that control. Seeds directly into the E2E db (file:./test.db, same as the dev server).
+ *
+ * The old kit coverage is gone by design: no /register→/login flow, no English kit labels, no dashboard
+ * archive tab, and no
+ * client-side applicant list on the gig detail — owner-facing applicant state lives on /applications
+ * (change #7). This spec covers the specialist-side withdrawal that the rebuilt gig-detail supports.
+ */
+const longApproach =
+  'Я подойду к задаче поэтапно: анализ требований, проектирование архитектуры, реализация и тестирование с покрытием. ' +
+  'Использую React, TypeScript и проверенные паттерны, обеспечу адаптивную вёрстку и производительность по Lighthouse.'
+const longQuestions = 'Какие требования к срокам и приоритетам? Есть ли дизайн-макеты и доступ к API заранее, до старта?'
 
-    // Wait for redirect to dashboard
-    await page.waitForURL('/dashboard')
+let specId: string
+let specEmail: string
+let gigId: string
 
-    // Create a gig
-    await page.goto('/gigs/new')
-    await page.fill('input[name="title"]', 'Test Gig for Withdrawal')
-    await page.fill('textarea[name="description"]', 'Test description for withdrawal flow')
-    await page.fill('textarea[name="acceptanceCriteria"]', 'Test acceptance criteria that is long enough to pass validation requirements')
-    await page.fill('input[name="budget"]', '100000')
-    await page.fill('input[name="tags"]', 'React')
-    await page.click('button[type="submit"]')
+test.beforeAll(async () => {
+  const prisma = new PrismaClient({ adapter: new PrismaLibSql({ url: 'file:./test.db' }) as any })
+  const s = Date.now()
+  specEmail = `wd-spec-${s}@example.com`
 
-    // Wait for redirect to dashboard
-    await page.waitForURL('/dashboard')
-
-    // Get the gig ID from the page
-    const gigLink = page.locator('a[href^="/gigs/"]').first()
-    const gigHref = await gigLink.getAttribute('href')
-    const gigId = gigHref?.split('/').pop()
-
-    // Logout
-    await page.goto('/logout')
-    await page.waitForURL('/login')
-
-    // Register as SPECIALIST
-    await page.goto('/register')
-    const specialistEmail = `specialist-${Date.now()}@test.com`
-    await page.fill('input[name="email"]', specialistEmail)
-    await page.fill('input[name="password"]', 'TestPass123')
-    await page.click('[data-testid="role-specialist"]')
-    await page.click('button[type="submit"]')
-
-    // Wait for redirect to dashboard
-    await page.waitForURL('/dashboard')
-
-    // Navigate to the gig and apply
-    await page.goto(`/gigs/${gigId}`)
-    await page.fill('textarea[name="approach"]', 'This is my technical approach that is long enough to pass validation requirements for the approach field in the application form')
-    await page.fill('textarea[name="questions"]', 'These are my clarifying questions that are long enough to pass validation')
-    await page.click('button:has-text("Apply to Gig")')
-
-    // Wait for redirect back to gig detail
-    await page.waitForURL(`/gigs/${gigId}`)
-
-    // Verify "Withdraw Application" button appears
-    await expect(page.locator('button:has-text("Withdraw Application")')).toBeVisible()
-
-    // Click withdraw button
-    await page.click('button:has-text("Withdraw Application")')
-
-    // Wait for redirect
-    await page.waitForURL(`/gigs/${gigId}`)
-
-    // Verify WITHDRAWN status badge appears
-    await expect(page.locator('text=WITHDRAWN')).toBeVisible()
-    await expect(page.locator('text=Withdrawn on')).toBeVisible()
-
-    // Verify withdraw button no longer appears
-    await expect(page.locator('button:has-text("Withdraw Application")')).not.toBeVisible()
-
-    // Navigate to dashboard and check Archive tab
-    await page.goto('/dashboard')
-    await page.click('button:has-text("Archive")')
-
-    // Verify WITHDRAWN application appears in Archive
-    await expect(page.locator('text=Test Gig for Withdrawal')).toBeVisible()
-    await expect(page.locator('text=WITHDRAWN')).toBeVisible()
-    await expect(page.locator('text=Withdrawn on')).toBeVisible()
+  const owner = await prisma.user.create({
+    data: { email: `wd-owner-${s}@example.com`, password: 'x', role: 'CLIENT', clientProfile: { create: { companyName: 'ООО Заказчик', inn: '7700000000' } } },
   })
-
-  test('client sees WITHDRAWN status in applications list', async ({ page }) => {
-    // Register as CLIENT and create a gig
-    await page.goto('/register')
-    const clientEmail = `client-${Date.now()}@test.com`
-    await page.fill('input[name="email"]', clientEmail)
-    await page.fill('input[name="password"]', 'TestPass123')
-    await page.click('[data-testid="role-client"]')
-    await page.click('button[type="submit"]')
-
-    await page.waitForURL('/dashboard')
-
-    // Create a gig
-    await page.goto('/gigs/new')
-    await page.fill('input[name="title"]', 'Test Gig for Client View')
-    await page.fill('textarea[name="description"]', 'Test description')
-    await page.fill('textarea[name="acceptanceCriteria"]', 'Test acceptance criteria that is long enough to pass validation')
-    await page.fill('input[name="budget"]', '100000')
-    await page.fill('input[name="tags"]', 'React')
-    await page.click('button[type="submit"]')
-
-    await page.waitForURL('/dashboard')
-
-    const gigLink = page.locator('a[href^="/gigs/"]').first()
-    const gigHref = await gigLink.getAttribute('href')
-    const gigId = gigHref?.split('/').pop()
-
-    // Logout
-    await page.goto('/logout')
-    await page.waitForURL('/login')
-
-    // Register as SPECIALIST and apply
-    await page.goto('/register')
-    const specialistEmail = `specialist-${Date.now()}@test.com`
-    await page.fill('input[name="email"]', specialistEmail)
-    await page.fill('input[name="password"]', 'TestPass123')
-    await page.click('[data-testid="role-specialist"]')
-    await page.click('button[type="submit"]')
-
-    await page.waitForURL('/dashboard')
-
-    // Apply to gig
-    await page.goto(`/gigs/${gigId}`)
-    await page.fill('textarea[name="approach"]', 'Technical approach that is long enough to pass validation requirements for the approach field')
-    await page.fill('textarea[name="questions"]', 'Clarifying questions that are long enough to pass validation')
-    await page.click('button:has-text("Apply to Gig")')
-
-    await page.waitForURL(`/gigs/${gigId}`)
-
-    // Withdraw application
-    await page.click('button:has-text("Withdraw Application")')
-    await page.waitForURL(`/gigs/${gigId}`)
-
-    // Logout
-    await page.goto('/logout')
-    await page.waitForURL('/login')
-
-    // Login as CLIENT
-    await page.fill('input[name="email"]', clientEmail)
-    await page.fill('input[name="password"]', 'TestPass123')
-    await page.click('button[type="submit"]')
-
-    await page.waitForURL('/dashboard')
-
-    // View gig detail
-    await page.goto(`/gigs/${gigId}`)
-
-    // Verify WITHDRAWN status visible in applications list
-    await expect(page.locator('text=WITHDRAWN')).toBeVisible()
-    await expect(page.locator('text=Withdrawn on')).toBeVisible()
-
-    // Verify no Accept/Reject buttons for WITHDRAWN application
-    const applicationSection = page.locator('li', { has: page.locator('text=WITHDRAWN') })
-    await expect(applicationSection.locator('button:has-text("Accept")')).not.toBeVisible()
-    await expect(applicationSection.locator('button:has-text("Reject")')).not.toBeVisible()
+  const spec = await prisma.user.create({
+    data: { email: specEmail, password: 'x', role: 'SPECIALIST', specialistProfile: { create: { displayName: 'Тест Спец', techStack: 'React', experienceLevel: 'SENIOR', bio: 'x' } } },
   })
+  specId = spec.id
 
-  test('withdraw button only visible for PENDING applications', async ({ page }) => {
-    // Register as CLIENT and create a gig
-    await page.goto('/register')
-    await page.fill('input[name="email"]', `client-${Date.now()}@test.com`)
-    await page.fill('input[name="password"]', 'TestPass123')
-    await page.click('[data-testid="role-client"]')
-    await page.waitForTimeout(200) // Allow React state to flush
-    await page.click('button[type="submit"]')
+  const gig = await prisma.gig.create({
+    data: {
+      title: 'WD Gig',
+      description: 'Withdrawal flow test gig with a reasonably detailed description.',
+      acceptanceCriteria: 'Критерий приёмки достаточной длины, чтобы пройти валидацию полей гига.',
+      budget: 10000000,
+      serviceFee: 1000000,
+      totalAmount: 11000000,
+      status: 'OPEN',
+      tags: 'React,TypeScript',
+      deadlineDays: 14,
+      clientId: owner.id,
+    },
+  })
+  gigId = gig.id
 
-    await page.waitForURL('/dashboard')
+  // The specialist's PENDING application — the precondition for the withdraw control.
+  await prisma.application.create({
+    data: { gigId: gig.id, specialistId: spec.id, approach: longApproach, questions: longQuestions, estimatedEffort: '2 недели', status: 'PENDING' },
+  })
+  await prisma.$disconnect()
+})
 
-    await page.goto('/gigs/new')
-    await page.fill('input[name="title"]', 'Test Gig for Button Visibility')
-    await page.fill('textarea[name="description"]', 'Test description')
-    await page.fill('textarea[name="acceptanceCriteria"]', 'Test acceptance criteria that is long enough to pass validation')
-    await page.fill('input[name="budget"]', '100000')
-    await page.fill('input[name="tags"]', 'React')
-    await page.click('button[type="submit"]')
-
-    await page.waitForURL('/dashboard')
-
-    const gigLink = page.locator('a[href^="/gigs/"]').first()
-    const gigHref = await gigLink.getAttribute('href')
-    const gigId = gigHref?.split('/').pop()
-
-    // Logout
-    await page.goto('/logout')
-    await page.waitForURL('/login')
-
-    // Register as SPECIALIST
-    await page.goto('/register')
-    await page.fill('input[name="email"]', `specialist-${Date.now()}@test.com`)
-    await page.fill('input[name="password"]', 'TestPass123')
-    await page.click('input[type="radio"][name="role"][value="SPECIALIST"]')
-    await page.click('button[type="submit"]')
-
-    await page.waitForURL('/dashboard')
-
-    // Apply to gig
+test.describe('Application Withdrawal — rebuilt /gigs/[id]', () => {
+  test('a specialist withdraws a PENDING application from the gig detail', async ({ page }) => {
+    await setE2ESession(page, { id: specId, email: specEmail, role: 'SPECIALIST' })
     await page.goto(`/gigs/${gigId}`)
-    await page.fill('textarea[name="approach"]', 'Technical approach that is long enough to pass validation requirements')
-    await page.fill('textarea[name="questions"]', 'Clarifying questions that are long enough to pass validation')
-    await page.click('button:has-text("Apply to Gig")')
 
-    await page.waitForURL(`/gigs/${gigId}`)
+    // PENDING state: the applied banner + the withdraw control are shown.
+    await expect(page.getByText(/Заявка отправлена/)).toBeVisible()
+    const withdraw = page.getByRole('button', { name: 'Отозвать заявку' })
+    await expect(withdraw).toBeVisible()
 
-    // Verify button appears for PENDING application
-    await expect(page.locator('button:has-text("Withdraw Application")')).toBeVisible()
-
-    // Withdraw application
-    await page.click('button:has-text("Withdraw Application")')
-    await page.waitForURL(`/gigs/${gigId}`)
-
-    // Verify button no longer appears after withdrawal
-    await expect(page.locator('button:has-text("Withdraw Application")')).not.toBeVisible()
-
-    // Verify WITHDRAWN badge appears instead
-    await expect(page.locator('text=WITHDRAWN')).toBeVisible()
+    // Withdraw → the PENDING control is gone (withdrawApplication revalidates the screen).
+    await withdraw.click()
+    await expect(page.getByRole('button', { name: 'Отозвать заявку' })).toHaveCount(0)
   })
 })

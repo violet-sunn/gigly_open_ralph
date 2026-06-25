@@ -71,13 +71,10 @@ describe('User Registration Tests', () => {
     formData.append('password', 'TestPass123!')
     formData.append('role', 'CLIENT')
 
-    // Expect redirect on success
-    try {
-      await registerUser(null, formData)
-      throw new Error('Expected redirect but got none')
-    } catch (error: any) {
-      expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
-    }
+    // Two-phase onboarding: step-2 registration creates the account + session and returns { ok: true } (no redirect);
+    // profile setup happens later at step 3 via updateProfile.
+    const result = await registerUser(null, formData)
+    expect(result).toEqual({ ok: true })
 
     // Verify user was created in database
     const prisma = getTestPrismaClient()
@@ -88,6 +85,9 @@ describe('User Registration Tests', () => {
     expect(user).toBeDefined()
     expect(user?.role).toBe('CLIENT')
     expect(user?.password).toMatch(/^\$2[ab]\$/)
+    // No profile is created by registerUser — that's step-3's updateProfile.
+    const clientProfile = await prisma.clientProfile.findUnique({ where: { userId: user!.id } })
+    expect(clientProfile).toBeNull()
 
     // Verify password was hashed correctly
     const passwordValid = await bcrypt.compare('TestPass123!', user!.password)
@@ -103,13 +103,9 @@ describe('User Registration Tests', () => {
     formData.append('password', 'TestPass123!')
     formData.append('role', 'SPECIALIST')
 
-    // Expect redirect on success
-    try {
-      await registerUser(null, formData)
-      throw new Error('Expected redirect but got none')
-    } catch (error: any) {
-      expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
-    }
+    // Step-2 registration returns { ok: true } (account + session created, no redirect).
+    const result = await registerUser(null, formData)
+    expect(result).toEqual({ ok: true })
 
     // Verify user was created in database
     const prisma = getTestPrismaClient()
@@ -137,7 +133,7 @@ describe('User Registration Tests', () => {
     const result = await registerUser(null, formData)
 
     // Should return error
-    expect(result).toEqual({ error: 'Please select whether you\'re a client or specialist.' })
+    expect(result).toEqual({ error: 'Выберите, кто вы — компания или специалист.' })
 
     // Verify no user was created
     const prisma = getTestPrismaClient()
@@ -159,7 +155,7 @@ describe('User Registration Tests', () => {
     const result = await registerUser(null, formData)
 
     // Should return error
-    expect(result).toEqual({ error: 'Please select whether you\'re a client or specialist.' })
+    expect(result).toEqual({ error: 'Выберите, кто вы — компания или специалист.' })
 
     // Verify no user was created
     const prisma = getTestPrismaClient()
@@ -194,7 +190,7 @@ describe('User Registration Tests', () => {
     const result = await registerUser(null, formData2)
 
     // Should return error
-    expect(result).toEqual({ error: 'An account with this email already exists. Try logging in instead.' })
+    expect(result).toEqual({ error: 'Аккаунт с таким email уже существует. Попробуйте войти.' })
 
     // Verify only one user exists
     const prisma = getTestPrismaClient()
@@ -263,12 +259,8 @@ describe('Password Strength Requirements', () => {
     formData.append('password', 'SecurePass123')
     formData.append('role', 'CLIENT')
 
-    try {
-      await registerUser(null, formData)
-      throw new Error('Expected redirect but got none')
-    } catch (error: any) {
-      expect(error.message).toContain('NEXT_REDIRECT:/dashboard')
-    }
+    const result = await registerUser(null, formData)
+    expect(result).toEqual({ ok: true })
 
     // Verify user was created
     const prisma = getTestPrismaClient()
@@ -287,7 +279,7 @@ describe('Password Strength Requirements', () => {
 
     const result = await registerUser(null, formData)
 
-    expect(result).toEqual({ error: 'Password can only contain Latin letters, numbers, and special characters.' })
+    expect(result).toEqual({ error: 'Пароль может содержать только латинские буквы, цифры и спецсимволы.' })
 
     // Verify no user was created
     const prisma = getTestPrismaClient()
@@ -306,7 +298,7 @@ describe('Password Strength Requirements', () => {
 
     const result = await registerUser(null, formData)
 
-    expect(result).toEqual({ error: 'Password must be at least 8 characters long.' })
+    expect(result).toEqual({ error: 'Пароль должен быть не короче 8 символов.' })
 
     // Verify no user was created
     const prisma = getTestPrismaClient()
@@ -325,7 +317,7 @@ describe('Password Strength Requirements', () => {
 
     const result = await registerUser(null, formData)
 
-    expect(result).toEqual({ error: 'Password must not exceed 72 characters.' })
+    expect(result).toEqual({ error: 'Пароль не должен превышать 72 символа.' })
 
     const prisma = getTestPrismaClient()
     const user = await prisma.user.findUnique({ where: { email } })
@@ -343,7 +335,7 @@ describe('Password Strength Requirements', () => {
 
     const result = await registerUser(null, formData)
 
-    expect(result).toEqual({ error: 'Password must contain at least one uppercase letter.' })
+    expect(result).toEqual({ error: 'Пароль должен содержать хотя бы одну заглавную букву.' })
 
     const prisma = getTestPrismaClient()
     const user = await prisma.user.findUnique({ where: { email } })
@@ -361,7 +353,7 @@ describe('Password Strength Requirements', () => {
 
     const result = await registerUser(null, formData)
 
-    expect(result).toEqual({ error: 'Password must contain at least one lowercase letter.' })
+    expect(result).toEqual({ error: 'Пароль должен содержать хотя бы одну строчную букву.' })
 
     const prisma = getTestPrismaClient()
     const user = await prisma.user.findUnique({ where: { email } })
@@ -379,7 +371,7 @@ describe('Password Strength Requirements', () => {
 
     const result = await registerUser(null, formData)
 
-    expect(result).toEqual({ error: 'Password must contain at least one number.' })
+    expect(result).toEqual({ error: 'Пароль должен содержать хотя бы одну цифру.' })
 
     const prisma = getTestPrismaClient()
     const user = await prisma.user.findUnique({ where: { email } })

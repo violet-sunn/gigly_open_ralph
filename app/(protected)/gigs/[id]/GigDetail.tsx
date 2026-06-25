@@ -361,7 +361,7 @@ export function GigDetail({ data }: { data: GigDetailData }) {
               </span>
             )}
             <span style={{ color: "var(--text-5)", fontSize: 12, letterSpacing: 1 }}>★★★★★</span>
-            <span style={{ color: "var(--text-4)", fontSize: 12 }}>{data.bio.rating.count}</span>
+            <span style={{ color: "var(--text-4)", fontSize: 12 }}>{data.bio.rating?.count ?? 0}</span>
           </div>
           <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 13, lineHeight: "18px", color: "var(--text-3)" }}>
             {COMPANY_DESC}

@@ -18,7 +18,7 @@
 import { test, expect } from '@playwright/test'
 import { PrismaClient } from '@prisma/client'
 import { PrismaLibSql } from '@prisma/adapter-libsql'
-import { createTestUser, createTestGig } from '../helpers/seed'
+import { createTestUser, createTestGig, resetE2EDb } from '../helpers/seed'
 import { createTestSession } from '../helpers/auth'
 
 // Setup test database connection for E2E tests
@@ -32,11 +32,8 @@ const prisma = new PrismaClient({
 
 test.describe('Complete Specialist Journey E2E', () => {
   test.afterEach(async () => {
-    // Clean up test data
-    await prisma.message.deleteMany({})
-    await prisma.application.deleteMany({})
-    await prisma.gig.deleteMany({})
-    await prisma.user.deleteMany({})
+    // FK-safe full reset (the shared E2E db may hold disputes/reviews/notifications referencing gigs+users).
+    await resetE2EDb(prisma)
   })
 
   test.afterAll(async () => {
@@ -164,10 +161,11 @@ test.describe('Complete Specialist Journey E2E', () => {
 
     await page.fill('textarea[name="approach"]', approach)
     await page.fill('textarea[name="questions"]', questions)
-    await page.fill('textarea[name="estimatedEffort"]', estimatedEffort)
+    // The rebuilt GigDetail apply form uses an <input> (not <textarea>) for the optional estimate.
+    await page.fill('input[name="estimatedEffort"]', estimatedEffort)
 
-    // Submit the application
-    await page.click('button[type="submit"]')
+    // Submit the application via the rebuilt «Отправить заявку» button.
+    await page.getByRole('button', { name: 'Отправить заявку' }).click()
     await page.waitForLoadState('networkidle')
 
     // Wait a moment for database to update

@@ -4,10 +4,13 @@ import { PrismaClient } from '@prisma/client'
 import { PrismaLibSql } from '@prisma/adapter-libsql'
 
 /**
- * reconcile-my-projects (Phase 3) — verifies /my-gigs is the composed «Мои гиги» screen: a «Мои гиги» header + the five
- * status tabs (Все/Заявки/В работе/На проверке/Завершённые) over a GigCard grid of the viewer's OWN gigs, with the
- * prototype empty state for an empty tab, and cards that open the gig detail. Seeds a CLIENT + one IN_PROGRESS gig
- * directly into the E2E db (file:./test.db).
+ * compose-my-gigs — verifies /my-gigs is the rebuilt «МОИ ГИГИ» screen
+ * (app/(protected)/my-gigs/MyGigsDesign.tsx, rendering app/_design/GigCard.tsx in `full` mode): the five status
+ * filter chips (Все/Заявки/В работе/На проверке/Завершённые) rendered as <div> chips (NOT role="tab"), a 2-col grid
+ * of FULL GigCards for the viewer's OWN gigs (footer Фикс. цена / Срок выполнения / «К проекту»), and the prototype
+ * empty state for an empty tab. The page title lives in the shell header («МОИ ГИГИ»), so there is no in-content title.
+ * The whole GigCard is a <Link> to the gig detail («К проекту» is a <span>, not a button). Seeds a CLIENT + one
+ * IN_PROGRESS gig directly into the E2E db (file:./test.db) → the «В работе» tab is populated, «Заявки» is empty.
  */
 let clientId: string
 let clientEmail: string
@@ -47,24 +50,30 @@ test.beforeAll(async () => {
   await prisma.$disconnect()
 })
 
-test.describe('reconcile-my-projects — composed «Мои гиги»', () => {
-  test('renders the header, the five status tabs, and the own-gig grid', async ({ page }) => {
+test.describe('compose-my-gigs — rebuilt «МОИ ГИГИ»', () => {
+  test('renders the five status chips and the own-gig full GigCard grid', async ({ page }) => {
     await setE2ESession(page, { id: clientId, email: clientEmail, role: 'CLIENT' })
     await page.goto('/my-gigs')
 
-    // «Мои гиги» appears in both the sidebar nav and the screen header — scope to the main content (SectionHeader).
-    await expect(page.locator('#main-content').getByText('Мои гиги', { exact: true })).toBeVisible()
+    // The five <div> filter chips — selected by text, NOT role="tab". The first match is the chip row (which renders
+    // before the grid), so .first() avoids colliding with a GigCard's «В работе»/… status label.
     for (const label of ['Все', 'Заявки', 'В работе', 'На проверке', 'Завершённые']) {
-      await expect(page.getByRole('tab', { name: label })).toBeVisible()
+      await expect(page.getByText(label, { exact: true }).first()).toBeVisible()
     }
-    await expect(page.getByText('E2E Мои Гиги — активный гиг')).toBeVisible() // GigCard for the own gig
+
+    // The own-gig FULL GigCard: title + the full-footer labels.
+    await expect(page.getByText('E2E Мои Гиги — активный гиг')).toBeVisible()
+    await expect(page.getByText('Фикс. цена').first()).toBeVisible()
+    await expect(page.getByText('Срок выполнения').first()).toBeVisible()
+    await expect(page.getByText('К проекту').first()).toBeVisible()
   })
 
   test('a card opens the gig detail', async ({ page }) => {
     await setE2ESession(page, { id: clientId, email: clientEmail, role: 'CLIENT' })
     await page.goto('/my-gigs')
 
-    await page.getByRole('button', { name: 'К проекту' }).first().click()
+    // The whole card is a <Link> to /gigs/[id] («К проекту» is a <span> inside it, not a button) — click by title.
+    await page.getByRole('link', { name: /E2E Мои Гиги — активный гиг/ }).first().click()
     await expect(page).toHaveURL(new RegExp(`/gigs/${gigId}`))
   })
 
@@ -72,8 +81,8 @@ test.describe('reconcile-my-projects — composed «Мои гиги»', () => {
     await setE2ESession(page, { id: clientId, email: clientEmail, role: 'CLIENT' })
     await page.goto('/my-gigs')
 
-    // The single seeded gig is IN_PROGRESS → the «Заявки» tab is empty.
-    await page.getByRole('tab', { name: 'Заявки' }).click()
+    // The single seeded gig is IN_PROGRESS → the «Заявки» chip is empty. Click the chip (first match = the chip row).
+    await page.getByText('Заявки', { exact: true }).first().click()
     await expect(page.getByText('Здесь пока пусто')).toBeVisible()
     await expect(
       page.getByText('Гигов с таким статусом нет. Они появятся здесь, когда изменится статус работ.'),

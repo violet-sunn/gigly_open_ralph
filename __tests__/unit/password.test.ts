@@ -35,50 +35,50 @@ describe('Password Validation', () => {
     it('rejects password with invalid characters (Cyrillic)', () => {
       const result = validatePassword('Пароль123')
       expect(result.valid).toBe(false)
-      expect(result.error).toBe('Password can only contain Latin letters, numbers, and special characters.')
+      expect(result.error).toBe('Пароль может содержать только латинские буквы, цифры и спецсимволы.')
     })
 
     it('checks character whitelist before other validations', () => {
       const result = validatePassword('Пароль') // Cyrillic, also too short and missing number
       expect(result.valid).toBe(false)
-      expect(result.error).toBe('Password can only contain Latin letters, numbers, and special characters.')
+      expect(result.error).toBe('Пароль может содержать только латинские буквы, цифры и спецсимволы.')
     })
 
     it('rejects password that is too long (> 72 chars)', () => {
       const password = 'A' + 'a'.repeat(71) + '1' // 73 chars total
       const result = validatePassword(password)
       expect(result.valid).toBe(false)
-      expect(result.error).toBe('Password must not exceed 72 characters.')
+      expect(result.error).toBe('Пароль не должен превышать 72 символа.')
     })
 
     it('rejects password that is too short', () => {
       const result = validatePassword('Abc1')
       expect(result.valid).toBe(false)
-      expect(result.error).toBe('Password must be at least 8 characters long.')
+      expect(result.error).toBe('Пароль должен быть не короче 8 символов.')
     })
 
     it('rejects password missing uppercase letter', () => {
       const result = validatePassword('lowercase123')
       expect(result.valid).toBe(false)
-      expect(result.error).toBe('Password must contain at least one uppercase letter.')
+      expect(result.error).toBe('Пароль должен содержать хотя бы одну заглавную букву.')
     })
 
     it('rejects password missing lowercase letter', () => {
       const result = validatePassword('UPPERCASE123')
       expect(result.valid).toBe(false)
-      expect(result.error).toBe('Password must contain at least one lowercase letter.')
+      expect(result.error).toBe('Пароль должен содержать хотя бы одну строчную букву.')
     })
 
     it('rejects password missing number', () => {
       const result = validatePassword('NoNumbers')
       expect(result.valid).toBe(false)
-      expect(result.error).toBe('Password must contain at least one number.')
+      expect(result.error).toBe('Пароль должен содержать хотя бы одну цифру.')
     })
 
     it('returns first error for multiple violations', () => {
       const result = validatePassword('abc')
       expect(result.valid).toBe(false)
-      expect(result.error).toBe('Password must be at least 8 characters long.')
+      expect(result.error).toBe('Пароль должен быть не короче 8 символов.')
     })
   })
 
@@ -86,7 +86,7 @@ describe('Password Validation', () => {
     it('rejects empty string', () => {
       const result = validatePassword('')
       expect(result.valid).toBe(false)
-      expect(result.error).toBe('Password must be at least 8 characters long.')
+      expect(result.error).toBe('Пароль должен быть не короче 8 символов.')
     })
   })
 })

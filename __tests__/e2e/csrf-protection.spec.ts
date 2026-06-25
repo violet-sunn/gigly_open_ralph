@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 import { PrismaClient } from '@prisma/client'
 import { PrismaLibSql } from '@prisma/adapter-libsql'
 import { setE2ESession } from '../helpers/auth'
-import { createTestUser } from '../helpers/seed'
+import { createTestUser, resetE2EDb } from '../helpers/seed'
 
 // Setup test database connection for E2E tests
 const adapter = new PrismaLibSql({
@@ -15,10 +15,8 @@ const prisma = new PrismaClient({
 
 test.describe('CSRF Protection - Configuration Verification', () => {
   test.afterEach(async () => {
-    // Clean up test data
-    await prisma.gig.deleteMany({})
-    await prisma.clientProfile.deleteMany({})
-    await prisma.user.deleteMany({})
+    // FK-safe full reset (the shared E2E db may hold disputes/reviews/notifications referencing gigs+users).
+    await resetE2EDb(prisma)
   })
 
   test.afterAll(async () => {
@@ -39,17 +37,29 @@ test.describe('CSRF Protection - Configuration Verification', () => {
     // Set authenticated session
     await setE2ESession(page, client)
 
+    // Category is the FK target for the create-gig chip — seed it idempotently.
+    await prisma.category.upsert({
+      where: { slug: 'programming' },
+      create: { slug: 'programming', name: 'Программирование', order: 2 },
+      update: {},
+    })
+
     await page.goto('http://localhost:3000/gigs/new')
 
-    // Fill gig creation form (legitimate same-origin request)
-    await page.fill('input[name="title"]', 'Test Gig for CSRF Verification')
-    await page.fill('textarea[name="description"]', 'This gig tests that same-origin requests work correctly')
-    await page.fill('textarea[name="acceptanceCriteria"]', 'Verify that the gig is created successfully with proper same-origin request headers')
-    await page.fill('input[name="budget"]', '100000')
-    await page.click('button[type="submit"]')
+    // Drive the rebuilt CreateGigDesign brief (a legitimate same-origin server-action submit).
+    await page.locator('input[name="title"]').fill('Test Gig for CSRF Verification')
+    await page.getByText('Программирование', { exact: true }).click()
+    await page.locator('textarea[name="description"]').fill('This gig tests that same-origin requests work correctly')
+    await page.locator('input[name="goal"]').fill('Проверить same-origin server actions')
+    await page.locator('textarea[name="deliverables"]').fill('Гиг создан через CreateGigDesign')
+    await page.getByPlaceholder(/например/).fill('Гиг успешно создаётся через same-origin запрос с корректными заголовками')
+    await page.getByRole('button', { name: 'Добавить' }).click()
+    await page.locator('input[name="budget"]').fill('100000')
+    await page.locator('input[name="deadlineDays"]').fill('14')
+    await page.getByRole('button', { name: 'Опубликовать гиг' }).click()
 
-    // Wait for navigation/server action completion
-    await page.waitForLoadState('networkidle')
+    // Wait for the server action's redirect to the success screen.
+    await page.waitForURL('**/gigs/new/success', { timeout: 15000 })
 
     // Assert: Gig should be created successfully
     const gigs = await prisma.gig.findMany({

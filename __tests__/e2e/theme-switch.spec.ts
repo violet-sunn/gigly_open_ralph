@@ -4,11 +4,11 @@ import { PrismaClient } from '@prisma/client'
 import { PrismaLibSql } from '@prisma/adapter-libsql'
 
 /**
- * theme-switch (add-light-theme) — verifies the net-new runtime light theme: dark is the default, the
- * Settings → Внешний вид switch flips the root `data-theme` to light and re-renders the UI light
- * (a surface element computes the light bg), the choice persists in localStorage (`gigly-theme`) and
- * survives a reload (applied before paint by the boot script, no flash), and switching back restores dark.
- * Seeds a CLIENT directly into the E2E db (file:./test.db).
+ * e2e-cross-cutting (theme-switch) — verifies the runtime light/dark theme on the rebuilt surfaces: dark is the
+ * default, the rebuilt SettingsDesign «Тема» Segmented control (ВНЕШНИЙ ВИД section) flips the root `data-theme`
+ * and re-renders light, the choice persists in localStorage (`gigly-theme`) and survives a reload (applied before
+ * paint by the boot script — no flash), and the shell header «Вид» button (aria-label «Переключить тему») toggles
+ * the same theme. The old kit Select dropdown («Тема оформления»/«Внешний вид» heading) is gone. Seeds a CLIENT.
  */
 const LIGHT_APP_BG = 'rgb(244, 245, 247)' // surface-level-0 light = #f4f5f7
 const DARK_APP_BG = 'rgb(1, 3, 14)' // surface-level-0 dark = #01030e
@@ -32,7 +32,7 @@ test.beforeAll(async () => {
   await prisma.$disconnect()
 })
 
-test.describe('add-light-theme — runtime theme switch', () => {
+test.describe('e2e-cross-cutting — runtime theme switch', () => {
   test('dark is the default theme', async ({ page }) => {
     await setE2ESession(page, { id: userId, email: userEmail, role: 'CLIENT' })
     await page.goto('/settings')
@@ -40,15 +40,14 @@ test.describe('add-light-theme — runtime theme switch', () => {
     expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe(DARK_APP_BG)
   })
 
-  test('switching to Светлая applies light + persists across reload (no flash)', async ({ page }) => {
+  test('the settings «Тема» segmented control applies light + persists across reload (no flash)', async ({ page }) => {
     await setE2ESession(page, { id: userId, email: userEmail, role: 'CLIENT' })
     await page.goto('/settings')
-    await expect(page.getByRole('heading', { name: 'Внешний вид' })).toBeVisible()
-
-    // The Внешний вид Select trigger is named by its aria-label; open it and pick Светлая.
+    await expect(page.getByText('ВНЕШНИЙ ВИД')).toBeVisible()
     await expect(page.getByText('Тёмная')).toBeVisible() // reflects the current (default) theme
-    await page.getByRole('button', { name: 'Тема оформления' }).click()
-    await page.getByRole('option', { name: 'Светлая' }).click()
+
+    // The «Тема» row is a Segmented control of clickable options — pick «Светлая».
+    await page.getByText('Светлая').click()
 
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
     expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe(LIGHT_APP_BG)
@@ -58,20 +57,25 @@ test.describe('add-light-theme — runtime theme switch', () => {
     await page.reload()
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
     expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe(LIGHT_APP_BG)
+
+    // Switching back to «Тёмная» restores dark.
+    await page.getByText('Тёмная').click()
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+    expect(await page.evaluate(() => localStorage.getItem('gigly-theme'))).toBe('dark')
   })
 
-  test('switching back to Тёмная restores dark', async ({ page }) => {
+  test('the header «Вид» button toggles the theme', async ({ page }) => {
     await setE2ESession(page, { id: userId, email: userEmail, role: 'CLIENT' })
-    await page.goto('/settings')
-    await page.evaluate(() => localStorage.setItem('gigly-theme', 'light'))
-    await page.reload()
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
-
-    await page.getByRole('button', { name: 'Тема оформления' }).click()
-    await page.getByRole('option', { name: 'Тёмная' }).click()
-
+    await page.goto('/dashboard')
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
-    expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe(DARK_APP_BG)
+
+    const viewBtn = page.getByRole('button', { name: 'Переключить тему' })
+    await viewBtn.click()
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
+    expect(await page.evaluate(() => localStorage.getItem('gigly-theme'))).toBe('light')
+
+    await viewBtn.click()
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
     expect(await page.evaluate(() => localStorage.getItem('gigly-theme'))).toBe('dark')
   })
 })

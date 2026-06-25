@@ -136,7 +136,7 @@ describe('Profile Sanitization Tests', () => {
         return await updateProfile(null, formData)
       })
 
-      expect(result).toEqual({ error: 'Company name and INN are required. Please fill in these fields to complete your profile.' })
+      expect(result).toEqual({ error: 'Укажите название компании, чтобы завершить профиль.' })
 
       // Verify no profile created
       const profile = await prisma.clientProfile.findUnique({

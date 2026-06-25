@@ -32,7 +32,7 @@ test.beforeAll(async () => {
 })
 
 // Public routes (no session) + protected routes (SPECIALIST session) the audit must theme correctly.
-const PUBLIC_ROUTES = ['/login?role=SPECIALIST', '/register?role=SPECIALIST', '/auth']
+const PUBLIC_ROUTES = ['/login', '/register']
 const PROTECTED_ROUTES = ['/dashboard', '/gigs', '/profile', '/settings']
 
 async function assertThemed(page: Page, route: string, theme: 'dark' | 'light') {

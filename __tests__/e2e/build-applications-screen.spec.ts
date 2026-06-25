@@ -56,16 +56,28 @@ test.beforeAll(async () => {
 })
 
 test.describe('build-applications-screen — company «Отклики»', () => {
-  test('the owner sees the applicants with approach/questions/estimate + the back link', async ({ page }) => {
+  test('the owner sees the full applicant card (name/level/rating/status/tags/fields) + the back link', async ({ page }) => {
     await setE2ESession(page, { id: ownerId, email: ownerEmail, role: 'CLIENT' })
     await page.goto(`/gigs/${gigAcceptId}/applications`)
 
+    // Header + subtitle + back link.
     await expect(page.getByText('Отклики', { exact: true })).toBeVisible() // SectionHeader
     await expect(page.getByText('на проект «BA Accept Gig»')).toBeVisible() // subtitle
     await expect(page.getByText('← Назад к проекту')).toBeVisible() // back link
-    await expect(page.getByText('Тест Спец')).toBeVisible() // ApplicantCard identity
+
+    // Full applicant-card anatomy: identity + [level] + rating + derived status + stack tags + the three fields.
+    await expect(page.getByText('Тест Спец')).toBeVisible() // identity
+    await expect(page.getByText('[SENIOR]')).toBeVisible() // experience level chip (seed spec1 = SENIOR)
+    await expect(page.getByText('★★★★★').first()).toBeVisible() // rating row
+    await expect(page.getByText('На рассмотрении').first()).toBeVisible() // derived PENDING → review status
+    await expect(page.getByText('React').first()).toBeVisible() // stack tag (.first(): the gig also tags React)
     await expect(page.getByText('Подход').first()).toBeVisible()
+    await expect(page.getByText('Уточняющие вопросы').first()).toBeVisible()
     await expect(page.getByText('Оценка трудозатрат').first()).toBeVisible()
+
+    // Both pending actions render while the gig is un-assigned (this test runs before the accept-flow test).
+    await expect(page.getByRole('button', { name: 'Принять' }).first()).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Отклонить' }).first()).toBeVisible()
   })
 
   test('gig-detail links to the applications screen («Смотреть отклики»)', async ({ page }) => {

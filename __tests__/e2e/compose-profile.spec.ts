@@ -4,12 +4,12 @@ import { PrismaClient } from '@prisma/client'
 import { PrismaLibSql } from '@prisma/adapter-libsql'
 
 /**
- * compose-profile (reconcile-profile-screen, Phase 1 — reconciled to Профиль/specialist 2860:2103) — verifies
- * /profile is composed from the kit (the ID block ProfileHeader [SpecialtyTag specialty + availability status pill] ‖
- * placeholder StatPanel, then TagList + CategoryTags + ExperienceList + GigCard·list) with real data, leads with the
- * ID block (no «Профиль» page-title), that the edit flow is preserved (the header affordance → /profile/edit, a save
- * round-trips), and that the public /profile/[userId] view renders read-only. Seeds a SPECIALIST with the
- * profile-evolution fields + favorite categories + a COMPLETED gig + a review directly into the E2E db (file:./test.db).
+ * e2e-profile (reconciliation #12) — verifies /profile + /profile/[userId] are reconciled to the prototype profile
+ * blocks (ProfileDesign.tsx): the ID card (avatar + name + role tag + an `offline` pill; for a SPECIALIST a verified
+ * badge + «На платформе с …»; for a CLIENT the «Реквизиты» ИНН/КПП panel), then — SPECIALIST only — «Стек» / «Опыт» /
+ * «Избранные категории» / «Реализованные проекты» (design GigCards). The owner edit affordance is a bare Pencil <span>
+ * (no accessible name) located by DOM position → /profile/edit (the existing edit form). The shell header supplies the
+ * «ПРОФИЛЬ» title. Seeds a SPECIALIST + a CLIENT viewer + a COMPLETED realized gig + review into the E2E db (file:./test.db).
  */
 let specId: string
 let specEmail: string
@@ -90,52 +90,67 @@ test.beforeAll(async () => {
   await prisma.$disconnect()
 })
 
-test.describe('compose-profile — composed profile screen', () => {
-  test('renders the composed blocks (header, stack, categories, experience, realized)', async ({ page }) => {
+test.describe('e2e-profile — reconciled profile screen', () => {
+  test('a SPECIALIST owner sees the ID card and the four blocks', async ({ page }) => {
     await setE2ESession(page, { id: specId, email: specEmail, role: 'SPECIALIST' })
     await page.goto('/profile')
 
-    // ProfileHeader ID block — SpecialtyTag specialty + availability status pill + phone-verified badge
-    await expect(page.getByText('Senior Frontend Engineer')).toBeVisible()
-    await expect(page.getByText('Не в сети')).toBeVisible() // availability status pill (getProfile online:false)
+    // The shell header owns the page title (no in-screen «Профиль»).
+    await expect(page.getByRole('heading', { name: 'ПРОФИЛЬ' })).toBeVisible()
+    // ID card — name + role tag (sp.position) + verified badge + member-since line («offline» pill, not «Не в сети»).
+    await expect(page.getByText('Иван Иванов').first()).toBeVisible()
+    await expect(page.getByText('Senior Frontend Engineer')).toBeVisible() // header.roleTag
     await expect(page.getByText('Номер телефона верифицирован')).toBeVisible()
-    // The node CONTENT leads with the ID block — no «Профиль» page-title heading
-    await expect(page.getByRole('heading', { name: 'Профиль', exact: true })).toHaveCount(0)
-    // TagList «Стек»
+    await expect(page.getByText(/На платформе с/)).toBeVisible()
+    // «Стек» block
     await expect(page.getByText('Стек', { exact: true })).toBeVisible()
     await expect(page.getByText('WebSocket')).toBeVisible()
-    // CategoryTags «Избранные категории» (all five render)
+    // «Избранные категории» block (only favorites render, as «[ label ]»)
     await expect(page.getByText('Избранные категории')).toBeVisible()
     await expect(page.getByText('Маркетинг')).toBeVisible()
-    // ExperienceList «Опыт»
+    // «Опыт» block
     await expect(page.getByText('Опыт', { exact: true })).toBeVisible()
     await expect(page.getByText('Yandex')).toBeVisible()
-    // Realized GigCard
+    // «Реализованные проекты» — count badge + the realized GigCard title
     await expect(page.getByText(/Реализованные проекты/)).toBeVisible()
     await expect(page.getByText('E2E Profile Realized Gig')).toBeVisible()
   })
 
-  test('the public profile renders read-only (no edit affordance)', async ({ page }) => {
+  test('a CLIENT owner sees the «Реквизиты» panel (ИНН/КПП)', async ({ page }) => {
+    await setE2ESession(page, { id: viewerId, email: viewerEmail, role: 'CLIENT' })
+    await page.goto('/profile')
+
+    await expect(page.getByText('Заказчик')).toBeVisible() // CLIENT roleTag
+    await expect(page.getByText('Реквизиты')).toBeVisible()
+    await expect(page.getByText('ИНН', { exact: true })).toBeVisible()
+    await expect(page.getByText('7700000001')).toBeVisible() // seeded inn
+    await expect(page.getByText('КПП', { exact: true })).toBeVisible()
+    // The SPECIALIST-only «Стек» block does not render for a CLIENT.
+    await expect(page.getByText('Стек', { exact: true })).toHaveCount(0)
+  })
+
+  test('the public profile renders read-only (no edit pencil)', async ({ page }) => {
     await setE2ESession(page, { id: viewerId, email: viewerEmail, role: 'CLIENT' })
     await page.goto(`/profile/${specId}`)
 
-    // The specialist's sections render (assert on data the basic edit form does not touch — tech stack,
-    // work experience, favorites — so this stays independent of the edit round-trip test below).
+    // The specialist's sections render (assert on data the basic edit form does not touch — tech stack +
+    // work experience — so this stays independent of the edit round-trip test below).
     await expect(page.getByText('Стек', { exact: true })).toBeVisible()
     await expect(page.getByText('WebSocket')).toBeVisible()
     await expect(page.getByText('Опыт', { exact: true })).toBeVisible()
     await expect(page.getByText('Yandex')).toBeVisible()
-    // …but no edit affordance is shown to a non-owner.
-    await expect(page.getByRole('button', { name: 'Редактировать профиль' })).toHaveCount(0)
-    await expect(page.getByRole('button', { name: 'Редактировать' })).toHaveCount(0)
+    // …but no edit Pencil is rendered to a non-owner (the owner-only pencil svg is absent everywhere on the page).
+    await expect(page.locator('span:has(path[d^="M12.146.146"])')).toHaveCount(0)
   })
 
   // Destructive (mutates the seeded specialist) — runs last so the read-only tests above see the pristine seed.
-  test('the edit affordance navigates to /profile/edit and a save round-trips', async ({ page }) => {
+  test('the owner edit Pencil navigates to /profile/edit and a save round-trips', async ({ page }) => {
     await setE2ESession(page, { id: specId, email: specEmail, role: 'SPECIALIST' })
     await page.goto('/profile')
 
-    await page.getByRole('button', { name: 'Редактировать профиль' }).click()
+    // The edit affordance is a bare Pencil <span> (no accessible name) — located by its unique svg path. The first one
+    // is beside the name; all owner pencils route to /profile/edit. (getByText('name') would also match the sidebar.)
+    await page.locator('span:has(path[d^="M12.146.146"])').first().click()
     await expect(page).toHaveURL(/\/profile\/edit/)
 
     await page.fill('#displayName', 'Иван Обновлённый')

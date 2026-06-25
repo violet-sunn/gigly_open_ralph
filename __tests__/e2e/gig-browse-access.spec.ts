@@ -10,7 +10,7 @@
 import { test, expect } from '@playwright/test'
 import { PrismaClient } from '@prisma/client'
 import { PrismaLibSql } from '@prisma/adapter-libsql'
-import { createTestUser, createTestGig } from '../helpers/seed'
+import { createTestUser, createTestGig, resetE2EDb } from '../helpers/seed'
 import { createTestSession } from '../helpers/auth'
 
 // Setup test database connection for E2E tests
@@ -23,11 +23,14 @@ const prisma = new PrismaClient({
 })
 
 test.describe('Gig Browse Access Control E2E', () => {
+  // Clean slate before each test (count/visibility assertions must not see other specs' leftover gigs).
+  test.beforeEach(async () => {
+    await resetE2EDb(prisma)
+  })
+
   test.afterEach(async () => {
-    // Clean up test data
-    await prisma.application.deleteMany({})
-    await prisma.gig.deleteMany({})
-    await prisma.user.deleteMany({})
+    // FK-safe full reset (the shared E2E db may hold disputes/reviews/notifications referencing gigs+users).
+    await resetE2EDb(prisma)
   })
 
   test.afterAll(async () => {
@@ -68,41 +71,18 @@ test.describe('Gig Browse Access Control E2E', () => {
       }
     ])
 
-    // Navigate to gig creation form
-    await page.goto('http://localhost:3000/gigs/new')
-    await expect(page).toHaveURL(/\/gigs\/new/)
+    // The rebuilt CreateGigDesign dropped the «View example gigs» link; the /gigs/examples route survives and is
+    // CLIENT-accessible (no role check), so a CLIENT reaches it directly.
+    await page.goto('http://localhost:3000/gigs/examples')
+    await page.waitForLoadState('networkidle')
+    await expect(page).toHaveURL(/\/gigs\/examples/)
 
-    // Find and click the example gigs link
-    const exampleLink = page.locator('a:has-text("💡 View example gigs for inspiration")')
-    await expect(exampleLink).toBeVisible()
+    // Verify the examples page displays correctly
+    await expect(page.locator('h2:has-text("Example Gigs")')).toBeVisible()
+    await expect(page.locator('text=These are example gigs to help you understand')).toBeVisible()
 
-    // Listen for new page (new tab)
-    const pagePromise = context.waitForEvent('page')
-    await exampleLink.click()
-    const newPage = await pagePromise
-
-    // Wait for new page to load
-    await newPage.waitForLoadState('networkidle')
-
-    // Verify new tab opened to examples page
-    await expect(newPage).toHaveURL(/\/gigs\/examples/)
-
-    // Verify example gigs page displays correctly
-    await expect(newPage.locator('h2:has-text("Example Gigs")')).toBeVisible()
-    await expect(newPage.locator('text=These are example gigs to help you understand')).toBeVisible()
-
-    // Verify example gig is displayed
-    await expect(newPage.locator(`text=${exampleGig.title}`)).toBeVisible()
-
-    // Verify no error message
-    await expect(newPage.locator('text=only available for specialists')).not.toBeVisible()
-
-    // Close new tab
-    await newPage.close()
-
-    // Verify original page (gig creation form) is still intact
-    await expect(page).toHaveURL(/\/gigs\/new/)
-    await expect(page.locator('input[name="title"]')).toBeVisible()
+    // Verify the seeded example gig is displayed
+    await expect(page.locator(`text=${exampleGig.title}`)).toBeVisible()
   })
 
   test('CLIENT cannot access main browse page', async ({ page, context }) => {
@@ -132,16 +112,12 @@ test.describe('Gig Browse Access Control E2E', () => {
 
     // Attempt to navigate to browse page directly
     await page.goto('http://localhost:3000/gigs')
-
-    // Wait for redirect
     await page.waitForLoadState('networkidle')
 
-    // Verify redirect to dashboard
-    await expect(page).toHaveURL(/\/(dashboard|gigs)(\?|$)/)
-
-    // Verify error message is visible
-    await expect(page.locator('text=Browse Gigs is only available for specialists')).toBeVisible()
-    await expect(page.locator('text=To view example gigs, visit the Examples page')).toBeVisible()
+    // The rebuilt /gigs gates CLIENTs server-side → redirect to /dashboard (the error query param is consumed
+    // and cleaned by the dashboard, so assert the redirect itself, not the transient param).
+    await expect(page).toHaveURL(/\/dashboard/)
+    expect(page.url()).not.toContain('/gigs')
   })
 
   test('SPECIALIST can access both browse and examples pages', async ({ page, context }) => {
@@ -198,16 +174,13 @@ test.describe('Gig Browse Access Control E2E', () => {
     await page.goto('http://localhost:3000/gigs')
     await page.waitForLoadState('networkidle')
 
-    // Verify page loads successfully
+    // Verify the rebuilt browse (GigSearchDesign) loads — the «Найдено» results heading.
     await expect(page).toHaveURL(/\/gigs(\?|$)/)
-    await expect(page.locator('h2:has-text("Поиск гигов")')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Найдено' })).toBeVisible()
 
-    // Verify both regular and example gigs are displayed
+    // Verify both regular and example gigs are displayed (both are OPEN; browse doesn't filter examples out)
     await expect(page.locator(`text=${regularGig.title}`)).toBeVisible()
     await expect(page.locator(`text=${exampleGig.title}`)).toBeVisible()
-
-    // Verify no error message
-    await expect(page.locator('text=only available for specialists')).not.toBeVisible()
 
     // Navigate to examples page
     await page.goto('http://localhost:3000/gigs/examples')
@@ -217,17 +190,15 @@ test.describe('Gig Browse Access Control E2E', () => {
     await expect(page).toHaveURL(/\/gigs\/examples/)
     await expect(page.locator('h2:has-text("Example Gigs")')).toBeVisible()
 
-    // Verify only example gig is displayed
+    // Verify only the example gig is displayed there
     await expect(page.locator(`text=${exampleGig.title}`)).toBeVisible()
     await expect(page.locator(`text=${regularGig.title}`)).not.toBeVisible()
 
     // Navigate back to browse page
     await page.goto('http://localhost:3000/gigs')
     await page.waitForLoadState('networkidle')
-
-    // Verify can navigate between both pages
     await expect(page).toHaveURL(/\/gigs(\?|$)/)
-    await expect(page.locator('h2:has-text("Поиск гигов")')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Найдено' })).toBeVisible()
   })
 
   test('Unauthenticated user redirected to login', async ({ page }) => {

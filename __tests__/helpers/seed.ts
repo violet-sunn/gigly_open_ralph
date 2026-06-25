@@ -453,6 +453,29 @@ export async function createTestApplication(
 }
 
 /**
+ * FK-safe full reset of the shared E2E database (file:./test.db).
+ *
+ * The legacy E2E specs cleaned up with unscoped `gig.deleteMany()` / `user.deleteMany()`, which trips foreign-key
+ * violations once the shared DB holds rows from other specs (disputes/reviews/notifications/moderation logs all
+ * reference gigs + users). This deletes every table in dependency order — mirroring resetTestDatabase() in
+ * __tests__/helpers/db.ts — so cleanup never throws and each spec gets a deterministic clean slate.
+ */
+export async function resetE2EDb(tx: PrismaClient): Promise<void> {
+  await tx.dispute.deleteMany()
+  await tx.review.deleteMany()
+  await tx.notification.deleteMany()
+  await tx.message.deleteMany()
+  await tx.application.deleteMany()
+  await tx.moderationLog.deleteMany()
+  await tx.gig.deleteMany()
+  await tx.category.deleteMany()
+  await tx.workExperience.deleteMany()
+  await tx.clientProfile.deleteMany()
+  await tx.specialistProfile.deleteMany()
+  await tx.user.deleteMany()
+}
+
+/**
  * Create test message with sensible defaults
  * Automatically creates gig and sender if not provided
  */

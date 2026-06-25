@@ -176,10 +176,13 @@ The system MUST define a ClientProfile model with a 1:1 relation to User for sto
   - `userId` field as String with @id (primary key and foreign key)
   - `user` relation to User model
   - `companyName` field as String
-  - `inn` field as String (Individual Taxpayer Number)
+  - `inn` field as String with @default("") (Individual Taxpayer Number; no longer collected at signup — added later in profile-edit, reground-auth-to-design)
   - `kpp` field as String with @default("")
   - `contactPerson` field as String with @default("")
+  - `position` field as String with @default("") (Должность — design client onboarding)
   - `phoneNumber` field as String with @default("")
+  - `location` field as String with @default("") (Местоположение — design client onboarding)
+  - `timezone` field as String with @default("") (часовой пояс; validated against TIMEZONES on write)
   - `createdAt` field as DateTime with @default(now())
   - `updatedAt` field as DateTime with @updatedAt
 
@@ -189,10 +192,16 @@ The system MUST define a ClientProfile model with a 1:1 relation to User for sto
 - THEN `clientProfile` MUST be null
 - AND the user MUST still be able to use the platform
 
+#### Scenario: Client onboarding persists the design fields (reground-auth-to-design)
+- GIVEN a CLIENT completes onboarding step 3 with company, contact name (ФИО), должность, and location/timezone
+- WHEN `updateProfile` runs
+- THEN it MUST store `companyName`, `contactPerson`, `position`, `location`, and a validated `timezone` (invalid timezone → `''`); only `companyName` is mandatory (INN/КПП/phone remain optional, edited later)
+
 **Acceptance Criteria:**
 - ClientProfile model uses `userId String @id` (not auto-generated id)
 - User model includes `clientProfile ClientProfile?` relation field
 - Migration creates ClientProfile table with CASCADE delete
+- `position`/`location`/`timezone` String @default("") present; `inn` defaulted (optional at signup); `timezone` validated against `TIMEZONES`
 
 ---
 

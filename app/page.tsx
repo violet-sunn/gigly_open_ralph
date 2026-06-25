@@ -33,14 +33,14 @@ export default async function Home() {
         ) : (
           <div className="space-y-4">
             <Link
-              href="/auth"
+              href="/login"
               className="inline-block px-8 py-3 text-sm font-semibold bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-surface-level-0"
             >
               Get Started
             </Link>
             <p className="text-sm text-neutral-strong">
               Already have an account?{' '}
-              <Link href="/auth" className="text-blue-500 hover:text-blue-400 font-medium">
+              <Link href="/login" className="text-blue-500 hover:text-blue-400 font-medium">
                 Sign in
               </Link>
             </p>

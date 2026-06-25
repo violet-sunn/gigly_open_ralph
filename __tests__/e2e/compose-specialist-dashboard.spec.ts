@@ -4,11 +4,12 @@ import { PrismaClient } from '@prisma/client'
 import { PrismaLibSql } from '@prisma/adapter-libsql'
 
 /**
- * compose-specialist-dashboard (reconcile-dashboards, Phase 1 — reconciled to Дашборд/specialist 2860:3751) — verifies
- * the SPECIALIST /dashboard is composed from the kit (WELCOME greeting + OnboardingCard×2 → 2-col BOARD: Активные задачи
- * Tabs + GigCard feed ‖ найти гиг SearchPanel + Сообщения MessagesPanel → WELCOME-2 AttentionCard strip) with real data,
- * that the five status tabs render (Все/Заявки/В работе/На проверке/Завершённые), and that gig links + the find-project
- * search work. Seeds a SPECIALIST + a client + an assigned IN_PROGRESS gig + an OPEN gig with a PENDING application + a
+ * compose-specialist-dashboard — verifies the SPECIALIST /dashboard rebuilt on the gigly_full_design
+ * prototype (app/(protected)/dashboard/DashboardDesign.tsx): WELCOME «Добро пожаловать в Gigly!» + the
+ * «Мои гиги» panel with the five <div> tab chips (Все/Заявки/В работе/На проверке/Завершённые) + the
+ * design GigCard feed; col2 = the «Найти новый гиг» search panel + «Сообщения»; and the «Требует внимания»
+ * strip. The page title now lives in the shell header (<h1>«ДАШБОРД»</h1>), not in-screen. Seeds a
+ * SPECIALIST + a client + an assigned IN_PROGRESS gig + an OPEN gig with a PENDING application + a
  * notification (→ the attention strip) directly into the E2E db (file:./test.db, same as the dev server).
  */
 let specId: string
@@ -68,7 +69,7 @@ test.beforeAll(async () => {
     },
   })
 
-  // A notification → the WELCOME-2 attention strip renders.
+  // A notification → the «Требует внимания» attention strip renders.
   await prisma.notification.create({
     data: { userId: spec.id, gigId: g1.id, type: 'STATUS_CHANGE', eventType: 'work_approved' },
   })
@@ -76,44 +77,45 @@ test.beforeAll(async () => {
   await prisma.$disconnect()
 })
 
-test.describe('compose-specialist-dashboard — composed SPECIALIST dashboard', () => {
-  test('renders the composed blocks (greeting, onboarding, five tabs, search, gig card, attention strip)', async ({ page }) => {
+test.describe('compose-specialist-dashboard — rebuilt SPECIALIST dashboard', () => {
+  test('renders the rebuilt blocks (welcome, мои гиги + five tabs, search, gig card, attention strip)', async ({ page }) => {
     await setE2ESession(page, { id: specId, email: specEmail, role: 'SPECIALIST' })
     await page.goto('/dashboard')
 
-    await expect(page.getByText(/Здравствуйте/)).toBeVisible() // WELCOME greeting (no BannerCard)
-    await expect(page.getByText('Заполните профиль')).toBeVisible() // an OnboardingCard
-    await expect(page.getByText('Активные задачи')).toBeVisible() // BOARD col1 SectionHeader
-    await expect(page.getByRole('tablist')).toBeVisible() // Tabs
+    await expect(page.getByText('Добро пожаловать в Gigly!')).toBeVisible() // WELCOME
+    await expect(page.getByText('Заполните профиль')).toBeVisible() // an onboarding tile
+    await expect(page.getByRole('heading', { name: 'Мои гиги' })).toBeVisible() // BOARD col1 panel header
     for (const label of ['Все', 'Заявки', 'В работе', 'На проверке', 'Завершённые']) {
-      await expect(page.getByRole('tab', { name: new RegExp(label) })).toBeVisible()
+      // The tab chips are <div>s; «В работе»/«На проверке» also appear as the in-progress card's status.
+      await expect(page.getByText(label, { exact: true }).first()).toBeVisible()
     }
-    await expect(page.getByRole('button', { name: /Найти проект/ })).toBeVisible() // SearchPanel
-    await expect(page.getByText('E2E Spec InProgress Gig').first()).toBeVisible() // a GigCard (also embedded in the attention card)
-    await expect(page.getByText('Уведомления')).toBeVisible() // WELCOME-2 attention strip
-    await expect(page.getByRole('heading', { name: 'Дашборд' })).toHaveCount(0) // no page-title
+    await expect(page.getByRole('heading', { name: 'Найти новый гиг' })).toBeVisible() // col2 search panel
+    await expect(page.getByText('E2E Spec InProgress Gig').first()).toBeVisible() // a GigCard (also in the attention card)
+    await expect(page.getByRole('heading', { name: 'Сообщения' })).toBeVisible() // col2 messages panel
+    await expect(page.getByRole('heading', { name: 'Требует внимания' })).toBeVisible() // specialist attention strip
+    await expect(page.getByRole('heading', { name: 'ДАШБОРД' })).toBeVisible() // title lives in the shell header now
   })
 
   test('a GigCard opens the gig detail', async ({ page }) => {
     await setE2ESession(page, { id: specId, email: specEmail, role: 'SPECIALIST' })
     await page.goto('/dashboard')
-    // Filter to «В работе» so the in-progress gig is the only card, then open it.
-    await page.getByRole('tab', { name: /В работе/ }).click()
-    await page.getByRole('button', { name: /К проекту/ }).first().click()
+    // The compact GigCard is a Link (its footer CTA only renders on the browse screen) — click by title.
+    await page.getByRole('link', { name: /E2E Spec InProgress Gig/ }).first().click()
     await expect(page).toHaveURL(new RegExp(`/gigs/${inProgressGigId}`))
   })
 
   test('the Заявки tab shows the pending application', async ({ page }) => {
     await setE2ESession(page, { id: specId, email: specEmail, role: 'SPECIALIST' })
     await page.goto('/dashboard')
-    await page.getByRole('tab', { name: /Заявки/ }).click()
+    await page.getByText('Заявки', { exact: true }).first().click()
     await expect(page.getByText('E2E Spec Pending Gig')).toBeVisible()
   })
 
   test('the find-project search routes to /gigs', async ({ page }) => {
     await setE2ESession(page, { id: specId, email: specEmail, role: 'SPECIALIST' })
     await page.goto('/dashboard')
-    await page.getByRole('button', { name: /Найти проект/ }).click()
+    await page.getByPlaceholder('Поиск по стеку или категории').fill('React')
+    await page.getByPlaceholder('Поиск по стеку или категории').press('Enter')
     await expect(page).toHaveURL(/\/gigs(\?|$)/)
   })
 })

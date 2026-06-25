@@ -84,10 +84,10 @@ test.describe('reconcile-disputes-flow — dispute UI', () => {
     await setE2ESession(page, { id: clientId, email: clientEmail, role: 'CLIENT' })
     await page.goto(`/disputes/${disputeId}`)
 
-    await expect(page.getByText('Заморожено')).toBeVisible()
+    await expect(page.getByText('Открыт')).toBeVisible() // OPEN → «Открыт» (STATUS_LABEL_RU)
     await expect(page.getByText('Доказательства')).toBeVisible()
     await expect(page.getByText('ТЗ.pdf')).toBeVisible()
-    await expect(page.getByText('Хронология')).toBeVisible()
+    await expect(page.getByText('Ход рассмотрения')).toBeVisible() // the rebuilt timeline header
     await expect(page.getByText('Объём работ вырос относительно исходной задачи.')).toBeVisible()
   })
 
@@ -95,15 +95,14 @@ test.describe('reconcile-disputes-flow — dispute UI', () => {
     await setE2ESession(page, { id: adminId, email: adminEmail, role: 'ADMIN' })
     await page.goto(`/disputes/${disputeId}`)
 
-    // Pick the verdict «В пользу специалиста» (CheckField), add a note, resolve.
-    await page.getByText('В пользу специалиста').click()
-    await page.locator('textarea[name="resolution"]').fill('Бюджет возвращён специалисту.')
-    await page.getByRole('button', { name: 'Разрешить спор' }).click()
+    // Each verdict in «Решение модератора» is a submit button — clicking «В пользу специалиста» IS the resolve
+    // (no separate note field / «Разрешить спор» step); the action prefixes the verdict onto its fixed resolution.
+    await page.getByRole('button', { name: 'В пользу специалиста' }).click()
     await page.waitForURL('**/gigs/**')
 
     await page.goto(`/disputes/${disputeId}`)
     await expect(page.getByText('Завершён')).toBeVisible() // RESOLVED → completed
-    await expect(page.getByText(/В пользу специалиста — Бюджет возвращён специалисту\./).first()).toBeVisible()
+    await expect(page.getByText(/В пользу специалиста — Спор разрешён в пользу специалиста\./).first()).toBeVisible()
     void specId
   })
 })

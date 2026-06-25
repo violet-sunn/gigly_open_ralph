@@ -50,16 +50,11 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Auth landing page — allow unauthenticated, redirect authenticated to dashboard
-  if (pathname === '/auth') {
-    if (session) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
-    }
-    return NextResponse.next()
-  }
-
-  // Auth pages — redirect to dashboard if already logged in
-  if (pathname === '/login' || pathname === '/register') {
+  // Login — redirect to dashboard if already logged in.
+  // NOTE: /register is intentionally NOT redirected for authenticated users: the design's two-phase onboarding
+  // creates the account at step 2, so the user is authenticated while still on /register completing step-3 setup
+  // (Auth.dc.html). Bouncing them to /dashboard would abort onboarding.
+  if (pathname === '/login') {
     if (session) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
@@ -69,5 +64,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/gigs/:path*', '/profile/:path*', '/login', '/register', '/auth', '/admin/:path*'],
+  matcher: ['/dashboard/:path*', '/gigs/:path*', '/profile/:path*', '/login', '/admin/:path*'],
 }

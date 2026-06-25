@@ -4,14 +4,19 @@ import { PrismaClient } from '@prisma/client'
 import { PrismaLibSql } from '@prisma/adapter-libsql'
 
 /**
- * compose-chats (Phase 2) — verifies /chats is composed from the kit (ConversationItem·list + search + ChatHeader +
- * ChatPanel thread + composer), that the inbox binds real conversations, that opening one renders the thread + marks it
- * read, that sending a message (the existing sendMessage) appends it, and that search filters the list. Seeds a CLIENT
- * + an assigned SPECIALIST + an IN_PROGRESS gig + messages directly into the E2E db (file:./test.db).
+ * e2e-chats (reconciliation #9) — verifies the rebuilt two-pane inbox at /chats (app/(protected)/chats/ChatsDesign.tsx):
+ * the LEFT «Сообщения» conversation list (counterparty + project subtitle + «В работе» status + unread + preview), row
+ * selection → /chats?gig=<id>, the RIGHT thread (day separator + bubbles) + composer (input[name=content], aria-label
+ * «Сообщение» + send «Отправить»), and the live search. Sending reuses the UNCHANGED sendMessage (which redirects to
+ * /gigs/<id>); since rebuilt gig-detail no longer renders the thread, the bubble is read back by re-opening /chats?gig.
+ * Seeds a CLIENT + assigned SPECIALIST + an IN_PROGRESS gig + two specialist messages (so the client's unread badge = 2).
  */
 let clientId: string
 let clientEmail: string
 let gigId: string
+const GIG_TITLE = 'E2E Chats Gig — миграция дашборда'
+const FIRST_MSG = 'Здравствуйте! Готов приступить.'
+const LAST_MSG = 'Уточните сроки по первому этапу.' // < 50 chars → preview equals it verbatim
 
 test.beforeAll(async () => {
   const prisma = new PrismaClient({ adapter: new PrismaLibSql({ url: 'file:./test.db' }) as any })
@@ -41,7 +46,7 @@ test.beforeAll(async () => {
 
   const gig = await prisma.gig.create({
     data: {
-      title: 'E2E Chats Gig — миграция дашборда',
+      title: GIG_TITLE,
       description: 'Chats composition test gig.',
       acceptanceCriteria: 'Acceptance criteria with at least fifty characters to pass validation here.',
       budget: 5000000,
@@ -56,55 +61,72 @@ test.beforeAll(async () => {
   })
   gigId = gig.id
 
-  await prisma.message.create({ data: { gigId: gig.id, senderId: spec.id, content: 'Здравствуйте! Готов приступить.' } })
+  // Two messages from the specialist → the client viewer has 2 unread (distinct from the conversation-count badge «1»).
+  await prisma.message.create({ data: { gigId: gig.id, senderId: spec.id, content: FIRST_MSG } })
+  await prisma.message.create({ data: { gigId: gig.id, senderId: spec.id, content: LAST_MSG } })
 
   await prisma.$disconnect()
 })
 
-test.describe('compose-chats — composed chats inbox', () => {
-  test('inbox lists the conversation (counterparty + gig subtitle)', async ({ page }) => {
+test.describe('e2e-chats — two-pane inbox', () => {
+  test('the inbox lists the conversation (counterparty + project + «В работе» + unread + preview)', async ({ page }) => {
     await setE2ESession(page, { id: clientId, email: clientEmail, role: 'CLIENT' })
     await page.goto('/chats')
 
-    await expect(page.getByText('Сообщения', { exact: true })).toBeVisible() // Section title
-    await expect(page.getByRole('search')).toBeVisible() // SearchPanel
-    await expect(page.getByText('Иван Спец')).toBeVisible() // counterparty name (ConversationItem)
-    await expect(page.getByText('E2E Chats Gig — миграция дашборда')).toBeVisible() // subtitle
-    await expect(page.getByText('В работе').first()).toBeVisible() // gig status badge on the conversation item
+    await expect(page.getByRole('heading', { name: 'Сообщения' })).toBeVisible()
+    await expect(page.getByText('Иван Спец')).toBeVisible() // counterparty
+    await expect(page.getByText(GIG_TITLE)).toBeVisible() // project subtitle
+    await expect(page.getByText('В работе').first()).toBeVisible() // gig-status badge (IN_PROGRESS → in-progress)
+    await expect(page.getByText('2', { exact: true })).toBeVisible() // unread badge (two specialist messages)
+    await expect(page.getByText(LAST_MSG)).toBeVisible() // last-message preview
+    await expect(page.getByPlaceholder('Поиск по названию или описанию')).toBeVisible() // live search input
   })
 
-  test('opening a conversation renders the thread + composer with the Bio header', async ({ page }) => {
+  test('selecting a conversation row navigates to /chats?gig=<id> and opens the thread', async ({ page }) => {
+    await setE2ESession(page, { id: clientId, email: clientEmail, role: 'CLIENT' })
+    await page.goto('/chats')
+
+    await page.getByText('Иван Спец').click() // the conversation row
+    await expect(page).toHaveURL(new RegExp(`/chats\\?gig=${gigId}`))
+    await expect(page.getByRole('textbox', { name: 'Сообщение' })).toBeVisible() // composer opened
+  })
+
+  test('the open thread renders the day separator, bubbles, and the composer', async ({ page }) => {
     await setE2ESession(page, { id: clientId, email: clientEmail, role: 'CLIENT' })
     await page.goto(`/chats?gig=${gigId}`)
 
-    // The message appears in both the list preview and the thread bubble — assert the thread bubble (last).
-    await expect(page.getByText('Здравствуйте! Готов приступить.').last()).toBeVisible() // a MessageBubble in the thread
-    await expect(page.getByRole('textbox', { name: 'Сообщение' })).toBeVisible() // composer Input
-    // Bio thread header (reconcile-chats): a CLIENT viewer sees the specialist counterparty's Специальность.
-    await expect(page.getByText('Backend-разработчик')).toBeVisible()
+    // Both seeded bodies appear in the thread (FIRST only in the thread; LAST also in the list preview → use .last()).
+    await expect(page.getByText(FIRST_MSG)).toBeVisible()
+    await expect(page.getByText(LAST_MSG).last()).toBeVisible()
+    await expect(page.getByRole('textbox', { name: 'Сообщение' })).toBeVisible()
+    await expect(page.getByLabel('Отправить')).toBeVisible()
+    // Day separator = the messages' ru-RU long date (e.g. «22 июня 2026 г.»).
+    await expect(page.getByText(/\d{1,2}\s+\S+\s+\d{4}\s*г\./).first()).toBeVisible()
   })
 
-  test('sending a message via the existing sendMessage works (lands on the gig conversation)', async ({ page }) => {
+  test('sending a message via the composer reuses sendMessage and persists (read back on /chats)', async ({ page }) => {
     await setE2ESession(page, { id: clientId, email: clientEmail, role: 'CLIENT' })
     await page.goto(`/chats?gig=${gigId}`)
 
     const msg = `E2E ответ ${Date.now()}`
     await page.getByRole('textbox', { name: 'Сообщение' }).fill(msg)
-    // The composer send button (aria-label «Отправить») — getByLabel disambiguates from the sidebar support button.
     await page.getByLabel('Отправить').click()
 
-    // sendMessage is reused verbatim → it redirects to the gig-detail conversation (same thread); the message appears.
+    // sendMessage is reused verbatim → it redirects to /gigs/<id>.
     await expect(page).toHaveURL(new RegExp(`/gigs/${gigId}`))
-    await expect(page.getByText(msg)).toBeVisible()
+
+    // Rebuilt gig-detail no longer renders the thread — read the new bubble back by re-opening the conversation.
+    // The just-sent message is now also the list preview, so it appears twice → assert the thread bubble (.last()).
+    await page.goto(`/chats?gig=${gigId}`)
+    await expect(page.getByText(msg).last()).toBeVisible()
   })
 
-  test('search filters the conversation list', async ({ page }) => {
+  test('the live search filters the conversation list', async ({ page }) => {
     await setE2ESession(page, { id: clientId, email: clientEmail, role: 'CLIENT' })
     await page.goto('/chats')
 
-    await page.getByRole('searchbox').fill('несуществующий запрос zzz')
-    await page.getByRole('button', { name: 'Найти' }).click()
-    await expect(page.getByText('Иван Спец')).toHaveCount(0)
-    await expect(page.getByText('Чаты не найдены')).toBeVisible()
+    await page.getByPlaceholder('Поиск по названию или описанию').fill('несуществующий запрос zzz')
+    await expect(page.getByText('Иван Спец')).toHaveCount(0) // live filter, no «Найти» button
+    await expect(page.getByText('Чаты не найдены.')).toBeVisible()
   })
 })

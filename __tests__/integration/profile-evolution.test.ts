@@ -121,6 +121,49 @@ describe('profile-evolution — edit (scalar fields)', () => {
     expect(profile?.phoneVerified).toBe(true)
     expect(profile?.companyName).toBe('ООО Тест')
   })
+
+  it('updateProfile persists the design client onboarding fields (position/location/timezone), INN optional', async () => {
+    const prisma = getTestPrismaClient()
+    const client = await createTestUser(prisma, { role: 'CLIENT' })
+
+    // The design's client onboarding (Auth.dc.html step 3): Компания / ФИО / Должность / Местоположение+часовой пояс.
+    // No INN at signup — only the company name is mandatory.
+    await withAuthContext(client, async () => {
+      await expect(
+        updateProfile(
+          null,
+          form({
+            companyName: 'ООО Ромашка',
+            contactPerson: 'Иван Петров',
+            position: 'Генеральный директор',
+            location: 'Москва',
+            timezone: 'Europe/Moscow',
+          })
+        )
+      ).rejects.toThrow('NEXT_REDIRECT')
+    })
+
+    const profile = await prisma.clientProfile.findUnique({ where: { userId: client.id } })
+    expect(profile?.companyName).toBe('ООО Ромашка')
+    expect(profile?.contactPerson).toBe('Иван Петров')
+    expect(profile?.position).toBe('Генеральный директор')
+    expect(profile?.location).toBe('Москва')
+    expect(profile?.timezone).toBe('Europe/Moscow')
+    expect(profile?.inn).toBe('') // not collected at signup
+  })
+
+  it('updateProfile rejects an invalid client timezone (not persisted)', async () => {
+    const prisma = getTestPrismaClient()
+    const client = await createTestUser(prisma, { role: 'CLIENT' })
+
+    const result = await withAuthContext(client, async () =>
+      updateProfile(null, form({ companyName: 'ООО Тест', timezone: 'Mars/Olympus' }))
+    )
+    expect(result).toEqual({ error: 'Выберите корректный часовой пояс.' })
+    // The invalid value is rejected before persistence — the stored timezone is untouched.
+    const profile = await prisma.clientProfile.findUnique({ where: { userId: client.id } })
+    expect(profile?.timezone).not.toBe('Mars/Olympus')
+  })
 })
 
 describe('profile-evolution — validation', () => {

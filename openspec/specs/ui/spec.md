@@ -354,69 +354,47 @@ The registration form MUST provide visible feedback after submission and include
 
 ---
 
-### Requirement: Login Page
-The application MUST provide a login page at `/login` with email and password fields using token-based styling consistent with Dashboard form patterns.
+### Requirement: AuthDesign Screen (login + onboarding)
+The auth surface MUST be a single `app/_design/AuthDesign.tsx` component rebuilt directly on
+`gigly_full_design/Auth.dc.html` (reground-auth-to-design), consistent with the other `*Design.tsx` screens
+(inline-styled prototype markup on `app/_design/tokens.css`, literal Handjet/Manrope). It renders a shared shell and two
+views (`login`, `onboarding`). `/login` renders `initialView="login"`; `/register` renders `initialView="onboarding"`.
+This supersedes the prior kit/legacy login page (no English copy, no `bg-navy` Tailwind login form, no checkerboard).
 
-#### Scenario: Login page renders with token-based styling
+#### Scenario: Shared auth shell
+- GIVEN any auth view renders
+- THEN it shows the GIGLY wordmark top-left, the `pixel-wave.svg` bottom band (served from `/assets/pixel-wave.svg`,
+  brand-blue), and the footer links «Политика конфиденциальности» / «Условия пользования» / «Помощь» on the
+  `var(--surface-app)` (`#01030e`) surface via the design tokens
+
+#### Scenario: Login view
 - GIVEN a user navigates to `/login`
-- WHEN the page loads
-- THEN it MUST display a form with email and password inputs
-- AND it MUST display a "Sign in" submit button
-- AND it MUST display a link to `/register` for users without an account
-- AND the form container MUST use `bg-surface-level-1 border border-neutral-weak rounded-lg shadow-md`
-- AND the form container MUST use `p-8` (32px) padding
-- AND form fields MUST use `space-y-6` (24px) vertical spacing
-- AND the page background MUST use `bg-surface-level-0`
+- THEN the «ВХОД В GIGLY» lockup (blue-G logomark + Handjet heading + Manrope subtitle), Email + Пароль, a
+  non-functional «Забыли пароль?» link, a «Войти» submit wired to `loginUser`, and a «Нет аккаунта? Создать аккаунт»
+  link are shown — no step-dots, no role selector, no English
 
-#### Scenario: Login form inputs use token-based styling
-- GIVEN a user views the login form
-- WHEN form inputs render
-- THEN email and password inputs MUST use `bg-navy-800 border border-gray-600 text-white`
-- AND inputs MUST use `focus:ring-1 focus:ring-blue-500 focus:border-blue-500` for focus states
-- AND placeholder text MUST use `placeholder:text-gray-400`
-- AND input padding MUST use `px-4 py-3`
-- AND labels MUST use `text-white text-sm font-medium`
-
-#### Scenario: Login form submit button uses prominent styling
-- GIVEN a user views the login form
-- WHEN the submit button renders
-- THEN the button MUST use `bg-blue-500 hover:bg-blue-600 text-white`
-- AND the button MUST use `w-full` (full width)
-- AND the button MUST use `py-3 px-6 rounded-md text-sm font-semibold`
-- AND the button MUST include focus states: `focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-navy-900`
-- AND disabled state MUST use `disabled:opacity-50 disabled:cursor-not-allowed`
-
-#### Scenario: Login form shows loading state
-- GIVEN a user submits the login form
-- WHEN the server action is processing
-- THEN the submit button MUST show "Signing in..." text
-- AND the button MUST be disabled
-
-#### Scenario: Login form shows error with consistent styling
-- GIVEN a user submits invalid credentials
-- WHEN the server action returns an error
-- THEN the error message MUST be displayed inline on the form
-- AND the error message MUST use `text-error-500 text-sm`
-
-#### Scenario: Login page link to registration uses secondary styling
-- GIVEN a user views the login page
-- WHEN the registration link renders
-- THEN the link text MUST use `text-blue-500 hover:text-blue-400 font-medium`
-- AND the surrounding text MUST use `text-gray-300 text-sm`
+#### Scenario: Token/font purity
+- GIVEN the auth screens render
+- THEN colours and fonts resolve from `app/_design/tokens.css` (no off-design hex/font literals), and the screens work
+  in both `data-theme` modes
 
 **Acceptance Criteria:**
-- `app/login/page.tsx` exists as a `'use client'` component
-- Uses `useActionState` with `loginUser` action
-- Uses `useFormStatus` for pending state on submit button
-- Form container uses `bg-surface-level-1 border border-neutral-weak rounded-lg shadow-md p-8`
-- Form fields use `space-y-6` vertical spacing
-- Input fields use `bg-navy-800 border border-gray-600 text-white` with token-based focus states
-- Submit button uses `bg-blue-500 hover:bg-blue-600 text-white w-full`
-- Error messages use `text-error-500 text-sm`
-- Registration link uses `text-blue-500 hover:text-blue-400`
-- Page background uses `bg-surface-level-0`
-- Includes a `<Link>` to `/register`
-- Displays `state?.error` when present
+- `app/_design/AuthDesign.tsx` is a `'use client'` component importing `./tokens.css`; `/login` and `/register` render it
+- Login view uses `useActionState(loginUser)` and shows `state?.error` (Russian); switches to onboarding via «Создать аккаунт»
+- No English UI strings, no kit `AuthContainer`/`AuthButton`, no checkerboard
+
+#### Scenario: Onboarding view (3 steps, two-phase)
+- GIVEN a user navigates to `/register`
+- THEN the onboarding view reproduces the 3-step flow from `Auth.dc.html` with step-dots: step 1 role select via the
+  diagonal chips (Компания / Специалист), step 2 credentials (Email + «Придумайте пароль» + «Подтвердите пароль») with
+  «Зарегистрироваться» (creates the account via `registerUser`) and a «Войти» link, step 3 role-specific setup
+  (CLIENT «ДОБРО ПОЖАЛОВАТЬ» — Компания/ФИО/Должность/Местоположение+TZ; SPECIALIST «НАСТРОЙТЕ СВОЙ АККАУНТ» —
+  ФИО/Специализация/Местоположение+TZ) with a back-arrow, «Продолжить» (saves via `updateProfile` → `/dashboard`), and
+  the consent footer «Нажимая «Продолжить»…»
+
+**Acceptance Criteria:**
+- Onboarding step transitions are client-side state; step-2 submits to `registerUser`, step-3 to `updateProfile`
+- Dropdowns bound to `SPECIALIZATIONS`/`TIMEZONES`; role chosen at step 1 (no `?role=`)
 
 ---
 
@@ -6505,61 +6483,12 @@ The change MUST pass the generativity gate + F5 + F3 + the functional/E2E suite;
 > (Phase 2 `refidelity-from-figma-references`); here F1 = structural match to each node.
 
 ### Requirement: Register Wizard Composes the Figma Auth/Onboarding Nodes
-The `/register` screen (`app/register/RegisterWizard.tsx`) MUST remain a single kit-composed 3-step wizard
-(`AuthLayout` + blocks + primitives + data, no bespoke markup) whose three steps reconcile to the Figma nodes:
-**step 1** = create-account role-select (`3179:3179`), **step 2** = create-account/specialist (`3179:3863`) &
-/company (`3195:4564`), **step 3** = welcome/specialist (`3195:4282`) & /company (`3195:4704`). It MUST use the
-authoritative `AuthStepDots` counter (NOT the labelled `StepIndicator`), lead steps 1–2 with the `Logomark`, and
-carry a per-step heading + subtitle matching each node's copy. It MUST be token-pure (F2) and composition-pure
-(F5), and MUST preserve `registerUser`, the confirm-password mismatch check, `?role=` preselect, and the flow
-that lands a completed registration on `/dashboard`.
-
-#### Scenario: Step indicator is the AuthStepDots counter with 3-step parity
-- GIVEN the `/register` wizard on any step
-- WHEN it renders
-- THEN it MUST render the `AuthStepDots` primitive with `count = 3` and `current` equal to the active step index
-- AND it MUST advance the active dot across steps (1/3 → 2/3 → 3/3) and expose the step via the primitive's
-  `aria-label`/`progressbar` role
-- AND it MUST NOT render the labelled `StepIndicator` (the "Роль/Доступ/Профиль" text labels) on the auth path
-
-#### Scenario: Steps 1–2 lead with the Logomark and a node heading
-- GIVEN the role-select step (1) and the credentials step (2)
-- WHEN each renders
-- THEN each MUST render the `Logomark` primitive (the exported brand mark) above the counter
-- AND each MUST render the node's heading + subtitle (e.g. step 1 "Создайте свой аккаунт" / "Выберите свою роль…",
-  step 2 "…" / "Введите свои учётные данные.")
-
-#### Scenario: Step 1 composes the role selector
-- GIVEN the role-select step
-- WHEN it renders
-- THEN it MUST render the `RoleCards` block (the `roleplay` ×2 selector) and `?role=` MUST preselect the matching
-  card (`aria-pressed="true"`)
-- AND the primary «Далее» button MUST be disabled until a role is chosen
-
-#### Scenario: Step 2 composes the credential inputs token-pure
-- GIVEN the credentials step
-- WHEN it renders
-- THEN it MUST render the email + password + confirm-password inputs from kit primitives plus the
-  primary/secondary buttons
-- AND a confirm-password mismatch MUST surface the existing inline error and block advancing
-- AND the step MUST carry no raw hex/px/styling literals
-
-#### Scenario: Step 3 composes the role-specific profile and completes registration
-- GIVEN the welcome/profile step for each role
-- WHEN it renders and is submitted with valid data
-- THEN it MUST render the role-specific profile fields (specialist: display name + position + tech stack + the
-  Select dropdowns; company: company name + INN + contact + phone) from kit primitives, led by the counter at 3/3
-- AND submitting MUST invoke the unchanged `registerUser`, persist the profile, and land on `/dashboard`
-
-#### Scenario: Composition- and token-purity
-- GIVEN `RegisterWizard.tsx`
-- WHEN the token-purity + composition lints run
-- THEN the screen MUST report no off-token literals and no bespoke styling/markup (it composes
-  `AuthLayout + RoleCards + primitives + data` only)
-
-**Acceptance Criteria:**
-- `RegisterWizard` is an F5-pure `@composed-screen` using `AuthHeader`/`AuthStepDots` (not `StepIndicator`), Logomark on steps 1–2, per-step node headings
-- `registerUser`/validation/`?role=` preselect/register→`/dashboard` preserved; F2 + F5 lints green
+**SUPERSEDED (reground-auth-to-design, 2026-06-24).** The kit-composed `RegisterWizard` is replaced by the
+`AuthDesign` onboarding view rebuilt directly on `gigly_full_design/Auth.dc.html` (`app/register/RegisterWizard.tsx`
+and the `?role=`/`RegisterRoleReader` machinery are deleted). The `/register` screen behaviour is now defined by
+"AuthDesign Screen (login + onboarding)" above (the prototype shell + two-phase onboarding: step-2 `registerUser`
+creates the account, step-3 `updateProfile` saves the profile → `/dashboard`). See also the authentication spec's
+"Registration Page UI Design".
 
 ### Requirement: AuthHeader Block (auth «HEADER» lockup)
 An `AuthHeader` block MUST exist (`app/components/blocks/AuthHeader.tsx`) with a typed `AuthHeaderVM`
@@ -7596,28 +7525,11 @@ composition-pure (F5); all on-screen text Russian.
 - Reconciliation decisions recorded (§10.20 / RC-S38)
 
 ### Requirement: Onboarding Wizard Reconciled to the Prototype
-The `/register` onboarding wizard MUST remain a composition-pure `@composed-screen` inside `AuthLayout`, reconciled to
-`Онбординг.dc.html` as a 3-step flow — step 1 role («Создайте свой аккаунт» / «Выберите свою роль в Gigly.», `RoleCards`),
-step 2 credentials (email + password + confirm), step 3 the role-aware profile (CLIENT «Добро пожаловать» / SPECIALIST
-«Настройте свой аккаунт») — with the `AuthHeader` + `AuthStepDots` 3-dot indicator. It MUST additionally render: the
-**footer legal links** («Политика конфиденциальности» · «Условия пользования» · «Помощь») via the `AuthLayout` footer
-slot, the **step-3 consent disclaimer** «Нажимая «Продолжить», вы соглашаетесь с Политикой конфиденциальности и Условиями
-пользования платформы», and the step-3 submit CTA **«Продолжить»**. The role-aware **field sets are kept** (CLIENT:
-companyName/ИНН/contactPerson/phoneNumber; SPECIALIST: displayName/position/techStack/specialization/experienceLevel/
-timezone) and `registerUser` is unchanged (same persistence, redirect to `/dashboard`). The screen MUST be token-pure
-(F2) and composition-pure (F5); all on-screen text Russian.
-
-#### Scenario: The wizard renders the reconciled chrome
-- GIVEN a visitor on `/register`
-- WHEN the wizard renders
-- THEN the footer MUST show «Политика конфиденциальности», «Условия пользования», «Помощь»
-- AND on step 3 it MUST show the consent disclaimer and a «Продолжить» submit CTA
-- AND the screen MUST contain no `className=`/`style=`/hex literals (F5)
-
-#### Scenario: The 3-step flow still registers successfully
-- GIVEN a visitor completing role → credentials → role-specific profile
-- WHEN they submit «Продолжить»
-- THEN `registerUser` MUST create the account with the role-specific fields and redirect to `/dashboard`
+**SUPERSEDED (reground-auth-to-design, 2026-06-24).** This requirement reconciled the kit `RegisterWizard` to the older
+`Онбординг.dc.html` (which lacked a login screen). It is replaced by the full `Auth.dc.html` reground — see "AuthDesign
+Screen (login + onboarding)" above. The footer legal links, step-3 consent disclaimer «Нажимая «Продолжить»…», and the
+«Продолжить» CTA are preserved by `AuthDesign`; the role-specific field set is collected at step 3 and persisted via
+`updateProfile` (two-phase), not by `registerUser`.
 
 ### Requirement: AuthFooter Block
 A new `AuthFooter` block MUST render the three onboarding legal links — «Политика конфиденциальности», «Условия
@@ -7633,31 +7545,6 @@ A new `AuthFooter` block MUST render the three onboarding legal links — «По
 - new `AuthFooter` block + render test; richer schema-backed field sets kept (owner-confirmed; no `registerUser`/schema change)
 - F2 + F5 lints + `build` + `test:unit` + `compose-onboarding` E2E green; the existing register E2E kept green; F1 = structural vs the prototype onboarding frame (≤1% Phase 4)
 - Reconciliation decisions recorded (§10.21 / RC-S39–S40)
-
-### Requirement: F1 ≤1% Visual-Fidelity Gate (Golden-Image Regression)
-The project MUST provide a fidelity gate (`npm run test:fidelity`) that, for every gated **surface** in **both themes**
-(dark + light) at **1440px**, captures the live render and compares it to a committed **golden baseline** via the
-`fidelity-diff.js` engine, asserting the differing-pixel **ratio ≤ 0.01 (≤1%)** (AA/colour tolerance, dynamic regions
-masked). When a golden is absent (or `FIDELITY_UPDATE=1` / `test:fidelity:update`) the gate MUST write the golden
-instead of failing. The gate MUST emit `diff.png`, `side-by-side.png`, and `overlay-50.png` for any compared surface.
-Goldens are environment-pinned to the project's Playwright Chromium. The gated surfaces are the workbench component +
-composition catalog (`/workbench/{tokens,primitives,blocks,templates,layout,screens,generativity}` + the index) — the
-deterministic, fixture-driven fidelity capture model; live per-route screens stay covered by their `compose-*` E2E (F3)
-+ the human overlay reference. The `gigly_full_design` prototype frames are the **human** F1 overlay/calibration
-reference (the registry `reference`), NOT the automated pixel target.
-
-#### Scenario: A matching render passes the ≤1% gate
-- GIVEN a committed golden for a surface×theme
-- WHEN the live render is captured and diffed
-- THEN the ratio MUST be ≤ 1% and the gate MUST pass, emitting the diff/side-by-side/overlay-50 artifacts
-
-#### Scenario: An injected offset is caught
-- GIVEN the engine and a deliberately offset render (the synthetic 4px-shift `--selfcheck`)
-- THEN the ratio MUST exceed 1% and be reported as a failure (drift detected)
-
-#### Scenario: Every component surface is gated in both themes
-- GIVEN the gate's surface manifest
-- THEN it MUST cover every `/workbench/*` component+composition surface, each captured in dark AND light
 
 ### Requirement: Human F1 Reference Re-Baselined to the Prototype
 The workbench registry `reference` baselines MUST point at the `gigly_full_design` prototype imagery

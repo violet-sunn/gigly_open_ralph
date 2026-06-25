@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 import { PrismaClient } from '@prisma/client'
 import { PrismaLibSql } from '@prisma/adapter-libsql'
 import { setE2ESession } from '../helpers/auth'
-import { createTestUser } from '../helpers/seed'
+import { createTestUser, resetE2EDb } from '../helpers/seed'
 
 // Setup test database connection for E2E tests
 // Use libSQL adapter (same as production code)
@@ -17,8 +17,8 @@ const prisma = new PrismaClient({
 test.describe('E2E Authentication Session', () => {
   // Clean up test data after each test to prevent pollution
   test.afterEach(async () => {
-    // Delete all test users created during the test
-    await prisma.user.deleteMany({})
+    // FK-safe full reset (the shared E2E db may hold rows referencing these users).
+    await resetE2EDb(prisma)
   })
 
   test.afterAll(async () => {

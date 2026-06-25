@@ -89,10 +89,20 @@ export async function updateProfile(
       const avatarUrl = sanitizeInput((formData.get('avatarUrl') as string) || '').trim()
       const phoneVerified =
         formData.get('phoneVerified') === 'true' || formData.get('phoneVerified') === 'on'
+      // design-onboarding client fields (Должность / Местоположение+часовой пояс).
+      const position = sanitizeInput((formData.get('position') as string) || '').trim()
+      const location = sanitizeInput((formData.get('location') as string) || '').trim()
+      const timezone = sanitizeInput((formData.get('timezone') as string) || '').trim()
 
-      // Validate required fields
-      if (!companyName || !inn) {
-        return { error: 'Company name and INN are required. Please fill in these fields to complete your profile.' }
+      // Validate required fields. INN is no longer required at signup — clients register with the design's
+      // minimal set (company/ФИО/должность/локация) and ИНН/КПП are added later in profile-edit (their
+      // verification is post-release per DATA-MODEL.md). Only the company name is mandatory.
+      if (!companyName) {
+        return { error: 'Укажите название компании, чтобы завершить профиль.' }
+      }
+      // Validate the dataset-backed timezone when supplied (mirrors the specialist branch).
+      if (timezone && !isTimezone(timezone)) {
+        return { error: 'Выберите корректный часовой пояс.' }
       }
 
       // Upsert ClientProfile
@@ -104,7 +114,10 @@ export async function updateProfile(
           inn,
           kpp,
           contactPerson,
+          position,
           phoneNumber,
+          location,
+          timezone,
           avatarUrl,
           phoneVerified,
         },
@@ -113,7 +126,10 @@ export async function updateProfile(
           inn,
           kpp,
           contactPerson,
+          position,
           phoneNumber,
+          location,
+          timezone,
           avatarUrl,
           phoneVerified,
         },
@@ -125,7 +141,10 @@ export async function updateProfile(
     return { error: 'Failed to update profile. Please check your information and try again. If the problem persists, contact support.' }
   }
 
-  redirect('/profile')
+  // Most callers (profile-edit) land back on /profile; the onboarding step-3 setup passes redirectTo=/dashboard.
+  // Only same-origin absolute paths are honoured (defends against open-redirect via a crafted form field).
+  const requested = (formData.get('redirectTo') as string) || ''
+  redirect(requested.startsWith('/') ? requested : '/profile')
 }
 
 /**

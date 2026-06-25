@@ -4,20 +4,27 @@ import { PrismaClient } from '@prisma/client'
 import { PrismaLibSql } from '@prisma/adapter-libsql'
 
 /**
- * compose-finances (Phase 2) — verifies /finances is composed from the kit (StatPanel + LedgerTable) over the logical
- * finances-ledger layer: the screen reflects the user's PAID gigs (ledger row + balance + stats), shows the
- * logical-amounts framing, renders an empty state for users with no realized payments, and the sidebar «Финансы» nav
- * item is active. Seeds directly into the E2E db (file:./test.db). No Финансы mock exists → F1 flagged-missing.
+ * e2e-finances (reconciliation #10) — verifies the rebuilt «Финансы» screen at /finances
+ * (app/(protected)/finances/FinancesDesign.tsx): the role-aware stat tiles (getFinanceStats), the «Операции» ledger
+ * (heading + count badge), and the operation rows (title + counterparty·date + role-aware amount + status). Read-only;
+ * the shell header owns the «ФИНАНСЫ» title (no in-screen title). Seeds a CLIENT «ООО Финанс» + an assigned SPECIALIST
+ * «Иван Финанс» with a PAID + an IN_PROGRESS gig, plus an empty CLIENT. App/lib (getFinances/Stats/Ledger) is unchanged.
  */
 let payerId: string
 let payerEmail: string
+let specId: string
+let specEmail: string
 let emptyId: string
 let emptyEmail: string
+
+const PAID_TITLE = 'E2E Finances Paid Gig'
+const ACTIVE_TITLE = 'E2E Finances Active Gig'
 
 test.beforeAll(async () => {
   const prisma = new PrismaClient({ adapter: new PrismaLibSql({ url: 'file:./test.db' }) as any })
   const stamp = Date.now()
   payerEmail = `cfin-payer-${stamp}@example.com`
+  specEmail = `cfin-spec-${stamp}@example.com`
   emptyEmail = `cfin-empty-${stamp}@example.com`
 
   const payer = await prisma.user.create({
@@ -30,9 +37,20 @@ test.beforeAll(async () => {
   })
   payerId = payer.id
 
+  const spec = await prisma.user.create({
+    data: {
+      email: specEmail,
+      password: 'x',
+      role: 'SPECIALIST',
+      specialistProfile: { create: { displayName: 'Иван Финанс', techStack: 'React', experienceLevel: 'SENIOR' } },
+    },
+  })
+  specId = spec.id
+
+  // Gig A — PAID. CLIENT amount = totalAmount (110 000 ₽); SPECIALIST amount = budget (100 000 ₽); status «Оплачено».
   await prisma.gig.create({
     data: {
-      title: 'E2E Finances Paid Gig',
+      title: PAID_TITLE,
       description: 'Finances composition test gig.',
       acceptanceCriteria: 'Acceptance criteria with at least fifty characters to pass validation here.',
       budget: 10000000,
@@ -42,7 +60,25 @@ test.beforeAll(async () => {
       tags: 'React',
       deadlineDays: 14,
       clientId: payer.id,
+      assignedSpecialistId: spec.id,
       paidAt: new Date('2026-04-01T10:00:00Z'),
+    },
+  })
+
+  // Gig B — IN_PROGRESS. Status badge «В работе»; drives CLIENT «В резерве» + SPECIALIST «В работе».
+  await prisma.gig.create({
+    data: {
+      title: ACTIVE_TITLE,
+      description: 'Finances active test gig.',
+      acceptanceCriteria: 'Acceptance criteria with at least fifty characters to pass validation here.',
+      budget: 5000000,
+      serviceFee: 500000,
+      totalAmount: 5500000,
+      status: 'IN_PROGRESS',
+      tags: 'React',
+      deadlineDays: 14,
+      clientId: payer.id,
+      assignedSpecialistId: spec.id,
     },
   })
 
@@ -59,32 +95,49 @@ test.beforeAll(async () => {
   await prisma.$disconnect()
 })
 
-test.describe('compose-finances — composed finances screen', () => {
-  test('reflects the ledger (paid gig row + balance) + stats + logical-amounts framing', async ({ page }) => {
+test.describe('e2e-finances — finances screen', () => {
+  test('a CLIENT sees their stat tiles + the «Операции» ledger rows', async ({ page }) => {
     await setE2ESession(page, { id: payerId, email: payerEmail, role: 'CLIENT' })
     await page.goto('/finances')
 
-    await expect(page.getByText('Суммы логические, без реальных платежей.')).toBeVisible() // framing
-    await expect(page.getByText('Выплачено')).toBeVisible() // role figure (CLIENT realized)
-    await expect(page.getByText('В резерве')).toBeVisible() // role figure (committed-but-unpaid)
-    await expect(page.getByText('Сервисный сбор')).toBeVisible() // role figure (10% fee)
-    await expect(page.getByText('E2E Finances Paid Gig')).toBeVisible() // LedgerTable operation
-    await expect(page.getByText('Баланс')).toBeVisible() // balance footer
+    // CLIENT stat-tile labels (getFinanceStats CLIENT set).
+    await expect(page.getByText('Выплачено')).toBeVisible()
+    await expect(page.getByText('В резерве')).toBeVisible()
+    await expect(page.getByText('Сервисный сбор')).toBeVisible()
+
+    // «Операции» heading + its count badge (the adjacent sibling span — scoped away from the sidebar «Мои гиги 2»).
+    await expect(page.getByRole('heading', { name: 'Операции' })).toBeVisible()
+    await expect(page.locator('h2:text-is("Операции") + span')).toHaveText('2')
+
+    // Ledger rows: titles + statuses + the specialist counterparty subtitle.
+    await expect(page.getByText(PAID_TITLE)).toBeVisible()
+    await expect(page.getByText('Оплачено')).toBeVisible() // PAID → statusLabel «Оплачено»
+    await expect(page.getByText(ACTIVE_TITLE)).toBeVisible()
+    await expect(page.getByText('В работе').first()).toBeVisible() // IN_PROGRESS status badge
+    await expect(page.getByText('Иван Финанс').first()).toBeVisible() // counterparty (CLIENT → specialist)
   })
 
-  test('shows an empty state for a user with no lifecycle gigs', async ({ page }) => {
+  test('a SPECIALIST sees the specialist stat tiles + role-aware ledger amounts', async ({ page }) => {
+    await setE2ESession(page, { id: specId, email: specEmail, role: 'SPECIALIST' })
+    await page.goto('/finances')
+
+    // SPECIALIST stat-tile labels (getFinanceStats SPECIALIST set). «В работе» is also Gig B's status badge → .first().
+    await expect(page.getByText('Заработано')).toBeVisible()
+    await expect(page.getByText('На проверке')).toBeVisible()
+    await expect(page.getByText('В работе').first()).toBeVisible()
+
+    await expect(page.getByRole('heading', { name: 'Операции' })).toBeVisible()
+    await expect(page.locator('h2:text-is("Операции") + span')).toHaveText('2')
+
+    // Counterparty = the company (SPECIALIST viewer); amount = budget (role-aware) → «100 000 ₽».
+    await expect(page.getByText('ООО Финанс').first()).toBeVisible()
+    await expect(page.getByText(/100\s?000\s*₽/).first()).toBeVisible()
+  })
+
+  test('a user with no lifecycle gigs sees the empty ledger', async ({ page }) => {
     await setE2ESession(page, { id: emptyId, email: emptyEmail, role: 'CLIENT' })
     await page.goto('/finances')
 
-    await expect(page.getByText('Пока нет операций')).toBeVisible() // LedgerTable empty state
-  })
-
-  test('the sidebar «Финансы» nav item is active on /finances', async ({ page }) => {
-    await setE2ESession(page, { id: payerId, email: payerEmail, role: 'CLIENT' })
-    await page.goto('/finances')
-
-    // The active nav item carries the active surface class (SidebarNav.navState); inactive items do not.
-    const financesLink = page.getByRole('link', { name: 'Финансы' })
-    await expect(financesLink).toHaveClass(/bg-surface-level-3/)
+    await expect(page.getByText('Операций пока нет.')).toBeVisible()
   })
 })

@@ -19,95 +19,86 @@ The registration Server Action MUST hash passwords before storing them in the da
 ---
 
 ### Requirement: Registration Action with Session and Role
-The registration Server Action MUST accept a role, validate it, create a session, and redirect on success — and MUST
-**additively** (compose-auth-onboarding) (a) enforce a confirm-password match when a confirm-password is supplied, and
-(b) persist the supplied role-specific profile (`ClientProfile`/`SpecialistProfile`) in the same transaction as the
-`User`. The action signature, rate limiting, password hashing, password-strength validation, and role validation are
-preserved; behaviour for callers that supply only email/password/role (no confirm-password, no profile) is unchanged.
+The registration Server Action (`registerUser`) MUST create the account and session from credentials + role ONLY
+(reground-auth-to-design two-phase onboarding) and MUST NOT persist profile fields or redirect. On success it MUST
+return `{ ok: true }` so the AuthDesign onboarding surface can advance to its step-3 profile-setup (which persists the
+role-specific profile via `updateProfile`). It MUST keep: rate limiting (before validation), password-strength
+validation, confirm-password match, role validation (CLIENT/SPECIALIST only, explicit ADMIN rejection), duplicate-email
+handling, and auto-login (session creation). All user-facing messages MUST be in Russian.
 
-#### Scenario: Redirect and auto-login after successful registration
-- GIVEN a valid registration submission with role "CLIENT" or "SPECIALIST"
+#### Scenario: Account created at step 2, returns ok (no redirect)
+- GIVEN a valid registration submission with role "CLIENT" or "SPECIALIST" and matching passwords
 - WHEN the user is created successfully
-- THEN a session cookie MUST be set with the new user's ID, email, and role
-- AND the action MUST redirect to `/dashboard`
+- THEN a session cookie MUST be set with the new user's ID, email, and role (auto-login)
+- AND the action MUST return `{ ok: true }` WITHOUT redirecting
+
+#### Scenario: Profile is not collected by registerUser
+- GIVEN `registerUser` succeeds
+- THEN no `ClientProfile`/`SpecialistProfile` row is created by this action (profile setup is step-3's `updateProfile`)
 
 #### Scenario: Registration with invalid role
 - GIVEN form data with an invalid role (e.g., "HACKER", "ADMIN", "USER")
 - WHEN `registerUser` is called
-- THEN it MUST return an `{ error }` and no user MUST be created
+- THEN it MUST return a Russian `{ error }` and no user MUST be created
 
 #### Scenario: Confirm-password mismatch is rejected (when supplied)
 - GIVEN a registration submission that includes a `confirmPassword` field
 - WHEN `confirmPassword` does not equal `password`
-- THEN `registerUser` MUST return an `{ error }` (e.g. «Пароли не совпадают.») AND no user MUST be created
-- AND WHEN no `confirmPassword` field is supplied (single-step callers), the check MUST be skipped (unchanged behaviour)
+- THEN `registerUser` MUST return `{ error: 'Пароли не совпадают.' }` AND no user MUST be created
 
-#### Scenario: Step-3 profile is persisted with the user
-- GIVEN a registration submission that includes role-specific profile fields
-- WHEN the user is created
-- THEN the matching profile MUST be created in the same transaction — CLIENT → `ClientProfile` (companyName, inn,
-  contactPerson, phoneNumber); SPECIALIST → `SpecialistProfile` (displayName, position, specialization, experienceLevel,
-  techStack, timezone) — with free-text sanitized and dropdown values validated against the datasets
-  (`SPECIALIZATIONS`/`EXPERIENCE_LEVELS`/`TIMEZONES`; invalid coerced to `''`)
-- AND WHEN no profile fields are supplied, no profile MUST be created (unchanged behaviour)
-
-#### Scenario: Error returned on failure
+#### Scenario: Error returned on failure (Russian)
 - GIVEN a registration submission that fails (e.g., duplicate email)
 - WHEN the Server Action catches the error
-- THEN it MUST return an object with an error message AND the form MUST display that message
+- THEN it MUST return a Russian error message AND the form MUST display that message
 
 **Acceptance Criteria:**
-- `registerUser` reads `formData.get('role')` and validates it is `"CLIENT"` or `"SPECIALIST"`; on success `createSession()` then `redirect('/dashboard')`; on failure `{ error: string }`; signature compatible with `useActionState`
-- Confirm-password mismatch (when supplied) → error, no user; absent → skipped (backward-compatible)
-- Role-specific profile (when supplied) persisted in the same transaction, dataset-validated; absent → no profile (backward-compatible)
-- Rate limiting, password hashing, and password-strength validation preserved
+- `registerUser` reads `formData.get('role')`, validates `"CLIENT"`/`"SPECIALIST"` (ADMIN/invalid rejected); on success `createSession()` then returns `{ ok: true }` (no redirect, no profile); on failure `{ error: string }` (Russian); signature compatible with `useActionState`
+- Confirm-password mismatch → error, no user
+- Rate limiting, password hashing, and password-strength validation preserved; `buildProfileCreate` removed
 
 ---
 
 ### Requirement: Registration Page UI Design
-The registration page (`/register`) MUST be the kit-composed 3-step onboarding wizard (`RegisterWizard`,
-compose-auth-onboarding) — composed from `AuthLayout` + `StepIndicator` + `RoleCards` + form primitives, token-pure (no
-hardcoded hex/px literals) — replacing the prior single-step hardcoded-Figma page. It MUST preserve role preselection
-from `?role=`, the RU copy, the decorative checkerboard footer (the exported asset), responsiveness, and all existing
-authentication functionality (validation, rate limiting, session creation). Fidelity is measured against the references
-(auth/reg/reg-customer/reg-specialist), with F1 ≤1% deferred on the font-licence gate.
+The registration page (`/register`) MUST be rendered by `AuthDesign`'s onboarding view (the `app/_design/` rebuild
+grounded in `gigly_full_design/Auth.dc.html`, reground-auth-to-design), replacing the kit `RegisterWizard`. It MUST
+implement two-phase registration: step-2 «Зарегистрироваться» creates the account via `registerUser`; step-3
+«Продолжить» saves the role-specific profile via `updateProfile` and redirects to `/dashboard`. Role is chosen at
+step 1 (no `?role=` query). The prototype shell (GIGLY wordmark, blue-G logomark, Handjet/Manrope, pixel-wave, footer
+links, diagonal role chips, step-dots) is reproduced; colours/fonts resolve from `app/_design/tokens.css`.
 
-#### Scenario: Registration page is the composed 3-step wizard
+#### Scenario: Registration page is the AuthDesign 3-step onboarding
 - GIVEN a user navigates to `/register`
 - WHEN the page renders
-- THEN it MUST render `<RegisterWizard>` inside `AuthLayout`, showing a `StepIndicator` with three steps (role →
-  credentials → role-specific profile), the heading «Регистрация», and the exported checkerboard footer
-  (`/assets/design-system/patterns/checkerboard.svg`) — composed from the kit, token-pure (no `className`/`style`/hex in
-  the screen)
+- THEN it MUST render the `AuthDesign` onboarding view: step 1 «СОЗДАЙТЕ СВОЙ АККАУНТ» with the diagonal Компания/
+  Специалист chips and step-dots (no `?role=` preselection)
 
-#### Scenario: Role pre-selection from query parameter
-- GIVEN a user navigates to `/register?role=SPECIALIST` (or `=CLIENT`)
-- WHEN the page renders
-- THEN step 1 MUST pre-select that role; an absent/invalid `?role=` MUST start with no preselection (both roles
-  selectable)
+#### Scenario: New CLIENT completes onboarding
+- GIVEN a user picks «Компания», registers at step 2, fills Компания/ФИО/Должность/Местоположение+TZ at step 3, and
+  submits «Продолжить»
+- THEN the account exists from step 2, the client profile is saved at step 3, and the user lands on `/dashboard`
 
-#### Scenario: Role-specific profile step
-- GIVEN the wizard reaches step 3
-- WHEN the chosen role is CLIENT vs SPECIALIST
-- THEN it MUST present the company profile (`reg-customer`) vs the specialist profile (`reg-specialist`), the specialist
-  dropdowns bound to the datasets (`SPECIALIZATIONS`/`EXPERIENCE_LEVELS`/`TIMEZONES`)
+#### Scenario: New SPECIALIST completes onboarding
+- GIVEN a user picks «Специалист», registers, and fills ФИО/Специализация/Местоположение+TZ
+- THEN the specialist profile is saved and the user lands on `/dashboard`
 
-#### Scenario: Responsive
-- GIVEN a user views `/register` on a mobile viewport (< 768px)
-- WHEN the page renders
-- THEN the composed card MUST remain functional and readable and the footer MUST scale (the `AuthLayout` is responsive
-  via tokens)
+#### Scenario: Step-3 abandonment leaves a usable account
+- GIVEN a user completes step 2 but leaves before finishing step 3
+- THEN the account already exists (created at step 2) and the profile can be completed later in profile-edit
+
+#### Scenario: Password mismatch caught at step 2
+- GIVEN step-2 password and confirm differ
+- THEN «Пароли не совпадают.» is shown and registration is blocked
 
 **Acceptance Criteria:**
-- `/register` renders the F5-pure composed `RegisterWizard` (AuthLayout + StepIndicator + RoleCards + form primitives); token-pure (no hardcoded hex/px)
-- 3 steps with a `StepIndicator`; «Регистрация» heading; exported checkerboard footer renders; responsive
-- Role preselect from `?role=`; role-specific step 3 with dataset-bound dropdowns
-- All existing authentication functionality preserved (validation, rate limiting, session creation); fidelity vs the references with F1 ≤1% deferred on the font-licence gate
+- `/register` renders `AuthDesign initialView="onboarding"`; prototype shell on `app/_design/tokens.css`
+- Two-phase: step-2 `registerUser` (account), step-3 `updateProfile` (profile) → `/dashboard`; role chosen at step 1; no `?role=`
+- Role-specific step 3 with dataset-bound dropdowns (`SPECIALIZATIONS`/`TIMEZONES`)
 
 ---
 
 ### Requirement: Login Server Action
-The system MUST provide a `loginUser` server action that authenticates users by email and password.
+The system MUST provide a `loginUser` server action that authenticates users by email and password. All user-facing
+messages MUST be in Russian.
 
 #### Scenario: Successful login with valid credentials
 - GIVEN a registered user with a known email and password
@@ -116,24 +107,57 @@ The system MUST provide a `loginUser` server action that authenticates users by 
 - AND it MUST create a session (JWT cookie) including the user's role
 - AND it MUST redirect to `/dashboard`
 
-#### Scenario: Login with incorrect password
+#### Scenario: Login with incorrect password (Russian)
 - GIVEN a registered user
 - WHEN the `loginUser` action is called with the correct email but wrong password
-- THEN it MUST return `{ error: 'Invalid email or password.' }`
+- THEN it MUST return `{ error: 'Неверный email или пароль. Проверьте данные и попробуйте снова.' }`
 - AND it MUST NOT create a session
 
-#### Scenario: Login with non-existent email
+#### Scenario: Login with non-existent email (Russian)
 - GIVEN no user exists with the provided email
 - WHEN the `loginUser` action is called
-- THEN it MUST return `{ error: 'Invalid email or password.' }`
-- AND the error message MUST NOT reveal whether the email exists
+- THEN it MUST return the same Russian "invalid credentials" error (MUST NOT reveal whether the email exists)
+
+#### Scenario: Suspended account (Russian)
+- GIVEN a suspended user with correct credentials
+- WHEN `loginUser` is called
+- THEN it MUST return a Russian "account suspended" error and MUST NOT create a session
 
 **Acceptance Criteria:**
 - `loginUser` is exported from `app/actions/auth.ts` with `'use server'`
 - Signature is `(prevState: { error?: string } | null, formData: FormData)` (useActionState-compatible)
-- Uses `bcrypt.compare()` to verify passwords
+- Uses `bcrypt.compare()` to verify passwords; Russian error copy
 - On success: sets session cookie (with role) and calls `redirect('/dashboard')`
 - On failure: returns `{ error: string }`
+
+---
+
+### Requirement: Login Screen and Login↔Register State Machine
+`/login` MUST be rendered by `AuthDesign`'s `login` view (reground-auth-to-design): the «ВХОД В GIGLY» lockup
+(blue-G logomark, Handjet heading, Manrope subtitle), Email + Пароль, a non-functional «Забыли пароль?» link, a «Войти»
+submit wired to `loginUser`, and a «Нет аккаунта? Создать аккаунт» link to onboarding. It MUST contain no English UI
+strings, no role selector, and no checkerboard background. Login and onboarding are linked siblings.
+
+#### Scenario: Login screen renders the design lockup
+- GIVEN a user navigates to `/login`
+- THEN «ВХОД В GIGLY», Email/Пароль fields, «Забыли пароль?», «Войти», and «Создать аккаунт» are shown — no English
+  strings, role cards, or checkerboard
+
+#### Scenario: Switch login → onboarding
+- WHEN the user clicks «Создать аккаунт» on login
+- THEN the onboarding view is shown («СОЗДАЙТЕ СВОЙ АККАУНТ»)
+
+#### Scenario: Switch onboarding → login
+- WHEN the user clicks «Войти» on onboarding step 2
+- THEN the login view is shown
+
+#### Scenario: Password reset entry is a placeholder
+- GIVEN the login screen renders
+- THEN «Забыли пароль?» is visible and does not trigger a reset flow (`href="#"`)
+
+**Acceptance Criteria:**
+- `/login` renders `AuthDesign initialView="login"`; no English/role-selector/checkerboard
+- «Создать аккаунт» ↔ «Войти» switch views; «Забыли пароль?» is a non-functional placeholder
 
 ---
 
@@ -482,149 +506,76 @@ The system MUST include comprehensive tests verifying password validation works 
 ## MODIFIED Requirements
 
 ### Requirement: Homepage Authentication Entry Point
-The homepage MUST link to `/auth` as the primary authentication entry point, not directly to `/register`.
+The homepage MUST send unauthenticated users to `/login` as the unified authentication entry point. It MUST NOT link to
+`/auth` (the `/auth` route is removed, reground-auth-to-design).
 
 #### Scenario: Unauthenticated user clicks "Get Started" on homepage
 - GIVEN an unauthenticated user visits the homepage `/`
-- WHEN they click the "Get Started" button
-- THEN they MUST be navigated to `/auth`
-- AND they MUST see the role selection interface
-- AND they can choose to login or register after selecting a role
+- WHEN they click the "Get Started" (or "Sign in") link
+- THEN they MUST be navigated to `/login`
 
 **Acceptance Criteria:**
-- Homepage "Get Started" button links to `/auth` (not `/register`)
+- Homepage CTAs link to `/login` (not `/auth`)
 - Link uses Next.js `<Link>` component for client-side navigation
-- Button styling and accessibility remain unchanged
-
----
-
-### Requirement: Internal Authentication Links
-All internal application links to authentication pages MUST use `/auth` as the entry point, not direct links to `/login` or `/register`.
-
-#### Scenario: Internal links point to unified auth entry
-- GIVEN any page in the application with authentication links
-- WHEN the page renders
-- THEN authentication links MUST point to `/auth`
-- AND direct links to `/login` or `/register` MUST be replaced with `/auth`
-- EXCEPT where role-specific context is already established (e.g., register page linking to login)
-
-#### Scenario: Register page links to login
-- GIVEN a user is on the `/register` page
-- WHEN they click the "Войти" (Login) button
-- THEN they MAY be navigated directly to `/login` (preserving existing behavior)
-- OR they MAY be navigated to `/auth` (improved consistency)
-- AND this is an implementation decision based on UX considerations
-
-**Acceptance Criteria:**
-- Audit all `.tsx` files for links to `/login` and `/register`
-- Update homepage and other entry points to use `/auth`
-- Document any exceptions where direct links are preserved
-- Maintain existing link styling and accessibility
-
----
-
-### Requirement: Backward Compatibility for Direct Auth URLs
-Direct access to `/login` and `/register` URLs MUST continue to work for users with bookmarked links.
-
-#### Scenario: User accesses /login directly
-- GIVEN a user has bookmarked `/login` or types it directly
-- WHEN they navigate to `/login`
-- THEN they MUST see the login page
-- AND they MUST be able to authenticate successfully
-- AND no redirect to `/auth` MUST occur (preserving direct access)
-
-#### Scenario: User accesses /register directly
-- GIVEN a user has bookmarked `/register` or types it directly
-- WHEN they navigate to `/register`
-- THEN they MUST see the registration page
-- AND they MUST be able to register successfully
-- AND no redirect to `/auth` MUST occur (preserving direct access)
-
-#### Scenario: Query parameters are preserved
-- GIVEN a user accesses `/login?role=SPECIALIST` directly
-- WHEN the page loads
-- THEN the role parameter MUST be preserved and displayed
-- AND the existing role pre-selection behavior MUST work
-
-**Acceptance Criteria:**
-- Direct navigation to `/login` and `/register` works without redirects
-- Query parameters (e.g., `?role=SPECIALIST`) are preserved
-- Middleware does not redirect authenticated users from these pages to `/auth`
-- Existing middleware behavior (redirect authenticated users to `/dashboard`) is preserved
 
 ---
 
 ### Requirement: Middleware Auth Route Configuration
-The middleware MUST allow unauthenticated access to `/auth` and redirect authenticated users to `/dashboard`.
+The middleware MUST guard the auth routes without referencing `/auth`. It MUST redirect authenticated users away from
+`/login` to `/dashboard`, and MUST **allow** authenticated users on `/register` (the two-phase onboarding creates the
+account at step 2, so step-3 setup runs while authenticated). All protected-route and admin-route guards are preserved.
 
-#### Scenario: Middleware allows unauthenticated access to /auth
-- GIVEN an unauthenticated user
-- WHEN they navigate to `/auth`
-- THEN the middleware MUST allow the request to proceed
-- AND they MUST see the auth landing page with role selection
-
-#### Scenario: Middleware redirects authenticated users from /auth
+#### Scenario: Authenticated user on /login
 - GIVEN an authenticated user with a valid session
-- WHEN they navigate to `/auth`
+- WHEN they navigate to `/login`
 - THEN the middleware MUST redirect them to `/dashboard`
-- AND they MUST NOT see the auth landing page
+
+#### Scenario: Authenticated user on /register
+- GIVEN an authenticated user (e.g. at step-3 setup after step-2 account creation)
+- WHEN they are on `/register`
+- THEN the middleware MUST allow the request (no redirect)
+
+#### Scenario: /auth route removed
+- GIVEN any user navigates to `/auth`
+- THEN no auth landing is served (route + matcher entry removed)
+
+#### Scenario: Protected/admin guards unchanged
+- GIVEN an unauthenticated user requests `/dashboard`, `/gigs`, `/profile`, or an admin route
+- THEN the middleware redirects to `/login` (admin routes still require the ADMIN role)
 
 **Acceptance Criteria:**
-- Middleware configuration includes `/auth` in matcher
-- Unauthenticated users can access `/auth` (existing behavior verified)
-- Authenticated users are redirected from `/auth` to `/dashboard` (existing behavior verified)
-- No changes to middleware logic required (already implemented correctly)
+- No `/auth` block or `'/auth'` matcher entry; `/login` redirects authed users; `/register` allows authed users
+- Protected/admin guards preserved
 
 ---
 
-## ADDED Requirements
-
 ### Requirement: E2E Test Coverage for Auth Navigation Flow
-The system MUST include E2E tests verifying the complete authentication navigation flow from homepage through role selection to login/register.
+The system MUST include E2E tests verifying the AuthDesign navigation: homepage → `/login`, the login↔register state
+machine, direct route access, and authenticated-user behaviour (reground-auth-to-design).
 
-#### Scenario: Complete flow from homepage to login
+#### Scenario: Homepage to login
 - GIVEN an unauthenticated user on the homepage
-- WHEN they click "Get Started"
-- AND they select a role (SPECIALIST or CLIENT)
-- AND they click "Войти" (Login)
-- THEN they MUST arrive at `/login?role=SPECIALIST` or `/login?role=CLIENT`
-- AND the role MUST be pre-selected on the login page
+- WHEN they click "Get Started" (or "Sign in")
+- THEN they MUST arrive at `/login` showing «ВХОД В GIGLY»
 
-#### Scenario: Complete flow from homepage to register
-- GIVEN an unauthenticated user on the homepage
-- WHEN they click "Get Started"
-- AND they select a role (SPECIALIST or CLIENT)
-- AND they click "Зарегестрироватся" (Register)
-- THEN they MUST arrive at `/register?role=SPECIALIST` or `/register?role=CLIENT`
-- AND the role MUST be pre-selected on the registration page
+#### Scenario: Login ↔ register are linked siblings
+- GIVEN a user on `/login`
+- WHEN they click «Создать аккаунт»
+- THEN the onboarding view is shown; AND «Войти» on onboarding step 2 returns to login
 
-#### Scenario: Direct login access still works
+#### Scenario: Direct access works
 - GIVEN an unauthenticated user
-- WHEN they navigate directly to `/login`
-- THEN they MUST see the login page
-- AND they MUST be able to login successfully
-- AND no redirect to `/auth` MUST occur
+- WHEN they navigate directly to `/login` or `/register`
+- THEN they MUST see the respective AuthDesign view (no redirect)
 
-#### Scenario: Direct register access still works
-- GIVEN an unauthenticated user
-- WHEN they navigate directly to `/register`
-- THEN they MUST see the registration page
-- AND they MUST be able to register successfully
-- AND no redirect to `/auth` MUST occur
-
-#### Scenario: Authenticated users redirected from auth pages
+#### Scenario: Authenticated-user behaviour
 - GIVEN an authenticated user
-- WHEN they navigate to `/auth`, `/login`, or `/register`
-- THEN they MUST be redirected to `/dashboard`
-- AND they MUST NOT see the authentication pages
+- WHEN they navigate to `/login` THEN they MUST be redirected to `/dashboard`
+- AND WHEN they navigate to `/register` THEN they MUST be allowed (onboarding setup surface)
 
 **Acceptance Criteria:**
-- E2E test file created at `__tests__/e2e/auth-navigation.spec.ts`
-- Tests cover homepage → `/auth` → role selection → login flow
-- Tests cover homepage → `/auth` → role selection → register flow
-- Tests verify direct `/login` access works
-- Tests verify direct `/register` access works
-- Tests verify authenticated user redirects
+- E2E specs (`auth-flow`, `auth-navigation`, `compose-auth-onboarding`) cover homepage → `/login`, the state machine, direct access, and authed redirects/allowances
+- Obsolete `/auth`-landing and `?role=` specs removed
 - All tests pass before deployment
 
 ## Session Tracking Requirements (reconcile-settings, 2026-06-20)
