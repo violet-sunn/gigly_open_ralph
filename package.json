@@ -13,6 +13,7 @@
     "test:coverage": "vitest run --coverage",
     "clean:test-db": "rimraf __tests__/.tmp memdb_*.db* test.db",
     "test:clean": "npm run clean:test-db && npm run test:unit",
+    "capture:design": "node scripts/capture-design.mjs",
     "tokens:generate": "node scripts/parse-design-tokens.js",
     "lint:contrast": "node scripts/design-system/validate-contrast.js",
     "lint:generativity": "node scripts/design-system/validate-generativity.js",

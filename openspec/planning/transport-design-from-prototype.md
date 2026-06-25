@@ -1,7 +1,7 @@
 # Transport Design From Prototype
 
 **Created:** 2026-06-25
-**Status:** PLANNED
+**Status:** IN_PROGRESS
 
 ## Problem
 
@@ -112,7 +112,7 @@ Each is a separate `/ralphy-plan` → `/ralphy-implement` cycle. Only changes **
 
 ## Status
 
-- [ ] 1. transport-capture-pipeline
+- [x] 1. transport-capture-pipeline
 - [ ] 2. transport-shared-shell
 - [ ] 3. transport-dashboards-search
 - [ ] 4. transport-gig-lifecycle
@@ -121,8 +121,8 @@ Each is a separate `/ralphy-plan` → `/ralphy-implement` cycle. Only changes **
 - [ ] 7. transport-admin-console
 - [ ] 8. transport-auth
 
-**Progress:** 0/8 changes completed
-**Started:** Not started
+**Progress:** 1/8 changes completed
+**Started:** 2026-06-25
 **Completed:** Not completed
 
 ## Deferred (out of scope for now)

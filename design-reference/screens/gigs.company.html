@@ -1,0 +1,1447 @@
+<!DOCTYPE html><html><head><style>
+    .sc-placeholder{background:rgba(255,255,255,.3);border:1px solid rgba(0,0,0,.5);
+      border-radius:2px;box-sizing:border-box;overflow:hidden}
+    @keyframes sc-shine{0%{background-position:100% 50%}100%{background-position:0% 50%}}
+    html.sc-dc-streaming .sc-placeholder,
+    html.sc-dc-streaming .sc-interp.sc-missing{position:relative;
+      background:color-mix(in srgb,currentColor 5%,transparent);
+      border-color:transparent}
+    html.sc-dc-streaming .sc-placeholder::before,
+    html.sc-dc-streaming .sc-interp.sc-missing::before{content:'';
+      position:absolute;inset:0;pointer-events:none;
+      background:linear-gradient(90deg,rgba(217,119,87,0) 25%,rgba(247,225,211,.95) 37%,rgba(217,119,87,0) 63%);
+      background-size:400% 100%;animation:sc-shine 1.4s ease infinite}
+    html.sc-dc-streaming .sc-placeholder:nth-child(n+9 of .sc-placeholder)::before,
+    html.sc-dc-streaming .sc-interp.sc-missing:nth-child(n+9 of .sc-interp.sc-missing)::before{animation:none;
+      background:color-mix(in srgb,currentColor 8%,transparent)}
+    .sc-placeholder-error{padding:4px 8px;font:11px/1.4 ui-monospace,monospace;
+      color:rgba(0,0,0,.7);word-break:break-word}
+    .sc-interp.sc-missing{display:inline-block;width:2em;height:1em;overflow:hidden;
+      vertical-align:text-bottom;background:rgba(255,255,255,.3);border:1px solid rgba(0,0,0,.5);
+      border-radius:2px;box-sizing:border-box;color:transparent;
+      user-select:none}
+    .sc-interp.sc-unresolved{font-family:ui-monospace,monospace;font-size:.85em;
+      color:rgba(0,0,0,.5);background:rgba(0,0,0,.05);border-radius:3px;
+      padding:0 3px}
+    .sc-host.sc-has-error{position:relative}
+    .sc-logic-error{position:absolute;top:8px;left:8px;z-index:2147483647;max-width:60ch;
+      padding:6px 10px;background:#b00020;color:#fff;font:12px/1.4 ui-monospace,monospace;
+      border-radius:4px;white-space:pre-wrap;pointer-events:none}
+    /* Mirrors PRINT_BASELINE_CSS in apps/web deck-stage-export.ts — keep both
+       in sync until dc-runtime regains a build step. */
+    @media print {
+      @page { margin: 0.5cm; }
+      section, article, figure, table { break-inside: avoid; }
+      *, *::before, *::after {
+        print-color-adjust: exact; -webkit-print-color-adjust: exact;
+        backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+        animation-delay: -99s !important; animation-duration: .001s !important;
+        animation-iteration-count: 1 !important; animation-fill-mode: both !important;
+        animation-play-state: running !important; transition-duration: 0s !important;
+      }
+    }
+  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script><style>x-dc{display:none!important}</style><script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" integrity="sha384-DGyLxAyjq0f9SPpVevD6IgztCFlnMF6oW/XQGmfe+IsZ8TqEiDrcHkMLKI6fiB/Z" crossorigin="anonymous"></script><script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" integrity="sha384-gTGxhz21lVGYNMcdJOyq01Edg0jhn/c22nsx0kyqP0TxaV5WVdsSH1fSDUf5YJj1" crossorigin="anonymous"></script>
+<style></style><link rel="stylesheet" href="styles.css" data-dc-tpl="1"><style data-dc-tpl="2">
+    @keyframes gigly-shimmer { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
+    .gigly-skel { background: linear-gradient(90deg, var(--surface-card) 0%, #161a26 50%, var(--surface-card) 100%); background-size: 800px 100%; animation: gigly-shimmer 1.3s infinite linear; border-radius: 8px; }
+  </style><script src="./design-system/extra-icons.js" data-dc-tpl="3"></script></head>
+<body>
+<div id="dc-root"><div class="sc-host" data-sc-name="Gigly App"><div data-dc-tpl="4" style="display: flex; flex-direction: row; width: 1512px; min-height: 100vh; background: var(--surface-app); --om-accent: #0088ff; --om-content-pad: 24px 48px 48px 24px; --om-feed-gap: 12px; --om-grid-gap: 24px; color: var(--text-1); font-family: &quot;SF Compact&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, sans-serif;">
+
+  
+  <aside data-dc-tpl="5" style="width: 283px; flex: 0 0 auto; min-height: 100vh; display: flex; flex-direction: column; padding: 24px 20px; box-sizing: border-box; gap: 24px;">
+    <div data-dc-tpl="6" style="display: flex; align-items: center; justify-content: space-between; padding: 4px 4px 0px;">
+      <div data-dc-tpl="7" style="font-family: Handjet, monospace; font-weight: 700; font-size: 30px; letter-spacing: 2px; color: var(--text-1); line-height: 1;">GIGLY</div>
+      <div data-dc-tpl="8" style="color: var(--text-4); font-size: 22px; cursor: pointer; line-height: 1;">«</div>
+    </div>
+
+    <div data-dc-tpl="9" style="position: relative;">
+      <div data-dc-tpl="10" style="cursor: pointer;">
+        <div class="sc-host-x" data-dc-tpl="11" style="display: contents;"><div style="width: 280px; overflow: hidden; border-radius: 8px; background-color: var(--surface-secondary); display: flex; flex-direction: row; gap: calc(var(--spacing-sm2) * 1px); padding-top: calc(var(--spacing-sm2) * 1px); padding-right: calc(var(--spacing-md) * 1px); padding-bottom: calc(var(--spacing-sm2) * 1px); padding-left: calc(var(--spacing-md) * 1px); align-items: center; box-sizing: border-box; position: relative;"><svg width="48" height="48" viewBox="0 0 48 48" fill="none" style="position: relative; width: 48px; height: 48px; overflow: hidden; border-radius: 6666px; flex-shrink: 0;"><path d="M 0 24 C 0 10.745 10.745 0 24 0 L 24 0 C 37.255 0 48 10.745 48 24 L 48 24 C 48 37.255 37.255 48 24 48 L 24 48 C 10.745 48 0 37.255 0 24 L 0 24 Z" fill="currentColor" fill-rule="nonzero"></path></svg><div style="position: relative; display: flex; flex-direction: column; gap: calc(var(--spacing-xs) * 1px); align-items: flex-start; flex-grow: 1;"><span style="position: relative; font-family: Manrope, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, sans-serif; font-weight: 556; font-size: 14px; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; line-height: 14px; color: var(--text-primary); flex-shrink: 0; align-self: stretch; white-space: nowrap;">Диджитал Про</span><span style="position: relative; font-family: &quot;JetBrains Mono&quot;, ui-monospace, &quot;SF Mono&quot;, Menlo, Consolas, monospace; font-weight: 457; font-size: 12px; line-height: 12px; color: var(--text-secondary); flex-shrink: 0; white-space: nowrap;">Компания</span></div><div style="position: relative; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: calc(var(--spacing-0) * 1px); flex-shrink: 0; align-self: stretch;"><div style="position: relative; width: 40px; height: 40px; overflow: hidden; border-radius: 4px; display: flex; flex-direction: row; padding-top: calc(var(--spacing-xs) * 1px); padding-right: calc(var(--spacing-xs) * 1px); padding-bottom: calc(var(--spacing-xs) * 1px); padding-left: calc(var(--spacing-xs) * 1px); justify-content: center; align-items: center; box-sizing: border-box; flex-shrink: 0;"><div style="position: relative; width: 20px; height: 20px; overflow: hidden; flex-shrink: 0; cursor: pointer;"><svg width="17.5" height="20.001" viewBox="0 0 17.500 20.001" fill="none" style="position: absolute; left: 1.25px; top: -0.001px; width: 17.5px; height: 20.001px; color: rgb(255, 255, 255);"><path d="M 8.75 20.001 C 9.413 20.001 10.049 19.738 10.518 19.269 C 10.987 18.8 11.25 18.164 11.25 17.501 L 6.25 17.501 C 6.25 18.164 6.513 18.8 6.982 19.269 C 7.451 19.738 8.087 20.001 8.75 20.001 Z M 8.75 2.399 L 7.754 2.6 C 6.624 2.83 5.608 3.444 4.878 4.337 C 4.149 5.23 3.75 6.348 3.75 7.501 C 3.75 8.286 3.582 10.247 3.176 12.179 C 2.976 13.137 2.706 14.136 2.348 15.001 L 15.153 15.001 C 14.794 14.136 14.525 13.139 14.324 12.179 C 13.917 10.247 13.75 8.286 13.75 7.501 C 13.75 6.348 13.351 5.231 12.621 4.338 C 11.892 3.445 10.876 2.831 9.746 2.601 L 8.75 2.399 Z M 16.525 15.001 C 16.804 15.56 17.126 16.002 17.5 16.251 L 0 16.251 C 0.374 16.002 0.696 15.56 0.975 15.001 C 2.1 12.751 2.5 8.601 2.5 7.501 C 2.5 4.476 4.65 1.951 7.506 1.375 C 7.489 1.201 7.508 1.026 7.563 0.86 C 7.617 0.694 7.706 0.541 7.823 0.411 C 7.94 0.282 8.083 0.178 8.243 0.107 C 8.403 0.037 8.575 0 8.75 0 C 8.925 0 9.097 0.037 9.257 0.107 C 9.417 0.178 9.56 0.282 9.677 0.411 C 9.794 0.541 9.883 0.694 9.937 0.86 C 9.992 1.026 10.011 1.201 9.994 1.375 C 11.407 1.662 12.677 2.429 13.589 3.545 C 14.501 4.662 15 6.059 15 7.501 C 15 8.601 15.4 12.751 16.525 15.001 Z" fill="currentColor" fill-rule="nonzero"></path></svg></div><div style="position: absolute; left: 22px; top: 2px; width: 16px; height: 16px; border-radius: 484.364px; background-color: var(--color-2); display: flex; flex-direction: column; gap: 7.27273px; padding: 2.182px; justify-content: center; align-items: center; box-sizing: border-box;"><span style="position: relative; font-family: Manrope, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, sans-serif; font-weight: 400; font-size: 8.72727px; text-align: center; line-height: 100%; color: rgb(255, 255, 255); flex-shrink: 0;">7</span></div></div><div style="position: relative; width: 40px; height: 40px; overflow: hidden; border-radius: 4px; display: flex; flex-direction: row; padding-top: calc(var(--spacing-xs) * 1px); padding-right: calc(var(--spacing-xs) * 1px); padding-bottom: calc(var(--spacing-xs) * 1px); padding-left: calc(var(--spacing-xs) * 1px); justify-content: center; align-items: center; box-sizing: border-box; flex-shrink: 0;"><div style="position: relative; width: 20px; height: 20px; overflow: hidden; flex-shrink: 0; cursor: pointer;"><svg width="8.115" height="8.115" viewBox="0 0 8.115 8.115" fill="none" style="position: absolute; left: 5.942px; top: 5.943px; width: 8.115px; height: 8.115px; color: rgb(255, 255, 255);"><path d="M 4.058 0 C 3.525 0 2.997 0.105 2.505 0.309 C 2.012 0.513 1.565 0.812 1.188 1.188 C 0.812 1.565 0.513 2.012 0.309 2.505 C 0.105 2.997 0 3.525 0 4.057 C 0 4.59 0.105 5.118 0.309 5.61 C 0.513 6.103 0.812 6.55 1.188 6.927 C 1.565 7.303 2.012 7.602 2.505 7.806 C 2.997 8.01 3.525 8.115 4.058 8.115 C 5.134 8.115 6.166 7.688 6.927 6.927 C 7.688 6.166 8.115 5.134 8.115 4.057 C 8.115 2.981 7.688 1.949 6.927 1.188 C 6.166 0.427 5.134 0 4.058 0 L 4.058 0 Z M 1.25 4.057 C 1.25 3.313 1.546 2.599 2.072 2.072 C 2.599 1.546 3.313 1.25 4.058 1.25 C 4.802 1.25 5.516 1.546 6.043 2.072 C 6.569 2.599 6.865 3.313 6.865 4.057 C 6.865 4.802 6.569 5.516 6.043 6.043 C 5.516 6.569 4.802 6.865 4.058 6.865 C 3.313 6.865 2.599 6.569 2.072 6.043 C 1.546 5.516 1.25 4.802 1.25 4.057 Z" fill="currentColor" fill-rule="nonzero"></path></svg><svg width="19.999" height="19.999" viewBox="0 0 19.999 19.999" fill="none" style="position: absolute; left: 0.001px; top: 0.001px; width: 19.999px; height: 19.999px; color: rgb(255, 255, 255);"><path d="M 12.244 1.678 C 11.586 -0.559 8.413 -0.559 7.754 1.678 L 7.637 2.077 C 7.591 2.233 7.51 2.377 7.402 2.498 C 7.293 2.619 7.158 2.714 7.008 2.777 C 6.857 2.839 6.695 2.867 6.532 2.858 C 6.37 2.85 6.211 2.805 6.068 2.727 L 5.703 2.527 C 3.653 1.412 1.412 3.654 2.528 5.703 L 2.727 6.068 C 2.805 6.211 2.85 6.37 2.858 6.532 C 2.867 6.695 2.839 6.857 2.777 7.008 C 2.714 7.158 2.619 7.293 2.498 7.402 C 2.377 7.51 2.233 7.591 2.077 7.637 L 1.678 7.754 C -0.559 8.413 -0.559 11.586 1.678 12.244 L 2.077 12.362 C 2.233 12.408 2.377 12.488 2.498 12.597 C 2.619 12.706 2.714 12.841 2.777 12.991 C 2.839 13.141 2.867 13.304 2.858 13.466 C 2.85 13.629 2.805 13.788 2.727 13.931 L 2.527 14.296 C 1.412 16.346 3.653 18.588 5.703 17.471 L 6.068 17.272 C 6.211 17.194 6.37 17.149 6.532 17.14 C 6.695 17.132 6.857 17.16 7.008 17.222 C 7.158 17.284 7.293 17.38 7.402 17.501 C 7.51 17.622 7.591 17.766 7.637 17.922 L 7.754 18.321 C 8.413 20.558 11.586 20.558 12.244 18.321 L 12.362 17.922 C 12.408 17.766 12.488 17.622 12.597 17.501 C 12.706 17.38 12.841 17.284 12.991 17.222 C 13.141 17.16 13.304 17.132 13.466 17.14 C 13.629 17.149 13.788 17.194 13.931 17.272 L 14.296 17.472 C 16.346 18.588 18.588 16.344 17.471 14.296 L 17.272 13.931 C 17.194 13.788 17.149 13.629 17.14 13.466 C 17.132 13.304 17.16 13.141 17.222 12.991 C 17.284 12.841 17.38 12.706 17.501 12.597 C 17.622 12.488 17.766 12.408 17.922 12.362 L 18.321 12.244 C 20.558 11.586 20.558 8.413 18.321 7.754 L 17.922 7.637 C 17.766 7.591 17.622 7.51 17.501 7.402 C 17.38 7.293 17.284 7.158 17.222 7.008 C 17.16 6.857 17.132 6.695 17.14 6.532 C 17.149 6.37 17.194 6.211 17.272 6.068 L 17.472 5.703 C 18.588 3.653 16.344 1.412 14.296 2.528 L 13.931 2.727 C 13.788 2.805 13.629 2.85 13.466 2.858 C 13.304 2.867 13.141 2.839 12.991 2.777 C 12.841 2.714 12.706 2.619 12.597 2.498 C 12.488 2.377 12.408 2.233 12.362 2.077 L 12.244 1.678 L 12.244 1.678 Z M 8.953 2.032 C 9.261 0.988 10.738 0.988 11.046 2.032 L 11.163 2.431 C 11.262 2.766 11.434 3.074 11.668 3.334 C 11.902 3.594 12.19 3.798 12.513 3.932 C 12.836 4.065 13.185 4.125 13.533 4.107 C 13.882 4.088 14.223 3.992 14.529 3.824 L 14.893 3.624 C 15.848 3.106 16.893 4.149 16.373 5.106 L 16.174 5.471 C 16.007 5.777 15.911 6.118 15.893 6.466 C 15.874 6.815 15.934 7.164 16.068 7.486 C 16.202 7.809 16.406 8.098 16.666 8.331 C 16.926 8.565 17.234 8.737 17.569 8.836 L 17.967 8.953 C 19.011 9.261 19.011 10.738 17.967 11.046 L 17.568 11.163 C 17.233 11.262 16.924 11.434 16.665 11.668 C 16.405 11.902 16.201 12.19 16.067 12.513 C 15.933 12.836 15.874 13.185 15.892 13.533 C 15.911 13.882 16.007 14.223 16.174 14.529 L 16.374 14.893 C 16.893 15.848 15.849 16.893 14.893 16.373 L 14.529 16.174 C 14.223 16.007 13.882 15.911 13.533 15.892 C 13.184 15.874 12.836 15.934 12.513 16.067 C 12.19 16.201 11.901 16.405 11.668 16.665 C 11.434 16.925 11.262 17.234 11.163 17.569 L 11.046 17.967 C 10.738 19.011 9.261 19.011 8.953 17.967 L 8.836 17.568 C 8.737 17.233 8.564 16.925 8.331 16.665 C 8.097 16.405 7.809 16.201 7.486 16.068 C 7.163 15.934 6.815 15.874 6.466 15.893 C 6.117 15.911 5.777 16.007 5.471 16.174 L 5.106 16.374 C 4.151 16.893 3.106 15.849 3.626 14.893 L 3.824 14.529 C 3.992 14.223 4.088 13.882 4.107 13.533 C 4.126 13.184 4.066 12.835 3.933 12.512 C 3.799 12.189 3.595 11.901 3.335 11.667 C 3.075 11.433 2.766 11.261 2.431 11.162 L 2.032 11.044 C 0.988 10.737 0.988 9.259 2.032 8.952 L 2.431 8.834 C 2.765 8.736 3.074 8.563 3.333 8.33 C 3.593 8.096 3.797 7.808 3.93 7.485 C 4.064 7.163 4.124 6.814 4.106 6.466 C 4.087 6.117 3.991 5.777 3.824 5.471 L 3.624 5.106 C 3.106 4.151 4.149 3.106 5.106 3.626 L 5.471 3.824 C 5.777 3.991 6.117 4.088 6.466 4.106 C 6.815 4.125 7.163 4.065 7.486 3.931 C 7.809 3.798 8.097 3.593 8.331 3.334 C 8.564 3.074 8.737 2.766 8.836 2.431 L 8.953 2.032 L 8.953 2.032 Z" fill="currentColor" fill-rule="nonzero"></path></svg></div></div></div></div></div>
+      </div>
+      <div data-dc-tpl="12" data-proficons="" style="position: absolute; inset: 0px; pointer-events: none;"></div>
+      
+    </div>
+    <div data-dc-tpl="24" style="display: flex; gap: 4px; padding: 4px; border-radius: 10px; background: var(--surface-deep); margin-top: -12px;">
+      <div data-dc-tpl="25" style="flex: 1 1 0%; text-align: center; padding: 8px 0px; border-radius: 7px; cursor: pointer; font-size: 12px; white-space: nowrap; background: transparent; color: var(--text-3);">Специалист</div>
+      <div data-dc-tpl="26" style="flex: 1 1 0%; text-align: center; padding: 8px 0px; border-radius: 7px; cursor: pointer; font-size: 12px; white-space: nowrap; background: var(--surface-secondary); color: var(--switch-active-fg);">Компания</div>
+      <div data-dc-tpl="27" style="flex: 1 1 0%; text-align: center; padding: 8px 0px; border-radius: 7px; cursor: pointer; font-size: 12px; white-space: nowrap; background: transparent; color: var(--text-3);">Админ</div>
+    </div>
+
+    <nav data-dc-tpl="28" style="display: flex; flex-direction: column; gap: 4px; margin-top: 4px;">
+      
+        <div data-dc-tpl="30" style="position: relative; display: flex; align-items: center; gap: 12px; height: 44px; padding: 0px 12px; border-radius: 8px; cursor: pointer; background: transparent;">
+          <div data-dc-tpl="31" style="width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; opacity: 0.65; color: var(--text-3);">
+            <div class="sc-host-x" data-dc-tpl="32" style="display: contents;"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="5" height="5" rx="1"></rect><rect x="9" y="2" width="5" height="5" rx="1"></rect><rect x="2" y="9" width="5" height="5" rx="1"></rect><rect x="9" y="9" width="5" height="5" rx="1"></rect></svg></div>
+          </div>
+          <span data-dc-tpl="33" style="flex: 1 1 0%; font-size: 16px; color: var(--text-3);"><span class="sc-interp">Дашборд</span></span>
+          <span data-dc-tpl="34" style="font-family: Handjet, monospace; font-size: 16px; color: var(--text-4);"><span class="sc-interp">6</span></span>
+          <div data-dc-tpl="35" style="position: absolute; right: -20px; top: 8px; width: 3px; height: 28px; border-radius: 3px; background: transparent;"></div>
+        </div>
+      
+        <div data-dc-tpl="30" style="position: relative; display: flex; align-items: center; gap: 12px; height: 44px; padding: 0px 12px; border-radius: 8px; cursor: pointer; background: rgba(0, 136, 255, 0.08);">
+          <div data-dc-tpl="31" style="width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; opacity: 1; color: var(--nav-active-fg);">
+            <div class="sc-host-x" data-dc-tpl="32" style="display: contents;"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="2.5" width="9" height="11" rx="1.5"></rect><path d="M6 6 H10"></path><path d="M6 8.5 H10"></path><path d="M6 11 H8.5"></path></svg></div>
+          </div>
+          <span data-dc-tpl="33" style="flex: 1 1 0%; font-size: 16px; color: var(--nav-active-fg);"><span class="sc-interp">Мои гиги</span></span>
+          <span data-dc-tpl="34" style="font-family: Handjet, monospace; font-size: 16px; color: var(--om-accent);"><span class="sc-interp">5</span></span>
+          <div data-dc-tpl="35" style="position: absolute; right: -20px; top: 8px; width: 3px; height: 28px; border-radius: 3px; background: var(--om-accent);"></div>
+        </div>
+      
+        <div data-dc-tpl="30" style="position: relative; display: flex; align-items: center; gap: 12px; height: 44px; padding: 0px 12px; border-radius: 8px; cursor: pointer; background: transparent;">
+          <div data-dc-tpl="31" style="width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; opacity: 0.65; color: var(--text-3);">
+            <div class="sc-host-x" data-dc-tpl="32" style="display: contents;"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 3.5h11a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H6.5l-3 2.5V11.5a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1z"></path></svg></div>
+          </div>
+          <span data-dc-tpl="33" style="flex: 1 1 0%; font-size: 16px; color: var(--text-3);"><span class="sc-interp">Чаты</span></span>
+          <span data-dc-tpl="34" style="font-family: Handjet, monospace; font-size: 16px; color: var(--text-4);"><span class="sc-interp">7</span></span>
+          <div data-dc-tpl="35" style="position: absolute; right: -20px; top: 8px; width: 3px; height: 28px; border-radius: 3px; background: transparent;"></div>
+        </div>
+      
+        <div data-dc-tpl="30" style="position: relative; display: flex; align-items: center; gap: 12px; height: 44px; padding: 0px 12px; border-radius: 8px; cursor: pointer; background: transparent;">
+          <div data-dc-tpl="31" style="width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; opacity: 0.65; color: var(--text-3);">
+            <div class="sc-host-x" data-dc-tpl="32" style="display: contents;"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4.5a1 1 0 0 1 1-1h3l1.5 1.5h5.5a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"></path></svg></div>
+          </div>
+          <span data-dc-tpl="33" style="flex: 1 1 0%; font-size: 16px; color: var(--text-3);"><span class="sc-interp">Финансы</span></span>
+          <span data-dc-tpl="34" style="font-family: Handjet, monospace; font-size: 16px; color: var(--text-4);"><span class="sc-interp">0</span></span>
+          <div data-dc-tpl="35" style="position: absolute; right: -20px; top: 8px; width: 3px; height: 28px; border-radius: 3px; background: transparent;"></div>
+        </div>
+      
+        <div data-dc-tpl="30" style="position: relative; display: flex; align-items: center; gap: 12px; height: 44px; padding: 0px 12px; border-radius: 8px; cursor: pointer; background: transparent;">
+          <div data-dc-tpl="31" style="width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; opacity: 0.65; color: var(--text-3);">
+            <div class="sc-host-x" data-dc-tpl="32" style="display: contents;"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5l5 1.8v3.7c0 3.2-2.1 5.3-5 6.5-2.9-1.2-5-3.3-5-6.5V3.3z"></path></svg></div>
+          </div>
+          <span data-dc-tpl="33" style="flex: 1 1 0%; font-size: 16px; color: var(--text-3);"><span class="sc-interp">Споры</span></span>
+          <span data-dc-tpl="34" style="font-family: Handjet, monospace; font-size: 16px; color: var(--text-4);"><span class="sc-interp">0</span></span>
+          <div data-dc-tpl="35" style="position: absolute; right: -20px; top: 8px; width: 3px; height: 28px; border-radius: 3px; background: transparent;"></div>
+        </div>
+      
+    </nav>
+
+    <div data-dc-tpl="36" style="flex: 1 1 0%;"></div>
+
+    <div class="sc-host-x" data-dc-tpl="37" style="display: contents;"><div style="width: 235px; border-radius: 12px; background-color: var(--surface-secondary); display: flex; flex-direction: column; gap: calc(var(--spacing-md) * 1px); padding-top: calc(var(--spacing-lg) * 1px); padding-right: calc(var(--spacing-lg) * 1px); padding-bottom: calc(var(--spacing-lg) * 1px); padding-left: calc(var(--spacing-lg) * 1px); align-items: flex-start; box-sizing: border-box; position: relative;"><div style="position: relative; display: flex; flex-direction: column; gap: calc(var(--spacing-sm) * 1px); align-items: flex-start; flex-shrink: 0; align-self: stretch;"><div style="position: relative; display: flex; flex-direction: row; gap: calc(var(--spacing-sm) * 1px); align-items: center; flex-shrink: 0; align-self: stretch;"><div style="position: relative; width: 20px; height: 20px; flex-shrink: 0; color: var(--brand-default);"><div style="width: 16px; height: 16px; overflow: hidden; position: relative; color: var(--text-primary); transform: scale(1.25, 1.25); transform-origin: 0px 0px;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="position: absolute; left: 0px; top: 0px; width: 16px; height: 16px;"><path d="M 14 1 C 14.265 1 14.52 1.105 14.707 1.293 C 14.895 1.48 15 1.735 15 2 L 15 14 C 15 14.265 14.895 14.52 14.707 14.707 C 14.52 14.895 14.265 15 14 15 L 2 15 C 1.735 15 1.48 14.895 1.293 14.707 C 1.105 14.52 1 14.265 1 14 L 1 2 C 1 1.735 1.105 1.48 1.293 1.293 C 1.48 1.105 1.735 1 2 1 L 14 1 Z M 2 0 C 1.47 0 0.961 0.211 0.586 0.586 C 0.211 0.961 0 1.47 0 2 L 0 14 C 0 14.53 0.211 15.039 0.586 15.414 C 0.961 15.789 1.47 16 2 16 L 14 16 C 14.53 16 15.039 15.789 15.414 15.414 C 15.789 15.039 16 14.53 16 14 L 16 2 C 16 1.47 15.789 0.961 15.414 0.586 C 15.039 0.211 14.53 0 14 0 L 2 0 Z" fill="currentColor" fill-rule="nonzero"></path></svg><svg width="5.423" height="8.976" viewBox="0 0 5.423 8.976" fill="none" style="position: absolute; left: 5.255px; top: 3.5px; width: 5.423px; height: 8.976px;"><path d="M 0 2.286 C -0.001 2.318 0.004 2.351 0.016 2.381 C 0.027 2.411 0.045 2.438 0.067 2.462 C 0.09 2.485 0.117 2.503 0.147 2.515 C 0.177 2.528 0.209 2.534 0.241 2.533 L 1.066 2.533 C 1.204 2.533 1.314 2.42 1.332 2.283 C 1.422 1.627 1.872 1.149 2.674 1.149 C 3.36 1.149 3.988 1.492 3.988 2.317 C 3.988 2.952 3.614 3.244 3.023 3.688 C 2.35 4.177 1.817 4.748 1.855 5.675 L 1.858 5.892 C 1.859 5.958 1.886 6.02 1.933 6.066 C 1.98 6.112 2.043 6.138 2.108 6.138 L 2.919 6.138 C 2.986 6.138 3.049 6.112 3.096 6.065 C 3.143 6.018 3.169 5.954 3.169 5.888 L 3.169 5.783 C 3.169 5.065 3.442 4.856 4.179 4.297 C 4.788 3.834 5.423 3.32 5.423 2.241 C 5.423 0.73 4.147 0 2.75 0 C 1.483 0 0.095 0.59 0 2.286 L 0 2.286 Z M 1.557 8.049 C 1.557 8.582 1.982 8.976 2.567 8.976 C 3.176 8.976 3.595 8.582 3.595 8.049 C 3.595 7.497 3.175 7.109 2.566 7.109 C 1.982 7.109 1.557 7.497 1.557 8.049 Z" fill="currentColor" fill-rule="nonzero"></path></svg></div></div><span style="position: relative; font-family: Handjet, ui-monospace, &quot;SF Mono&quot;, Menlo, Consolas, monospace; font-weight: 656; font-size: 18px; line-height: 20px; color: var(--text-primary); flex-shrink: 0; white-space: nowrap;">Поддержка</span></div><span style="position: relative; font-family: &quot;IBM Plex Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, sans-serif; font-weight: 556; font-size: 12px; line-height: 12px; color: var(--text-secondary); flex-shrink: 0; align-self: stretch;">Привет! Вы на ранней версии платформы. Если что-то пошло не&nbsp;так — напишите. Мы рядом и&nbsp;поможем разобраться.</span></div><div style="position: relative; height: 35px; border-radius: 4px; background-color: var(--surface-tetriary); border-top: 1px solid var(--brand-default); border-right: 2px solid var(--brand-default); border-bottom: 1px solid var(--brand-default); border-left: 1px solid var(--brand-default); display: flex; flex-direction: row; gap: calc(var(--spacing-sm) * 1px); padding-top: calc(var(--spacing-sm) * 1px); padding-right: calc(var(--spacing-sm2) * 1px); padding-bottom: calc(var(--spacing-sm) * 1px); padding-left: calc(var(--spacing-sm2) * 1px); align-items: center; box-sizing: border-box; flex-shrink: 0; align-self: stretch;"><div style="position: relative; width: 16px; height: 16px; overflow: hidden; flex-shrink: 0;"><svg width="16.001" height="15.998" viewBox="0 0 16.001 15.998" fill="none" style="position: absolute; left: -0.001px; top: 0.002px; width: 16.001px; height: 15.998px; color: var(--text-primary);"><path d="M 11.743 10.342 C 12.711 9.021 13.145 7.383 12.957 5.755 C 12.77 4.128 11.974 2.631 10.731 1.565 C 9.487 0.499 7.887 -0.058 6.25 0.005 C 4.613 0.068 3.06 0.747 1.902 1.905 C 0.744 3.064 0.067 4.617 0.005 6.254 C -0.057 7.891 0.501 9.491 1.568 10.734 C 2.635 11.977 4.132 12.771 5.76 12.958 C 7.387 13.144 9.025 12.709 10.346 11.74 L 10.345 11.74 C 10.375 11.78 10.407 11.818 10.443 11.855 L 14.293 15.705 C 14.48 15.893 14.735 15.998 15 15.998 C 15.265 15.998 15.52 15.893 15.707 15.706 C 15.895 15.518 16.001 15.264 16.001 14.999 C 16.001 14.733 15.895 14.479 15.708 14.291 L 11.858 10.441 C 11.822 10.405 11.784 10.372 11.743 10.341 L 11.743 10.342 Z M 12.001 6.498 C 12.001 7.22 11.859 7.936 11.582 8.603 C 11.306 9.27 10.901 9.877 10.39 10.387 C 9.879 10.898 9.273 11.303 8.606 11.579 C 7.938 11.856 7.223 11.998 6.501 11.998 C 5.779 11.998 5.063 11.856 4.396 11.579 C 3.729 11.303 3.123 10.898 2.612 10.387 C 2.101 9.877 1.696 9.27 1.42 8.603 C 1.143 7.936 1.001 7.22 1.001 6.498 C 1.001 5.039 1.58 3.641 2.612 2.609 C 3.643 1.578 5.042 0.998 6.501 0.998 C 7.96 0.998 9.359 1.578 10.39 2.609 C 11.421 3.641 12.001 5.039 12.001 6.498 L 12.001 6.498 Z" fill="currentColor" fill-rule="nonzero"></path></svg></div><span style="position: relative; font-family: Manrope, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Helvetica Neue&quot;, Arial, sans-serif; font-weight: 457; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 100%; color: var(--text-secondary); flex-grow: 1; align-self: stretch;">Что случилось?</span><div style="position: relative; width: 16px; height: 16px; overflow: hidden; flex-shrink: 0;"><svg width="15.705" height="15.703" viewBox="0 0 15.705 15.703" fill="none" style="position: absolute; left: 0.295px; top: 0.001px; width: 15.705px; height: 15.703px; color: rgb(255, 255, 255);"><path d="M 15.559 0.145 C 15.628 0.215 15.676 0.303 15.695 0.399 C 15.715 0.495 15.706 0.594 15.669 0.685 L 9.85 15.232 C 9.799 15.36 9.713 15.472 9.603 15.554 C 9.492 15.637 9.361 15.687 9.224 15.7 C 9.086 15.713 8.948 15.688 8.824 15.627 C 8.7 15.566 8.595 15.473 8.521 15.356 L 5.343 10.361 L 0.348 7.183 C 0.232 7.109 0.138 7.004 0.077 6.88 C 0.016 6.756 -0.01 6.618 0.003 6.48 C 0.016 6.343 0.067 6.211 0.149 6.101 C 0.232 5.99 0.344 5.904 0.472 5.853 L 15.019 0.036 C 15.11 0 15.21 -0.009 15.306 0.01 C 15.402 0.03 15.49 0.077 15.559 0.146 L 15.559 0.145 Z M 6.341 10.069 L 9.102 14.407 L 13.835 2.575 L 6.341 10.069 Z M 13.128 1.868 L 1.296 6.601 L 5.635 9.361 L 13.129 1.868 L 13.128 1.868 Z" fill="currentColor" fill-rule="nonzero"></path></svg></div></div></div></div>
+
+    <div data-dc-tpl="38" title="Выйти" style="display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 8px; cursor: pointer; opacity: 0.7;">
+      <div class="sc-host-x" data-dc-tpl="39" style="display: contents;"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3H3.5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h3"></path><path d="M10 5l3 3-3 3"></path><path d="M13 8H6"></path></svg></div>
+    </div>
+  </aside>
+
+  
+  <main data-dc-tpl="40" style="flex: 1 1 0%; min-width: 0px; display: flex; flex-direction: column;">
+
+    
+    <header data-dc-tpl="41" style="padding: 40px 48px 0px 24px; display: flex; flex-direction: column; gap: 24px;">
+      <div data-dc-tpl="42" style="display: flex; align-items: center; justify-content: space-between;">
+        <div data-dc-tpl="43" style="display: flex; align-items: center; gap: 14px;">
+          <div data-dc-tpl="44" style="width: 4px; height: 30px; border-radius: 4px; background: var(--om-accent, #0088ff);"></div>
+          <h1 data-dc-tpl="45" style="margin: 0px; font-family: Handjet, monospace; font-weight: 700; font-size: 34px; letter-spacing: 1px; color: var(--text-1); white-space: nowrap;"><span class="sc-interp">МОИ ГИГИ</span></h1>
+        </div>
+        <div data-dc-tpl="46" title="Вид" style="width: 44px; height: 44px; border-radius: 8px; background: var(--surface-sunken); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-3);">
+          <svg data-dc-tpl="47" width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <rect data-dc-tpl="48" x="2.5" y="3.5" width="13" height="11" rx="3" stroke="currentColor" stroke-width="1.5"></rect>
+            <line data-dc-tpl="49" x1="11" y1="3.5" x2="11" y2="14.5" stroke="currentColor" stroke-width="1.5"></line>
+          </svg>
+        </div>
+      </div>
+
+      
+        <div data-dc-tpl="51" style="display: flex; align-items: center; gap: 12px;">
+          <div data-dc-tpl="52" style="flex: 1 1 0%; display: flex; align-items: center; gap: 12px; height: 48px; padding: 0px 18px; border-radius: 8px; background: var(--surface-sunken); box-shadow: inset 0 0 0 1px var(--hairline-06);">
+            <span data-dc-tpl="53" style="color: var(--text-4); display: flex;"><div class="sc-host-x" data-dc-tpl="54" style="display: contents;"><div style="width: 16px; height: 16px; overflow: hidden; position: relative; color: var(--text-primary);"><svg width="16.001" height="15.998" viewBox="0 0 16.001 15.998" fill="none" style="position: absolute; left: -0.001px; top: 0.002px; width: 16.001px; height: 15.998px;"><path d="M 11.743 10.342 C 12.711 9.021 13.145 7.383 12.957 5.755 C 12.77 4.128 11.974 2.631 10.731 1.565 C 9.487 0.499 7.887 -0.058 6.25 0.005 C 4.613 0.068 3.06 0.747 1.902 1.905 C 0.744 3.064 0.067 4.617 0.005 6.254 C -0.057 7.891 0.501 9.491 1.568 10.734 C 2.635 11.977 4.132 12.771 5.76 12.958 C 7.387 13.144 9.025 12.709 10.346 11.74 L 10.345 11.74 C 10.375 11.78 10.407 11.818 10.443 11.855 L 14.293 15.705 C 14.48 15.893 14.735 15.998 15 15.998 C 15.265 15.998 15.52 15.893 15.707 15.706 C 15.895 15.518 16.001 15.264 16.001 14.999 C 16.001 14.733 15.895 14.479 15.708 14.291 L 11.858 10.441 C 11.822 10.405 11.784 10.372 11.743 10.341 L 11.743 10.342 Z M 12.001 6.498 C 12.001 7.22 11.859 7.936 11.582 8.603 C 11.306 9.27 10.901 9.877 10.39 10.387 C 9.879 10.898 9.273 11.303 8.606 11.579 C 7.938 11.856 7.223 11.998 6.501 11.998 C 5.779 11.998 5.063 11.856 4.396 11.579 C 3.729 11.303 3.123 10.898 2.612 10.387 C 2.101 9.877 1.696 9.27 1.42 8.603 C 1.143 7.936 1.001 7.22 1.001 6.498 C 1.001 5.039 1.58 3.641 2.612 2.609 C 3.643 1.578 5.042 0.998 6.501 0.998 C 7.96 0.998 9.359 1.578 10.39 2.609 C 11.421 3.641 12.001 5.039 12.001 6.498 L 12.001 6.498 Z" fill="currentColor" fill-rule="nonzero"></path></svg></div></div></span>
+            <input data-dc-tpl="55" placeholder="Поиск чего угодно..." value="" style="flex: 1 1 0%; background: transparent; border: none; outline: none; color: var(--text-1); font-family: Handjet, monospace; font-size: 16px;">
+          </div>
+          
+            <div data-dc-tpl="57" style="position: relative; display: flex; align-items: center; gap: 10px; height: 48px; padding: 0px 16px; border-radius: 8px; background: var(--surface-sunken); box-shadow: inset 0 0 0 1px var(--hairline-06); cursor: pointer; white-space: nowrap;">
+              <span data-dc-tpl="58" style="color: var(--text-3); display: flex;"><div class="sc-host-x" data-dc-tpl="59" style="display: contents;"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 3.5h11l-4.2 5v4l-2.6-1.3v-2.7z"></path></svg></div></span>
+              <span data-dc-tpl="60" style="font-family: Handjet, monospace; font-size: 16px; color: var(--text-3);"><span class="sc-interp">Категория</span></span>
+              <span data-dc-tpl="61" style="color: var(--text-4); font-size: 13px;">⌄</span>
+              
+            </div>
+          
+            <div data-dc-tpl="57" style="position: relative; display: flex; align-items: center; gap: 10px; height: 48px; padding: 0px 16px; border-radius: 8px; background: var(--surface-sunken); box-shadow: inset 0 0 0 1px var(--hairline-06); cursor: pointer; white-space: nowrap;">
+              <span data-dc-tpl="58" style="color: var(--text-3); display: flex;"><div class="sc-host-x" data-dc-tpl="59" style="display: contents;"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 3.5h11l-4.2 5v4l-2.6-1.3v-2.7z"></path></svg></div></span>
+              <span data-dc-tpl="60" style="font-family: Handjet, monospace; font-size: 16px; color: var(--text-3);"><span class="sc-interp">Бюджет</span></span>
+              <span data-dc-tpl="61" style="color: var(--text-4); font-size: 13px;">⌄</span>
+              
+            </div>
+          
+            <div data-dc-tpl="57" style="position: relative; display: flex; align-items: center; gap: 10px; height: 48px; padding: 0px 16px; border-radius: 8px; background: var(--surface-sunken); box-shadow: inset 0 0 0 1px var(--hairline-06); cursor: pointer; white-space: nowrap;">
+              <span data-dc-tpl="58" style="color: var(--text-3); display: flex;"><div class="sc-host-x" data-dc-tpl="59" style="display: contents;"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 3.5h11l-4.2 5v4l-2.6-1.3v-2.7z"></path></svg></div></span>
+              <span data-dc-tpl="60" style="font-family: Handjet, monospace; font-size: 16px; color: var(--text-3);"><span class="sc-interp">Сортировка</span></span>
+              <span data-dc-tpl="61" style="color: var(--text-4); font-size: 13px;">⌄</span>
+              
+            </div>
+          
+        </div>
+      
+    </header>
+
+    
+    
+
+    
+    
+
+    
+    
+      <div data-dc-tpl="164" style="padding: var(--om-content-pad, 24px 48px 48px 24px); display: flex; flex-direction: column; gap: 20px;">
+        <div data-dc-tpl="165" style="display: flex; gap: 8px; flex-wrap: wrap;">
+          
+            <div data-dc-tpl="167" style="display: flex; align-items: center; gap: 8px; height: 36px; padding: 0px 14px; border-radius: 8px; cursor: pointer; background: var(--surface-secondary); box-shadow: inset 0 0 0 1px var(--hairline-08);">
+              <span data-dc-tpl="168" style="font-size: 14px; color: var(--switch-active-fg);"><span class="sc-interp">Все</span></span>
+              <span data-dc-tpl="169" style="font-family: Handjet, monospace; font-size: 14px; color: var(--om-accent);"><span class="sc-interp">7</span></span>
+            </div>
+          
+            <div data-dc-tpl="167" style="display: flex; align-items: center; gap: 8px; height: 36px; padding: 0px 14px; border-radius: 8px; cursor: pointer; background: transparent; box-shadow: transparent 0px 0px 0px 1px inset;">
+              <span data-dc-tpl="168" style="font-size: 14px; color: var(--text-3);"><span class="sc-interp">Заявки</span></span>
+              <span data-dc-tpl="169" style="font-family: Handjet, monospace; font-size: 14px; color: var(--text-4);"><span class="sc-interp">1</span></span>
+            </div>
+          
+            <div data-dc-tpl="167" style="display: flex; align-items: center; gap: 8px; height: 36px; padding: 0px 14px; border-radius: 8px; cursor: pointer; background: transparent; box-shadow: transparent 0px 0px 0px 1px inset;">
+              <span data-dc-tpl="168" style="font-size: 14px; color: var(--text-3);"><span class="sc-interp">В работе</span></span>
+              <span data-dc-tpl="169" style="font-family: Handjet, monospace; font-size: 14px; color: var(--text-4);"><span class="sc-interp">4</span></span>
+            </div>
+          
+            <div data-dc-tpl="167" style="display: flex; align-items: center; gap: 8px; height: 36px; padding: 0px 14px; border-radius: 8px; cursor: pointer; background: transparent; box-shadow: transparent 0px 0px 0px 1px inset;">
+              <span data-dc-tpl="168" style="font-size: 14px; color: var(--text-3);"><span class="sc-interp">На проверке</span></span>
+              <span data-dc-tpl="169" style="font-family: Handjet, monospace; font-size: 14px; color: var(--text-4);"><span class="sc-interp">1</span></span>
+            </div>
+          
+            <div data-dc-tpl="167" style="display: flex; align-items: center; gap: 8px; height: 36px; padding: 0px 14px; border-radius: 8px; cursor: pointer; background: transparent; box-shadow: transparent 0px 0px 0px 1px inset;">
+              <span data-dc-tpl="168" style="font-size: 14px; color: var(--text-3);"><span class="sc-interp">Завершённые</span></span>
+              <span data-dc-tpl="169" style="font-family: Handjet, monospace; font-size: 14px; color: var(--text-4);"><span class="sc-interp">1</span></span>
+            </div>
+          
+        </div>
+        
+        
+          <div data-dc-tpl="175" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--om-grid-gap, 24px);">
+            
+              <div class="sc-host" data-sc-name="Gig Card" data-dc-tpl="177"><div data-dc-tpl="0" style="border-radius: 16px; background: radial-gradient(120% 100% at 50% 0%, rgba(59,130,246,0.22) 0%, rgba(59,130,246,0.05) 45%, rgba(59,130,246,0) 100%), var(--surface-card); box-shadow: rgba(59, 130, 246, 0.3) 0px 0px 0px 1px inset; display: flex; flex-direction: column;">
+  <div data-dc-tpl="1" style="display: flex; align-items: center; justify-content: space-between; padding: 12px;">
+    <div data-dc-tpl="2" style="display: flex; align-items: center; gap: 8px; flex: 0 0 auto;">
+      <span data-dc-tpl="3" style="width: 8px; height: 8px; flex: 0 0 auto; border-radius: 50%; background: rgb(59, 130, 246);"></span>
+      <span data-dc-tpl="4" style="font-family: Handjet, monospace; font-size: 15px; color: rgb(59, 130, 246); white-space: nowrap;"><span class="sc-interp">В работе</span></span>
+    </div>
+    <span data-dc-tpl="5" style="font-family: Handjet, monospace; font-size: 12px; color: var(--text-3); flex: 0 0 auto; white-space: nowrap;"><span class="sc-interp">2 мин</span></span>
+  </div>
+  <div data-dc-tpl="6" style="border-radius: 16px; background: var(--surface-card); box-shadow: inset 0 0 0 1px var(--hairline-08), inset 0 1px 0 var(--hairline-06); padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+    <div data-dc-tpl="7" style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+      <div data-dc-tpl="8" style="display: flex; align-items: center; gap: 8px; min-width: 0px;">
+        <span data-dc-tpl="9" style="width: 22px; height: 22px; flex: 0 0 auto; border-radius: 50%; background: rgb(245, 158, 11); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: rgb(255, 255, 255);"><span class="sc-interp">A</span></span>
+        <span data-dc-tpl="10" style="font-size: 13px; color: var(--text-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><span class="sc-interp">AlgoTrade</span></span>
+        <span data-dc-tpl="11" style="color: var(--om-accent, #0088ff); display: flex; flex: 0 0 auto;"><div class="sc-host-x" data-dc-tpl="12" style="display: contents;"><div style="width: 16px; height: 16px; overflow: hidden; position: relative;"><svg width="15.998" height="15.998" viewBox="0 0 15.998 15.998" fill="none" style="position: absolute; left: 0.001px; top: 0.001px; width: 15.998px; height: 15.998px; color: var(--color-2);"><path d="M 10.272 2.512 L 9.351 1.568 L 10.066 0.87 L 10.688 1.507 L 11.578 1.496 C 11.963 1.492 12.346 1.564 12.703 1.709 C 13.059 1.855 13.384 2.07 13.656 2.342 C 13.928 2.615 14.144 2.939 14.289 3.296 C 14.434 3.653 14.507 4.035 14.502 4.42 L 14.492 5.31 L 15.128 5.932 C 15.404 6.201 15.623 6.523 15.772 6.878 C 15.921 7.233 15.998 7.614 15.998 7.999 C 15.998 8.384 15.921 8.766 15.772 9.121 C 15.623 9.476 15.404 9.797 15.128 10.066 L 14.491 10.688 L 14.502 11.578 C 14.507 11.963 14.434 12.346 14.289 12.703 C 14.144 13.059 13.928 13.384 13.656 13.656 C 13.384 13.928 13.059 14.144 12.703 14.289 C 12.346 14.434 11.963 14.507 11.578 14.502 L 10.688 14.492 L 10.066 15.128 C 9.797 15.404 9.476 15.623 9.121 15.772 C 8.766 15.921 8.384 15.998 7.999 15.998 C 7.614 15.998 7.233 15.921 6.878 15.772 C 6.523 15.623 6.201 15.404 5.932 15.128 L 5.31 14.491 L 4.42 14.502 C 4.035 14.507 3.653 14.434 3.296 14.289 C 2.939 14.144 2.615 13.928 2.342 13.656 C 2.07 13.384 1.855 13.059 1.709 12.703 C 1.564 12.346 1.492 11.963 1.496 11.578 L 1.506 10.688 L 0.87 10.066 C 0.595 9.797 0.376 9.476 0.226 9.121 C 0.077 8.766 0 8.384 0 7.999 C 0 7.614 0.077 7.233 0.226 6.878 C 0.376 6.523 0.595 6.201 0.87 5.932 L 1.507 5.31 L 1.496 4.42 C 1.492 4.035 1.564 3.653 1.709 3.296 C 1.855 2.939 2.07 2.615 2.342 2.342 C 2.615 2.07 2.939 1.855 3.296 1.709 C 3.653 1.564 4.035 1.492 4.42 1.496 L 5.31 1.506 L 5.932 0.87 C 6.201 0.595 6.523 0.376 6.878 0.226 C 7.233 0.077 7.614 0 7.999 0 C 8.384 0 8.766 0.077 9.121 0.226 C 9.476 0.376 9.797 0.595 10.066 0.87 L 9.351 1.568 C 9.175 1.388 8.965 1.245 8.733 1.147 C 8.501 1.049 8.251 0.999 7.999 0.999 C 7.747 0.999 7.498 1.049 7.266 1.147 C 7.034 1.245 6.823 1.388 6.647 1.568 L 5.727 2.512 L 4.407 2.496 C 4.155 2.493 3.906 2.541 3.672 2.636 C 3.439 2.731 3.227 2.872 3.049 3.05 C 2.871 3.228 2.731 3.44 2.636 3.673 C 2.541 3.907 2.493 4.156 2.496 4.408 L 2.512 5.726 L 1.568 6.647 C 1.388 6.823 1.245 7.034 1.147 7.266 C 1.049 7.498 0.999 7.747 0.999 7.999 C 0.999 8.251 1.049 8.501 1.147 8.733 C 1.245 8.965 1.388 9.175 1.568 9.351 L 2.512 10.271 L 2.496 11.591 C 2.493 11.843 2.541 12.093 2.636 12.326 C 2.731 12.559 2.872 12.771 3.05 12.949 C 3.228 13.127 3.44 13.268 3.673 13.363 C 3.907 13.458 4.156 13.505 4.408 13.502 L 5.726 13.486 L 6.647 14.43 C 6.823 14.61 7.034 14.754 7.266 14.851 C 7.498 14.949 7.747 15 7.999 15 C 8.251 15 8.501 14.949 8.733 14.851 C 8.965 14.754 9.175 14.61 9.351 14.43 L 10.271 13.486 L 11.591 13.502 C 11.843 13.505 12.093 13.457 12.326 13.362 C 12.559 13.267 12.771 13.127 12.949 12.948 C 13.127 12.77 13.268 12.558 13.363 12.325 C 13.458 12.092 13.505 11.842 13.502 11.59 L 13.486 10.272 L 14.43 9.351 C 14.61 9.175 14.754 8.965 14.851 8.733 C 14.949 8.501 15 8.251 15 7.999 C 15 7.747 14.949 7.498 14.851 7.266 C 14.754 7.034 14.61 6.823 14.43 6.647 L 13.486 5.727 L 13.502 4.407 C 13.505 4.155 13.457 3.906 13.362 3.672 C 13.267 3.439 13.127 3.227 12.948 3.049 C 12.77 2.871 12.558 2.731 12.325 2.636 C 12.092 2.541 11.842 2.493 11.59 2.496 L 10.272 2.512 Z" fill="currentColor" fill-rule="nonzero"></path><path d="M 10.272 2.512 L 9.351 1.568 C 9.175 1.388 8.965 1.245 8.733 1.147 C 8.501 1.049 8.251 0.999 7.999 0.999 C 7.747 0.999 7.498 1.049 7.266 1.147 C 7.034 1.245 6.823 1.388 6.647 1.568 L 5.727 2.512 L 4.407 2.496 C 4.155 2.493 3.906 2.541 3.672 2.636 C 3.439 2.731 3.227 2.872 3.049 3.05 C 2.871 3.228 2.731 3.44 2.636 3.673 C 2.541 3.907 2.493 4.156 2.496 4.408 L 2.512 5.726 L 1.568 6.647 C 1.388 6.823 1.245 7.034 1.147 7.266 C 1.049 7.498 0.999 7.747 0.999 7.999 C 0.999 8.251 1.049 8.501 1.147 8.733 C 1.245 8.965 1.388 9.175 1.568 9.351 L 2.512 10.271 L 2.496 11.591 C 2.493 11.843 2.541 12.093 2.636 12.326 C 2.731 12.559 2.872 12.771 3.05 12.949 C 3.228 13.127 3.44 13.268 3.673 13.363 C 3.907 13.458 4.156 13.505 4.408 13.502 L 5.726 13.486 L 6.647 14.43 C 6.823 14.61 7.034 14.754 7.266 14.851 C 7.498 14.949 7.747 15 7.999 15 C 8.251 15 8.501 14.949 8.733 14.851 C 8.965 14.754 9.175 14.61 9.351 14.43 L 10.271 13.486 L 11.591 13.502 C 11.843 13.505 12.093 13.457 12.326 13.362 C 12.559 13.267 12.771 13.127 12.949 12.948 C 13.127 12.77 13.268 12.558 13.363 12.325 C 13.458 12.092 13.505 11.842 13.502 11.59 L 13.486 10.272 L 14.43 9.351 C 14.61 9.175 14.754 8.965 14.851 8.733 C 14.949 8.501 15 8.251 15 7.999 C 15 7.747 14.949 7.498 14.851 7.266 C 14.754 7.034 14.61 6.823 14.43 6.647 L 13.486 5.727 L 13.502 4.407 C 13.505 4.155 13.457 3.906 13.362 3.672 C 13.267 3.439 13.127 3.227 12.948 3.049 C 12.77 2.871 12.558 2.731 12.325 2.636 C 12.092 2.541 11.842 2.493 11.59 2.496 L 10.272 2.512 Z" fill="currentColor" fill-rule="nonzero"></path></svg><svg width="5.502" height="4.002" viewBox="0 0 5.502 4.002" fill="none" style="position: absolute; left: 4.999px; top: 5.999px; width: 5.502px; height: 4.002px; color: var(--text-primary);"><path d="M 5.355 0.147 C 5.401 0.193 5.438 0.249 5.463 0.309 C 5.489 0.37 5.502 0.435 5.502 0.501 C 5.502 0.567 5.489 0.632 5.463 0.693 C 5.438 0.753 5.401 0.808 5.355 0.855 L 2.355 3.855 C 2.308 3.901 2.253 3.938 2.192 3.964 C 2.132 3.989 2.066 4.002 2.001 4.002 C 1.935 4.002 1.87 3.989 1.809 3.964 C 1.748 3.938 1.693 3.901 1.647 3.855 L 0.147 2.355 C 0.1 2.308 0.063 2.253 0.038 2.192 C 0.013 2.132 0 2.067 0 2.001 C 0 1.935 0.013 1.87 0.038 1.809 C 0.063 1.749 0.1 1.693 0.147 1.647 C 0.193 1.6 0.248 1.564 0.309 1.538 C 0.37 1.513 0.435 1.5 0.501 1.5 C 0.566 1.5 0.631 1.513 0.692 1.538 C 0.753 1.564 0.808 1.6 0.855 1.647 L 2.001 2.794 L 4.647 0.147 C 4.693 0.1 4.748 0.063 4.809 0.038 C 4.87 0.013 4.935 0 5.001 0 C 5.066 0 5.132 0.013 5.192 0.038 C 5.253 0.063 5.308 0.1 5.355 0.147 Z" fill="currentColor" fill-rule="evenodd"></path></svg></div></div></span>
+        <span data-dc-tpl="13" style="color: var(--text-5); font-size: 11px; letter-spacing: 1px; flex: 0 0 auto;">★★★★★</span>
+        <span data-dc-tpl="14" style="color: var(--text-4); font-size: 11px; flex: 0 0 auto;">45</span>
+      </div>
+      <span data-dc-tpl="15" style="flex: 0 0 auto; font-size: 12px; color: rgb(52, 199, 89); border: 1px solid rgba(52, 199, 89, 0.45); border-radius: 6px; padding: 2px 8px;"><span class="sc-interp">Программирование</span></span>
+    </div>
+    <span data-dc-tpl="16" style="font-weight: 600; font-size: 17px; line-height: 21px; color: var(--text-1);"><span class="sc-interp">Исправить утечку памяти в Node.js (WebSocket-сервер для трейдинга)</span></span>
+    <div data-dc-tpl="17" style="display: flex; gap: 5px; flex-wrap: wrap;">
+      
+        <span data-dc-tpl="19" style="font-size: 12px; color: var(--accent-ink, #4ea3ff); background: rgba(0, 136, 255, 0.1); border-radius: 6px; padding: 3px 8px;"><span class="sc-interp">Node.js</span></span>
+      
+        <span data-dc-tpl="19" style="font-size: 12px; color: var(--accent-ink, #4ea3ff); background: rgba(0, 136, 255, 0.1); border-radius: 6px; padding: 3px 8px;"><span class="sc-interp">WebSocket</span></span>
+      
+        <span data-dc-tpl="19" style="font-size: 12px; color: var(--accent-ink, #4ea3ff); background: rgba(0, 136, 255, 0.1); border-radius: 6px; padding: 3px 8px;"><span class="sc-interp">Профилирование</span></span>
+      
+    </div>
+    <span data-dc-tpl="20" style="font-size: 14px; line-height: 18px; color: var(--text-3); opacity: 0.85; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;"><span class="sc-interp">Сервер на ws + express. При 200+ подключениях память растёт до 2 ГБ за 3 часа. Нужно профилировать и устранить утечку.</span></span>
+    <div data-dc-tpl="21" style="display: flex; align-items: center; gap: 12px; margin-top: 2px;">
+      <span data-dc-tpl="22" style="font-family: Handjet, monospace; font-size: 12px; color: var(--text-3);"><span class="sc-interp">25.08.2025</span></span>
+      <div data-dc-tpl="23" style="flex: 1 1 0%; height: 4px; border-radius: 3px; background: rgba(159, 160, 164, 0.4); overflow: hidden;"><div data-dc-tpl="24" style="height: 100%; border-radius: 3px; background: var(--text-3); width: 45%;"></div></div>
+      <span data-dc-tpl="25" style="font-family: Handjet, monospace; font-size: 12px; color: var(--text-3);"><span class="sc-interp">28.08.2025</span></span>
+    </div>
+  </div>
+  
+    <div data-dc-tpl="27" style="display: flex; align-items: flex-end; gap: 16px; padding: 14px 20px;">
+      <div data-dc-tpl="28" style="flex: 1 1 0%; display: flex; flex-direction: column; gap: 6px;">
+        <span data-dc-tpl="29" style="font-size: 11px; letter-spacing: 0.2px; color: var(--text-3);">Фикс. цена</span>
+        <span data-dc-tpl="30" style="font-weight: 600; font-size: 15px; color: var(--text-1);"><span class="sc-interp">30 000 ₽</span></span>
+      </div>
+      <div data-dc-tpl="31" style="flex: 1 1 0%; display: flex; flex-direction: column; gap: 6px;">
+        <span data-dc-tpl="32" style="font-size: 11px; letter-spacing: 0.2px; color: var(--text-3);">Срок выполнения</span>
+        <span data-dc-tpl="33" style="font-weight: 600; font-size: 15px; color: var(--text-1);"><span class="sc-interp">3 дня</span></span>
+      </div>
+      <button data-dc-tpl="34" style="flex: 0 0 auto; height: 40px; padding: 0px 22px; border: none; border-radius: 8px; background: var(--om-accent, #0088ff); color: rgb(255, 255, 255); font-size: 14px; font-weight: 500; cursor: pointer;">К проекту</button>
+    </div>
+  </div></div>
+            
+              <div class="sc-host" data-sc-name="Gig Card" data-dc-tpl="177"><div data-dc-tpl="0" style="border-radius: 16px; background: radial-gradient(120% 100% at 50% 0%, rgba(59,130,246,0.22) 0%, rgba(59,130,246,0.05) 45%, rgba(59,130,246,0) 100%), var(--surface-card); box-shadow: rgba(59, 130, 246, 0.3) 0px 0px 0px 1px inset; display: flex; flex-direction: column;">
+  <div data-dc-tpl="1" style="display: flex; align-items: center; justify-content: space-between; padding: 12px;">
+    <div data-dc-tpl="2" style="display: flex; align-items: center; gap: 8px; flex: 0 0 auto;">
+      <span data-dc-tpl="3" style="width: 8px; height: 8px; flex: 0 0 auto; border-radius: 50%; background: rgb(59, 130, 246);"></span>
+      <span data-dc-tpl="4" style="font-family: Handjet, monospace; font-size: 15px; color: rgb(59, 130, 246); white-space: nowrap;"><span class="sc-interp">В работе</span></span>
+    </div>
+    <span data-dc-tpl="5" style="font-family: Handjet, monospace; font-size: 12px; color: var(--text-3); flex: 0 0 auto; white-space: nowrap;"><span class="sc-interp">10 мин</span></span>
+  </div>
+  <div data-dc-tpl="6" style="border-radius: 16px; background: var(--surface-card); box-shadow: inset 0 0 0 1px var(--hairline-08), inset 0 1px 0 var(--hairline-06); padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+    <div data-dc-tpl="7" style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+      <div data-dc-tpl="8" style="display: flex; align-items: center; gap: 8px; min-width: 0px;">
+        <span data-dc-tpl="9" style="width: 22px; height: 22px; flex: 0 0 auto; border-radius: 50%; background: rgb(245, 158, 11); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: rgb(255, 255, 255);"><span class="sc-interp">K</span></span>
+        <span data-dc-tpl="10" style="font-size: 13px; color: var(--text-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><span class="sc-interp">Kryston</span></span>
+        <span data-dc-tpl="11" style="color: var(--om-accent, #0088ff); display: flex; flex: 0 0 auto;"><div class="sc-host-x" data-dc-tpl="12" style="display: contents;"><div style="width: 16px; height: 16px; overflow: hidden; position: relative;"><svg width="15.998" height="15.998" viewBox="0 0 15.998 15.998" fill="none" style="position: absolute; left: 0.001px; top: 0.001px; width: 15.998px; height: 15.998px; color: var(--color-2);"><path d="M 10.272 2.512 L 9.351 1.568 L 10.066 0.87 L 10.688 1.507 L 11.578 1.496 C 11.963 1.492 12.346 1.564 12.703 1.709 C 13.059 1.855 13.384 2.07 13.656 2.342 C 13.928 2.615 14.144 2.939 14.289 3.296 C 14.434 3.653 14.507 4.035 14.502 4.42 L 14.492 5.31 L 15.128 5.932 C 15.404 6.201 15.623 6.523 15.772 6.878 C 15.921 7.233 15.998 7.614 15.998 7.999 C 15.998 8.384 15.921 8.766 15.772 9.121 C 15.623 9.476 15.404 9.797 15.128 10.066 L 14.491 10.688 L 14.502 11.578 C 14.507 11.963 14.434 12.346 14.289 12.703 C 14.144 13.059 13.928 13.384 13.656 13.656 C 13.384 13.928 13.059 14.144 12.703 14.289 C 12.346 14.434 11.963 14.507 11.578 14.502 L 10.688 14.492 L 10.066 15.128 C 9.797 15.404 9.476 15.623 9.121 15.772 C 8.766 15.921 8.384 15.998 7.999 15.998 C 7.614 15.998 7.233 15.921 6.878 15.772 C 6.523 15.623 6.201 15.404 5.932 15.128 L 5.31 14.491 L 4.42 14.502 C 4.035 14.507 3.653 14.434 3.296 14.289 C 2.939 14.144 2.615 13.928 2.342 13.656 C 2.07 13.384 1.855 13.059 1.709 12.703 C 1.564 12.346 1.492 11.963 1.496 11.578 L 1.506 10.688 L 0.87 10.066 C 0.595 9.797 0.376 9.476 0.226 9.121 C 0.077 8.766 0 8.384 0 7.999 C 0 7.614 0.077 7.233 0.226 6.878 C 0.376 6.523 0.595 6.201 0.87 5.932 L 1.507 5.31 L 1.496 4.42 C 1.492 4.035 1.564 3.653 1.709 3.296 C 1.855 2.939 2.07 2.615 2.342 2.342 C 2.615 2.07 2.939 1.855 3.296 1.709 C 3.653 1.564 4.035 1.492 4.42 1.496 L 5.31 1.506 L 5.932 0.87 C 6.201 0.595 6.523 0.376 6.878 0.226 C 7.233 0.077 7.614 0 7.999 0 C 8.384 0 8.766 0.077 9.121 0.226 C 9.476 0.376 9.797 0.595 10.066 0.87 L 9.351 1.568 C 9.175 1.388 8.965 1.245 8.733 1.147 C 8.501 1.049 8.251 0.999 7.999 0.999 C 7.747 0.999 7.498 1.049 7.266 1.147 C 7.034 1.245 6.823 1.388 6.647 1.568 L 5.727 2.512 L 4.407 2.496 C 4.155 2.493 3.906 2.541 3.672 2.636 C 3.439 2.731 3.227 2.872 3.049 3.05 C 2.871 3.228 2.731 3.44 2.636 3.673 C 2.541 3.907 2.493 4.156 2.496 4.408 L 2.512 5.726 L 1.568 6.647 C 1.388 6.823 1.245 7.034 1.147 7.266 C 1.049 7.498 0.999 7.747 0.999 7.999 C 0.999 8.251 1.049 8.501 1.147 8.733 C 1.245 8.965 1.388 9.175 1.568 9.351 L 2.512 10.271 L 2.496 11.591 C 2.493 11.843 2.541 12.093 2.636 12.326 C 2.731 12.559 2.872 12.771 3.05 12.949 C 3.228 13.127 3.44 13.268 3.673 13.363 C 3.907 13.458 4.156 13.505 4.408 13.502 L 5.726 13.486 L 6.647 14.43 C 6.823 14.61 7.034 14.754 7.266 14.851 C 7.498 14.949 7.747 15 7.999 15 C 8.251 15 8.501 14.949 8.733 14.851 C 8.965 14.754 9.175 14.61 9.351 14.43 L 10.271 13.486 L 11.591 13.502 C 11.843 13.505 12.093 13.457 12.326 13.362 C 12.559 13.267 12.771 13.127 12.949 12.948 C 13.127 12.77 13.268 12.558 13.363 12.325 C 13.458 12.092 13.505 11.842 13.502 11.59 L 13.486 10.272 L 14.43 9.351 C 14.61 9.175 14.754 8.965 14.851 8.733 C 14.949 8.501 15 8.251 15 7.999 C 15 7.747 14.949 7.498 14.851 7.266 C 14.754 7.034 14.61 6.823 14.43 6.647 L 13.486 5.727 L 13.502 4.407 C 13.505 4.155 13.457 3.906 13.362 3.672 C 13.267 3.439 13.127 3.227 12.948 3.049 C 12.77 2.871 12.558 2.731 12.325 2.636 C 12.092 2.541 11.842 2.493 11.59 2.496 L 10.272 2.512 Z" fill="currentColor" fill-rule="nonzero"></path><path d="M 10.272 2.512 L 9.351 1.568 C 9.175 1.388 8.965 1.245 8.733 1.147 C 8.501 1.049 8.251 0.999 7.999 0.999 C 7.747 0.999 7.498 1.049 7.266 1.147 C 7.034 1.245 6.823 1.388 6.647 1.568 L 5.727 2.512 L 4.407 2.496 C 4.155 2.493 3.906 2.541 3.672 2.636 C 3.439 2.731 3.227 2.872 3.049 3.05 C 2.871 3.228 2.731 3.44 2.636 3.673 C 2.541 3.907 2.493 4.156 2.496 4.408 L 2.512 5.726 L 1.568 6.647 C 1.388 6.823 1.245 7.034 1.147 7.266 C 1.049 7.498 0.999 7.747 0.999 7.999 C 0.999 8.251 1.049 8.501 1.147 8.733 C 1.245 8.965 1.388 9.175 1.568 9.351 L 2.512 10.271 L 2.496 11.591 C 2.493 11.843 2.541 12.093 2.636 12.326 C 2.731 12.559 2.872 12.771 3.05 12.949 C 3.228 13.127 3.44 13.268 3.673 13.363 C 3.907 13.458 4.156 13.505 4.408 13.502 L 5.726 13.486 L 6.647 14.43 C 6.823 14.61 7.034 14.754 7.266 14.851 C 7.498 14.949 7.747 15 7.999 15 C 8.251 15 8.501 14.949 8.733 14.851 C 8.965 14.754 9.175 14.61 9.351 14.43 L 10.271 13.486 L 11.591 13.502 C 11.843 13.505 12.093 13.457 12.326 13.362 C 12.559 13.267 12.771 13.127 12.949 12.948 C 13.127 12.77 13.268 12.558 13.363 12.325 C 13.458 12.092 13.505 11.842 13.502 11.59 L 13.486 10.272 L 14.43 9.351 C 14.61 9.175 14.754 8.965 14.851 8.733 C 14.949 8.501 15 8.251 15 7.999 C 15 7.747 14.949 7.498 14.851 7.266 C 14.754 7.034 14.61 6.823 14.43 6.647 L 13.486 5.727 L 13.502 4.407 C 13.505 4.155 13.457 3.906 13.362 3.672 C 13.267 3.439 13.127 3.227 12.948 3.049 C 12.77 2.871 12.558 2.731 12.325 2.636 C 12.092 2.541 11.842 2.493 11.59 2.496 L 10.272 2.512 Z" fill="currentColor" fill-rule="nonzero"></path></svg><svg width="5.502" height="4.002" viewBox="0 0 5.502 4.002" fill="none" style="position: absolute; left: 4.999px; top: 5.999px; width: 5.502px; height: 4.002px; color: var(--text-primary);"><path d="M 5.355 0.147 C 5.401 0.193 5.438 0.249 5.463 0.309 C 5.489 0.37 5.502 0.435 5.502 0.501 C 5.502 0.567 5.489 0.632 5.463 0.693 C 5.438 0.753 5.401 0.808 5.355 0.855 L 2.355 3.855 C 2.308 3.901 2.253 3.938 2.192 3.964 C 2.132 3.989 2.066 4.002 2.001 4.002 C 1.935 4.002 1.87 3.989 1.809 3.964 C 1.748 3.938 1.693 3.901 1.647 3.855 L 0.147 2.355 C 0.1 2.308 0.063 2.253 0.038 2.192 C 0.013 2.132 0 2.067 0 2.001 C 0 1.935 0.013 1.87 0.038 1.809 C 0.063 1.749 0.1 1.693 0.147 1.647 C 0.193 1.6 0.248 1.564 0.309 1.538 C 0.37 1.513 0.435 1.5 0.501 1.5 C 0.566 1.5 0.631 1.513 0.692 1.538 C 0.753 1.564 0.808 1.6 0.855 1.647 L 2.001 2.794 L 4.647 0.147 C 4.693 0.1 4.748 0.063 4.809 0.038 C 4.87 0.013 4.935 0 5.001 0 C 5.066 0 5.132 0.013 5.192 0.038 C 5.253 0.063 5.308 0.1 5.355 0.147 Z" fill="currentColor" fill-rule="evenodd"></path></svg></div></div></span>
+        <span data-dc-tpl="13" style="color: var(--text-5); font-size: 11px; letter-spacing: 1px; flex: 0 0 auto;">★★★★★</span>
+        <span data-dc-tpl="14" style="color: var(--text-4); font-size: 11px; flex: 0 0 auto;">45</span>
+      </div>
+      <span data-dc-tpl="15" style="flex: 0 0 auto; font-size: 12px; color: rgb(255, 141, 40); border: 1px solid rgba(255, 141, 40, 0.45); border-radius: 6px; padding: 2px 8px;"><span class="sc-interp">Кодинг</span></span>
+    </div>
+    <span data-dc-tpl="16" style="font-weight: 600; font-size: 17px; line-height: 21px; color: var(--text-1);"><span class="sc-interp">Доработка парсера товаров с Wildberries (защита от капчи и пагинация)</span></span>
+    <div data-dc-tpl="17" style="display: flex; gap: 5px; flex-wrap: wrap;">
+      
+        <span data-dc-tpl="19" style="font-size: 12px; color: var(--accent-ink, #4ea3ff); background: rgba(0, 136, 255, 0.1); border-radius: 6px; padding: 3px 8px;"><span class="sc-interp">Python</span></span>
+      
+        <span data-dc-tpl="19" style="font-size: 12px; color: var(--accent-ink, #4ea3ff); background: rgba(0, 136, 255, 0.1); border-radius: 6px; padding: 3px 8px;"><span class="sc-interp">Parsing</span></span>
+      
+        <span data-dc-tpl="19" style="font-size: 12px; color: var(--accent-ink, #4ea3ff); background: rgba(0, 136, 255, 0.1); border-radius: 6px; padding: 3px 8px;"><span class="sc-interp">Anti-captcha</span></span>
+      
+    </div>
+    <span data-dc-tpl="20" style="font-size: 14px; line-height: 18px; color: var(--text-3); opacity: 0.85; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;"><span class="sc-interp">Есть готовый парсер на Python (BeautifulSoup + Requests). Падает при появлении капчи и не обходит пагинацию для категорий с 100+ товаров.</span></span>
+    <div data-dc-tpl="21" style="display: flex; align-items: center; gap: 12px; margin-top: 2px;">
+      <span data-dc-tpl="22" style="font-family: Handjet, monospace; font-size: 12px; color: var(--text-3);"><span class="sc-interp">25.08.2025</span></span>
+      <div data-dc-tpl="23" style="flex: 1 1 0%; height: 4px; border-radius: 3px; background: rgba(159, 160, 164, 0.4); overflow: hidden;"><div data-dc-tpl="24" style="height: 100%; border-radius: 3px; background: var(--text-3); width: 30%;"></div></div>
+      <span data-dc-tpl="25" style="font-family: Handjet, monospace; font-size: 12px; color: var(--text-3);"><span class="sc-interp">29.08.2025</span></span>
+    </div>
+  </div>
+  
+    <div data-dc-tpl="27" style="display: flex; align-items: flex-end; gap: 16px; padding: 14px 20px;">
+      <div data-dc-tpl="28" style="flex: 1 1 0%; display: flex; flex-direction: column; gap: 6px;">
+        <span data-dc-tpl="29" style="font-size: 11px; letter-spacing: 0.2px; color: var(--text-3);">Фикс. цена</span>
+        <span data-dc-tpl="30" style="font-weight: 600; font-size: 15px; color: var(--text-1);"><span class="sc-interp">18 000 ₽</span></span>
+      </div>
+      <div data-dc-tpl="31" style="flex: 1 1 0%; display: flex; flex-direction: column; gap: 6px;">
+        <span data-dc-tpl="32" style="font-size: 11px; letter-spacing: 0.2px; color: var(--text-3);">Срок выполнения</span>
+        <span data-dc-tpl="33" style="font-weight: 600; font-size: 15px; color: var(--text-1);"><span class="sc-interp">4 дня</span></span>
+      </div>
+      <button data-dc-tpl="34" style="flex: 0 0 auto; height: 40px; padding: 0px 22px; border: none; border-radius: 8px; background: var(--om-accent, #0088ff); color: rgb(255, 255, 255); font-size: 14px; font-weight: 500; cursor: pointer;">К проекту</button>
+    </div>
+  </div></div>
+            
+              <div class="sc-host" data-sc-name="Gig Card" data-dc-tpl="177"><div data-dc-tpl="0" style="border-radius: 16px; background: radial-gradient(120% 100% at 50% 0%, rgba(59,130,246,0.22) 0%, rgba(59,130,246,0.05) 45%, rgba(59,130,246,0) 100%), var(--surface-card); box-shadow: rgba(59, 130, 246, 0.3) 0px 0px 0px 1px inset; display: flex; flex-direction: column;">
+  <div data-dc-tpl="1" style="display: flex; align-items: center; justify-content: space-between; padding: 12px;">
+    <div data-dc-tpl="2" style="display: flex; align-items: center; gap: 8px; flex: 0 0 auto;">
+      <span data-dc-tpl="3" style="width: 8px; height: 8px; flex: 0 0 auto; border-radius: 50%; background: rgb(59, 130, 246);"></span>
+      <span data-dc-tpl="4" style="font-family: Handjet, monospace; font-size: 15px; color: rgb(59, 130, 246); white-space: nowrap;"><span class="sc-interp">В работе</span></span>
+    </div>
+    <span data-dc-tpl="5" style="font-family: Handjet, monospace; font-size: 12px; color: var(--text-3); flex: 0 0 auto; white-space: nowrap;"><span class="sc-interp">1 ч</span></span>
+  </div>
+  <div data-dc-tpl="6" style="border-radius: 16px; background: var(--surface-card); box-shadow: inset 0 0 0 1px var(--hairline-08), inset 0 1px 0 var(--hairline-06); padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+    <div data-dc-tpl="7" style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+      <div data-dc-tpl="8" style="display: flex; align-items: center; gap: 8px; min-width: 0px;">
+        <span data-dc-tpl="9" style="width: 22px; height: 22px; flex: 0 0 auto; border-radius: 50%; background: rgb(0, 136, 255); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: rgb(255, 255, 255);"><span class="sc-interp">S</span></span>
+        <span data-dc-tpl="10" style="font-size: 13px; color: var(--text-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><span class="sc-interp">Stripe</span></span>
+        <span data-dc-tpl="11" style="color: var(--om-accent, #0088ff); display: flex; flex: 0 0 auto;"><div class="sc-host-x" data-dc-tpl="12" style="display: contents;"><div style="width: 16px; height: 16px; overflow: hidden; position: relative;"><svg width="15.998" height="15.998" viewBox="0 0 15.998 15.998" fill="none" style="position: absolute; left: 0.001px; top: 0.001px; width: 15.998px; height: 15.998px; color: var(--color-2);"><path d="M 10.272 2.512 L 9.351 1.568 L 10.066 0.87 L 10.688 1.507 L 11.578 1.496 C 11.963 1.492 12.346 1.564 12.703 1.709 C 13.059 1.855 13.384 2.07 13.656 2.342 C 13.928 2.615 14.144 2.939 14.289 3.296 C 14.434 3.653 14.507 4.035 14.502 4.42 L 14.492 5.31 L 15.128 5.932 C 15.404 6.201 15.623 6.523 15.772 6.878 C 15.921 7.233 15.998 7.614 15.998 7.999 C 15.998 8.384 15.921 8.766 15.772 9.121 C 15.623 9.476 15.404 9.797 15.128 10.066 L 14.491 10.688 L 14.502 11.578 C 14.507 11.963 14.434 12.346 14.289 12.703 C 14.144 13.059 13.928 13.384 13.656 13.656 C 13.384 13.928 13.059 14.144 12.703 14.289 C 12.346 14.434 11.963 14.507 11.578 14.502 L 10.688 14.492 L 10.066 15.128 C 9.797 15.404 9.476 15.623 9.121 15.772 C 8.766 15.921 8.384 15.998 7.999 15.998 C 7.614 15.998 7.233 15.921 6.878 15.772 C 6.523 15.623 6.201 15.404 5.932 15.128 L 5.31 14.491 L 4.42 14.502 C 4.035 14.507 3.653 14.434 3.296 14.289 C 2.939 14.144 2.615 13.928 2.342 13.656 C 2.07 13.384 1.855 13.059 1.709 12.703 C 1.564 12.346 1.492 11.963 1.496 11.578 L 1.506 10.688 L 0.87 10.066 C 0.595 9.797 0.376 9.476 0.226 9.121 C 0.077 8.766 0 8.384 0 7.999 C 0 7.614 0.077 7.233 0.226 6.878 C 0.376 6.523 0.595 6.201 0.87 5.932 L 1.507 5.31 L 1.496 4.42 C 1.492 4.035 1.564 3.653 1.709 3.296 C 1.855 2.939 2.07 2.615 2.342 2.342 C 2.615 2.07 2.939 1.855 3.296 1.709 C 3.653 1.564 4.035 1.492 4.42 1.496 L 5.31 1.506 L 5.932 0.87 C 6.201 0.595 6.523 0.376 6.878 0.226 C 7.233 0.077 7.614 0 7.999 0 C 8.384 0 8.766 0.077 9.121 0.226 C 9.476 0.376 9.797 0.595 10.066 0.87 L 9.351 1.568 C 9.175 1.388 8.965 1.245 8.733 1.147 C 8.501 1.049 8.251 0.999 7.999 0.999 C 7.747 0.999 7.498 1.049 7.266 1.147 C 7.034 1.245 6.823 1.388 6.647 1.568 L 5.727 2.512 L 4.407 2.496 C 4.155 2.493 3.906 2.541 3.672 2.636 C 3.439 2.731 3.227 2.872 3.049 3.05 C 2.871 3.228 2.731 3.44 2.636 3.673 C 2.541 3.907 2.493 4.156 2.496 4.408 L 2.512 5.726 L 1.568 6.647 C 1.388 6.823 1.245 7.034 1.147 7.266 C 1.049 7.498 0.999 7.747 0.999 7.999 C 0.999 8.251 1.049 8.501 1.147 8.733 C 1.245 8.965 1.388 9.175 1.568 9.351 L 2.512 10.271 L 2.496 11.591 C 2.493 11.843 2.541 12.093 2.636 12.326 C 2.731 12.559 2.872 12.771 3.05 12.949 C 3.228 13.127 3.44 13.268 3.673 13.363 C 3.907 13.458 4.156 13.505 4.408 13.502 L 5.726 13.486 L 6.647 14.43 C 6.823 14.61 7.034 14.754 7.266 14.851 C 7.498 14.949 7.747 15 7.999 15 C 8.251 15 8.501 14.949 8.733 14.851 C 8.965 14.754 9.175 14.61 9.351 14.43 L 10.271 13.486 L 11.591 13.502 C 11.843 13.505 12.093 13.457 12.326 13.362 C 12.559 13.267 12.771 13.127 12.949 12.948 C 13.127 12.77 13.268 12.558 13.363 12.325 C 13.458 12.092 13.505 11.842 13.502 11.59 L 13.486 10.272 L 14.43 9.351 C 14.61 9.175 14.754 8.965 14.851 8.733 C 14.949 8.501 15 8.251 15 7.999 C 15 7.747 14.949 7.498 14.851 7.266 C 14.754 7.034 14.61 6.823 14.43 6.647 L 13.486 5.727 L 13.502 4.407 C 13.505 4.155 13.457 3.906 13.362 3.672 C 13.267 3.439 13.127 3.227 12.948 3.049 C 12.77 2.871 12.558 2.731 12.325 2.636 C 12.092 2.541 11.842 2.493 11.59 2.496 L 10.272 2.512 Z" fill="currentColor" fill-rule="nonzero"></path><path d="M 10.272 2.512 L 9.351 1.568 C 9.175 1.388 8.965 1.245 8.733 1.147 C 8.501 1.049 8.251 0.999 7.999 0.999 C 7.747 0.999 7.498 1.049 7.266 1.147 C 7.034 1.245 6.823 1.388 6.647 1.568 L 5.727 2.512 L 4.407 2.496 C 4.155 2.493 3.906 2.541 3.672 2.636 C 3.439 2.731 3.227 2.872 3.049 3.05 C 2.871 3.228 2.731 3.44 2.636 3.673 C 2.541 3.907 2.493 4.156 2.496 4.408 L 2.512 5.726 L 1.568 6.647 C 1.388 6.823 1.245 7.034 1.147 7.266 C 1.049 7.498 0.999 7.747 0.999 7.999 C 0.999 8.251 1.049 8.501 1.147 8.733 C 1.245 8.965 1.388 9.175 1.568 9.351 L 2.512 10.271 L 2.496 11.591 C 2.493 11.843 2.541 12.093 2.636 12.326 C 2.731 12.559 2.872 12.771 3.05 12.949 C 3.228 13.127 3.44 13.268 3.673 13.363 C 3.907 13.458 4.156 13.505 4.408 13.502 L 5.726 13.486 L 6.647 14.43 C 6.823 14.61 7.034 14.754 7.266 14.851 C 7.498 14.949 7.747 15 7.999 15 C 8.251 15 8.501 14.949 8.733 14.851 C 8.965 14.754 9.175 14.61 9.351 14.43 L 10.271 13.486 L 11.591 13.502 C 11.843 13.505 12.093 13.457 12.326 13.362 C 12.559 13.267 12.771 13.127 12.949 12.948 C 13.127 12.77 13.268 12.558 13.363 12.325 C 13.458 12.092 13.505 11.842 13.502 11.59 L 13.486 10.272 L 14.43 9.351 C 14.61 9.175 14.754 8.965 14.851 8.733 C 14.949 8.501 15 8.251 15 7.999 C 15 7.747 14.949 7.498 14.851 7.266 C 14.754 7.034 14.61 6.823 14.43 6.647 L 13.486 5.727 L 13.502 4.407 C 13.505 4.155 13.457 3.906 13.362 3.672 C 13.267 3.439 13.127 3.227 12.948 3.049 C 12.77 2.871 12.558 2.731 12.325 2.636 C 12.092 2.541 11.842 2.493 11.59 2.496 L 10.272 2.512 Z" fill="currentColor" fill-rule="nonzero"></path></svg><svg width="5.502" height="4.002" viewBox="0 0 5.502 4.002" fill="none" style="position: absolute; left: 4.999px; top: 5.999px; width: 5.502px; height: 4.002px; color: var(--text-primary);"><path d="M 5.355 0.147 C 5.401 0.193 5.438 0.249 5.463 0.309 C 5.489 0.37 5.502 0.435 5.502 0.501 C 5.502 0.567 5.489 0.632 5.463 0.693 C 5.438 0.753 5.401 0.808 5.355 0.855 L 2.355 3.855 C 2.308 3.901 2.253 3.938 2.192 3.964 C 2.132 3.989 2.066 4.002 2.001 4.002 C 1.935 4.002 1.87 3.989 1.809 3.964 C 1.748 3.938 1.693 3.901 1.647 3.855 L 0.147 2.355 C 0.1 2.308 0.063 2.253 0.038 2.192 C 0.013 2.132 0 2.067 0 2.001 C 0 1.935 0.013 1.87 0.038 1.809 C 0.063 1.749 0.1 1.693 0.147 1.647 C 0.193 1.6 0.248 1.564 0.309 1.538 C 0.37 1.513 0.435 1.5 0.501 1.5 C 0.566 1.5 0.631 1.513 0.692 1.538 C 0.753 1.564 0.808 1.6 0.855 1.647 L 2.001 2.794 L 4.647 0.147 C 4.693 0.1 4.748 0.063 4.809 0.038 C 4.87 0.013 4.935 0 5.001 0 C 5.066 0 5.132 0.013 5.192 0.038 C 5.253 0.063 5.308 0.1 5.355 0.147 Z" fill="currentColor" fill-rule="evenodd"></path></svg></div></div></span>
+        <span data-dc-tpl="13" style="color: var(--text-5); font-size: 11px; letter-spacing: 1px; flex: 0 0 auto;">★★★★★</span>
+        <span data-dc-tpl="14" style="color: var(--text-4); font-size: 11px; flex: 0 0 auto;">45</span>
+      </div>
+      <span data-dc-tpl="15" style="flex: 0 0 auto; font-size: 12px; color: rgb(0, 195, 208); border: 1px solid rgba(0, 195, 208, 0.45); border-radius: 6px; padding: 2px 8px;"><span class="sc-interp">Разработка</span></span>
+    </div>
+    <span data-dc-tpl="16" style="font-weight: 600; font-size: 17px; line-height: 21px; color: var(--text-1);"><span class="sc-interp">Настройка CI/CD для React-приложения (GitLab → VPS)</span></span>
+    <div data-dc-tpl="17" style="display: flex; gap: 5px; flex-wrap: wrap;">
+      
+        <span data-dc-tpl="19" style="font-size: 12px; color: var(--accent-ink, #4ea3ff); background: rgba(0, 136, 255, 0.1); border-radius: 6px; padding: 3px 8px;"><span class="sc-interp">CI/CD</span></span>
+      
+        <span data-dc-tpl="19" style="font-size: 12px; color: var(--accent-ink, #4ea3ff); background: rgba(0, 136, 255, 0.1); border-radius: 6px; padding: 3px 8px;"><span class="sc-interp">GitLab</span></span>
+      
+        <span data-dc-tpl="19" style="font-size: 12px; color: var(--accent-ink, #4ea3ff); background: rgba(0, 136, 255, 0.1); border-radius: 6px; padding: 3px 8px;"><span class="sc-interp">Docker</span></span>
+      
+    </div>
+    <span data-dc-tpl="20" style="font-size: 14px; line-height: 18px; color: var(--text-3); opacity: 0.85; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;"><span class="sc-interp">Нужен пайплайн: lint, тесты, сборка, деплой на VPS через Docker. Сейчас всё руками. Подключить автоматический откат.</span></span>
+    <div data-dc-tpl="21" style="display: flex; align-items: center; gap: 12px; margin-top: 2px;">
+      <span data-dc-tpl="22" style="font-family: Handjet, monospace; font-size: 12px; color: var(--text-3);"><span class="sc-interp">24.08.2025</span></span>
+      <div data-dc-tpl="23" style="flex: 1 1 0%; height: 4px; border-radius: 3px; background: rgba(159, 160, 164, 0.4); overflow: hidden;"><div data-dc-tpl="24" style="height: 100%; border-radius: 3px; background: var(--text-3); width: 60%;"></div></div>
+      <span data-dc-tpl="25" style="font-family: Handjet, monospace; font-size: 12px; color: var(--text-3);"><span class="sc-interp">27.08.2025</span></span>
+    </div>
+  </div>
+  
+    <div data-dc-tpl="27" style="display: flex; align-items: flex-end; gap: 16px; padding: 14px 20px;">
+      <div data-dc-tpl="28" style="flex: 1 1 0%; display: flex; flex-direction: column; gap: 6px;">
+        <span data-dc-tpl="29" style="font-size: 11px; letter-spacing: 0.2px; color: var(--text-3);">Фикс. цена</span>
+        <span data-dc-tpl="30" style="font-weight: 600; font-size: 15px; color: var(--text-1);"><span class="sc-interp">25 000 ₽</span></span>
+      </div>
+      <div data-dc-tpl="31" style="flex: 1 1 0%; display: flex; flex-direction: column; gap: 6px;">
+        <span data-dc-tpl="32" style="font-size: 11px; letter-spacing: 0.2px; color: var(--text-3);">Срок выполнения</span>
+        <span data-dc-tpl="33" style="font-weight: 600; font-size: 15px; color: var(--text-1);"><span class="sc-interp">3 дня</span></span>
+      </div>
+      <button data-dc-tpl="34" style="flex: 0 0 auto; height: 40px; padding: 0px 22px; border: none; border-radius: 8px; background: var(--om-accent, #0088ff); color: rgb(255, 255, 255); font-size: 14px; font-weight: 500; cursor: pointer;">К проекту</button>
+    </div>
+  </div></div>
+            
+              <div class="sc-host" data-sc-name="Gig Card" data-dc-tpl="177"><div data-dc-tpl="0" style="border-radius: 16px; background: radial-gradient(120% 100% at 50% 0%, rgba(59,130,246,0.22) 0%, rgba(59,130,246,0.05) 45%, rgba(59,130,246,0) 100%), var(--surface-card); box-shadow: rgba(59, 130, 246, 0.3) 0px 0px 0px 1px inset; display: flex; flex-direction: column;">
+  <div data-dc-tpl="1" style="display: flex; align-items: center; justify-content: space-between; padding: 12px;">
+    <div data-dc-tpl="2" style="display: flex; align-items: center; gap: 8px; flex: 0 0 auto;">
+      <span data-dc-tpl="3" style="width: 8px; height: 8px; flex: 0 0 auto; border-radius: 50%; background: rgb(59, 130, 246);"></span>
+      <span data-dc-tpl="4" style="font-family: Handjet, monospace; font-size: 15px; color: rgb(59, 130, 246); white-space: nowrap;"><span class="sc-interp">В работе</span></span>
+    </div>
+    <span data-dc-tpl="5" style="font-family: Handjet, monospace; font-size: 12px; color: var(--text-3); flex: 0 0 auto; white-space: nowrap;"><span class="sc-interp">3 дн</span></span>
+  </div>
+  <div data-dc-tpl="6" style="border-radius: 16px; background: var(--surface-card); box-shadow: inset 0 0 0 1px var(--hairline-08), inset 0 1px 0 var(--hairline-06); padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+    <div data-dc-tpl="7" style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+      <div data-dc-tpl="8" style="display: flex; align-items: center; gap: 8px; min-width: 0px;">
+        <span data-dc-tpl="9" style="width: 22px; height: 22px; flex: 0 0 auto; border-radius: 50%; background: rgb(236, 72, 153); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: rgb(255, 255, 255);"><span class="sc-interp">V</span></span>
+        <span data-dc-tpl="10" style="font-size: 13px; color: var(--text-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><span class="sc-interp">Vercel</span></span>
+        <span data-dc-tpl="11" style="color: var(--om-accent, #0088ff); display: flex; flex: 0 0 auto;"><div class="sc-host-x" data-dc-tpl="12" style="display: contents;"><div style="width: 16px; height: 16px; overflow: hidden; position: relative;"><svg width="15.998" height="15.998" viewBox="0 0 15.998 15.998" fill="none" style="position: absolute; left: 0.001px; top: 0.001px; width: 15.998px; height: 15.998px; color: var(--color-2);"><path d="M 10.272 2.512 L 9.351 1.568 L 10.066 0.87 L 10.688 1.507 L 11.578 1.496 C 11.963 1.492 12.346 1.564 12.703 1.709 C 13.059 1.855 13.384 2.07 13.656 2.342 C 13.928 2.615 14.144 2.939 14.289 3.296 C 14.434 3.653 14.507 4.035 14.502 4.42 L 14.492 5.31 L 15.128 5.932 C 15.404 6.201 15.623 6.523 15.772 6.878 C 15.921 7.233 15.998 7.614 15.998 7.999 C 15.998 8.384 15.921 8.766 15.772 9.121 C 15.623 9.476 15.404 9.797 15.128 10.066 L 14.491 10.688 L 14.502 11.578 C 14.507 11.963 14.434 12.346 14.289 12.703 C 14.144 13.059 13.928 13.384 13.656 13.656 C 13.384 13.928 13.059 14.144 12.703 14.289 C 12.346 14.434 11.963 14.507 11.578 14.502 L 10.688 14.492 L 10.066 15.128 C 9.797 15.404 9.476 15.623 9.121 15.772 C 8.766 15.921 8.384 15.998 7.999 15.998 C 7.614 15.998 7.233 15.921 6.878 15.772 C 6.523 15.623 6.201 15.404 5.932 15.128 L 5.31 14.491 L 4.42 14.502 C 4.035 14.507 3.653 14.434 3.296 14.289 C 2.939 14.144 2.615 13.928 2.342 13.656 C 2.07 13.384 1.855 13.059 1.709 12.703 C 1.564 12.346 1.492 11.963 1.496 11.578 L 1.506 10.688 L 0.87 10.066 C 0.595 9.797 0.376 9.476 0.226 9.121 C 0.077 8.766 0 8.384 0 7.999 C 0 7.614 0.077 7.233 0.226 6.878 C 0.376 6.523 0.595 6.201 0.87 5.932 L 1.507 5.31 L 1.496 4.42 C 1.492 4.035 1.564 3.653 1.709 3.296 C 1.855 2.939 2.07 2.615 2.342 2.342 C 2.615 2.07 2.939 1.855 3.296 1.709 C 3.653 1.564 4.035 1.492 4.42 1.496 L 5.31 1.506 L 5.932 0.87 C 6.201 0.595 6.523 0.376 6.878 0.226 C 7.233 0.077 7.614 0 7.999 0 C 8.384 0 8.766 0.077 9.121 0.226 C 9.476 0.376 9.797 0.595 10.066 0.87 L 9.351 1.568 C 9.175 1.388 8.965 1.245 8.733 1.147 C 8.501 1.049 8.251 0.999 7.999 0.999 C 7.747 0.999 7.498 1.049 7.266 1.147 C 7.034 1.245 6.823 1.388 6.647 1.568 L 5.727 2.512 L 4.407 2.496 C 4.155 2.493 3.906 2.541 3.672 2.636 C 3.439 2.731 3.227 2.872 3.049 3.05 C 2.871 3.228 2.731 3.44 2.636 3.673 C 2.541 3.907 2.493 4.156 2.496 4.408 L 2.512 5.726 L 1.568 6.647 C 1.388 6.823 1.245 7.034 1.147 7.266 C 1.049 7.498 0.999 7.747 0.999 7.999 C 0.999 8.251 1.049 8.501 1.147 8.733 C 1.245 8.965 1.388 9.175 1.568 9.351 L 2.512 10.271 L 2.496 11.591 C 2.493 11.843 2.541 12.093 2.636 12.326 C 2.731 12.559 2.872 12.771 3.05 12.949 C 3.228 13.127 3.44 13.268 3.673 13.363 C 3.907 13.458 4.156 13.505 4.408 13.502 L 5.726 13.486 L 6.647 14.43 C 6.823 14.61 7.034 14.754 7.266 14.851 C 7.498 14.949 7.747 15 7.999 15 C 8.251 15 8.501 14.949 8.733 14.851 C 8.965 14.754 9.175 14.61 9.351 14.43 L 10.271 13.486 L 11.591 13.502 C 11.843 13.505 12.093 13.457 12.326 13.362 C 12.559 13.267 12.771 13.127 12.949 12.948 C 13.127 12.77 13.268 12.558 13.363 12.325 C 13.458 12.092 13.505 11.842 13.502 11.59 L 13.486 10.272 L 14.43 9.351 C 14.61 9.175 14.754 8.965 14.851 8.733 C 14.949 8.501 15 8.251 15 7.999 C 15 7.747 14.949 7.498 14.851 7.266 C 14.754 7.034 14.61 6.823 14.43 6.647 L 13.486 5.727 L 13.502 4.407 C 13.505 4.155 13.457 3.906 13.362 3.672 C 13.267 3.439 13.127 3.227 12.948 3.049 C 12.77 2.871 12.558 2.731 12.325 2.636 C 12.092 2.541 11.842 2.493 11.59 2.496 L 10.272 2.512 Z" fill="currentColor" fill-rule="nonzero"></path><path d="M 10.272 2.512 L 9.351 1.568 C 9.175 1.388 8.965 1.245 8.733 1.147 C 8.501 1.049 8.251 0.999 7.999 0.999 C 7.747 0.999 7.498 1.049 7.266 1.147 C 7.034 1.245 6.823 1.388 6.647 1.568 L 5.727 2.512 L 4.407 2.496 C 4.155 2.493 3.906 2.541 3.672 2.636 C 3.439 2.731 3.227 2.872 3.049 3.05 C 2.871 3.228 2.731 3.44 2.636 3.673 C 2.541 3.907 2.493 4.156 2.496 4.408 L 2.512 5.726 L 1.568 6.647 C 1.388 6.823 1.245 7.034 1.147 7.266 C 1.049 7.498 0.999 7.747 0.999 7.999 C 0.999 8.251 1.049 8.501 1.147 8.733 C 1.245 8.965 1.388 9.175 1.568 9.351 L 2.512 10.271 L 2.496 11.591 C 2.493 11.843 2.541 12.093 2.636 12.326 C 2.731 12.559 2.872 12.771 3.05 12.949 C 3.228 13.127 3.44 13.268 3.673 13.363 C 3.907 13.458 4.156 13.505 4.408 13.502 L 5.726 13.486 L 6.647 14.43 C 6.823 14.61 7.034 14.754 7.266 14.851 C 7.498 14.949 7.747 15 7.999 15 C 8.251 15 8.501 14.949 8.733 14.851 C 8.965 14.754 9.175 14.61 9.351 14.43 L 10.271 13.486 L 11.591 13.502 C 11.843 13.505 12.093 13.457 12.326 13.362 C 12.559 13.267 12.771 13.127 12.949 12.948 C 13.127 12.77 13.268 12.558 13.363 12.325 C 13.458 12.092 13.505 11.842 13.502 11.59 L 13.486 10.272 L 14.43 9.351 C 14.61 9.175 14.754 8.965 14.851 8.733 C 14.949 8.501 15 8.251 15 7.999 C 15 7.747 14.949 7.498 14.851 7.266 C 14.754 7.034 14.61 6.823 14.43 6.647 L 13.486 5.727 L 13.502 4.407 C 13.505 4.155 13.457 3.906 13.362 3.672 C 13.267 3.439 13.127 3.227 12.948 3.049 C 12.77 2.871 12.558 2.731 12.325 2.636 C 12.092 2.541 11.842 2.493 11.59 2.496 L 10.272 2.512 Z" fill="currentColor" fill-rule="nonzero"></path></svg><svg width="5.502" height="4.002" viewBox="0 0 5.502 4.002" fill="none" style="position: absolute; left: 4.999px; top: 5.999px; width: 5.502px; height: 4.002px; color: var(--text-primary);"><path d="M 5.355 0.147 C 5.401 0.193 5.438 0.249 5.463 0.309 C 5.489 0.37 5.502 0.435 5.502 0.501 C 5.502 0.567 5.489 0.632 5.463 0.693 C 5.438 0.753 5.401 0.808 5.355 0.855 L 2.355 3.855 C 2.308 3.901 2.253 3.938 2.192 3.964 C 2.132 3.989 2.066 4.002 2.001 4.002 C 1.935 4.002 1.87 3.989 1.809 3.964 C 1.748 3.938 1.693 3.901 1.647 3.855 L 0.147 2.355 C 0.1 2.308 0.063 2.253 0.038 2.192 C 0.013 2.132 0 2.067 0 2.001 C 0 1.935 0.013 1.87 0.038 1.809 C 0.063 1.749 0.1 1.693 0.147 1.647 C 0.193 1.6 0.248 1.564 0.309 1.538 C 0.37 1.513 0.435 1.5 0.501 1.5 C 0.566 1.5 0.631 1.513 0.692 1.538 C 0.753 1.564 0.808 1.6 0.855 1.647 L 2.001 2.794 L 4.647 0.147 C 4.693 0.1 4.748 0.063 4.809 0.038 C 4.87 0.013 4.935 0 5.001 0 C 5.066 0 5.132 0.013 5.192 0.038 C 5.253 0.063 5.308 0.1 5.355 0.147 Z" fill="currentColor" fill-rule="evenodd"></path></svg></div></div></span>
+        <span data-dc-tpl="13" style="color: var(--text-5); font-size: 11px; letter-spacing: 1px; flex: 0 0 auto;">★★★★★</span>
+        <span data-dc-tpl="14" style="color: var(--text-4); font-size: 11px; flex: 0 0 auto;">45</span>
+      </div>
+      <span data-dc-tpl="15" style="flex: 0 0 auto; font-size: 12px; color: rgb(255, 45, 85); border: 1px solid rgba(255, 45, 85, 0.45); border-radius: 6px; padding: 2px 8px;"><span class="sc-interp">Дизайн</span></span>
+    </div>
+    <span data-dc-tpl="16" style="font-weight: 600; font-size: 17px; line-height: 21px; color: var(--text-1);"><span class="sc-interp">Миграция аналитического дашборда на Next.js 14</span></span>
+    <div data-dc-tpl="17" style="display: flex; gap: 5px; flex-wrap: wrap;">
+      
+        <span data-dc-tpl="19" style="font-size: 12px; color: var(--accent-ink, #4ea3ff); background: rgba(0, 136, 255, 0.1); border-radius: 6px; padding: 3px 8px;"><span class="sc-interp">React</span></span>
+      
+        <span data-dc-tpl="19" style="font-size: 12px; color: var(--accent-ink, #4ea3ff); background: rgba(0, 136, 255, 0.1); border-radius: 6px; padding: 3px 8px;"><span class="sc-interp">Next.js 14</span></span>
+      
+        <span data-dc-tpl="19" style="font-size: 12px; color: var(--accent-ink, #4ea3ff); background: rgba(0, 136, 255, 0.1); border-radius: 6px; padding: 3px 8px;"><span class="sc-interp">TypeScript</span></span>
+      
+    </div>
+    <span data-dc-tpl="20" style="font-size: 14px; line-height: 18px; color: var(--text-3); opacity: 0.85; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;"><span class="sc-interp">Требуется опытный React разработчик для рефакторинга текущего дашборда. Фокус на серверных компонентах для оптимизации производительности.</span></span>
+    <div data-dc-tpl="21" style="display: flex; align-items: center; gap: 12px; margin-top: 2px;">
+      <span data-dc-tpl="22" style="font-family: Handjet, monospace; font-size: 12px; color: var(--text-3);"><span class="sc-interp">18.08.2025</span></span>
+      <div data-dc-tpl="23" style="flex: 1 1 0%; height: 4px; border-radius: 3px; background: rgba(159, 160, 164, 0.4); overflow: hidden;"><div data-dc-tpl="24" style="height: 100%; border-radius: 3px; background: var(--text-3); width: 70%;"></div></div>
+      <span data-dc-tpl="25" style="font-family: Handjet, monospace; font-size: 12px; color: var(--text-3);"><span class="sc-interp">01.09.2025</span></span>
+    </div>
+  </div>
+  
+    <div data-dc-tpl="27" style="display: flex; align-items: flex-end; gap: 16px; padding: 14px 20px;">
+      <div data-dc-tpl="28" style="flex: 1 1 0%; display: flex; flex-direction: column; gap: 6px;">
+        <span data-dc-tpl="29" style="font-size: 11px; letter-spacing: 0.2px; color: var(--text-3);">Фикс. цена</span>
+        <span data-dc-tpl="30" style="font-weight: 600; font-size: 15px; color: var(--text-1);"><span class="sc-interp">200 400 ₽</span></span>
+      </div>
+      <div data-dc-tpl="31" style="flex: 1 1 0%; display: flex; flex-direction: column; gap: 6px;">
+        <span data-dc-tpl="32" style="font-size: 11px; letter-spacing: 0.2px; color: var(--text-3);">Срок выполнения</span>
+        <span data-dc-tpl="33" style="font-weight: 600; font-size: 15px; color: var(--text-1);"><span class="sc-interp">14 дней</span></span>
+      </div>
+      <button data-dc-tpl="34" style="flex: 0 0 auto; height: 40px; padding: 0px 22px; border: none; border-radius: 8px; background: var(--om-accent, #0088ff); color: rgb(255, 255, 255); font-size: 14px; font-weight: 500; cursor: pointer;">К проекту</button>
+    </div>
+  </div></div>
+            
+              <div class="sc-host" data-sc-name="Gig Card" data-dc-tpl="177"><div data-dc-tpl="0" style="border-radius: 16px; background: radial-gradient(120% 100% at 50% 0%, rgba(139,92,246,0.22) 0%, rgba(139,92,246,0.05) 45%, rgba(139,92,246,0) 100%), var(--surface-card); box-shadow: rgba(139, 92, 246, 0.3) 0px 0px 0px 1px inset; display: flex; flex-direction: column;">
+  <div data-dc-tpl="1" style="display: flex; align-items: center; justify-content: space-between; padding: 12px;">
+    <div data-dc-tpl="2" style="display: flex; align-items: center; gap: 8px; flex: 0 0 auto;">
+      <span data-dc-tpl="3" style="width: 8px; height: 8px; flex: 0 0 auto; border-radius: 50%; background: rgb(139, 92, 246);"></span>
+      <span data-dc-tpl="4" style="font-family: Handjet, monospace; font-size: 15px; color: rgb(139, 92, 246); white-space: nowrap;"><span class="sc-interp">На проверке</span></span>
+    </div>
+    <span data-dc-tpl="5" style="font-family: Handjet, monospace; font-size: 12px; color: var(--text-3); flex: 0 0 auto; white-space: nowrap;"><span class="sc-interp">5 ч</span></span>
+  </div>
+  <div data-dc-tpl="6" style="border-radius: 16px; background: var(--surface-card); box-shadow: inset 0 0 0 1px var(--hairline-08), inset 0 1px 0 var(--hairline-06); padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+    <div data-dc-tpl="7" style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+      <div data-dc-tpl="8" style="display: flex; align-items: center; gap: 8px; min-width: 0px;">
+        <span data-dc-tpl="9" style="width: 22px; height: 22px; flex: 0 0 auto; border-radius: 50%; background: rgb(34, 197, 94); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: rgb(255, 255, 255);"><span class="sc-interp">С</span></span>
+        <span data-dc-tpl="10" style="font-size: 13px; color: var(--text-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><span class="sc-interp">СофтЛайн</span></span>
+        <span data-dc-tpl="11" style="color: var(--om-accent, #0088ff); display: flex; flex: 0 0 auto;"><div class="sc-host-x" data-dc-tpl="12" style="display: contents;"><div style="width: 16px; height: 16px; overflow: hidden; position: relative;"><svg width="15.998" height="15.998" viewBox="0 0 15.998 15.998" fill="none" style="position: absolute; left: 0.001px; top: 0.001px; width: 15.998px; height: 15.998px; color: var(--color-2);"><path d="M 10.272 2.512 L 9.351 1.568 L 10.066 0.87 L 10.688 1.507 L 11.578 1.496 C 11.963 1.492 12.346 1.564 12.703 1.709 C 13.059 1.855 13.384 2.07 13.656 2.342 C 13.928 2.615 14.144 2.939 14.289 3.296 C 14.434 3.653 14.507 4.035 14.502 4.42 L 14.492 5.31 L 15.128 5.932 C 15.404 6.201 15.623 6.523 15.772 6.878 C 15.921 7.233 15.998 7.614 15.998 7.999 C 15.998 8.384 15.921 8.766 15.772 9.121 C 15.623 9.476 15.404 9.797 15.128 10.066 L 14.491 10.688 L 14.502 11.578 C 14.507 11.963 14.434 12.346 14.289 12.703 C 14.144 13.059 13.928 13.384 13.656 13.656 C 13.384 13.928 13.059 14.144 12.703 14.289 C 12.346 14.434 11.963 14.507 11.578 14.502 L 10.688 14.492 L 10.066 15.128 C 9.797 15.404 9.476 15.623 9.121 15.772 C 8.766 15.921 8.384 15.998 7.999 15.998 C 7.614 15.998 7.233 15.921 6.878 15.772 C 6.523 15.623 6.201 15.404 5.932 15.128 L 5.31 14.491 L 4.42 14.502 C 4.035 14.507 3.653 14.434 3.296 14.289 C 2.939 14.144 2.615 13.928 2.342 13.656 C 2.07 13.384 1.855 13.059 1.709 12.703 C 1.564 12.346 1.492 11.963 1.496 11.578 L 1.506 10.688 L 0.87 10.066 C 0.595 9.797 0.376 9.476 0.226 9.121 C 0.077 8.766 0 8.384 0 7.999 C 0 7.614 0.077 7.233 0.226 6.878 C 0.376 6.523 0.595 6.201 0.87 5.932 L 1.507 5.31 L 1.496 4.42 C 1.492 4.035 1.564 3.653 1.709 3.296 C 1.855 2.939 2.07 2.615 2.342 2.342 C 2.615 2.07 2.939 1.855 3.296 1.709 C 3.653 1.564 4.035 1.492 4.42 1.496 L 5.31 1.506 L 5.932 0.87 C 6.201 0.595 6.523 0.376 6.878 0.226 C 7.233 0.077 7.614 0 7.999 0 C 8.384 0 8.766 0.077 9.121 0.226 C 9.476 0.376 9.797 0.595 10.066 0.87 L 9.351 1.568 C 9.175 1.388 8.965 1.245 8.733 1.147 C 8.501 1.049 8.251 0.999 7.999 0.999 C 7.747 0.999 7.498 1.049 7.266 1.147 C 7.034 1.245 6.823 1.388 6.647 1.568 L 5.727 2.512 L 4.407 2.496 C 4.155 2.493 3.906 2.541 3.672 2.636 C 3.439 2.731 3.227 2.872 3.049 3.05 C 2.871 3.228 2.731 3.44 2.636 3.673 C 2.541 3.907 2.493 4.156 2.496 4.408 L 2.512 5.726 L 1.568 6.647 C 1.388 6.823 1.245 7.034 1.147 7.266 C 1.049 7.498 0.999 7.747 0.999 7.999 C 0.999 8.251 1.049 8.501 1.147 8.733 C 1.245 8.965 1.388 9.175 1.568 9.351 L 2.512 10.271 L 2.496 11.591 C 2.493 11.843 2.541 12.093 2.636 12.326 C 2.731 12.559 2.872 12.771 3.05 12.949 C 3.228 13.127 3.44 13.268 3.673 13.363 C 3.907 13.458 4.156 13.505 4.408 13.502 L 5.726 13.486 L 6.647 14.43 C 6.823 14.61 7.034 14.754 7.266 14.851 C 7.498 14.949 7.747 15 7.999 15 C 8.251 15 8.501 14.949 8.733 14.851 C 8.965 14.754 9.175 14.61 9.351 14.43 L 10.271 13.486 L 11.591 13.502 C 11.843 13.505 12.093 13.457 12.326 13.362 C 12.559 13.267 12.771 13.127 12.949 12.948 C 13.127 12.77 13.268 12.558 13.363 12.325 C 13.458 12.092 13.505 11.842 13.502 11.59 L 13.486 10.272 L 14.43 9.351 C 14.61 9.175 14.754 8.965 14.851 8.733 C 14.949 8.501 15 8.251 15 7.999 C 15 7.747 14.949 7.498 14.851 7.266 C 14.754 7.034 14.61 6.823 14.43 6.647 L 13.486 5.727 L 13.502 4.407 C 13.505 4.155 13.457 3.906 13.362 3.672 C 13.267 3.439 13.127 3.227 12.948 3.049 C 12.77 2.871 12.558 2.731 12.325 2.636 C 12.092 2.541 11.842 2.493 11.59 2.496 L 10.272 2.512 Z" fill="currentColor" fill-rule="nonzero"></path><path d="M 10.272 2.512 L 9.351 1.568 C 9.175 1.388 8.965 1.245 8.733 1.147 C 8.501 1.049 8.251 0.999 7.999 0.999 C 7.747 0.999 7.498 1.049 7.266 1.147 C 7.034 1.245 6.823 1.388 6.647 1.568 L 5.727 2.512 L 4.407 2.496 C 4.155 2.493 3.906 2.541 3.672 2.636 C 3.439 2.731 3.227 2.872 3.049 3.05 C 2.871 3.228 2.731 3.44 2.636 3.673 C 2.541 3.907 2.493 4.156 2.496 4.408 L 2.512 5.726 L 1.568 6.647 C 1.388 6.823 1.245 7.034 1.147 7.266 C 1.049 7.498 0.999 7.747 0.999 7.999 C 0.999 8.251 1.049 8.501 1.147 8.733 C 1.245 8.965 1.388 9.175 1.568 9.351 L 2.512 10.271 L 2.496 11.591 C 2.493 11.843 2.541 12.093 2.636 12.326 C 2.731 12.559 2.872 12.771 3.05 12.949 C 3.228 13.127 3.44 13.268 3.673 13.363 C 3.907 13.458 4.156 13.505 4.408 13.502 L 5.726 13.486 L 6.647 14.43 C 6.823 14.61 7.034 14.754 7.266 14.851 C 7.498 14.949 7.747 15 7.999 15 C 8.251 15 8.501 14.949 8.733 14.851 C 8.965 14.754 9.175 14.61 9.351 14.43 L 10.271 13.486 L 11.591 13.502 C 11.843 13.505 12.093 13.457 12.326 13.362 C 12.559 13.267 12.771 13.127 12.949 12.948 C 13.127 12.77 13.268 12.558 13.363 12.325 C 13.458 12.092 13.505 11.842 13.502 11.59 L 13.486 10.272 L 14.43 9.351 C 14.61 9.175 14.754 8.965 14.851 8.733 C 14.949 8.501 15 8.251 15 7.999 C 15 7.747 14.949 7.498 14.851 7.266 C 14.754 7.034 14.61 6.823 14.43 6.647 L 13.486 5.727 L 13.502 4.407 C 13.505 4.155 13.457 3.906 13.362 3.672 C 13.267 3.439 13.127 3.227 12.948 3.049 C 12.77 2.871 12.558 2.731 12.325 2.636 C 12.092 2.541 11.842 2.493 11.59 2.496 L 10.272 2.512 Z" fill="currentColor" fill-rule="nonzero"></path></svg><svg width="5.502" height="4.002" viewBox="0 0 5.502 4.002" fill="none" style="position: absolute; left: 4.999px; top: 5.999px; width: 5.502px; height: 4.002px; color: var(--text-primary);"><path d="M 5.355 0.147 C 5.401 0.193 5.438 0.249 5.463 0.309 C 5.489 0.37 5.502 0.435 5.502 0.501 C 5.502 0.567 5.489 0.632 5.463 0.693 C 5.438 0.753 5.401 0.808 5.355 0.855 L 2.355 3.855 C 2.308 3.901 2.253 3.938 2.192 3.964 C 2.132 3.989 2.066 4.002 2.001 4.002 C 1.935 4.002 1.87 3.989 1.809 3.964 C 1.748 3.938 1.693 3.901 1.647 3.855 L 0.147 2.355 C 0.1 2.308 0.063 2.253 0.038 2.192 C 0.013 2.132 0 2.067 0 2.001 C 0 1.935 0.013 1.87 0.038 1.809 C 0.063 1.749 0.1 1.693 0.147 1.647 C 0.193 1.6 0.248 1.564 0.309 1.538 C 0.37 1.513 0.435 1.5 0.501 1.5 C 0.566 1.5 0.631 1.513 0.692 1.538 C 0.753 1.564 0.808 1.6 0.855 1.647 L 2.001 2.794 L 4.647 0.147 C 4.693 0.1 4.748 0.063 4.809 0.038 C 4.87 0.013 4.935 0 5.001 0 C 5.066 0 5.132 0.013 5.192 0.038 C 5.253 0.063 5.308 0.1 5.355 0.147 Z" fill="currentColor" fill-rule="evenodd"></path></svg></div></div></span>
+        <span data-dc-tpl="13" style="color: var(--text-5); font-size: 11px; letter-spacing: 1px; flex: 0 0 auto;">★★★★★</span>
+        <span data-dc-tpl="14" style="color: var(--text-4); font-size: 11px; flex: 0 0 auto;">45</span>
+      </div>
+      <span data-dc-tpl="15" style="flex: 0 0 auto; font-size: 12px; color: rgb(52, 199, 89); border: 1px solid rgba(52, 199, 89, 0.45); border-radius: 6px; padding: 2px 8px;"><span class="sc-interp">Программирование</span></span>
+    </div>
+    <span data-dc-tpl="16" style="font-weight: 600; font-size: 17px; line-height: 21px; color: var(--text-1);"><span class="sc-interp">Разработка Telegram-бота для техподдержки с интеграцией Jira</span></span>
+    <div data-dc-tpl="17" style="display: flex; gap: 5px; flex-wrap: wrap;">
+      
+        <span data-dc-tpl="19" style="font-size: 12px; color: var(--accent-ink, #4ea3ff); background: rgba(0, 136, 255, 0.1); border-radius: 6px; padding: 3px 8px;"><span class="sc-interp">aiogram</span></span>
+      
+        <span data-dc-tpl="19" style="font-size: 12px; color: var(--accent-ink, #4ea3ff); background: rgba(0, 136, 255, 0.1); border-radius: 6px; padding: 3px 8px;"><span class="sc-interp">Jira API</span></span>
+      
+        <span data-dc-tpl="19" style="font-size: 12px; color: var(--accent-ink, #4ea3ff); background: rgba(0, 136, 255, 0.1); border-radius: 6px; padding: 3px 8px;"><span class="sc-interp">PostgreSQL</span></span>
+      
+    </div>
+    <span data-dc-tpl="20" style="font-size: 14px; line-height: 18px; color: var(--text-3); opacity: 0.85; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;"><span class="sc-interp">Бот принимает обращения (текст + файлы), создаёт задачу в Jira (REST API) и отправляет номер тикета. Нужна админ-панель.</span></span>
+    <div data-dc-tpl="21" style="display: flex; align-items: center; gap: 12px; margin-top: 2px;">
+      <span data-dc-tpl="22" style="font-family: Handjet, monospace; font-size: 12px; color: var(--text-3);"><span class="sc-interp">12.08.2025</span></span>
+      <div data-dc-tpl="23" style="flex: 1 1 0%; height: 4px; border-radius: 3px; background: rgba(159, 160, 164, 0.4); overflow: hidden;"><div data-dc-tpl="24" style="height: 100%; border-radius: 3px; background: var(--text-3); width: 100%;"></div></div>
+      <span data-dc-tpl="25" style="font-family: Handjet, monospace; font-size: 12px; color: var(--text-3);"><span class="sc-interp">22.08.2025</span></span>
+    </div>
+  </div>
+  
+    <div data-dc-tpl="27" style="display: flex; align-items: flex-end; gap: 16px; padding: 14px 20px;">
+      <div data-dc-tpl="28" style="flex: 1 1 0%; display: flex; flex-direction: column; gap: 6px;">
+        <span data-dc-tpl="29" style="font-size: 11px; letter-spacing: 0.2px; color: var(--text-3);">Фикс. цена</span>
+        <span data-dc-tpl="30" style="font-weight: 600; font-size: 15px; color: var(--text-1);"><span class="sc-interp">40 000 ₽</span></span>
+      </div>
+      <div data-dc-tpl="31" style="flex: 1 1 0%; display: flex; flex-direction: column; gap: 6px;">
+        <span data-dc-tpl="32" style="font-size: 11px; letter-spacing: 0.2px; color: var(--text-3);">Срок выполнения</span>
+        <span data-dc-tpl="33" style="font-weight: 600; font-size: 15px; color: var(--text-1);"><span class="sc-interp">7 дней</span></span>
+      </div>
+      <button data-dc-tpl="34" style="flex: 0 0 auto; height: 40px; padding: 0px 22px; border: none; border-radius: 8px; background: var(--om-accent, #0088ff); color: rgb(255, 255, 255); font-size: 14px; font-weight: 500; cursor: pointer;">К проекту</button>
+    </div>
+  </div></div>
+            
+              <div class="sc-host" data-sc-name="Gig Card" data-dc-tpl="177"><div data-dc-tpl="0" style="border-radius: 16px; background: radial-gradient(120% 100% at 50% 0%, rgba(245,158,11,0.22) 0%, rgba(245,158,11,0.05) 45%, rgba(245,158,11,0) 100%), var(--surface-card); box-shadow: rgba(245, 158, 11, 0.3) 0px 0px 0px 1px inset; display: flex; flex-direction: column;">
+  <div data-dc-tpl="1" style="display: flex; align-items: center; justify-content: space-between; padding: 12px;">
+    <div data-dc-tpl="2" style="display: flex; align-items: center; gap: 8px; flex: 0 0 auto;">
+      <span data-dc-tpl="3" style="width: 8px; height: 8px; flex: 0 0 auto; border-radius: 50%; background: rgb(245, 158, 11);"></span>
+      <span data-dc-tpl="4" style="font-family: Handjet, monospace; font-size: 15px; color: rgb(245, 158, 11); white-space: nowrap;"><span class="sc-interp">На рассмотрении</span></span>
+    </div>
+    <span data-dc-tpl="5" style="font-family: Handjet, monospace; font-size: 12px; color: var(--text-3); flex: 0 0 auto; white-space: nowrap;"><span class="sc-interp">2 мин</span></span>
+  </div>
+  <div data-dc-tpl="6" style="border-radius: 16px; background: var(--surface-card); box-shadow: inset 0 0 0 1px var(--hairline-08), inset 0 1px 0 var(--hairline-06); padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+    <div data-dc-tpl="7" style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+      <div data-dc-tpl="8" style="display: flex; align-items: center; gap: 8px; min-width: 0px;">
+        <span data-dc-tpl="9" style="width: 22px; height: 22px; flex: 0 0 auto; border-radius: 50%; background: rgb(34, 197, 94); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: rgb(255, 255, 255);"><span class="sc-interp">М</span></span>
+        <span data-dc-tpl="10" style="font-size: 13px; color: var(--text-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><span class="sc-interp">МеталлПрофиль</span></span>
+        <span data-dc-tpl="11" style="color: var(--om-accent, #0088ff); display: flex; flex: 0 0 auto;"><div class="sc-host-x" data-dc-tpl="12" style="display: contents;"><div style="width: 16px; height: 16px; overflow: hidden; position: relative;"><svg width="15.998" height="15.998" viewBox="0 0 15.998 15.998" fill="none" style="position: absolute; left: 0.001px; top: 0.001px; width: 15.998px; height: 15.998px; color: var(--color-2);"><path d="M 10.272 2.512 L 9.351 1.568 L 10.066 0.87 L 10.688 1.507 L 11.578 1.496 C 11.963 1.492 12.346 1.564 12.703 1.709 C 13.059 1.855 13.384 2.07 13.656 2.342 C 13.928 2.615 14.144 2.939 14.289 3.296 C 14.434 3.653 14.507 4.035 14.502 4.42 L 14.492 5.31 L 15.128 5.932 C 15.404 6.201 15.623 6.523 15.772 6.878 C 15.921 7.233 15.998 7.614 15.998 7.999 C 15.998 8.384 15.921 8.766 15.772 9.121 C 15.623 9.476 15.404 9.797 15.128 10.066 L 14.491 10.688 L 14.502 11.578 C 14.507 11.963 14.434 12.346 14.289 12.703 C 14.144 13.059 13.928 13.384 13.656 13.656 C 13.384 13.928 13.059 14.144 12.703 14.289 C 12.346 14.434 11.963 14.507 11.578 14.502 L 10.688 14.492 L 10.066 15.128 C 9.797 15.404 9.476 15.623 9.121 15.772 C 8.766 15.921 8.384 15.998 7.999 15.998 C 7.614 15.998 7.233 15.921 6.878 15.772 C 6.523 15.623 6.201 15.404 5.932 15.128 L 5.31 14.491 L 4.42 14.502 C 4.035 14.507 3.653 14.434 3.296 14.289 C 2.939 14.144 2.615 13.928 2.342 13.656 C 2.07 13.384 1.855 13.059 1.709 12.703 C 1.564 12.346 1.492 11.963 1.496 11.578 L 1.506 10.688 L 0.87 10.066 C 0.595 9.797 0.376 9.476 0.226 9.121 C 0.077 8.766 0 8.384 0 7.999 C 0 7.614 0.077 7.233 0.226 6.878 C 0.376 6.523 0.595 6.201 0.87 5.932 L 1.507 5.31 L 1.496 4.42 C 1.492 4.035 1.564 3.653 1.709 3.296 C 1.855 2.939 2.07 2.615 2.342 2.342 C 2.615 2.07 2.939 1.855 3.296 1.709 C 3.653 1.564 4.035 1.492 4.42 1.496 L 5.31 1.506 L 5.932 0.87 C 6.201 0.595 6.523 0.376 6.878 0.226 C 7.233 0.077 7.614 0 7.999 0 C 8.384 0 8.766 0.077 9.121 0.226 C 9.476 0.376 9.797 0.595 10.066 0.87 L 9.351 1.568 C 9.175 1.388 8.965 1.245 8.733 1.147 C 8.501 1.049 8.251 0.999 7.999 0.999 C 7.747 0.999 7.498 1.049 7.266 1.147 C 7.034 1.245 6.823 1.388 6.647 1.568 L 5.727 2.512 L 4.407 2.496 C 4.155 2.493 3.906 2.541 3.672 2.636 C 3.439 2.731 3.227 2.872 3.049 3.05 C 2.871 3.228 2.731 3.44 2.636 3.673 C 2.541 3.907 2.493 4.156 2.496 4.408 L 2.512 5.726 L 1.568 6.647 C 1.388 6.823 1.245 7.034 1.147 7.266 C 1.049 7.498 0.999 7.747 0.999 7.999 C 0.999 8.251 1.049 8.501 1.147 8.733 C 1.245 8.965 1.388 9.175 1.568 9.351 L 2.512 10.271 L 2.496 11.591 C 2.493 11.843 2.541 12.093 2.636 12.326 C 2.731 12.559 2.872 12.771 3.05 12.949 C 3.228 13.127 3.44 13.268 3.673 13.363 C 3.907 13.458 4.156 13.505 4.408 13.502 L 5.726 13.486 L 6.647 14.43 C 6.823 14.61 7.034 14.754 7.266 14.851 C 7.498 14.949 7.747 15 7.999 15 C 8.251 15 8.501 14.949 8.733 14.851 C 8.965 14.754 9.175 14.61 9.351 14.43 L 10.271 13.486 L 11.591 13.502 C 11.843 13.505 12.093 13.457 12.326 13.362 C 12.559 13.267 12.771 13.127 12.949 12.948 C 13.127 12.77 13.268 12.558 13.363 12.325 C 13.458 12.092 13.505 11.842 13.502 11.59 L 13.486 10.272 L 14.43 9.351 C 14.61 9.175 14.754 8.965 14.851 8.733 C 14.949 8.501 15 8.251 15 7.999 C 15 7.747 14.949 7.498 14.851 7.266 C 14.754 7.034 14.61 6.823 14.43 6.647 L 13.486 5.727 L 13.502 4.407 C 13.505 4.155 13.457 3.906 13.362 3.672 C 13.267 3.439 13.127 3.227 12.948 3.049 C 12.77 2.871 12.558 2.731 12.325 2.636 C 12.092 2.541 11.842 2.493 11.59 2.496 L 10.272 2.512 Z" fill="currentColor" fill-rule="nonzero"></path><path d="M 10.272 2.512 L 9.351 1.568 C 9.175 1.388 8.965 1.245 8.733 1.147 C 8.501 1.049 8.251 0.999 7.999 0.999 C 7.747 0.999 7.498 1.049 7.266 1.147 C 7.034 1.245 6.823 1.388 6.647 1.568 L 5.727 2.512 L 4.407 2.496 C 4.155 2.493 3.906 2.541 3.672 2.636 C 3.439 2.731 3.227 2.872 3.049 3.05 C 2.871 3.228 2.731 3.44 2.636 3.673 C 2.541 3.907 2.493 4.156 2.496 4.408 L 2.512 5.726 L 1.568 6.647 C 1.388 6.823 1.245 7.034 1.147 7.266 C 1.049 7.498 0.999 7.747 0.999 7.999 C 0.999 8.251 1.049 8.501 1.147 8.733 C 1.245 8.965 1.388 9.175 1.568 9.351 L 2.512 10.271 L 2.496 11.591 C 2.493 11.843 2.541 12.093 2.636 12.326 C 2.731 12.559 2.872 12.771 3.05 12.949 C 3.228 13.127 3.44 13.268 3.673 13.363 C 3.907 13.458 4.156 13.505 4.408 13.502 L 5.726 13.486 L 6.647 14.43 C 6.823 14.61 7.034 14.754 7.266 14.851 C 7.498 14.949 7.747 15 7.999 15 C 8.251 15 8.501 14.949 8.733 14.851 C 8.965 14.754 9.175 14.61 9.351 14.43 L 10.271 13.486 L 11.591 13.502 C 11.843 13.505 12.093 13.457 12.326 13.362 C 12.559 13.267 12.771 13.127 12.949 12.948 C 13.127 12.77 13.268 12.558 13.363 12.325 C 13.458 12.092 13.505 11.842 13.502 11.59 L 13.486 10.272 L 14.43 9.351 C 14.61 9.175 14.754 8.965 14.851 8.733 C 14.949 8.501 15 8.251 15 7.999 C 15 7.747 14.949 7.498 14.851 7.266 C 14.754 7.034 14.61 6.823 14.43 6.647 L 13.486 5.727 L 13.502 4.407 C 13.505 4.155 13.457 3.906 13.362 3.672 C 13.267 3.439 13.127 3.227 12.948 3.049 C 12.77 2.871 12.558 2.731 12.325 2.636 C 12.092 2.541 11.842 2.493 11.59 2.496 L 10.272 2.512 Z" fill="currentColor" fill-rule="nonzero"></path></svg><svg width="5.502" height="4.002" viewBox="0 0 5.502 4.002" fill="none" style="position: absolute; left: 4.999px; top: 5.999px; width: 5.502px; height: 4.002px; color: var(--text-primary);"><path d="M 5.355 0.147 C 5.401 0.193 5.438 0.249 5.463 0.309 C 5.489 0.37 5.502 0.435 5.502 0.501 C 5.502 0.567 5.489 0.632 5.463 0.693 C 5.438 0.753 5.401 0.808 5.355 0.855 L 2.355 3.855 C 2.308 3.901 2.253 3.938 2.192 3.964 C 2.132 3.989 2.066 4.002 2.001 4.002 C 1.935 4.002 1.87 3.989 1.809 3.964 C 1.748 3.938 1.693 3.901 1.647 3.855 L 0.147 2.355 C 0.1 2.308 0.063 2.253 0.038 2.192 C 0.013 2.132 0 2.067 0 2.001 C 0 1.935 0.013 1.87 0.038 1.809 C 0.063 1.749 0.1 1.693 0.147 1.647 C 0.193 1.6 0.248 1.564 0.309 1.538 C 0.37 1.513 0.435 1.5 0.501 1.5 C 0.566 1.5 0.631 1.513 0.692 1.538 C 0.753 1.564 0.808 1.6 0.855 1.647 L 2.001 2.794 L 4.647 0.147 C 4.693 0.1 4.748 0.063 4.809 0.038 C 4.87 0.013 4.935 0 5.001 0 C 5.066 0 5.132 0.013 5.192 0.038 C 5.253 0.063 5.308 0.1 5.355 0.147 Z" fill="currentColor" fill-rule="evenodd"></path></svg></div></div></span>
+        <span data-dc-tpl="13" style="color: var(--text-5); font-size: 11px; letter-spacing: 1px; flex: 0 0 auto;">★★★★★</span>
+        <span data-dc-tpl="14" style="color: var(--text-4); font-size: 11px; flex: 0 0 auto;">45</span>
+      </div>
+      <span data-dc-tpl="15" style="flex: 0 0 auto; font-size: 12px; color: rgb(255, 141, 40); border: 1px solid rgba(255, 141, 40, 0.45); border-radius: 6px; padding: 2px 8px;"><span class="sc-interp">Кодинг</span></span>
+    </div>
+    <span data-dc-tpl="16" style="font-weight: 600; font-size: 17px; line-height: 21px; color: var(--text-1);"><span class="sc-interp">Переписать модуль расчёта скидок в 1С: УТ 11.5 (вместо монолитной логики)</span></span>
+    <div data-dc-tpl="17" style="display: flex; gap: 5px; flex-wrap: wrap;">
+      
+        <span data-dc-tpl="19" style="font-size: 12px; color: var(--accent-ink, #4ea3ff); background: rgba(0, 136, 255, 0.1); border-radius: 6px; padding: 3px 8px;"><span class="sc-interp">1С:УТ</span></span>
+      
+        <span data-dc-tpl="19" style="font-size: 12px; color: var(--accent-ink, #4ea3ff); background: rgba(0, 136, 255, 0.1); border-radius: 6px; padding: 3px 8px;"><span class="sc-interp">1С:Запросы</span></span>
+      
+        <span data-dc-tpl="19" style="font-size: 12px; color: var(--accent-ink, #4ea3ff); background: rgba(0, 136, 255, 0.1); border-radius: 6px; padding: 3px 8px;"><span class="sc-interp">Оптимизация</span></span>
+      
+    </div>
+    <span data-dc-tpl="20" style="font-size: 14px; line-height: 18px; color: var(--text-3); opacity: 0.85; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;"><span class="sc-interp">Сейчас скидки считаются в одном обработчике, что тормозит оформление заказов. Нужно вынести логику в отдельные регистры расчёта.</span></span>
+    <div data-dc-tpl="21" style="display: flex; align-items: center; gap: 12px; margin-top: 2px;">
+      <span data-dc-tpl="22" style="font-family: Handjet, monospace; font-size: 12px; color: var(--text-3);"><span class="sc-interp">26.08.2025</span></span>
+      <div data-dc-tpl="23" style="flex: 1 1 0%; height: 4px; border-radius: 3px; background: rgba(159, 160, 164, 0.4); overflow: hidden;"><div data-dc-tpl="24" style="height: 100%; border-radius: 3px; background: var(--text-3); width: 5%;"></div></div>
+      <span data-dc-tpl="25" style="font-family: Handjet, monospace; font-size: 12px; color: var(--text-3);"><span class="sc-interp">31.08.2025</span></span>
+    </div>
+  </div>
+  
+    <div data-dc-tpl="27" style="display: flex; align-items: flex-end; gap: 16px; padding: 14px 20px;">
+      <div data-dc-tpl="28" style="flex: 1 1 0%; display: flex; flex-direction: column; gap: 6px;">
+        <span data-dc-tpl="29" style="font-size: 11px; letter-spacing: 0.2px; color: var(--text-3);">Фикс. цена</span>
+        <span data-dc-tpl="30" style="font-weight: 600; font-size: 15px; color: var(--text-1);"><span class="sc-interp">35 000 ₽</span></span>
+      </div>
+      <div data-dc-tpl="31" style="flex: 1 1 0%; display: flex; flex-direction: column; gap: 6px;">
+        <span data-dc-tpl="32" style="font-size: 11px; letter-spacing: 0.2px; color: var(--text-3);">Срок выполнения</span>
+        <span data-dc-tpl="33" style="font-weight: 600; font-size: 15px; color: var(--text-1);"><span class="sc-interp">5 дней</span></span>
+      </div>
+      <button data-dc-tpl="34" style="flex: 0 0 auto; height: 40px; padding: 0px 22px; border: none; border-radius: 8px; background: var(--om-accent, #0088ff); color: rgb(255, 255, 255); font-size: 14px; font-weight: 500; cursor: pointer;">К проекту</button>
+    </div>
+  </div></div>
+            
+              <div class="sc-host" data-sc-name="Gig Card" data-dc-tpl="177"><div data-dc-tpl="0" style="border-radius: 16px; background: radial-gradient(120% 100% at 50% 0%, rgba(16,185,129,0.22) 0%, rgba(16,185,129,0.05) 45%, rgba(16,185,129,0) 100%), var(--surface-card); box-shadow: rgba(16, 185, 129, 0.3) 0px 0px 0px 1px inset; display: flex; flex-direction: column;">
+  <div data-dc-tpl="1" style="display: flex; align-items: center; justify-content: space-between; padding: 12px;">
+    <div data-dc-tpl="2" style="display: flex; align-items: center; gap: 8px; flex: 0 0 auto;">
+      <span data-dc-tpl="3" style="width: 8px; height: 8px; flex: 0 0 auto; border-radius: 50%; background: rgb(16, 185, 129);"></span>
+      <span data-dc-tpl="4" style="font-family: Handjet, monospace; font-size: 15px; color: rgb(16, 185, 129); white-space: nowrap;"><span class="sc-interp">Завершён</span></span>
+    </div>
+    <span data-dc-tpl="5" style="font-family: Handjet, monospace; font-size: 12px; color: var(--text-3); flex: 0 0 auto; white-space: nowrap;"><span class="sc-interp">2 дн</span></span>
+  </div>
+  <div data-dc-tpl="6" style="border-radius: 16px; background: var(--surface-card); box-shadow: inset 0 0 0 1px var(--hairline-08), inset 0 1px 0 var(--hairline-06); padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+    <div data-dc-tpl="7" style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+      <div data-dc-tpl="8" style="display: flex; align-items: center; gap: 8px; min-width: 0px;">
+        <span data-dc-tpl="9" style="width: 22px; height: 22px; flex: 0 0 auto; border-radius: 50%; background: rgb(245, 158, 11); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: rgb(255, 255, 255);"><span class="sc-interp">A</span></span>
+        <span data-dc-tpl="10" style="font-size: 13px; color: var(--text-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><span class="sc-interp">AlgoTrade</span></span>
+        <span data-dc-tpl="11" style="color: var(--om-accent, #0088ff); display: flex; flex: 0 0 auto;"><div class="sc-host-x" data-dc-tpl="12" style="display: contents;"><div style="width: 16px; height: 16px; overflow: hidden; position: relative;"><svg width="15.998" height="15.998" viewBox="0 0 15.998 15.998" fill="none" style="position: absolute; left: 0.001px; top: 0.001px; width: 15.998px; height: 15.998px; color: var(--color-2);"><path d="M 10.272 2.512 L 9.351 1.568 L 10.066 0.87 L 10.688 1.507 L 11.578 1.496 C 11.963 1.492 12.346 1.564 12.703 1.709 C 13.059 1.855 13.384 2.07 13.656 2.342 C 13.928 2.615 14.144 2.939 14.289 3.296 C 14.434 3.653 14.507 4.035 14.502 4.42 L 14.492 5.31 L 15.128 5.932 C 15.404 6.201 15.623 6.523 15.772 6.878 C 15.921 7.233 15.998 7.614 15.998 7.999 C 15.998 8.384 15.921 8.766 15.772 9.121 C 15.623 9.476 15.404 9.797 15.128 10.066 L 14.491 10.688 L 14.502 11.578 C 14.507 11.963 14.434 12.346 14.289 12.703 C 14.144 13.059 13.928 13.384 13.656 13.656 C 13.384 13.928 13.059 14.144 12.703 14.289 C 12.346 14.434 11.963 14.507 11.578 14.502 L 10.688 14.492 L 10.066 15.128 C 9.797 15.404 9.476 15.623 9.121 15.772 C 8.766 15.921 8.384 15.998 7.999 15.998 C 7.614 15.998 7.233 15.921 6.878 15.772 C 6.523 15.623 6.201 15.404 5.932 15.128 L 5.31 14.491 L 4.42 14.502 C 4.035 14.507 3.653 14.434 3.296 14.289 C 2.939 14.144 2.615 13.928 2.342 13.656 C 2.07 13.384 1.855 13.059 1.709 12.703 C 1.564 12.346 1.492 11.963 1.496 11.578 L 1.506 10.688 L 0.87 10.066 C 0.595 9.797 0.376 9.476 0.226 9.121 C 0.077 8.766 0 8.384 0 7.999 C 0 7.614 0.077 7.233 0.226 6.878 C 0.376 6.523 0.595 6.201 0.87 5.932 L 1.507 5.31 L 1.496 4.42 C 1.492 4.035 1.564 3.653 1.709 3.296 C 1.855 2.939 2.07 2.615 2.342 2.342 C 2.615 2.07 2.939 1.855 3.296 1.709 C 3.653 1.564 4.035 1.492 4.42 1.496 L 5.31 1.506 L 5.932 0.87 C 6.201 0.595 6.523 0.376 6.878 0.226 C 7.233 0.077 7.614 0 7.999 0 C 8.384 0 8.766 0.077 9.121 0.226 C 9.476 0.376 9.797 0.595 10.066 0.87 L 9.351 1.568 C 9.175 1.388 8.965 1.245 8.733 1.147 C 8.501 1.049 8.251 0.999 7.999 0.999 C 7.747 0.999 7.498 1.049 7.266 1.147 C 7.034 1.245 6.823 1.388 6.647 1.568 L 5.727 2.512 L 4.407 2.496 C 4.155 2.493 3.906 2.541 3.672 2.636 C 3.439 2.731 3.227 2.872 3.049 3.05 C 2.871 3.228 2.731 3.44 2.636 3.673 C 2.541 3.907 2.493 4.156 2.496 4.408 L 2.512 5.726 L 1.568 6.647 C 1.388 6.823 1.245 7.034 1.147 7.266 C 1.049 7.498 0.999 7.747 0.999 7.999 C 0.999 8.251 1.049 8.501 1.147 8.733 C 1.245 8.965 1.388 9.175 1.568 9.351 L 2.512 10.271 L 2.496 11.591 C 2.493 11.843 2.541 12.093 2.636 12.326 C 2.731 12.559 2.872 12.771 3.05 12.949 C 3.228 13.127 3.44 13.268 3.673 13.363 C 3.907 13.458 4.156 13.505 4.408 13.502 L 5.726 13.486 L 6.647 14.43 C 6.823 14.61 7.034 14.754 7.266 14.851 C 7.498 14.949 7.747 15 7.999 15 C 8.251 15 8.501 14.949 8.733 14.851 C 8.965 14.754 9.175 14.61 9.351 14.43 L 10.271 13.486 L 11.591 13.502 C 11.843 13.505 12.093 13.457 12.326 13.362 C 12.559 13.267 12.771 13.127 12.949 12.948 C 13.127 12.77 13.268 12.558 13.363 12.325 C 13.458 12.092 13.505 11.842 13.502 11.59 L 13.486 10.272 L 14.43 9.351 C 14.61 9.175 14.754 8.965 14.851 8.733 C 14.949 8.501 15 8.251 15 7.999 C 15 7.747 14.949 7.498 14.851 7.266 C 14.754 7.034 14.61 6.823 14.43 6.647 L 13.486 5.727 L 13.502 4.407 C 13.505 4.155 13.457 3.906 13.362 3.672 C 13.267 3.439 13.127 3.227 12.948 3.049 C 12.77 2.871 12.558 2.731 12.325 2.636 C 12.092 2.541 11.842 2.493 11.59 2.496 L 10.272 2.512 Z" fill="currentColor" fill-rule="nonzero"></path><path d="M 10.272 2.512 L 9.351 1.568 C 9.175 1.388 8.965 1.245 8.733 1.147 C 8.501 1.049 8.251 0.999 7.999 0.999 C 7.747 0.999 7.498 1.049 7.266 1.147 C 7.034 1.245 6.823 1.388 6.647 1.568 L 5.727 2.512 L 4.407 2.496 C 4.155 2.493 3.906 2.541 3.672 2.636 C 3.439 2.731 3.227 2.872 3.049 3.05 C 2.871 3.228 2.731 3.44 2.636 3.673 C 2.541 3.907 2.493 4.156 2.496 4.408 L 2.512 5.726 L 1.568 6.647 C 1.388 6.823 1.245 7.034 1.147 7.266 C 1.049 7.498 0.999 7.747 0.999 7.999 C 0.999 8.251 1.049 8.501 1.147 8.733 C 1.245 8.965 1.388 9.175 1.568 9.351 L 2.512 10.271 L 2.496 11.591 C 2.493 11.843 2.541 12.093 2.636 12.326 C 2.731 12.559 2.872 12.771 3.05 12.949 C 3.228 13.127 3.44 13.268 3.673 13.363 C 3.907 13.458 4.156 13.505 4.408 13.502 L 5.726 13.486 L 6.647 14.43 C 6.823 14.61 7.034 14.754 7.266 14.851 C 7.498 14.949 7.747 15 7.999 15 C 8.251 15 8.501 14.949 8.733 14.851 C 8.965 14.754 9.175 14.61 9.351 14.43 L 10.271 13.486 L 11.591 13.502 C 11.843 13.505 12.093 13.457 12.326 13.362 C 12.559 13.267 12.771 13.127 12.949 12.948 C 13.127 12.77 13.268 12.558 13.363 12.325 C 13.458 12.092 13.505 11.842 13.502 11.59 L 13.486 10.272 L 14.43 9.351 C 14.61 9.175 14.754 8.965 14.851 8.733 C 14.949 8.501 15 8.251 15 7.999 C 15 7.747 14.949 7.498 14.851 7.266 C 14.754 7.034 14.61 6.823 14.43 6.647 L 13.486 5.727 L 13.502 4.407 C 13.505 4.155 13.457 3.906 13.362 3.672 C 13.267 3.439 13.127 3.227 12.948 3.049 C 12.77 2.871 12.558 2.731 12.325 2.636 C 12.092 2.541 11.842 2.493 11.59 2.496 L 10.272 2.512 Z" fill="currentColor" fill-rule="nonzero"></path></svg><svg width="5.502" height="4.002" viewBox="0 0 5.502 4.002" fill="none" style="position: absolute; left: 4.999px; top: 5.999px; width: 5.502px; height: 4.002px; color: var(--text-primary);"><path d="M 5.355 0.147 C 5.401 0.193 5.438 0.249 5.463 0.309 C 5.489 0.37 5.502 0.435 5.502 0.501 C 5.502 0.567 5.489 0.632 5.463 0.693 C 5.438 0.753 5.401 0.808 5.355 0.855 L 2.355 3.855 C 2.308 3.901 2.253 3.938 2.192 3.964 C 2.132 3.989 2.066 4.002 2.001 4.002 C 1.935 4.002 1.87 3.989 1.809 3.964 C 1.748 3.938 1.693 3.901 1.647 3.855 L 0.147 2.355 C 0.1 2.308 0.063 2.253 0.038 2.192 C 0.013 2.132 0 2.067 0 2.001 C 0 1.935 0.013 1.87 0.038 1.809 C 0.063 1.749 0.1 1.693 0.147 1.647 C 0.193 1.6 0.248 1.564 0.309 1.538 C 0.37 1.513 0.435 1.5 0.501 1.5 C 0.566 1.5 0.631 1.513 0.692 1.538 C 0.753 1.564 0.808 1.6 0.855 1.647 L 2.001 2.794 L 4.647 0.147 C 4.693 0.1 4.748 0.063 4.809 0.038 C 4.87 0.013 4.935 0 5.001 0 C 5.066 0 5.132 0.013 5.192 0.038 C 5.253 0.063 5.308 0.1 5.355 0.147 Z" fill="currentColor" fill-rule="evenodd"></path></svg></div></div></span>
+        <span data-dc-tpl="13" style="color: var(--text-5); font-size: 11px; letter-spacing: 1px; flex: 0 0 auto;">★★★★★</span>
+        <span data-dc-tpl="14" style="color: var(--text-4); font-size: 11px; flex: 0 0 auto;">45</span>
+      </div>
+      <span data-dc-tpl="15" style="flex: 0 0 auto; font-size: 12px; color: rgb(0, 195, 208); border: 1px solid rgba(0, 195, 208, 0.45); border-radius: 6px; padding: 2px 8px;"><span class="sc-interp">Разработка</span></span>
+    </div>
+    <span data-dc-tpl="16" style="font-weight: 600; font-size: 17px; line-height: 21px; color: var(--text-1);"><span class="sc-interp">Оптимизация SQL-запросов аналитической витрины (PostgreSQL)</span></span>
+    <div data-dc-tpl="17" style="display: flex; gap: 5px; flex-wrap: wrap;">
+      
+        <span data-dc-tpl="19" style="font-size: 12px; color: var(--accent-ink, #4ea3ff); background: rgba(0, 136, 255, 0.1); border-radius: 6px; padding: 3px 8px;"><span class="sc-interp">PostgreSQL</span></span>
+      
+        <span data-dc-tpl="19" style="font-size: 12px; color: var(--accent-ink, #4ea3ff); background: rgba(0, 136, 255, 0.1); border-radius: 6px; padding: 3px 8px;"><span class="sc-interp">SQL</span></span>
+      
+        <span data-dc-tpl="19" style="font-size: 12px; color: var(--accent-ink, #4ea3ff); background: rgba(0, 136, 255, 0.1); border-radius: 6px; padding: 3px 8px;"><span class="sc-interp">Индексы</span></span>
+      
+    </div>
+    <span data-dc-tpl="20" style="font-size: 14px; line-height: 18px; color: var(--text-3); opacity: 0.85; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;"><span class="sc-interp">Тяжёлые аналитические запросы выполняются по 40+ секунд. Нужно переписать с оконными функциями и добавить индексы.</span></span>
+    <div data-dc-tpl="21" style="display: flex; align-items: center; gap: 12px; margin-top: 2px;">
+      <span data-dc-tpl="22" style="font-family: Handjet, monospace; font-size: 12px; color: var(--text-3);"><span class="sc-interp">01.08.2025</span></span>
+      <div data-dc-tpl="23" style="flex: 1 1 0%; height: 4px; border-radius: 3px; background: rgba(159, 160, 164, 0.4); overflow: hidden;"><div data-dc-tpl="24" style="height: 100%; border-radius: 3px; background: var(--text-3); width: 100%;"></div></div>
+      <span data-dc-tpl="25" style="font-family: Handjet, monospace; font-size: 12px; color: var(--text-3);"><span class="sc-interp">08.08.2025</span></span>
+    </div>
+  </div>
+  
+    <div data-dc-tpl="27" style="display: flex; align-items: flex-end; gap: 16px; padding: 14px 20px;">
+      <div data-dc-tpl="28" style="flex: 1 1 0%; display: flex; flex-direction: column; gap: 6px;">
+        <span data-dc-tpl="29" style="font-size: 11px; letter-spacing: 0.2px; color: var(--text-3);">Фикс. цена</span>
+        <span data-dc-tpl="30" style="font-weight: 600; font-size: 15px; color: var(--text-1);"><span class="sc-interp">22 000 ₽</span></span>
+      </div>
+      <div data-dc-tpl="31" style="flex: 1 1 0%; display: flex; flex-direction: column; gap: 6px;">
+        <span data-dc-tpl="32" style="font-size: 11px; letter-spacing: 0.2px; color: var(--text-3);">Срок выполнения</span>
+        <span data-dc-tpl="33" style="font-weight: 600; font-size: 15px; color: var(--text-1);"><span class="sc-interp">4 дня</span></span>
+      </div>
+      <button data-dc-tpl="34" style="flex: 0 0 auto; height: 40px; padding: 0px 22px; border: none; border-radius: 8px; background: var(--om-accent, #0088ff); color: rgb(255, 255, 255); font-size: 14px; font-weight: 500; cursor: pointer;">К проекту</button>
+    </div>
+  </div></div>
+            
+          </div>
+        
+        
+      </div>
+    
+
+    
+    
+
+    
+    
+
+    
+    
+
+    
+    
+
+    
+    
+
+    
+    
+
+    
+    
+
+    
+    
+
+    
+    
+
+    
+    
+
+    
+    
+
+    
+    
+
+  </main>
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  </div></div></div>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1512, &quot;height&quot;: 982}, &quot;accent&quot;: {&quot;editor&quot;: &quot;color&quot;, &quot;default&quot;: &quot;#0088ff&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;options&quot;: [&quot;#0088ff&quot;, &quot;#7c5cff&quot;, &quot;#1f9d57&quot;, &quot;#ff6a3d&quot;]}, &quot;cardStyle&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;default&quot;: &quot;Сияние&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;options&quot;: [&quot;Сияние&quot;, &quot;Плоский&quot;, &quot;Контур&quot;]}, &quot;density&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;default&quot;: &quot;Просторно&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;options&quot;: [&quot;Просторно&quot;, &quot;Компактно&quot;]}}">
+class Component extends DCLogic {
+  state = {
+    route: 'dashboard', role: 'specialist', tab: 'all', search: '', openFilter: null, cat: null, budget: null, sortBy: null, loading: false,
+    chatDraft: '', openGig: null, gigStage: null, apApproach: '', apQuestions: '', apEstimate: '', applied: false, appStates: {},
+    toast: null, confirm: null, notifOpen: false, settingsOpen: false, settings: { apps: true, msg: true, status: true, pay: false, rating: true, online: true }, theme: 'Тёмная', lang: 'Русский', currency: '₽ Рубль', profModal: null, pStack: null, pBio: null, pCats: null, pStackInput: '', pCatInput: '', userSuspended: {}, gigClosed: {}, auditLog: [
+      { who: 'Система', text: 'Гиг «Спам-рассылка по базе» закрыт за нарушение правил', time: 'вчера' },
+      { who: 'Система', text: 'Пользователь «fake_recruiter» заблокирован', time: '2 дн' },
+    ],
+    cgTitle: '', cgCat: '', cgDesc: '', cgBudget: '', cgDuration: '', cgCrits: [], cgCritInput: '', cgGoal: '', cgDeliv: '', cgConstr: '', cgTagInput: '', cgTags: [], cgPublished: false,
+    openDispute: null, dispReason: '', dispDesc: '', dispReply: '', dispOpened: false, disStatusOverride: {}, adminReplyText: '',
+    compModalOpen: false, cpName: null, cpInn: null, cpKpp: null, cpAbout: null,
+    activeConvo: 1, threads: {},
+    thread_unused: [
+      { side:'them', text:'Dolor sit amet, consectetur adipiscing elit. Hendrerit vulputate viverra commodo tincidunt.', time:'09:41' },
+      { side:'me',   text:'Dolor sit amet, consectetur adipiscing elit. Hendrerit vulputate viverra commodo tincidunt.', time:'09:42' },
+      { side:'them', text:'Can you send the file of Martins UX case study and the link toV wireframe ?', time:'09:41' },
+      { side:'me',   text:'Sure!', time:'09:42' },
+    ],
+  };
+
+  CONVERSATIONS = [
+    { id:1, company:'Vercel', name:'Кристина', status:'Отклонён', count:'5', active:true,  body:'Dolor sit amet, consectetur adipiscing elit. Hendrerit vulputate viverra commodo tincidunt. Can you send the file of Martins UX case study and the link toV wireframe ?', time:'09:41' },
+    { id:2, company:'AlgoTrade', name:'Кристина', status:'В работе', count:'2', active:false, body:'Спасибо за апдейт! Когда сможете показать промежуточный результат по профилированию?', time:'14 мин' },
+    { id:3, company:'Kryston', name:'Кристина', status:'В работе', count:'1', active:false, body:'Капча снова появилась на категории «Электроника». Прикладываю скрин и логи.', time:'1 ч' },
+    { id:4, company:'Stripe', name:'Кристина', status:'На проверке', count:'3', active:false, body:'Пайплайн зелёный, спасибо. Остался автоматический откат — обсудим в звонке?', time:'3 ч' },
+    { id:5, company:'СофтЛайн', name:'Кристина', status:'Открыт', count:'1', active:false, body:'Отправили доступы к тестовому Jira. Жду бота на проверку до конца недели.', time:'вчера' },
+    { id:6, company:'МеталлПрофиль', name:'Кристина', status:'Открыт', count:'1', active:false, body:'Подскажите по срокам — заказчик торопит с расчётом скидок.', time:'2 дн' },
+  ];
+
+  STATUS = {
+    'открыт':          { rgb: '255,255,255', label: 'Открыт' },
+    'на рассмотрении': { rgb: '245,158,11',  label: 'На рассмотрении' },
+    'в работе':        { rgb: '59,130,246',  label: 'В работе' },
+    'на проверке':     { rgb: '139,92,246',  label: 'На проверке' },
+    'завершён':        { rgb: '16,185,129',  label: 'Завершён' },
+    'оплачен':         { rgb: '0,200,179',   label: 'Оплачен' },
+    'отклонён':        { rgb: '239,68,68',   label: 'Отклонён' },
+  };
+  CAT = { 'Дизайн':'255,45,85', 'Программирование':'52,199,89', 'Разработка':'0,195,208', 'Кодинг':'255,141,40', 'Маркетинг':'0,136,255' };
+
+  GIGS = [
+    { id:1, company:'AlgoTrade', title:'Исправить утечку памяти в Node.js (WebSocket-сервер для трейдинга)', desc:'Сервер на ws + express. При 200+ подключениях память растёт до 2 ГБ за 3 часа. Нужно профилировать и устранить утечку.', price:'30 000 ₽', duration:'3 дня', status:'в работе', category:'Программирование', tags:['Node.js','WebSocket','Профилирование'], time:'2 мин', start:'25.08.2025', end:'28.08.2025', progress:'45%' },
+    { id:2, company:'Kryston', title:'Доработка парсера товаров с Wildberries (защита от капчи и пагинация)', desc:'Есть готовый парсер на Python (BeautifulSoup + Requests). Падает при появлении капчи и не обходит пагинацию для категорий с 100+ товаров.', price:'18 000 ₽', duration:'4 дня', status:'в работе', category:'Кодинг', tags:['Python','Parsing','Anti-captcha'], time:'10 мин', start:'25.08.2025', end:'29.08.2025', progress:'30%' },
+    { id:3, company:'Stripe', title:'Настройка CI/CD для React-приложения (GitLab → VPS)', desc:'Нужен пайплайн: lint, тесты, сборка, деплой на VPS через Docker. Сейчас всё руками. Подключить автоматический откат.', price:'25 000 ₽', duration:'3 дня', status:'в работе', category:'Разработка', tags:['CI/CD','GitLab','Docker'], time:'1 ч', start:'24.08.2025', end:'27.08.2025', progress:'60%' },
+    { id:4, company:'Vercel', title:'Миграция аналитического дашборда на Next.js 14', desc:'Требуется опытный React разработчик для рефакторинга текущего дашборда. Фокус на серверных компонентах для оптимизации производительности.', price:'200 400 ₽', duration:'14 дней', status:'в работе', category:'Дизайн', tags:['React','Next.js 14','TypeScript'], time:'3 дн', start:'18.08.2025', end:'01.09.2025', progress:'70%' },
+    { id:5, company:'СофтЛайн', title:'Разработка Telegram-бота для техподдержки с интеграцией Jira', desc:'Бот принимает обращения (текст + файлы), создаёт задачу в Jira (REST API) и отправляет номер тикета. Нужна админ-панель.', price:'40 000 ₽', duration:'7 дней', status:'на проверке', category:'Программирование', tags:['aiogram','Jira API','PostgreSQL'], time:'5 ч', start:'12.08.2025', end:'22.08.2025', progress:'100%' },
+    { id:6, company:'МеталлПрофиль', title:'Переписать модуль расчёта скидок в 1С: УТ 11.5 (вместо монолитной логики)', desc:'Сейчас скидки считаются в одном обработчике, что тормозит оформление заказов. Нужно вынести логику в отдельные регистры расчёта.', price:'35 000 ₽', duration:'5 дней', status:'на рассмотрении', category:'Кодинг', tags:['1С:УТ','1С:Запросы','Оптимизация'], time:'2 мин', start:'26.08.2025', end:'31.08.2025', progress:'5%' },
+    { id:7, company:'AlgoTrade', title:'Оптимизация SQL-запросов аналитической витрины (PostgreSQL)', desc:'Тяжёлые аналитические запросы выполняются по 40+ секунд. Нужно переписать с оконными функциями и добавить индексы.', price:'22 000 ₽', duration:'4 дня', status:'завершён', category:'Разработка', tags:['PostgreSQL','SQL','Индексы'], time:'2 дн', start:'01.08.2025', end:'08.08.2025', progress:'100%' },
+  ];
+
+  MARKET = [
+    { id:101, company:'AlgoTrade', title:'Исправить утечку памяти в Node.js (WebSocket-сервер для трейдинга)', desc:'Сервер на ws + express. При 200+ подключениях память растёт до 2 ГБ за 3 часа. Нужно профилировать (clinic, heapdump), найти и устранить утечку.', price:'200 400 ₽', duration:'14 дней', status:'открыт', category:'Программирование', tags:['Node.js','WebSocket','Профилирование'], time:'2 ч', start:'25.08.2025', end:'08.09.2025', progress:'0%' },
+    { id:102, company:'СофтЛайн', title:'Разработка Telegram-бота для техподдержки с интеграцией Jira', desc:'Бот принимает обращения от пользователей (текст + файлы), создаёт задачу в Jira (REST API) и отправляет номер тикета. Нужна админ-панель для ответов.', price:'200 400 ₽', duration:'14 дней', status:'открыт', category:'Программирование', tags:['aiogram','Jira API','PostgreSQL'], time:'2 мин', start:'25.08.2025', end:'08.09.2025', progress:'0%' },
+    { id:103, company:'МеталлПрофиль', title:'Переписать модуль расчёта скидок в 1С: УТ 11.5 (вместо монолитной логики)', desc:'Сейчас скидки считаются в одном общем обработчике, что тормозит оформление заказов. Нужно вынести логику в отдельные регистры расчёта и добавить кэширование.', price:'200 400 ₽', duration:'14 дней', status:'открыт', category:'Кодинг', tags:['1С:УТ','1С:Запросы','Оптимизация'], time:'10 ч', start:'25.08.2025', end:'08.09.2025', progress:'0%' },
+    { id:104, company:'Kryston', title:'Доработка парсера товаров с Wildberries (защита от капчи и пагинация)', desc:'Есть готовый парсер на Python (BeautifulSoup + Requests). Падает при появлении капчи и не обходит пагинацию для категорий с 100+ товаров.', price:'200 400 ₽', duration:'14 дней', status:'открыт', category:'Кодинг', tags:['Python','Parsing','Anti-captcha'], time:'15 сек', start:'25.08.2025', end:'08.09.2025', progress:'0%' },
+    { id:105, company:'Vercel', title:'Миграция аналитического дашборда на Next.js 14', desc:'Требуется опытный React разработчик для рефакторинга текущего дашборда. Фокус на серверных компонентах для оптимизации производительности.', price:'200 400 ₽', duration:'14 дней', status:'открыт', category:'Дизайн', tags:['React','Next.js 14','TypeScript'], time:'3 дн', start:'25.08.2025', end:'08.09.2025', progress:'0%' },
+    { id:106, company:'Stripe', title:'Настройка CI/CD для React-приложения (GitLab → VPS)', desc:'Нужен пайплайн: lint, тесты, сборка, деплой на VPS через Docker. Сейчас всё руками. Подключить автоматический откат при падении проверок.', price:'200 400 ₽', duration:'14 дней', status:'открыт', category:'Разработка', tags:['CI/CD','GitLab','Docker'], time:'2 ч', start:'25.08.2025', end:'08.09.2025', progress:'0%' },
+  ];
+
+  MESSAGES = [
+    { name:'Кристина', company:'Vercel', body:'Dolor sit amet, consectetur adipiscing elit. Hendrerit vulputate viverra commodo tincidunt. Can you send the file of Martins UX case study?', time:'2 мин', count:'5' },
+    { name:'Кристина', company:'AlgoTrade', body:'Спасибо за апдейт! Когда сможете показать промежуточный результат по профилированию?', time:'14 мин', count:'2' },
+    { name:'Кристина', company:'Kryston', body:'Капча снова появилась на категории «Электроника». Прикладываю скрин и логи.', time:'1 ч', count:'1' },
+    { name:'Кристина', company:'Stripe', body:'Пайплайн зелёный, спасибо. Остался автоматический откат — обсудим в звонке?', time:'3 ч', count:'3' },
+    { name:'Кристина', company:'СофтЛайн', body:'Отправили доступы к тестовому Jira. Жду бота на проверку до конца недели.', time:'вчера', count:'1' },
+  ];
+
+  ATTENTION = [
+    { property:'смена статуса' }, { property:'новое сообщение' }, { property:'приближается дедлайн' },
+    { property:'заявка принята' }, { property:'получена оплата' }, { property:'ждёт проверки' },
+  ];
+
+  PROFILE = {
+    name: 'Иван Иванов',
+    role: '[Senior Frontend Engineer]',
+    since: '/с 21 января 2021',
+    bio: 'Специализируюсь на создании сложных SPA и высоконагруженных интерфейсов. Глубоко понимаю экосистему React и современный Frontend стек. Последние 3 года фокусируюсь на производительности веб-приложений и DX.\n\nРаботаю быстро, вникаю в суть задачи и не боюсь предлагать идеи.',
+    stack: [ {t:'Python',c:'0,136,255'}, {t:'Parsing',c:'255,45,85'}, {t:'Anti-captcha',c:'0,195,208'}, {t:'Node.js',c:'0,136,255'}, {t:'WebSocket',c:'0,195,208'}, {t:'Профилирование',c:'0,136,255'} ],
+    categories: [ {t:'Маркетинг',c:'0,136,255'}, {t:'Дизайн',c:'255,45,85'}, {t:'Программирование',c:'52,199,89'}, {t:'Разработка',c:'0,195,208'}, {t:'Кодинг',c:'255,141,40'} ],
+    experience: [
+      { company:'Yandex', period:'2021 — Наст. время', role:'[Senior Frontend Developer]', desc:'Разработка интерфейсов облачной платформы Yandex Cloud. Оптимизация консоли управления, миграция легаси-кода.' },
+      { company:'Вконтакте', period:'2019 — 2021', role:'[Middle Frontend Developer]', desc:'Работа над разделом «Сообщества». Внедрение дизайн-системы VKUI. Ускорение загрузки медиа-контента.' },
+    ],
+  };
+
+  NAV = [
+    { key:'dashboard', label:'Дашборд', icon:'IconBootstrapOutlineLogosGrid2', count:6 },
+    { key:'search',    label:'Поиск',   icon:'IconNavSearch', count:6 },
+    { key:'gigs',      label:'Мои гиги', icon:'IconNavGigs', count:5 },
+    { key:'chats',     label:'Чаты',    icon:'IconBootstrapOutlineLogosChat', count:7 },
+    { key:'finance',   label:'Финансы', icon:'IconBootstrapOutlineLogosFolder', count:0 },
+    { key:'disputes',  label:'Споры',   icon:'IconBootstrapOutlineLogosShield', count:0 },
+  ];
+
+  NAV_COMPANY = [
+    { key:'dashboard', label:'Дашборд', icon:'IconBootstrapOutlineLogosGrid2', count:6 },
+    { key:'gigs',      label:'Мои гиги', icon:'IconNavGigs', count:5 },
+    { key:'chats',     label:'Чаты',    icon:'IconBootstrapOutlineLogosChat', count:7 },
+    { key:'finance',   label:'Финансы', icon:'IconBootstrapOutlineLogosFolder', count:0 },
+    { key:'disputes',  label:'Споры',   icon:'IconBootstrapOutlineLogosShield', count:0 },
+  ];
+
+  NAV_ADMIN = [
+    { key:'dashboard', label:'Модерация', icon:'IconBootstrapOutlineLogosShield', count:0 },
+  ];
+
+  ADMIN_USERS = [
+    { id:1, name:'Иван Иванов',    role:'Специалист', email:'ivan@mail.ru' },
+    { id:2, name:'Диджитал Про',   role:'Компания',   email:'hr@digitalpro.ru' },
+    { id:3, name:'Пётр Сидоров',   role:'Специалист', email:'petr@mail.ru' },
+    { id:4, name:'АлгоТрейд',      role:'Компания',   email:'ops@algotrade.ru' },
+    { id:5, name:'Анна Кузнецова', role:'Специалист', email:'anna@mail.ru' },
+  ];
+
+  TITLES = { dashboard:'ДАШБОРД', search:'ПОИСК ГИГОВ', gigs:'МОИ ГИГИ', chats:'ЧАТЫ', finance:'ФИНАНСЫ', disputes:'СПОРЫ', profile:'ПРОФИЛЬ', gigDetail:'ПРОЕКТ', createGig:'СОЗДАТЬ ГИГ', applications:'ОТКЛИКИ', disputeDetail:'СПОР', disputeResolve:'РЕШЕНИЕ СПОРА', disputeNew:'ОТКРЫТЬ СПОР' };
+
+  DISPUTE_REASONS = ['Оплата не поступила', 'Результат не соответствует ТЗ', 'Заказчик не выходит на связь', 'Исполнитель не выходит на связь', 'Просрочен срок выполнения', 'Другое'];
+
+  DISPUTES = [
+    { id:1, gigId:104, gigTitle:'Доработка парсера товаров с Wildberries', counterparty:'Kryston', amount:'90 000', opener:'specialist', reason:'Оплата не поступила', status:'на рассмотрении', created:'2 дня назад',
+      timeline:[
+        { who:'specialist', name:'Иван Иванов', text:'Работа сдана и принята заказчиком, но оплата не пришла в течение 3 рабочих дней.', time:'2 дня назад' },
+        { who:'company', name:'Kryston', text:'Платёж завис на стороне банка, прикладываю квитанцию о переводе.', time:'1 день назад' },
+        { who:'moderator', name:'Модератор Gigly', text:'Запросил подтверждение транзакции у платёжного провайдера. Средства по гигу заморожены до решения.', time:'5 ч назад' },
+      ], evidence:['квитанция_оплаты.pdf', 'скриншот_приёмки.png'] },
+    { id:2, gigId:105, gigTitle:'Разработка Telegram-бота для техподдержки', counterparty:'СофтЛайн', amount:'80 000', opener:'company', reason:'Результат не соответствует ТЗ', status:'открыт', created:'5 часов назад',
+      timeline:[
+        { who:'company', name:'СофтЛайн', text:'Бот не интегрируется с Jira — это было прямым пунктом в критериях приёмки. Просим доработку или частичный возврат.', time:'5 ч назад' },
+      ], evidence:['ТЗ_финальное.doc'] },
+    { id:3, gigId:106, gigTitle:'Миграция аналитического дашборда на Next.js 14', counterparty:'Vercel', amount:'200 000', opener:'specialist', reason:'Заказчик не выходит на связь', status:'решён', resolution:'В пользу специалиста — оплата произведена', created:'неделю назад',
+      timeline:[
+        { who:'specialist', name:'Анна Кузнецова', text:'Сдала работу на проверку, заказчик пропал и не отвечает 7 дней.', time:'неделю назад' },
+        { who:'moderator', name:'Модератор Gigly', text:'Работа соответствует критериям приёмки, заказчик не вышел на связь в срок. Решение в пользу специалиста, средства разморожены.', time:'3 дня назад' },
+      ], evidence:[] },
+  ];
+
+  APPLICATIONS = [
+    { id:1, name:'Иван Иванов', level:'Senior', rating:'45', stack:['Node.js','WebSocket','Профилирование'],
+      approach:'Профилирую через clinic.js и heapdump под нагрузкой ~500 коннектов, локализую удерживаемые ссылки (замыкания / глобальные коллекции), чиню и подтверждаю стабильность памяти за 6 часов.',
+      questions:'Есть ли стенд для воспроизведения нагрузки? Какая версия Node и какие пиковые значения RSS считаем нормой?',
+      estimate:'~3 дня, из них 1 на профилирование' },
+    { id:2, name:'Пётр Сидоров', level:'Middle+', rating:'45', stack:['Node.js','Express','Docker'],
+      approach:'Сниму heap snapshots до/после, сравню retained size, проверю обработчики ws на корректные отписки. Добавлю мониторинг памяти, чтобы ловить регресс заранее.',
+      questions:'Можно ли воспроизвести на стейджинге? Сохранились ли логи момента роста памяти?',
+      estimate:'~4 дня' },
+    { id:3, name:'Анна Кузнецова', level:'Senior', rating:'45', stack:['Node.js','Perf','Trading'],
+      approach:'Начну с метрик и флеймграфов (0x), найду горячие пути и источник утечки, закрою и покрою регресс-тестом на рост памяти под нагрузкой.',
+      questions:'Какой допустимый простой для выката фикса? Есть ли SLA по памяти?',
+      estimate:'~3–5 дней' },
+  ];
+
+  GIG_REQS = [
+    { title:'Чистый код', desc:'Понятная структура, без хардкода. Исходники передаются в репозиторий с README.' },
+    { title:'Проверяемость', desc:'Ключевые сценарии покрыты проверкой, решение воспроизводимо на чистом окружении.' },
+    { title:'Согласование', desc:'Спорные архитектурные решения согласуются с заказчиком до реализации.' },
+  ];
+  GIG_CRITS = [
+    { title:'Результат в срок', desc:'Работа сдана к согласованному дедлайну с рабочим демо.' },
+    { title:'Соответствие задаче', desc:'Сделано ровно то, что описано в брифе, без расширения скоупа.' },
+    { title:'Передача', desc:'Исходники, доступы и краткая инструкция переданы заказчику.' },
+  ];
+
+  TABS = [
+    { key:'all', label:'Все', status:null },
+    { key:'apps', label:'Заявки', status:'на рассмотрении' },
+    { key:'work', label:'В работе', status:'в работе' },
+    { key:'review', label:'На проверке', status:'на проверке' },
+    { key:'done', label:'Завершённые', status:'завершён' },
+  ];
+
+  FILTERS = [
+    { key:'cat', label:'Категория', options:['Все','Дизайн','Программирование','Разработка','Кодинг'] },
+    { key:'budget', label:'Бюджет', options:['Любой','до 50 000 ₽','50 000–150 000 ₽','от 150 000 ₽'] },
+    { key:'sort', label:'Сортировка', options:['По новизне','Сначала дороже','Сначала дешевле'] },
+  ];
+
+  avatarColor(name) {
+    const colors = ['#e23744','#f59e0b','#22c55e','#06b6d4','#8b5cf6','#0088ff','#ec4899'];
+    let h = 0; for (let i=0;i<name.length;i++) h = (h*31 + name.charCodeAt(i)) >>> 0;
+    return colors[h % colors.length];
+  }
+
+  flash(msg) { this.setState({ toast: msg }); clearTimeout(this._tT); this._tT = setTimeout(() => this.setState({ toast: null }), 2600); }
+
+  applyTheme(label) {
+    const mode = label === 'Светлая' ? 'light' : 'dark';
+    try {
+      document.documentElement.setAttribute('data-theme', mode);
+      localStorage.setItem('gigly-theme', label);
+    } catch (e) {}
+    this.setState({ theme: label });
+    this.flash('Тема: ' + label);
+  }
+
+  ask(cfg) { this.setState({ confirm: cfg }); }
+
+  applyParams(p) {
+    if (!p) return;
+    const patch = {};
+    if (p.role) patch.role = p.role;
+    if (p.route) patch.route = p.route;
+    if (p.tab) patch.tab = p.tab;
+    if (p.gig === '1' || p.gig === 1 || p.gig === true) { patch.openGig = this.GIGS[3]; patch.gigStage = (this.GIGS[3] || {}).status; }
+    if (p.stage) patch.gigStage = decodeURIComponent(p.stage);
+    if (p.applied === '1' || p.applied === true) patch.applied = true;
+    if (p.modal === 'settings') patch.settingsOpen = true;
+    if (p.modal === 'notif') patch.notifOpen = true;
+    if (p.modal === 'profStack') patch.profModal = 'stack';
+    if (p.dispute) { const d = this.DISPUTES.find(x => String(x.id) === String(p.dispute)); if (d) patch.openDispute = d; }
+    if (Object.keys(patch).length) this.setState(patch);
+  }
+
+  componentDidMount() {
+    this.scheduleWire();
+    try {
+      const saved = localStorage.getItem('gigly-theme');
+      if (saved) { document.documentElement.setAttribute('data-theme', saved === 'Светлая' ? 'light' : 'dark'); this.setState({ theme: saved }); }
+    } catch (e) {}
+    try {
+      if (typeof window !== 'undefined') {
+        window.__giglyGo = (o) => { this.setState({ route: 'dashboard', role: 'specialist', tab: 'all', openGig: null, gigStage: null, applied: false, settingsOpen: false, notifOpen: false, profModal: null, confirm: null, loading: false }, () => this.applyParams(o)); };
+      }
+      const pr = this.props || {};
+      if (pr.initialRoute || pr.initialRole) {
+        this.applyParams({ role: pr.initialRole, route: pr.initialRoute, tab: pr.initialTab, gig: pr.initialGig, stage: pr.initialStage, applied: pr.initialApplied, modal: pr.initialModal, dispute: pr.initialDispute });
+        return;
+      }
+      const h = (location.hash || '').replace(/^#/, '');
+      if (!h) return;
+      const p = Object.fromEntries(h.split('&').map(s => s.split('=')));
+      this.applyParams(p);
+    } catch (e) {}
+  }
+
+  componentDidUpdate() { this.scheduleWire(); }
+
+  scheduleWire() { clearTimeout(this._wireT); this._wireT = setTimeout(() => this.wireProfileIcons(), 120); }
+
+  wireProfileIcons() {
+    try {
+      const aside = document.querySelector('aside'); if (!aside) return;
+      const host = aside.querySelector('.sc-host-x'); if (!host) return;
+      const right = [...host.querySelectorAll('svg')]
+        .map(s => ({ s, r: s.getBoundingClientRect() }))
+        .filter(o => o.r.width >= 10 && o.r.width <= 26 && o.r.height <= 26)
+        .sort((a, b) => a.r.top - b.r.top);
+      if (right.length < 2) return;
+      const attach = (svg, fn) => {
+        const t = svg.closest('div') || svg;
+        if (t.__giglyWired) return;
+        t.__giglyWired = true;
+        t.style.cursor = 'pointer';
+        t.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); fn(); }, true);
+      };
+      attach(right[0].s, () => this.setState(s => ({ notifOpen: !s.notifOpen, settingsOpen: false })));
+      attach(right[1].s, () => this.setState({ settingsOpen: true, notifOpen: false }));
+    } catch (e) {}
+  }
+
+  pushMsg() {
+    const t = this.state.chatDraft.trim(); if (!t) return;
+    const id = this.state.activeConvo;
+    const cur = this.state.threads[id] || [];
+    this.setState({ threads: Object.assign({}, this.state.threads, { [id]: [...cur, { side:'me', text:t, time:'сейчас' }] }), chatDraft:'' });
+  }
+
+  navTo(key) {
+    const heavy = key === 'search' || key === 'gigs';
+    if (heavy) { this.setState({ route: key, loading: true }); clearTimeout(this._lT); this._lT = setTimeout(() => this.setState({ loading: false }), 650); }
+    else this.setState({ route: key });
+  }
+
+  decorate(g) {
+    const s = this.STATUS[g.status];
+    const c = this.CAT[g.category] || '0,136,255';
+    const cs = this.props.cardStyle || 'Сияние';
+    let radial, borderColor;
+    if (cs === 'Плоский') { radial = 'var(--surface-card)'; borderColor = `rgba(${s.rgb},0.16)`; }
+    else if (cs === 'Контур') { radial = 'transparent'; borderColor = `rgba(${s.rgb},0.7)`; }
+    else { radial = `radial-gradient(120% 100% at 50% 0%, rgba(${s.rgb},0.22) 0%, rgba(${s.rgb},0.05) 45%, rgba(${s.rgb},0) 100%), var(--surface-card)`; borderColor = `rgba(${s.rgb},0.3)`; }
+    return Object.assign({}, g, {
+      statusLabel: s.label,
+      statusDot: `rgb(${s.rgb})`,
+      radial,
+      borderColor,
+      catColor: `rgb(${c})`,
+      catBorder: `rgba(${c},0.45)`,
+      avatarBg: this.avatarColor(g.company),
+      initial: g.company.slice(0,1),
+      dateStart: g.start,
+      dateEnd: g.end,
+      open: () => this.setState({ route: 'gigDetail', openGig: g, gigStage: g.status, applied: false, apApproach: '', apQuestions: '', apEstimate: '' }),
+      tags: g.tags.map(t => ({ text: t })),
+    });
+  }
+
+  renderVals() {
+    const route = this.state.route;
+    const omAccent = this.props.accent || '#0088ff';
+    const dense = this.props.density === 'Компактно';
+    const omPad = dense ? '16px 32px 32px 24px' : '24px 48px 48px 24px';
+    const omFeedGap = dense ? '8px' : '12px';
+    const omGridGap = dense ? '14px' : '24px';
+    const isAdmin = this.state.role === 'admin';
+    const isCompany = this.state.role === 'company';
+    const isSpecialist = this.state.role === 'specialist';
+    const isDashboard = route === 'dashboard';
+    const isDisputes = route === 'disputes' && !isAdmin;
+    const isDisputeDetail = route === 'disputeDetail';
+    const isDisputeNew = route === 'disputeNew';
+    const isAdminConsole = isAdmin && route !== 'disputeResolve';
+    const isAdminDispute = isAdmin && route === 'disputeResolve';
+    const showUserDashboard = route === 'dashboard' && !isAdmin;
+    const isSearch = route === 'search';
+    const isGigs = route === 'gigs';
+    const isProfile = route === 'profile';
+    const isChats = route === 'chats';
+    const isGigDetail = route === 'gigDetail';
+    const isApplications = route === 'applications';
+
+    const appStates = this.state.appStates || {};
+    const assignedApp = this.APPLICATIONS.find(a => appStates[a.id] === 'accepted');
+    const appsAssigned = !!assignedApp;
+    const applicants = this.APPLICATIONS.map(a => {
+      const st = appStates[a.id] || 'pending';
+      return Object.assign({}, a, {
+        initial: a.name.slice(0, 1),
+        avatarBg: this.avatarColor(a.name),
+        stackTags: a.stack.map(t => ({ text: t })),
+        statusLabel: st === 'accepted' ? 'Принят' : (st === 'rejected' ? 'Отклонён' : 'Новый отклик'),
+        statusColor: st === 'accepted' ? '#34c759' : (st === 'rejected' ? '#ef4444' : 'var(--om-accent)'),
+        pending: st === 'pending' && !appsAssigned,
+        decided: st !== 'pending' || appsAssigned,
+        dimOpacity: st === 'rejected' ? '0.5' : '1',
+        accept: () => this.setState({ appStates: Object.assign({}, ...this.APPLICATIONS.map(x => ({ [x.id]: x.id === a.id ? 'accepted' : 'rejected' }))) }),
+        reject: () => this.setState({ appStates: Object.assign({}, this.state.appStates, { [a.id]: 'rejected' }) }),
+      });
+    });
+
+    const gigD = this.decorate(this.state.openGig || this.GIGS[3]);
+    const budgetNum = parseInt(String(gigD.price).replace(/\D/g, ''), 10) || 0;
+    const fmt = (n) => n.toLocaleString('ru-RU') + ' ₽';
+    gigD.fee = fmt(Math.round(budgetNum * 0.1));
+    gigD.total = fmt(Math.round(budgetNum * 1.1));
+    gigD.companyDesc = 'Проверенный заказчик на платформе Gigly. Чёткие требования и быстрая обратная связь.';
+    gigD.reqs = this.GIG_REQS.map((r, i) => Object.assign({ n: String(i + 1) }, r));
+    gigD.crits = this.GIG_CRITS.map((r, i) => Object.assign({ n: String(i + 1) }, r));
+    const stage = this.state.gigStage || gigD.status;
+    const stMeta = this.STATUS[stage] || this.STATUS['открыт'];
+    gigD.stageLabel = stMeta.label;
+    gigD.stageColor = `rgb(${stMeta.rgb})`;
+    const gigOpen = stage === 'открыт' || stage === 'на рассмотрении';
+    const gigInProgress = stage === 'в работе';
+    const gigReview = stage === 'на проверке';
+    const gigCompleted = stage === 'завершён';
+    const gigPaid = stage === 'оплачен';
+    const gigDone = stage === 'завершён' || stage === 'оплачен' || stage === 'отклонён';
+
+    const isCreateGig = route === 'createGig';
+    const cgBudgetNum = parseInt(String(this.state.cgBudget).replace(/\D/g, ''), 10) || 0;
+    const cgFee = fmt(Math.round(cgBudgetNum * 0.1));
+    const cgTotal = fmt(Math.round(cgBudgetNum * 1.1));
+    const cgBudgetFmt = cgBudgetNum ? fmt(cgBudgetNum) : '—';
+    const cgCats = Object.keys(this.CAT).map(k => ({
+      label: k, color: `rgb(${this.CAT[k]})`,
+      bg: this.state.cgCat === k ? `rgba(${this.CAT[k]},0.15)` : 'transparent',
+      border: this.state.cgCat === k ? `rgba(${this.CAT[k]},0.6)` : 'var(--hairline-12)',
+      pick: () => this.setState({ cgCat: k }),
+    }));
+    const cgTags = this.state.cgTags.map((t, i) => ({ text: t, remove: () => this.setState({ cgTags: this.state.cgTags.filter((_, j) => j !== i) }) }));
+    const S = this.state;
+    const addCrit = (t) => { const v = (t || '').trim(); if (v && !S.cgCrits.includes(v)) this.setState({ cgCrits: [...S.cgCrits, v], cgCritInput: '' }); else this.setState({ cgCritInput: '' }); };
+    const cgCrits = S.cgCrits.map((t, i) => ({ text: t, remove: () => this.setState({ cgCrits: S.cgCrits.filter((_, j) => j !== i) }) }));
+    const cgCritSuggestions = [
+      'все автотесты проходят, сборка зелёная',
+      'заказчик принял демо без критичных замечаний',
+      'исходники в репозитории + краткая инструкция',
+      'нет регрессий в текущих сценариях',
+    ].filter(s => !S.cgCrits.includes(s)).slice(0, 3).map(s => ({ text: s, add: () => addCrit(s) }));
+    const cgValid = !!(S.cgTitle.trim() && cgBudgetNum > 0);
+
+    const checks = [
+      { label: 'Название', done: !!S.cgTitle.trim(), hint: 'Коротко и по делу — как заголовок задачи.' },
+      { label: 'Категория', done: !!S.cgCat, hint: 'Помогает гигу попасть к нужным специалистам.' },
+      { label: 'Описание', done: S.cgDesc.trim().length >= 20, hint: 'Контекст и текущее состояние: что есть и что болит.' },
+      { label: 'Цель', done: !!S.cgGoal.trim(), hint: 'Зачем это нужно — результат для бизнеса, а не «как».' },
+      { label: 'Ожидаемый результат', done: !!S.cgDeliv.trim(), hint: 'Что заказчик получит на выходе: PR, демо, инструкция.' },
+      { label: 'Критерии приёмки', done: S.cgCrits.length > 0, hint: 'Главное: по ним принимается работа. Снижает споры и правки.' },
+      { label: 'Бюджет и срок', done: cgBudgetNum > 0 && !!S.cgDuration.trim(), hint: 'Понятные ожидания по деньгам и времени.' },
+    ];
+    const cgDone = checks.filter(c => c.done).length;
+    const cgScorePct = Math.round((cgDone / checks.length) * 100) + '%';
+    const cgScoreLabel = cgDone + ' из ' + checks.length;
+    const cgScoreColor = cgDone >= 6 ? '#34c759' : (cgDone >= 4 ? 'var(--om-accent)' : '#f59e0b');
+    const firstMissing = checks.find(c => !c.done);
+    const cgNudge = firstMissing ? firstMissing.hint : 'Бриф готов — отличные шансы на сильные отклики.';
+    const cgNudgeLabel = firstMissing ? ('Добавьте: ' + firstMissing.label) : 'Бриф готов ✓';
+    const cgReady = checks.map(c => ({ label: c.label, color: c.done ? 'var(--text-1)' : 'var(--text-4)', mark: c.done ? '✓' : '○', markColor: c.done ? '#34c759' : 'var(--text-5)' }));
+
+    // ── Финансы ──
+    const isFinance = route === 'finance';
+    const parseB = (p) => parseInt(String(p).replace(/\D/g, ''), 10) || 0;
+    const finMeta = {
+      'оплачен':     { label: isCompany ? 'Оплачено' : 'Получено', color: '#00c8b3' },
+      'завершён':    { label: isCompany ? 'К оплате' : 'Ожидает оплаты', color: '#34c759' },
+      'на проверке': { label: 'На проверке', color: '#8b5cf6' },
+      'в работе':    { label: 'В работе',    color: '#3b82f6' },
+    };
+    const finGigs = this.GIGS.filter(g => finMeta[g.status]);
+    const finTx = finGigs.map(g => {
+      const b = parseB(g.price);
+      const m = finMeta[g.status];
+      return {
+        title: g.title, party: g.company, date: g.end,
+        amount: fmt(isCompany ? Math.round(b * 1.1) : b),
+        statusLabel: m.label, statusColor: m.color,
+        initial: g.company.slice(0, 1), avatarBg: this.avatarColor(g.company),
+      };
+    });
+    const finSum = (st) => finGigs.filter(g => g.status === st).reduce((s, g) => s + (isCompany ? Math.round(parseB(g.price) * 1.1) : parseB(g.price)), 0);
+    const finFee = finGigs.reduce((s, g) => s + Math.round(parseB(g.price) * 0.1), 0);
+    const finStats = isCompany ? [
+      { label: 'Выплачено', value: fmt(finSum('завершён')), sub: 'по завершённым гигам' },
+      { label: 'В резерве', value: fmt(finSum('в работе') + finSum('на проверке')), sub: 'в работе и на проверке' },
+      { label: 'Сервисный сбор', value: fmt(finFee), sub: 'комиссия Gigly 10%' },
+    ] : [
+      { label: 'Заработано', value: fmt(finSum('завершён')), sub: 'выплачено по завершённым' },
+      { label: 'На проверке', value: fmt(finSum('на проверке')), sub: 'ждёт приёмки заказчиком' },
+      { label: 'В работе', value: fmt(finSum('в работе')), sub: 'активные гиги' },
+    ];
+
+    // ── Админ / модерация ──
+    const adminUsers = this.ADMIN_USERS.map(u => {
+      const susp = !!this.state.userSuspended[u.id];
+      return Object.assign({}, u, {
+        initial: u.name.slice(0, 1), avatarBg: this.avatarColor(u.name),
+        statusLabel: susp ? 'Заблокирован' : 'Активен',
+        statusColor: susp ? '#ef4444' : '#34c759',
+        actionLabel: susp ? 'Разблокировать' : 'Заблокировать',
+        actionBg: susp ? 'var(--surface-secondary)' : 'rgba(239,68,68,0.14)',
+        actionColor: susp ? 'var(--text-2)' : '#ef4444',
+        toggle: () => { const doIt = () => { const ns = Object.assign({}, this.state.userSuspended, { [u.id]: !susp }); const entry = { who: 'Модератор', text: (susp ? 'Разблокирован' : 'Заблокирован') + ' пользователь «' + u.name + '»', time: 'сейчас' }; this.setState({ userSuspended: ns, auditLog: [entry, ...this.state.auditLog] }); this.flash(susp ? 'Пользователь разблокирован' : 'Пользователь заблокирован'); }; if (susp) doIt(); else this.ask({ title: 'Заблокировать пользователя?', msg: '«' + u.name + '» не сможет войти на платформу. Действие обратимо.', label: 'Заблокировать', danger: true, action: doIt }); },
+      });
+    });
+    const adminGigs = this.GIGS.slice(0, 5).map(g => {
+      const closed = !!this.state.gigClosed[g.id];
+      return Object.assign({}, g, {
+        initial: g.company.slice(0, 1), avatarBg: this.avatarColor(g.company),
+        statusLabel: closed ? 'Закрыт' : this.STATUS[g.status].label,
+        statusColor: closed ? '#ef4444' : `rgb(${this.STATUS[g.status].rgb})`,
+        canClose: !closed,
+        close: () => this.ask({ title: 'Закрыть гиг?', msg: 'Гиг «' + g.title.slice(0, 36) + '…» будет закрыт, отклики станут недоступны.', label: 'Закрыть', danger: true, action: () => { const ng = Object.assign({}, this.state.gigClosed, { [g.id]: true }); const entry = { who: 'Модератор', text: 'Гиг «' + g.title.slice(0, 36) + '…» закрыт', time: 'сейчас' }; this.setState({ gigClosed: ng, auditLog: [entry, ...this.state.auditLog] }); this.flash('Гиг закрыт'); } }),
+      });
+    });
+    const suspendedCount = Object.keys(this.state.userSuspended).filter(k => this.state.userSuspended[k]).length;
+    const closedCount = Object.keys(this.state.gigClosed).filter(k => this.state.gigClosed[k]).length;
+    const adminStats = [
+      { label: 'Пользователи', value: String(this.ADMIN_USERS.length), sub: 'на платформе' },
+      { label: 'Гиги', value: String(this.GIGS.length), sub: 'всего опубликовано' },
+      { label: 'Заблокировано', value: String(suspendedCount), sub: 'пользователей' },
+      { label: 'Закрыто гигов', value: String(closedCount), sub: 'модерацией' },
+    ];
+    const auditLog = this.state.auditLog.map((e, i) => Object.assign({ key: i }, e));
+
+    // ── Споры ──
+    const disMeta = {
+      'открыт':         { color: '#0088ff', label: 'Открыт' },
+      'на рассмотрении':{ color: '#8b5cf6', label: 'На рассмотрении' },
+      'решён':          { color: '#34c759', label: 'Решён' },
+    };
+    const disStatusOf = (d) => this.state.disStatusOverride[d.id] || d.status;
+    const decorateDis = (d) => {
+      const st = disStatusOf(d);
+      const m = disMeta[st] || disMeta['открыт'];
+      const openerLabel = d.opener === 'company' ? 'Заказчик' : 'Специалист';
+      return Object.assign({}, d, {
+        statusKey: st, statusLabel: m.label, statusColor: m.color,
+        initial: d.counterparty.slice(0, 1), avatarBg: this.avatarColor(d.counterparty),
+        openerLabel, isResolved: st === 'решён', notResolved: st !== 'решён',
+        amountFmt: d.amount + ' ₽',
+        open: () => this.setState({ openDispute: d, route: 'disputeDetail', dispReply: '' }),
+        resolve: () => this.setState({ openDispute: d, route: 'disputeResolve' }),
+      });
+    };
+    const disputeList = this.DISPUTES.map(decorateDis);
+    const disputesEmpty = disputeList.length === 0;
+    const od = this.state.openDispute ? decorateDis(this.state.openDispute) : null;
+    const odTimeline = od ? od.timeline.map((t, i) => {
+      const isMod = t.who === 'moderator';
+      const sideColor = isMod ? '#8b5cf6' : (t.who === 'company' ? '#34c759' : '#0088ff');
+      const roleLabel = isMod ? 'Модератор' : (t.who === 'company' ? 'Заказчик' : 'Специалист');
+      return Object.assign({ key: i, isMod, sideColor, roleLabel, initial: t.name.slice(0, 1), avatarBg: this.avatarColor(t.name) }, t);
+    }) : [];
+    const odEvidence = od ? od.evidence.map((e, i) => ({ key: i, name: e })) : [];
+
+    const adminDisputeQueue = this.DISPUTES.filter(d => disStatusOf(d) !== 'решён').map(decorateDis);
+    const adminDisputeOpenCount = String(adminDisputeQueue.length);
+
+    const disReasonOpts = this.DISPUTE_REASONS.map(r => ({
+      label: r, active: this.state.dispReason === r,
+      bg: this.state.dispReason === r ? 'rgba(0,136,255,0.15)' : 'transparent',
+      border: this.state.dispReason === r ? 'rgba(0,136,255,0.6)' : 'var(--hairline-12)',
+      color: this.state.dispReason === r ? '#4ea3ff' : 'var(--text-2)',
+      pick: () => this.setState({ dispReason: r }),
+    }));
+    const disNewValid = !!(this.state.dispReason && this.state.dispDesc.trim().length >= 10);
+
+    const resolveDispute = (verdict) => {
+      const d = this.state.openDispute; if (!d) return;
+      this.setState({ disStatusOverride: Object.assign({}, this.state.disStatusOverride, { [d.id]: 'решён' }), route: 'dashboard' });
+      const entry = { who: 'Модератор', text: 'Спор по «' + d.gigTitle.slice(0, 30) + '…» решён: ' + verdict, time: 'сейчас' };
+      this.setState({ auditLog: [entry, ...this.state.auditLog] });
+      this.flash('Решение принято: ' + verdict);
+    };
+
+    const activeConvo = this.state.activeConvo;
+    const conversations = this.CONVERSATIONS.map(c => Object.assign({}, c, {
+      initial: c.company.slice(0,1),
+      avatarBg: this.avatarColor(c.company),
+      statusColor: `rgb(${(this.STATUS[c.status.toLowerCase()] || {rgb:'138,143,153'}).rgb})`,
+      rowBg: c.id === activeConvo ? 'rgba(0,136,255,0.08)' : 'transparent',
+      pick: () => this.setState({ activeConvo: c.id, chatDraft: '' }),
+    }));
+    const activeConv = this.CONVERSATIONS.find(c => c.id === activeConvo) || this.CONVERSATIONS[0];
+    const activeConvInitial = activeConv.company.slice(0,1);
+    const activeConvBg = this.avatarColor(activeConv.company);
+    const baseThread = [{ side:'them', text: activeConv.body, time: activeConv.time }];
+    const rawThread = baseThread.concat(this.state.threads[activeConvo] || []);
+    const thread = rawThread.map(m => Object.assign({}, m, {
+      bubbleBg: m.side === 'me' ? 'var(--bubble-me)' : 'var(--surface-them)',
+      rowDir: m.side === 'me' ? 'row-reverse' : 'row',
+      avatarText: m.side === 'me' ? 'Т' : 'V',
+      avatarBg: m.side === 'me' ? 'var(--text-5)' : this.avatarColor('Vercel'),
+      ticks: m.side === 'me' ? '✓✓' : '',
+    }));
+
+    const P = this.PROFILE;
+    const ALL_CATS = [ {t:'Маркетинг',c:'0,136,255'}, {t:'Дизайн',c:'255,45,85'}, {t:'Программирование',c:'52,199,89'}, {t:'Разработка',c:'0,195,208'}, {t:'Кодинг',c:'255,149,0'} ];
+    const pStackData = this.state.pStack || P.stack;
+    const pCatsData = this.state.pCats || P.categories;
+    const pBioData = this.state.pBio == null ? P.bio : this.state.pBio;
+    const profileStack = pStackData.map(s => ({ t: s.t, color: `rgb(${s.c})`, bg: `rgba(${s.c},0.12)` }));
+    const profileCats = pCatsData.map(c => ({ t: c.t, color: `rgb(${c.c})`, border: `rgba(${c.c},0.45)` }));
+    const profileForRender = Object.assign({}, P, { bio: pBioData });
+
+    // профиль компании (реквизиты)
+    const cp = {
+      name: this.state.cpName == null ? 'Диджитал Про' : this.state.cpName,
+      inn: this.state.cpInn == null ? '7704123456' : this.state.cpInn,
+      kpp: this.state.cpKpp == null ? '770401001' : this.state.cpKpp,
+      about: this.state.cpAbout == null ? 'Продуктовая IT-компания. Разрабатываем внутренние сервисы и привлекаем сильных специалистов под точечные задачи.' : this.state.cpAbout,
+    };
+
+    // profile edit modal
+    const pm = this.state.profModal;
+    const PAL = ['0,136,255','255,45,85','52,199,89','0,195,208','255,149,0'];
+    const editStackTags = pStackData.map((s, i) => ({ t: s.t, color: `rgb(${s.c})`, bg: `rgba(${s.c},0.12)`, remove: () => this.setState({ pStack: pStackData.filter((_, j) => j !== i) }) }));
+    const addStackTag = () => { const v = this.state.pStackInput.trim(); if (v) this.setState({ pStack: [...pStackData, { t: v, c: PAL[pStackData.length % PAL.length] }], pStackInput: '' }); else this.setState({ pStackInput: '' }); };
+    const editCatOptions = ALL_CATS.map(c => { const on = pCatsData.some(x => x.t === c.t); return { t: c.t, color: `rgb(${c.c})`, bg: on ? `rgba(${c.c},0.15)` : 'transparent', border: on ? `rgba(${c.c},0.6)` : 'var(--hairline-12)', toggle: () => this.setState({ pCats: on ? pCatsData.filter(x => x.t !== c.t) : [...pCatsData, c] }) }; });
+    const projectsFeed = [ this.decorate({ company:'AlgoTrade', title:'Исправить утечку памяти в Node.js (WebSocket-сервер для трейдинга)', desc:'Сервер на ws + express. При 200+ подключениях память растёт до 2 ГБ за 3 часа. Нужно профилировать (clinic, heapdump), найти и устранить утечку.', price:'30 000 ₽', duration:'3 дня', status:'завершён', category:'Программирование', tags:['Node.js','WebSocket','Профилирование'], time:'2 дн', start:'01.08.2025', end:'04.08.2025', progress:'100%' }) ];
+
+    const navItems = (isAdmin ? this.NAV_ADMIN : isCompany ? this.NAV_COMPANY : this.NAV).map(n => {
+      const active = n.key === route;
+      return {
+        label: n.label, icon: n.icon, count: n.count, go: () => this.navTo(n.key),
+        rowBg: active ? 'rgba(0,136,255,0.08)' : 'transparent',
+        labelColor: active ? 'var(--nav-active-fg)' : 'var(--text-3)',
+        iconColor: active ? 'var(--nav-active-fg)' : 'var(--text-3)',
+        countColor: active ? 'var(--om-accent)' : 'var(--text-4)',
+        iconOpacity: active ? '1' : '0.65',
+        barBg: active ? 'var(--om-accent)' : 'transparent',
+      };
+    });
+
+    // gig filtering
+    const tabStatus = (this.TABS.find(t => t.key === this.state.tab) || {}).status;
+    const q = this.state.search.trim().toLowerCase();
+    let feed = this.GIGS;
+    if (tabStatus) feed = feed.filter(g => g.status === tabStatus);
+    if (this.state.cat) feed = feed.filter(g => g.category === this.state.cat);
+    if (q) feed = feed.filter(g => g.title.toLowerCase().includes(q) || g.tags.join(' ').toLowerCase().includes(q));
+    feed = feed.map(g => this.decorate(g));
+
+    let marketFeed = this.MARKET;
+    if (this.state.cat) marketFeed = marketFeed.filter(g => g.category === this.state.cat);
+    if (q) marketFeed = marketFeed.filter(g => g.title.toLowerCase().includes(q) || g.tags.join(' ').toLowerCase().includes(q));
+    const priceNum = (g) => parseInt(String(g.price).replace(/\D/g, ''), 10) || 0;
+    if (this.state.budget === 'до 50 000 ₽') marketFeed = marketFeed.filter(g => priceNum(g) < 50000);
+    else if (this.state.budget === '50 000–150 000 ₽') marketFeed = marketFeed.filter(g => priceNum(g) >= 50000 && priceNum(g) <= 150000);
+    else if (this.state.budget === 'от 150 000 ₽') marketFeed = marketFeed.filter(g => priceNum(g) > 150000);
+    if (this.state.sortBy === 'Сначала дороже') marketFeed = marketFeed.slice().sort((a, b) => priceNum(b) - priceNum(a));
+    else if (this.state.sortBy === 'Сначала дешевле') marketFeed = marketFeed.slice().sort((a, b) => priceNum(a) - priceNum(b));
+    marketFeed = marketFeed.map(g => this.decorate(g));
+
+    const tabs = this.TABS.map(t => {
+      const active = t.key === this.state.tab;
+      const count = t.status ? this.GIGS.filter(g => g.status === t.status).length : this.GIGS.length;
+      return {
+        label: t.label, count, go: () => this.setState({ tab: t.key }),
+        bg: active ? 'var(--surface-secondary)' : 'transparent',
+        border: active ? 'var(--hairline-08)' : 'transparent',
+        color: active ? 'var(--switch-active-fg)' : 'var(--text-3)',
+        countColor: active ? 'var(--om-accent)' : 'var(--text-4)',
+      };
+    });
+
+    const filters = this.FILTERS.map(f => {
+      const open = this.state.openFilter === f.key;
+      const active = (f.key === 'cat' && this.state.cat) || (f.key === 'budget' && this.state.budget) || (f.key === 'sort' && this.state.sortBy);
+      const curVal = f.key === 'cat' ? this.state.cat : (f.key === 'budget' ? this.state.budget : this.state.sortBy);
+      const cur = active ? curVal : f.label;
+      return {
+        label: cur, open,
+        color: active ? 'var(--text-1)' : 'var(--text-3)',
+        border: open ? 'rgba(0,136,255,0.5)' : 'var(--hairline-06)',
+        toggle: () => this.setState({ openFilter: open ? null : f.key }),
+        options: f.options.map(o => ({
+          label: o, color: 'var(--text-2)',
+          pick: () => {
+            if (f.key === 'cat') this.setState({ cat: o === 'Все' ? null : o, openFilter: null });
+            else if (f.key === 'budget') this.setState({ budget: o === 'Любой' ? null : o, openFilter: null });
+            else if (f.key === 'sort') this.setState({ sortBy: o === 'По новизне' ? null : o, openFilter: null });
+            else this.setState({ openFilter: null });
+          },
+        })),
+      };
+    });
+
+    const profileName = isAdmin ? 'Модератор Gigly' : isCompany ? 'Диджитал Про' : 'Тимур Камальтдинов';
+    const profileSub = isAdmin ? 'Админ' : isCompany ? 'Компания' : 'Специалист';
+    const welcomeT1 = isCompany ? 'Заполните профиль' : 'Клиенты ищут по стеку и опыту';
+    const welcomeS1 = isCompany ? 'Это повышает доверие специалистов и увеличивает число откликов.' : 'Добавьте стек и технологии';
+    const welcomeBtn1 = isCompany ? 'Внести данные' : 'Заполнить профиль';
+    const welcomeS2 = isCompany ? 'Создание гига, выбор специалиста, приём и оплата.' : 'Короткий гайд по платформе';
+
+    return {
+      headerTitle: isAdmin ? 'МОДЕРАЦИЯ' : this.TITLES[route],
+      toast: this.state.toast, toastShown: !!this.state.toast,
+      confirmOpen: !!this.state.confirm,
+      confirmTitle: this.state.confirm ? this.state.confirm.title : '',
+      confirmMsg: this.state.confirm ? this.state.confirm.msg : '',
+      confirmLabel: this.state.confirm ? this.state.confirm.label : 'ОК',
+      confirmBtnBg: (this.state.confirm && this.state.confirm.danger) ? '#ef4444' : 'var(--om-accent, #0088ff)',
+      doConfirm: () => { const a = this.state.confirm && this.state.confirm.action; this.setState({ confirm: null }); if (a) a(); },
+      closeConfirm: () => this.setState({ confirm: null }),
+      notifOpen: this.state.notifOpen,
+      toggleNotif: () => this.setState({ notifOpen: !this.state.notifOpen }),
+      closeNotif: () => this.setState({ notifOpen: false }),
+      settingsOpen: this.state.settingsOpen,
+      openSettings: () => this.setState({ settingsOpen: true }),
+      closeSettings: () => this.setState({ settingsOpen: false }),
+      themeOptions: ['Тёмная', 'Светлая'].map(o => ({ label: o, active: this.state.theme === o, bg: this.state.theme === o ? 'var(--om-accent, #0088ff)' : 'transparent', color: this.state.theme === o ? '#fff' : 'var(--text-3)', pick: () => this.applyTheme(o) })),
+      langOptions: ['Русский', 'English'].map(o => ({ label: o, active: this.state.lang === o, bg: this.state.lang === o ? 'var(--om-accent, #0088ff)' : 'transparent', color: this.state.lang === o ? '#fff' : 'var(--text-3)', pick: () => { this.setState({ lang: o }); this.flash('Язык: ' + o); } })),
+      currencyOptions: ['₽ Рубль', '$ Доллар', '€ Евро'].map(o => ({ label: o, active: this.state.currency === o, bg: this.state.currency === o ? 'rgba(0,136,255,0.15)' : 'transparent', border: this.state.currency === o ? 'rgba(0,136,255,0.6)' : 'var(--hairline-12)', color: this.state.currency === o ? '#4ea3ff' : 'var(--text-2)', pick: () => { this.setState({ currency: o }); this.flash('Валюта: ' + o); } })),
+      notifRows: [
+        { key: 'apps', label: 'Новые отклики' },
+        { key: 'msg', label: 'Сообщения' },
+        { key: 'status', label: 'Смена статуса гига' },
+        { key: 'pay', label: 'Уведомления об оплатах' },
+      ].map(r => { const on = !!this.state.settings[r.key]; return { label: r.label, trackBg: on ? 'var(--om-accent, #0088ff)' : '#2a2e37', knobLeft: on ? '20px' : '2px', toggle: () => this.setState({ settings: Object.assign({}, this.state.settings, { [r.key]: !on }) }) }; }),
+      privacyRows: [
+        { key: 'rating', label: 'Показывать рейтинг в профиле' },
+        { key: 'online', label: 'Показывать статус «онлайн»' },
+      ].map(r => { const on = !!this.state.settings[r.key]; return { label: r.label, trackBg: on ? 'var(--om-accent, #0088ff)' : '#2a2e37', knobLeft: on ? '20px' : '2px', toggle: () => this.setState({ settings: Object.assign({}, this.state.settings, { [r.key]: !on }) }) }; }),
+      doLogout: () => this.ask({ title: 'Выйти из аккаунта?', msg: 'Вы вернётесь на экран входа.', label: 'Выйти', danger: true, action: () => { this.setState({ settingsOpen: false }); this.flash('Вы вышли из аккаунта'); } }),
+      notifs: [
+        { dot: 'var(--om-accent)', text: 'Иван Иванов откликнулся на «Миграция дашборда на Next.js 14»', time: '2 мин', go: () => this.setState({ route: 'applications', notifOpen: false, appStates: {} }) },
+        { dot: 'var(--om-accent)', text: 'Гиг «Парсер Wildberries» перешёл в статус «На проверке»', time: '1 ч', go: () => this.setState({ route: 'gigs', notifOpen: false }) },
+        { dot: 'var(--text-5)', text: 'Новое сообщение от Кристины', time: '3 ч', go: () => this.setState({ route: 'chats', notifOpen: false }) },
+        { dot: 'var(--text-5)', text: 'Оплата по гигу «SQL-оптимизация» отмечена', time: 'вчера', go: () => this.setState({ route: 'finance', notifOpen: false }) },
+      ],
+      omAccent, omPad, omFeedGap, omGridGap,
+      isDashboard, isSearch, isGigs, isProfile, isChats, isGigDetail,
+      isAdmin, isAdminConsole, showUserDashboard, isDisputes,
+      isDisputeDetail, isDisputeNew, isAdminDispute,
+      disputeList, disputesEmpty, hasDisputes: !disputesEmpty,
+      od, odTimeline, odEvidence, odHasEvidence: !!(od && od.evidence.length),
+      adminDisputeQueue, adminDisputeOpenCount, adminHasDisputes: adminDisputeQueue.length > 0,
+      disReasonOpts, disNewValid,
+      dispDesc: this.state.dispDesc, dispReply: this.state.dispReply,
+      onDispDesc: (e) => this.setState({ dispDesc: e.target.value }),
+      onDispReply: (e) => this.setState({ dispReply: e.target.value }),
+      openDisputesList: () => this.setState({ route: 'disputes' }),
+      backToDisputes: () => this.setState({ route: 'disputes' }),
+      openNewDispute: () => this.setState({ route: 'disputeNew', dispReason: '', dispDesc: '' }),
+      submitDispute: () => { if (this.state.dispReason && this.state.dispDesc.trim().length >= 10) { this.setState({ route: 'disputes', dispOpened: true }); this.flash('Спор открыт — модератор уведомлён'); } },
+      sendDispReply: () => { if (this.state.dispReply.trim()) { this.flash('Сообщение отправлено модератору'); this.setState({ dispReply: '' }); } },
+      resolveForSpecialist: () => resolveDispute('в пользу специалиста'),
+      resolveForCompany: () => resolveDispute('в пользу заказчика'),
+      resolveRefund: () => resolveDispute('частичный возврат 50%'),
+      backFromResolve: () => this.setState({ route: 'dashboard' }),
+      adminStats, adminUsers, adminGigs, auditLog,
+      gigD,
+      apApproach: this.state.apApproach, apQuestions: this.state.apQuestions, apEstimate: this.state.apEstimate,
+      applied: this.state.applied,
+      notApplied: !this.state.applied,
+      onApApproach: (e) => this.setState({ apApproach: e.target.value }),
+      onApQuestions: (e) => this.setState({ apQuestions: e.target.value }),
+      onApEstimate: (e) => this.setState({ apEstimate: e.target.value }),
+      applyBtnBg: (this.state.apApproach.trim().length >= 20 && this.state.apQuestions.trim().length >= 10) ? 'var(--om-accent, #0088ff)' : 'var(--surface-secondary)',
+      applyHint: (this.state.apApproach.trim().length >= 20 && this.state.apQuestions.trim().length >= 10) ? 'Нажимая кнопку, вы соглашаетесь с правилами платформы' : 'Заполните подход (от 20 симв.) и хотя бы один вопрос',
+      sendApplication: () => { if (this.state.apApproach.trim().length >= 20 && this.state.apQuestions.trim().length >= 10) { this.setState({ applied: true }); this.flash('Заявка отправлена'); } },
+      withdrawApplication: () => this.ask({ title: 'Отозвать заявку?', msg: 'Ваш отклик будет удалён. Вы сможете откликнуться снова, пока гиг открыт.', label: 'Отозвать', danger: true, action: () => { this.setState({ applied: false, apApproach: '', apQuestions: '', apEstimate: '' }); this.flash('Заявка отозвана'); } }),
+      backFromGig: () => this.setState({ route: 'gigs', applied: false, apApproach:'', apQuestions:'', apEstimate:'' }),
+      showApply: isSpecialist && gigOpen,
+      showApplicants: isCompany && gigOpen,
+      showSubmit: isSpecialist && gigInProgress,
+      showCompanyWaiting: isCompany && gigInProgress,
+      showApprove: isCompany && gigReview,
+      showSpecWaiting: isSpecialist && gigReview,
+      showMarkPaid: isCompany && gigCompleted,
+      showCompletedSpec: isSpecialist && gigCompleted,
+      showPaid: gigPaid,
+      showDone: stage === 'отклонён',
+      markPaid: () => this.ask({ title: 'Отметить как оплаченный?', msg: 'Подтвердите, что оплата специалисту произведена. Это финальный статус гига.', label: 'Отметить оплату', action: () => { this.setState({ gigStage: 'оплачен' }); this.flash('Гиг отмечен как оплаченный'); } }),
+      showDisputeLink: !isAdmin && (gigInProgress || gigReview),
+      submitWork: () => { this.setState({ gigStage: 'на проверке' }); this.flash('Работа сдана на проверку'); },
+      approveWork: () => this.ask({ title: 'Принять работу?', msg: 'Работа будет принята и гиг перейдёт в «Завершён» — затем вы сможете отметить оплату.', label: 'Принять', action: () => { this.setState({ gigStage: 'завершён' }); this.flash('Работа принята'); } }),
+      returnWork: () => { this.setState({ gigStage: 'в работе' }); this.flash('Возвращено на доработку'); },
+      isApplications, applicants, appsAssigned,
+      appsAssignedName: assignedApp ? assignedApp.name : '',
+      appsCount: String(this.APPLICATIONS.length),
+      openApplications: () => this.setState({ route: 'applications', appStates: {} }),
+      backFromApplications: () => this.setState({ route: 'gigDetail' }),
+      isFinance, finStats, finTx, finCount: String(finTx.length),
+      isCreateGig,
+      cgTitle: this.state.cgTitle, cgDesc: this.state.cgDesc, cgBudget: this.state.cgBudget, cgDuration: this.state.cgDuration,
+      cgGoal: this.state.cgGoal, cgDeliv: this.state.cgDeliv, cgConstr: this.state.cgConstr,
+      cgTagInput: this.state.cgTagInput, cgCats, cgTags, cgFee, cgTotal, cgBudgetFmt,
+      cgCrits, cgCritInput: this.state.cgCritInput, cgCritSuggestions,
+      cgReady, cgScorePct, cgScoreLabel, cgScoreColor, cgNudge, cgNudgeLabel,
+      onCgCritInput: (e) => this.setState({ cgCritInput: e.target.value }),
+      onCgCritKey: (e) => { if (e.key === 'Enter') addCrit(this.state.cgCritInput); },
+      addCritFromInput: () => addCrit(this.state.cgCritInput),
+      cgPublished: this.state.cgPublished, cgNotPublished: !this.state.cgPublished, cgValid,
+      onCgTitle: (e) => this.setState({ cgTitle: e.target.value }),
+      onCgDesc: (e) => this.setState({ cgDesc: e.target.value }),
+      onCgBudget: (e) => this.setState({ cgBudget: e.target.value }),
+      onCgDuration: (e) => this.setState({ cgDuration: e.target.value }),
+      onCgGoal: (e) => this.setState({ cgGoal: e.target.value }),
+      onCgDeliv: (e) => this.setState({ cgDeliv: e.target.value }),
+      onCgConstr: (e) => this.setState({ cgConstr: e.target.value }),
+      onCgTagInput: (e) => this.setState({ cgTagInput: e.target.value }),
+      onCgTagKey: (e) => { if (e.key === 'Enter') { const t = this.state.cgTagInput.trim(); if (t) this.setState({ cgTags: [...this.state.cgTags, t], cgTagInput: '' }); } },
+      publishGig: () => { if (cgValid) this.setState({ cgPublished: true }); },
+      openCreateGig: () => this.setState({ route: 'createGig', cgPublished: false }),
+      backFromCreate: () => this.setState({ route: 'gigs' }),
+      resetCreate: () => this.setState({ cgTitle:'', cgCat:'', cgDesc:'', cgBudget:'', cgDuration:'', cgCrits:[], cgCritInput:'', cgGoal:'', cgDeliv:'', cgConstr:'', cgTagInput:'', cgTags:[], cgPublished:false }),
+      isCompany, isSpecialist,
+      isCompProfile: isProfile && isCompany,
+      isSpecProfile: isProfile && !isCompany,
+      profileName, profileSub, welcomeT1, welcomeS1, welcomeBtn1, welcomeS2,
+      roleSpecBg: isSpecialist ? 'var(--surface-secondary)' : 'transparent',
+      roleCompBg: isCompany ? 'var(--surface-secondary)' : 'transparent',
+      roleAdminBg: isAdmin ? 'var(--surface-secondary)' : 'transparent',
+      roleSpecColor: isSpecialist ? 'var(--switch-active-fg)' : 'var(--text-3)',
+      roleCompColor: isCompany ? 'var(--switch-active-fg)' : 'var(--text-3)',
+      roleAdminColor: isAdmin ? 'var(--switch-active-fg)' : 'var(--text-3)',
+      setSpecialist: () => this.setState({ role:'specialist', route:'dashboard', tab:'all', openFilter:null, cat:null }),
+      setCompany: () => this.setState({ role:'company', route:'dashboard', tab:'all', openFilter:null, cat:null }),
+      setAdmin: () => this.setState({ role:'admin', route:'dashboard' }),
+      profile: profileForRender, profileStack, profileCats, projectsFeed,
+      cp,
+      compModalOpen: this.state.compModalOpen,
+      cpNameVal: cp.name, cpInnVal: cp.inn, cpKppVal: cp.kpp, cpAboutVal: cp.about,
+      onCpName: (e) => this.setState({ cpName: e.target.value }),
+      onCpInn: (e) => this.setState({ cpInn: e.target.value }),
+      onCpKpp: (e) => this.setState({ cpKpp: e.target.value }),
+      onCpAbout: (e) => this.setState({ cpAbout: e.target.value }),
+      openCompEdit: () => this.setState({ compModalOpen: true }),
+      closeCompEdit: () => this.setState({ compModalOpen: false }),
+      saveCompEdit: () => { this.setState({ compModalOpen: false }); this.flash('Профиль компании обновлён'); },
+      editStackTags, addStackTag, editCatOptions,
+      pStackInput: this.state.pStackInput,
+      pBioVal: pBioData,
+      onPStackInput: (e) => this.setState({ pStackInput: e.target.value }),
+      onPStackKey: (e) => { if (e.key === 'Enter') addStackTag(); },
+      onPBio: (e) => this.setState({ pBio: e.target.value }),
+      profStackOpen: pm === 'stack', profBioOpen: pm === 'bio', profCatsOpen: pm === 'cats',
+      openProfStack: () => this.setState({ profModal: 'stack' }),
+      openProfBio: () => this.setState({ profModal: 'bio' }),
+      openProfCats: () => this.setState({ profModal: 'cats' }),
+      closeProfModal: () => this.setState({ profModal: null, pStackInput: '' }),
+      saveProfModal: () => { this.setState({ profModal: null, pStackInput: '' }); this.flash('Профиль обновлён'); },
+      openProfile: () => this.setState({ route: 'profile' }),
+      welcomeAction1: () => this.setState({ route: 'profile' }),
+      goAttention: () => this.navTo('gigs'),
+      openGuide: () => this.flash('Интерактивный гайд скоро будет доступен'),
+      logout: () => { window.location.href = encodeURI('Онбординг.dc.html'); },
+      conversations, thread, activeConv, activeConvInitial, activeConvBg,
+      conversationsCount: String(this.CONVERSATIONS.length),
+      chatDraft: this.state.chatDraft,
+      onChatInput: (e) => this.setState({ chatDraft: e.target.value }),
+      onChatKey: (e) => { if (e.key === 'Enter') this.pushMsg(); },
+      sendChat: () => this.pushMsg(),
+      showSearchBar: !isAdmin && (route === 'dashboard' || route === 'search' || route === 'gigs'),
+      navItems, tabs, filters, feed,
+      marketFeed, marketCount: String(marketFeed.length),
+      marketEmpty: marketFeed.length === 0, marketHasResults: marketFeed.length > 0,
+      loading: this.state.loading, notLoading: !this.state.loading,
+      skeletons: [1,2,3,4],
+      feedEmpty: feed.length === 0, feedHasResults: feed.length > 0,
+      clearSearch: () => this.setState({ search: '', cat: null, budget: null, sortBy: null }),
+      gigsTotal: this.GIGS.length,
+      search: this.state.search,
+      onSearch: (e) => this.setState({ search: e.target.value }),
+      messages: this.MESSAGES,
+      messagesCount: String(this.MESSAGES.length),
+      attention: this.ATTENTION,
+      attentionCount: String(this.ATTENTION.length),
+    };
+  }
+}
+</script>
+
+
+</body></html>
