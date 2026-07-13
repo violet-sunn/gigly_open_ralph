@@ -4,11 +4,11 @@ import { PrismaClient } from '@prisma/client'
 import { PrismaLibSql } from '@prisma/adapter-libsql'
 
 /**
- * e2e-cross-cutting (loading-states) — reconciled to the rebuilt app. The rebuilt create-gig («Опубликовать гиг»)
- * and gig-detail apply («Отправить заявку») submit buttons no longer carry a per-button pending label, and /register
- * is now a multi-step wizard — so those original flows no longer apply. The surviving, observable loading indicator
- * is the profile-edit form (useFormStatus → disabled + «Saving profile...»). This verifies that pending state with
- * the server action slowed via route interception so it is deterministically observable. Seeds a SPECIALIST.
+ * e2e-cross-cutting (loading-states) — reconciled to the rebuilt app. The standalone profile-edit form is retired
+ * (editing is now done via the on-screen profile modals), so the observable loading indicator is the profile bio
+ * modal's «Сохранить» button: useActionState → disabled while the updateProfile server action is in flight. This
+ * verifies that pending state with the server action slowed via route interception so it is deterministically
+ * observable. Seeds a SPECIALIST.
  */
 let specId: string
 let specEmail: string
@@ -30,17 +30,18 @@ test.beforeAll(async () => {
 })
 
 test.describe('e2e-cross-cutting — loading states', () => {
-  test('profile edit shows the pending state during submission', async ({ page }) => {
+  test('the profile bio modal Save button shows the pending state during submission', async ({ page }) => {
     await setE2ESession(page, { id: specId, email: specEmail, role: 'SPECIALIST' })
-    await page.goto('/profile/edit')
+    await page.goto('/profile')
 
-    await expect(page.getByRole('button', { name: 'Save Profile' })).toBeVisible()
-    await page.fill('input[name="displayName"]', 'Test Specialist')
-    await page.fill('input[name="techStack"]', 'React, TypeScript')
+    // Open the «Редактировать описание» modal (the Опыт pencil = the 2nd owner pencil; all share one svg path).
+    await page.locator('span:has(path[d^="M12.146.146"])').nth(1).click()
+    await expect(page.getByRole('heading', { name: 'Редактировать описание' })).toBeVisible()
+    await page.locator('textarea[name="bio"]').fill('Обновлённое описание для проверки состояния ожидания.')
 
-    // Slow ONLY the server-action POST (to the page URL) so the pending state is deterministically observable.
-    // A redirect can abort the in-flight request, so guard route.continue() against the "already handled" race.
-    await page.route('**/profile/edit', async (route) => {
+    // Slow ONLY the server-action POST (it posts to the page URL /profile) so the pending state is observable.
+    // The success path refreshes (a GET) which the method guard lets through; guard continue() against the abort race.
+    await page.route('**/profile', async (route) => {
       if (route.request().method() !== 'POST') {
         await route.continue()
         return
@@ -49,17 +50,13 @@ test.describe('e2e-cross-cutting — loading states', () => {
       try {
         await route.continue()
       } catch {
-        /* the navigation away aborted this request — fine */
+        /* the refresh aborted this request — fine */
       }
     })
 
-    await page.getByRole('button', { name: 'Save Profile' }).click()
-
-    // The submit button reflects the pending state and is disabled (prevents double-submit).
-    const pendingBtn = page.getByRole('button', { name: 'Saving profile...' })
-    await expect(pendingBtn).toBeVisible()
-    await expect(pendingBtn).toBeDisabled()
-
-    await page.waitForURL('**/profile', { timeout: 10000 })
+    const save = page.getByRole('button', { name: 'Сохранить' })
+    await save.click()
+    // useActionState pending → the Save button is disabled (prevents double-submit) while the action is in flight.
+    await expect(save).toBeDisabled()
   })
 })

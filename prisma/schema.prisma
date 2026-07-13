@@ -26,6 +26,10 @@ model User {
   notifyPayments                  Boolean            @default(true)
   showRatingInProfile             Boolean            @default(true)
   showOnlineStatus                Boolean            @default(true)
+  // transport-settings — Платежные данные currency + the two extra Email-уведомления rows (platform news / new gigs).
+  currency                        String             @default("rub")
+  notifyPlatformNews              Boolean            @default(true)
+  notifyNewGigs                   Boolean            @default(true)
   createdAt                       DateTime           @default(now())
   updatedAt                       DateTime           @updatedAt
   gigs                            Gig[]              @relation("ClientGigs")
@@ -123,6 +127,7 @@ model ClientProfile {
   companyName   String
   inn           String   @default("")
   kpp           String   @default("")
+  about         String   @default("")
   contactPerson String   @default("")
   position      String   @default("")
   phoneNumber   String   @default("")

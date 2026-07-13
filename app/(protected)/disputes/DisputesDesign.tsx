@@ -6,7 +6,7 @@
 
 import { useRouter } from "next/navigation";
 import type { DisputesData } from "@/lib/view-models";
-import { avatarColor, STATUS_RGB, STATUS_LABEL_RU } from "@/app/_design/util";
+import { avatarColor, STATUS_RGB, disputeLabel } from "@/app/_design/util";
 import "@/app/_design/tokens.css";
 
 export function DisputesDesign({ disputes }: DisputesData) {
@@ -47,7 +47,7 @@ export function DisputesDesign({ disputes }: DisputesData) {
                   {d.amount && <span style={{ fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 14, color: "var(--text-1)" }}>{d.amount}</span>}
                   <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "'Handjet',monospace", fontSize: 12, color: statusColor }}>
                     <span style={{ width: 7, height: 7, borderRadius: "50%", background: statusColor }} />
-                    {STATUS_LABEL_RU[d.status] ?? d.status}
+                    {disputeLabel(d.status)}
                   </span>
                 </div>
               </div>

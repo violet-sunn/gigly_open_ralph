@@ -38,6 +38,13 @@ describe('getSettings', () => {
     expect(data.prefs.notifyPayments).toBe(true)
     expect(data.prefs.showRatingInProfile).toBe(true)
     expect(data.prefs.showOnlineStatus).toBe(true)
+    // transport-settings — currency + the two extra notification toggles default safely
+    expect(data.prefs.currency).toBe('rub')
+    expect(data.prefs.notifyPlatformNews).toBe(true)
+    expect(data.prefs.notifyNewGigs).toBe(true)
+    // transport-settings — the profile-level timezone + name fields are surfaced (strings; empty for a bare user)
+    expect(typeof data.timezone).toBe('string')
+    expect(typeof data.name).toBe('string')
     // a new user with no Session rows → empty «Активные сессии» list
     expect(Array.isArray(data.sessions)).toBe(true)
     expect(data.sessions).toHaveLength(0)
@@ -48,7 +55,7 @@ describe('getSettings', () => {
     const user = await createTestUser(prisma, { role: 'SPECIALIST', email: `set2-${Date.now()}@example.com` })
     await prisma.user.update({
       where: { id: user.id },
-      data: { locale: 'en', notifyMessages: false },
+      data: { locale: 'en', notifyMessages: false, currency: 'eur', notifyNewGigs: false },
     })
 
     const data = await getSettings({ userId: user.id, email: user.email })
@@ -56,5 +63,7 @@ describe('getSettings', () => {
     expect(data.prefs.locale).toBe('en')
     expect(data.prefs.notifyMessages).toBe(false)
     expect(data.prefs.notifyApplications).toBe(true) // unchanged
+    expect(data.prefs.currency).toBe('eur')
+    expect(data.prefs.notifyNewGigs).toBe(false)
   })
 })

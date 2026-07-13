@@ -101,7 +101,7 @@ test.describe('reconcile-disputes-flow — dispute UI', () => {
     await page.waitForURL('**/gigs/**')
 
     await page.goto(`/disputes/${disputeId}`)
-    await expect(page.getByText('Завершён')).toBeVisible() // RESOLVED → completed
+    await expect(page.getByText('Решён', { exact: true })).toBeVisible() // status pill (exact: avoid matching «раз-решён» in the resolution text)
     await expect(page.getByText(/В пользу специалиста — Спор разрешён в пользу специалиста\./).first()).toBeVisible()
     void specId
   })

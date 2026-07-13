@@ -6,9 +6,10 @@ import { PrismaLibSql } from '@prisma/adapter-libsql'
 
 /**
  * compose-gig-search — verifies the SPECIALIST /gigs browse screen rebuilt on the prototype's «ПОИСК ГИГОВ» block
- * (app/(protected)/gigs/GigSearchDesign.tsx, rendering app/_design/GigCard.tsx in `full` mode): three native filter
- * <select>s (category/sort/rating), the «Найдено» <h2> + a separate count badge, the FULL GigCard grid, and the
- * prototype empty state. Text search now lives in the SHELL HEADER (placeholder «Поиск чего угодно...», Enter →
+ * (app/(protected)/gigs/GigSearchDesign.tsx, rendering app/_design/GigCard.tsx in `full` mode): four native filter
+ * <select>s now in the SHELL HEADER (category/budget/sort/rating — prototype data-dc-tpl="51" cluster), the «Найдено»
+ * <h2> + a separate count badge, the FULL GigCard grid, and the prototype empty state. Text search also lives in the
+ * SHELL HEADER (placeholder «Поиск чего угодно...», Enter →
  * /gigs?search=) — there is no content search box, no in-content title (shell «ПОИСК ГИГОВ»), and no grid/list
  * switcher. Each GigCard is a card-wide <Link> to /gigs/[id]?from=browse («К проекту» is a <span>, not a button).
  * Seeds a SPECIALIST + a client + three OPEN gigs (design / development / uncategorized) into file:./test.db.
@@ -79,10 +80,11 @@ test.describe('compose-gig-search — rebuilt SPECIALIST gig search', () => {
     await setE2ESession(page, { id: specId, email: specEmail, role: 'SPECIALIST' })
     await page.goto('/gigs')
 
-    // Three native <select>s — category / sort / rating (NOT a content role="search" box).
-    await expect(page.getByRole('combobox')).toHaveCount(3)
+    // Four native <select>s in the shell header — category / budget / sort / rating (NOT a content role="search" box).
+    await expect(page.getByRole('combobox')).toHaveCount(4)
     await expect(page.getByRole('combobox').filter({ hasText: 'Все категории' })).toBeVisible()
-    await expect(page.getByRole('combobox').filter({ hasText: 'Сначала новые' })).toBeVisible()
+    await expect(page.getByRole('combobox').filter({ hasText: 'до 50 000 ₽' })).toBeVisible()
+    await expect(page.getByRole('combobox').filter({ hasText: 'По новизне' })).toBeVisible()
     await expect(page.getByRole('combobox').filter({ hasText: 'Любой рейтинг' })).toBeVisible()
 
     // «Найдено» heading + the count badge (3 OPEN gigs).
@@ -113,6 +115,16 @@ test.describe('compose-gig-search — rebuilt SPECIALIST gig search', () => {
     await page.waitForURL(/category=design/)
     await expect(countBadge(page, '1')).toBeVisible()
     await expect(page.getByText('E2E Search Design Gig')).toBeVisible()
+  })
+
+  test('the budget filter narrows the results (URL ?minBudget=)', async ({ page }) => {
+    await setE2ESession(page, { id: specId, email: specEmail, role: 'SPECIALIST' })
+    await page.goto('/gigs')
+    // The seeded gigs are 100 000 ₽ (budget 10000000 kopecks) → «от 150 000 ₽» (minBudget=150000) excludes all three.
+    await page.getByRole('combobox').filter({ hasText: 'до 50 000 ₽' }).selectOption({ label: 'от 150 000 ₽' })
+    await page.waitForURL(/minBudget=150000/)
+    await expect(countBadge(page, '0')).toBeVisible()
+    await expect(page.getByText('Ничего не нашлось')).toBeVisible()
   })
 
   test('a GigCard opens the gig detail with from=browse', async ({ page }) => {

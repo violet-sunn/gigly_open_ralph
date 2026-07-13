@@ -98,7 +98,8 @@ export async function loginUser(
   }
 
   await createSession(user.id, user.email, user.role as UserRole)
-  redirect('/dashboard')
+  // ADMIN's home is the moderation console; CLIENT/SPECIALIST land on their dashboard.
+  redirect(user.role === 'ADMIN' ? '/admin' : '/dashboard')
 }
 
 export async function logoutUser() {

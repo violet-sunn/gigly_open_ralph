@@ -69,7 +69,7 @@ test.describe('build-applications-screen — company «Отклики»', () => 
     await expect(page.getByText('Тест Спец')).toBeVisible() // identity
     await expect(page.getByText('[SENIOR]')).toBeVisible() // experience level chip (seed spec1 = SENIOR)
     await expect(page.getByText('★★★★★').first()).toBeVisible() // rating row
-    await expect(page.getByText('На рассмотрении').first()).toBeVisible() // derived PENDING → review status
+    await expect(page.getByText('Новый отклик').first()).toBeVisible() // PENDING applicant → accent «Новый отклик»
     await expect(page.getByText('React').first()).toBeVisible() // stack tag (.first(): the gig also tags React)
     await expect(page.getByText('Подход').first()).toBeVisible()
     await expect(page.getByText('Уточняющие вопросы').first()).toBeVisible()

@@ -1,3 +1,22 @@
+export interface PasswordRule {
+  label: string
+  ok: boolean
+}
+
+/**
+ * Client-mirrorable, rule-by-rule view of the SAME requirements `validatePassword` enforces below — used to render a
+ * live requirements checklist under the password field during onboarding so a user learns the rules AS THEY TYPE,
+ * instead of only after submitting. The server (`validatePassword`) stays the source of truth; this is UX feedback.
+ */
+export function checkPasswordRules(password: string): PasswordRule[] {
+  return [
+    { label: 'Не короче 8 символов', ok: password.length >= 8 },
+    { label: 'Заглавная латинская буква (A–Z)', ok: /[A-Z]/.test(password) },
+    { label: 'Строчная латинская буква (a–z)', ok: /[a-z]/.test(password) },
+    { label: 'Хотя бы одна цифра (0–9)', ok: /[0-9]/.test(password) },
+  ]
+}
+
 export function validatePassword(password: string): { valid: boolean; error?: string } {
   // Check character whitelist first (Latin letters, numbers, special characters only)
   // Rejects Unicode/Cyrillic characters to prevent encoding issues

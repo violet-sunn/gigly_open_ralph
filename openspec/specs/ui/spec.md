@@ -7689,3 +7689,345 @@ Reconciling the shell's markup MUST NOT break its existing behavior.
 - **AND** the settings gear MUST navigate to the existing `/settings` page (which is NOT restyled by this change)
 - **AND** the logout control MUST invoke the existing `logoutUser` action
 - **AND** the theme control MUST toggle the existing light/dark theme
+
+---
+
+## Dashboards, Browse & My-Gigs
+
+> Added by change `transport-dashboards-search` (archived 2026-06-26). Reconciles the existing `DashboardDesign` (both roles), `GigSearchDesign` (`/gigs` browse), `MyGigsDesign` (`/my-gigs`), and the shared feed components (`GigCard`, `AttentionCardDesign`) to the captured reference. The prototype's route names cross-wire: the app's `/gigs` (browse) maps to the prototype's `search.*`; the app's `/my-gigs` maps to the prototype's `gigs.*`. The reconciliation was driven by the captured `design-reference/screens/` (not by eye). Verified: `build` + `lint` green, the affected E2E route specs **28 passed**, user eyeball across three rounds.
+
+### Requirement: Shared Feed Components Reconciled To Reference
+`app/_design/GigCard.tsx` and `app/_design/AttentionCardDesign.tsx` MUST match the gig cards and the «Требует внимания» strip as captured in `design-reference/screens/`, since they are shared across the dashboard, browse, my-gigs, profile, gig-detail, and applications screens.
+
+#### Scenario: GigCard matches the reference in both modes
+- **GIVEN** the rendered `GigCard`
+- **WHEN** compared to the gig cards in `design-reference/screens/` (compact: `dashboard.specialist`; full: `search.specialist`)
+- **THEN** the compact (feed) mode and the `full` mode (browse/my-gigs footer: Фикс. цена / Срок выполнения / «К проекту») MUST match — status dot/label, company+rating row (verify seal at 16px), tags, 2-line description clamp, and timeline/progress
+
+#### Scenario: AttentionCard matches the reference
+- **GIVEN** the rendered `AttentionCardDesign`
+- **WHEN** compared to the attention strip in `dashboard.specialist`
+- **THEN** the type-coloured bar + marker, the title/date row, and the embedded gig card MUST match, and the card MUST render its VM-supplied «К проекту» CTA
+- **AND** reconciling the shared components MUST NOT visually regress their other consumers (profile / gig-detail / applications)
+
+### Requirement: List-Screen Header Filter Cluster
+The browse filter chips MUST live in the **shared shell header** (the prototype's `data-dc-tpl="51"` cluster), to the right of the search field, on every list screen that shows the search field (`/dashboard`, `/gigs`, `/my-gigs`) — NOT in the page body. This supersedes the page-body filter row. The set is Категория / Бюджет / Сортировка / Рейтинг (the prototype shows three; the working Рейтинг filter is kept as a sanctioned fourth chip, per product decision).
+
+#### Scenario: Filter chips render in the header beside the search
+- **GIVEN** any list screen with the header search field
+- **WHEN** the header renders
+- **THEN** the filter chips MUST appear in the header row to the right of the search field, each as the prototype's chip (funnel icon + label + «⌄»), implemented over a transparent native `<select>` so dropdown behaviour + accessibility are preserved
+- **AND** a chip MUST tint its border accent when a non-default value is active
+
+#### Scenario: Filters operate on the current screen (no redirect)
+- **GIVEN** a list screen
+- **WHEN** a filter chip value changes
+- **THEN** it MUST refine the **current** route's query in place (no redirect to another screen) and reset pagination
+- **AND** on `/gigs` the filters MUST drive the server query (full open-gig set)
+- **AND** on `/dashboard` and `/my-gigs` the filters MUST narrow that screen's already-loaded feed **client-side** (category / budget range / minimum rating, plus budget sort), composing with the existing status-tab filtering — yielding results appropriate to each screen
+- **AND** numeric budget filtering/sorting MUST read `GigCardVM.budgetValue` (roubles, populated by `toGigCardVM`); minimum-rating MUST read `rating.value`
+
+### Requirement: Dashboard Reconciled To Reference
+`DashboardDesign` MUST match `dashboard.specialist` (SPECIALIST) and `dashboard.company` (CLIENT), preserving the existing `DashboardVM` wiring.
+
+#### Scenario: Dashboard regions match
+- **GIVEN** a SPECIALIST or CLIENT session on `/dashboard`
+- **WHEN** the page renders
+- **THEN** it MUST match the reference for the welcome/onboarding tiles, the «Мои гиги» board (status tabs + gig feed), the right column (specialist «Найти новый гиг» search panel / client «Создайте первый гиг» create CTA), and the «Сообщения» panel; the SPECIALIST view additionally shows the «Требует внимания» strip, the CLIENT view does not
+- **AND** the «Мои гиги» status tabs MUST use the reference treatment (active = subtle surface pill + hairline + accent count; inactive = transparent, no border)
+- **AND** the «Сообщения» card MUST show the avatar+name row, the VM `unread` badge, a 3-line preview, and the time footer
+- **AND** static copy (section headings, the «Создайте первый гиг» panel) MUST be the prototype's verbatim text
+
+### Requirement: Browse (/gigs) Reconciled To Reference
+`GigSearchDesign` MUST match the prototype's «ПОИСК ГИГОВ» (`search.specialist` / `search.company`): the «Найдено» count header, the 2-column grid of `full` GigCards, and the «Ничего не нашлось» empty state (with reset). The filters are in the shell header (above), so the body contains no filter row. The URL-param filter wiring + `PaginationControls` MUST be preserved.
+
+#### Scenario: Browse results, filters, and empty state
+- **GIVEN** the `/gigs` browse screen
+- **WHEN** it renders with results
+- **THEN** it MUST show the «Найдено» heading + count badge and the `full` GigCard grid; the header filters (category / budget / sort / rating) MUST narrow the results via the preserved URL params
+- **AND** with no matches it MUST show the «Ничего не нашлось» empty state + reset
+
+### Requirement: My-Gigs Reconciled To Reference
+`MyGigsDesign` MUST match the prototype's «МОИ ГИГИ» (`gigs.specialist` all-tab + `myGigs.specialist.*` per-tab variants): the status tabs (Все / Заявки / В работе / На проверке / Завершённые), the feed of `full` GigCards, and the empty state.
+
+#### Scenario: My-gigs tabs and feed
+- **GIVEN** the `/my-gigs` screen
+- **WHEN** it renders
+- **THEN** the status tabs MUST use the same active/inactive treatment as the dashboard, and selecting a tab MUST filter the feed via the existing client-side tab state (composing with any active header filters)
+- **AND** an empty tab MUST show the prototype's empty state
+
+### Requirement: Dashboards/Browse/My-Gigs Reconciliation Keeps The Suite Green
+The reconciliation MUST keep the build, lint, and the affected E2E route specs green, updating selectors only where the markup changed; no server-action changes, and `lib/view-models.ts` touched only for the additive `budgetValue` field (no data gap otherwise).
+
+#### Scenario: Build, lint, and route E2E
+- **GIVEN** the reconciled screens + shell header filters
+- **WHEN** `npm run build`, `npm run lint`, and the route E2E specs (`compose-gig-search`, `compose-{client,specialist}-dashboard`, `compose-my-gigs`, `gig-pagination`, `gig-browse-access`) run
+- **THEN** they MUST pass; the E2E selector updates MUST be limited to the changed markup (4 header comboboxes incl. Бюджет, the «По новизне»/«Сначала дороже» sort labels, the «Создайте первый гиг» heading)
+
+---
+
+## Gig Lifecycle
+
+> Added by change `transport-gig-lifecycle` (archived 2026-06-26). Reconciles the existing gig-lifecycle screens (already built on the prototype's inline-styled markup + `tokens.css`) to the captured reference: `GigDetail.tsx` (NOT renamed), `CreateGigDesign.tsx`, `ApplicationsDesign.tsx`. All `app/actions/gig.ts` actions and the gig status machine are preserved; `lib/view-models.ts` untouched (no data gap). The screens were near-verbatim transports already, so the fixes were targeted. Verified: build + lint green; the directly-affected E2E specs (`compose-gig-detail-apply`, `compose-disputes`, `compose-create-gig`, `build-applications-screen`) **17 passed**. The create-gig **success** screen (`/gigs/new/success`) was deliberately LEFT OUT OF SCOPE (the prototype has no captured success screen — it confirms publish via a `toast.success`; the dedicated route stays on the kit vocabulary for a later cleanup).
+
+### Requirement: Gig Detail Reconciled To Reference (All Role × Status States)
+`app/(protected)/gigs/[id]/GigDetail.tsx` (this exact filename — NOT a `*Design` variant) MUST match the captured gig-detail reference for every role × status combination, preserving the `GigDetailData` wiring, the inline action blocks, and the `app/actions/gig.ts` actions.
+
+#### Scenario: Each role × status state matches its captured reference
+- **GIVEN** the rendered `GigDetail` for a given role and gig status
+- **WHEN** compared to `design-reference/screens/gigDetail.{specialist,company}.<status>` (7 statuses per role: открыт / на рассмотрении / в работе / на проверке / завершён / оплачен / отклонён)
+- **THEN** the two-column layout MUST match (col1 header/bio/criteria; col2 «УСЛОВИЯ» panel with Срок/Бюджет grotesk numerics, the owner-only fee breakdown, and the chat/action area), and the role × status action rail MUST present the correct affordances per status (SPECIALIST apply/applied/withdraw/submit; COMPANY view-applications/approve/return/mark-paid; terminal notices), wired to the existing actions
+
+#### Scenario: Dispute link is gated to the live work window
+- **GIVEN** an owner or assigned specialist viewing a non-example, assigned gig
+- **WHEN** the action rail renders
+- **THEN** the «Возникли разногласия? Открыть спор» link (→ `/disputes/new?gig=…`) MUST appear ONLY while the gig status is `IN_PROGRESS` or `REVIEW` (matching the prototype's `gigInProgress || gigReview`) — NOT on completed/paid (where "assigned" still holds but the reference shows no link)
+
+### Requirement: Create Gig Reconciled To Reference
+`app/(protected)/gigs/new/CreateGigDesign.tsx` MUST match `design-reference/screens/createGig.company`, preserving the `createGig` wiring, the 10% fee math, and the stable `name=` field contract.
+
+#### Scenario: Guided brief, readiness, and fee panels match
+- **GIVEN** the `/gigs/new` create screen (CLIENT) and live edits
+- **THEN** the guided-brief sections, the category chip select (inactive = neutral hairline border; active = `rgba(rgb,0.6)` border / `0.15` bg), and the criteria tag-editor MUST match; the criteria suggestions MUST be the prototype's real phrases (filtered-not-added, top-3) and an added criterion MUST render its raw text (the «Готово, когда…» lives only in the section label)
+- **AND** the «Готовность брифа» panel MUST show the score as «{n} из 7», the checklist, the progress bar, and a next-step box reading bold «Добавьте: {Поле}» + that field's hint (complete-state «Бриф готов ✓» / «Бриф готов — отличные шансы на сильные отклики.»)
+- **AND** the «Сводка» fee panel MUST compute Бюджет → Сервисный сбор (10%) → Итого live (`fee = floor(budget × 0.10)`), and publishing MUST call `createGig` and redirect to `/gigs/new/success`
+
+### Requirement: Applications Reconciled To Reference
+`app/(protected)/gigs/[id]/applications/ApplicationsDesign.tsx` MUST match `design-reference/screens/applications.company`, preserving the owner-gated `GigApplicationsData` wiring and the accept/reject actions.
+
+#### Scenario: Applicant cards and accept/reject match and stay wired
+- **GIVEN** the COMPANY owner on `/gigs/[id]/applications`
+- **THEN** the back link, the «Отклики» header + count + «на проект «{title}»», and each applicant card (avatar + name + verify seal [16px] + level + rating + status + stack tags + Подход / Уточняющие вопросы / Оценка трудозатрат) MUST match the reference
+- **AND** a PENDING applicant's status MUST read «Новый отклик» in the accent colour (overridden in the component, not the VM); accepted/rejected keep their tone colour
+- **AND** «Принять» / «Отклонить» MUST render only for pending applicants while none is assigned, wired to `acceptApplication` (assigns + auto-rejects others) / `rejectApplication`; when assigned, the «Назначен …» banner shows and rejected cards dim
+
+### Requirement: Gig Lifecycle Reconciliation Keeps The Suite Green
+Reconciling these screens MUST keep the build, lint, and the affected E2E specs green; selectors/copy updated only where the markup changed; no server-action or VM changes.
+
+#### Scenario: Build, lint, and lifecycle E2E
+- **GIVEN** the reconciled gig-lifecycle screens
+- **WHEN** `npm run build`, `npm run lint`, and the lifecycle E2E specs run
+- **THEN** they MUST pass and the full lifecycle (create → apply → accept → submit → approve → mark-paid, plus withdraw / reject / return-for-revision) MUST work end-to-end
+- **AND** the only E2E updates MUST be the intended copy changes (`compose-create-gig`: raw criterion text + the new suggestion phrase + «7 из 7»; `build-applications-screen`: «Новый отклик»)
+
+> NOTE (capture gap): the `gigDetail.specialist.открыт-applied` reference is byte-identical to `…открыт` — the capture pipeline never toggled `applied`, so the specialist applied/awaiting UI has no captured ground truth and was left as-is (plausible, on-palette), pending a re-capture.
+
+## Communication, Finance & Profile
+
+> Added by change 5 (transport-chats-finance-profile, archived 2026-06-27). Reconciles `/chats`, `/finances`, and `/profile` to the captured prototype reference, and migrates profile editing from the standalone `/profile/edit` route into the prototype's on-screen modals (retiring the last kit/Tailwind route in this area). Token-NAME differences (raw CSS var vs app token) are not discrepancies — only visual value / structure / copy.
+
+### Requirement: Chats Reconciled And Stays In /chats After Send
+`app/(protected)/chats/ChatsDesign.tsx` MUST match `design-reference/screens/chats.{specialist,company}` for the dialog list and the active thread, and sending a message MUST keep the user on `/chats`. Sending MUST be **optimistic** (chat-realtime): with JS, the new message appears in the thread immediately (temporary id) without a page navigation, then persists and reconciles with the server echo (deduped by id). The legacy form-action path (`sendMessage` → `redirect(redirectTo)`) MUST remain as a no-JS progressive-enhancement fallback (landing on `/chats?gig=<id>`), and the gig-detail composer MUST still redirect to `/gigs/[id]`.
+
+#### Scenario: Dialog list, search, and thread match
+- **GIVEN** `/chats` with one or more conversations
+- **THEN** the left pane MUST show «Сообщения» + count, the live client-side search, and per-conversation rows (counterparty / status / unread / subtitle / timestamp / 2-line preview) with the active row in the accent tint `rgba(0,136,255,0.08)`
+- **AND** the active thread MUST show the counterparty header, day-separated bubbles with the outgoing/read ✓✓ treatment, and the composer (with the leading paperclip glyph), scrolling inside a bounded pane (short threads pinned to the bottom) so new messages do not grow the page
+- **AND** typing in the search field MUST filter the list client-side, restoring the full list when cleared
+
+#### Scenario: Optimistic send keeps the user in the conversation
+- **WHEN** the user sends a message from `/chats` via Enter or the send button (JS enabled)
+- **THEN** the new bubble MUST appear in the thread immediately with no page navigation, `sendMessage`/`sendMessageLive` MUST persist it, and the optimistic bubble MUST reconcile to the persisted message (no duplicate)
+- **AND** with JS disabled, the form action MUST still persist and leave the user on `/chats?gig=<id>` with the new bubble shown
+- **AND** sending from the gig-detail screen MUST still redirect to `/gigs/[id]` (the chats behaviour is opt-in via an additive same-origin `redirectTo`)
+
+### Requirement: Finances Reconciled For Both Roles
+`app/(protected)/finances/FinancesDesign.tsx` MUST match `design-reference/screens/finance.{specialist,company}` for the stat tiles and the «Операции» ledger (logical amounts only).
+
+#### Scenario: Stat-tile captions and the awaiting-payment status
+- **GIVEN** `/finances` for a SPECIALIST (earnings) or CLIENT (spend + fee)
+- **THEN** each stat tile MUST render its third caption line (e.g. «комиссия Gigly 10%» / «выплачено по завершённым») via `StatVM.caption`
+- **AND** a COMPLETED (work-done, payment-pending) ledger row MUST render the awaiting-payment green `rgb(52,199,89)` with the role-aware label «Ожидает оплаты» (specialist) / «К оплате» (client); a PAID row keeps «Оплачено»
+
+### Requirement: Profile Reconciled For Both Roles
+`app/(protected)/profile/ProfileDesign.tsx` MUST match `design-reference/screens/profile.{specialist,company}`.
+
+#### Scenario: Specialist and company profile match
+- **GIVEN** the `/profile` ID card
+- **THEN** a SPECIALIST MUST show the name+roleTag pinned top / verified+since pinned bottom (space-between, NO name pencil), per-tag coloured stack chips (`rgba(rgb,0.12)`), and the Стек / Опыт / Избранные категории / Реализованные проекты blocks
+- **AND** a CLIENT MUST show the name (with the requisites pencil), the role tag, the «about» paragraph (backed by the additive `ClientProfile.about`), and the Реквизиты (ИНН/КПП) panel
+
+### Requirement: Profile Editing Is Modal-Based; /profile/edit Is Retired
+Profile editing MUST occur via in-place modals opened from the profile pencils, persisting through the existing actions; there MUST be no standalone profile-edit screen.
+
+#### Scenario: The four edit modals persist and don't clobber siblings
+- **WHEN** the owner opens a modal and saves — bio («Редактировать описание») → `updateProfile`(bio); categories («Избранные категории») → `setFavoriteCategories`; stack («Редактировать стек», tag editor) → `updateProfile`(techStack); company («Редактировать реквизиты», design-vocab) → `updateProfile`(companyName/inn/kpp/about)
+- **THEN** the value MUST persist and the modal MUST close in place (an additive `noRedirect` flag returns success so the modal refreshes client-side instead of navigating)
+- **AND** each `updateProfile`-backed modal MUST carry the profile's other current fields as hidden inputs (from the owner-only `ProfileData.editFields` snapshot) so the role-branched upsert does not blank siblings
+
+#### Scenario: The retired route redirects and pencils open modals
+- **WHEN** a user navigates to `/profile/edit`
+- **THEN** they MUST be redirected to `/profile`
+- **AND** clicking any edit pencil on `/profile` MUST open the corresponding modal in place (no navigation); the old kit components (`ProfileEditForm` / `ProfileEditHeader`) are deleted and the in-app links (`ProfileCompletionCard`, the profile-not-set-up notice) point at `/profile`
+
+> NOTE (documented narrowing): the captured modals cover bio / categories / stack (+ the new company requisites). `displayName` and `experienceLevel` are onboarding-time fields not exposed for post-onboarding UI editing — they are preserved through `updateProfile` but not editable. `setWorkExperience` (structured «Опыт» entries) has no captured modal and stays out of scope.
+
+### Requirement: Communication/Finance/Profile Reconciliation Keeps The Suite Green
+Reconciling these screens MUST keep the build, lint, and the affected E2E green; selectors/copy updated only where the markup or behaviour changed.
+
+#### Scenario: Build and E2E
+- **WHEN** `npm run build` and the `compose-chats` / `compose-finances` / `compose-profile` / `messaging-flow-e2e` / `loading-states` specs run
+- **THEN** they MUST pass; the only E2E updates MUST be the intended behaviour changes (chats + messaging-flow assert stay-in-`/chats`; finances asserts the caption + awaiting-payment label; profile asserts the `/profile/edit` redirect + the bio/company modal round-trips + the «about» paragraph; loading-states asserts the bio modal's pending Save button)
+
+## ADDED Requirements (transport-disputes — Phase 6 dispute flow)
+
+> Added by change 6 (transport-disputes, archived 2026-06-27). Reconciles the four dispute screens (already built on the prototype's inline-styled markup + `tokens.css`) to the 7 captured reference states: `disputes.{specialist,company}`, `disputeNew.{specialist,company}`, `disputeDetail.{specialist,company}`, and `disputeResolve.admin`. The list and new-dispute screens already matched; the work was a targeted data-gap fix on the detail/resolve screens. The admin resolve face stays **folded into the single `/disputes/[id]` route** (no separate admin route) per the plan's decision — `DisputeDetailDesign` renders the «Решение модератора» panel only for an ADMIN on an OPEN dispute. All `app/actions/dispute.ts` semantics (`openDispute`, `resolveDispute` + the `specialist`/`company`/`split_50` verdict map) and the `Dispute` model are preserved. Verified: build (exit 0) + lint green, the dispute integration tests (`disputes-flow` + `disputes-vm`, **17 passed**) and the dispute E2E (`compose-disputes` + `reconcile-disputes-flow`, **8 passed**). The participant reply composer the prototype shows on the detail timeline is LEFT OUT OF SCOPE (no backend action exists to post a participant comment) — a parked, known gap.
+
+### Requirement: Dispute Screens Reconciled To The Captured Reference
+`app/(protected)/disputes/DisputesDesign.tsx`, `new/NewDisputeDesign.tsx`, and `DisputeDetailDesign.tsx` MUST match their captured references (`design-reference/screens/disputes.*`, `disputeNew.*`, `disputeDetail.*`, `disputeResolve.admin`), preserving the `page.tsx → VM → component` wiring. Static UI copy (headers, the moderator/frozen-funds notice, the reason chips, section labels) MUST be verbatim; only dynamic data MUST be bound.
+
+#### Scenario: List and new-dispute match
+- **GIVEN** `/disputes` (list) for a SPECIALIST or COMPANY
+- **THEN** the «Споры» header + intro notice render verbatim and each row shows gig · reason · opener · status pill («Открыт»/«На рассмотрении»/«Решён») · amount, with the empty state when there are no disputes
+- **AND** `/disputes/new` renders the «ОТКРЫТЬ СПОР» header, the warning banner, the six captured reason chips verbatim («Оплата не поступила», «Результат не соответствует ТЗ», «Заказчик не выходит на связь», «Исполнитель не выходит на связь», «Просрочен срок выполнения», «Другое»), the description field, and «Открыть спор» wired to `openDispute`
+
+### Requirement: Dispute Detail Surfaces The Counterparty And Opener Role
+The `/disputes/[id]` header (`DisputeDetailDesign`) MUST render, beside «Сумма по гигу», a «Контрагент» field bound to the viewer-relative counterparty, and MUST show the opener's **role** in the subtext. The counterparty is computed additively in `lib/disputes.ts#getDisputeDetail` (threaded the `viewer` through `lib/view-models.ts#getDispute`; `DisputeDetailVM.counterparty` is optional).
+
+#### Scenario: Counterparty is viewer-relative
+- **GIVEN** an authenticated viewer opens a dispute they may see
+- **THEN** «Контрагент» MUST show the OTHER party — a SPECIALIST sees the client company; a CLIENT sees the assigned specialist; an ADMIN (or absent viewer) sees the client/заказчик (matching the prototype's resolve view)
+- **AND** the header subtext MUST read «Причина: {reason} · открыл: {role}» where role is «Специалист»/«Заказчик» (falling back to the opener name)
+- **AND** the «Ход рассмотрения» timeline (with moderator entries — the audit log) and the «Доказательства» evidence chips MUST render, with the resolution banner shown only when the dispute is resolved
+
+### Requirement: Admin Resolve Face Folded Into The Detail Route
+For an ADMIN viewing an OPEN dispute, `DisputeDetailDesign` MUST render the resolve face reconciled to `disputeResolve.admin`: the detail header + timeline (audit log) + the «Решение модератора» panel offering the three verdicts «В пользу специалиста», «В пользу заказчика», «Частичный возврат 50%», each submitting to `resolveDispute` with `specialist`/`company`/`split_50`. No separate admin resolve route MUST be created. The panel MUST be hidden for non-admins and for non-OPEN disputes.
+
+#### Scenario: Admin resolves; participant sees read-only
+- **WHEN** an ADMIN selects a verdict on an OPEN dispute
+- **THEN** `resolveDispute` MUST transition the dispute to resolved, the resolution MUST carry the «В пользу …» prefix, and a moderator timeline entry MUST be appended
+- **AND** a participant (non-admin) or any viewer of an already-resolved dispute MUST NOT see the «Решение модератора» panel
+
+## ADDED Requirements (transport-admin-console — Phase 7 admin moderation surface)
+
+> Added by change 7 (transport-admin-console, archived 2026-06-29). Reconciles the admin console (`AdminConsoleDesign`) to `design-reference/screens/dashboard.admin` (4 stat tiles + caption lines, the «Споры на модерации» queue, «Журнал модерации» log, «Пользователи» + «Гиги» lists), transports the captured `confirm.destructive` dialog (`app/_design/ConfirmDialog.tsx`) to gate block/close, and re-skins the kit `/admin/users` + `/admin/gigs` tables to the console's row vocabulary (keeping pagination + role/status filters). Additive VM gap closed: `AdminGigRow.client`. All `app/actions/moderation.ts` semantics and the `ModerationLog` / `User.suspended` / `Gig.closedByAdmin` model are unchanged. Follow-ups (same change): admins are routed to `/admin`; the admin shell renders on admin-reachable `(protected)` routes; a dedicated `/admin/disputes` screen (all statuses + filter); exclusive nav active-state; and disputes read «Решён» via `disputeLabel`. Verified: build exit 0; admin E2E **25** (`compose-admin-dashboard` + `admin-moderation` + `admin-pagination` + `admin-disputes`); `nav-active` + `admin-dashboard-vm` unit/integration **10**; dispute E2E **8**.
+
+### Requirement: Admin Console, Confirm Dialog, And Tables Transported
+`app/admin/AdminConsoleDesign.tsx` MUST match `dashboard.admin` (stat tiles with caption lines, queue, log, users, gigs). Destructive moderation (block/close) MUST be gated by the transported `confirm.destructive` dialog (centred modal · target-naming body · «Отмена» + red confirm) and fire only on confirm. `app/admin/users/AdminUsers.tsx` + `app/admin/gigs/AdminGigs.tsx` MUST drop the kit `@composed-screen`/`DataTable` markup for the console's row vocabulary while preserving offset pagination (30/pg) and the filters. Moderation actions and the data model MUST be unchanged.
+
+#### Scenario: Console + confirm-gated moderation + paginated tables
+- **GIVEN** an ADMIN on `/admin`
+- **THEN** the four captioned stat tiles, queue («Рассмотреть» → `/disputes/[id]`), log, and users/gigs lists render; clicking «Заблокировать»/«Закрыть» opens the confirm dialog and the action fires only on confirm
+- **AND** `/admin/users` and `/admin/gigs` render the transported rows with working role/status filters + pagination, over the unchanged `suspendUser`/`unsuspendUser`/`closeGig`
+
+### Requirement: Admin Home, Shell, Disputes Screen, And Dispute Label
+ADMINs MUST be routed to `/admin` (login + middleware), MUST see the admin shell on admin-reachable `(protected)` routes (e.g. `/disputes/[id]`), and MUST have exactly one active sidebar item (longest-path match). A dedicated `/admin/disputes` screen MUST list all disputes with a status filter and an entry-point-aware «Назад». Resolved disputes MUST read «Решён» (`disputeLabel`) everywhere.
+
+#### Scenario: Admin reaches and navigates the moderation surface
+- **WHEN** an ADMIN logs in, opens «Споры», and clicks a dispute
+- **THEN** they land on `/admin`, the «Споры» screen lists every status (filterable), and the dispute detail shows the admin shell (not «Финансы»/«Компания») with «Назад к спорам» returning to `/admin/disputes`
+- **AND** a resolved dispute's status pill reads «Решён»; only the current section is highlighted in the sidebar
+
+### Requirement: Dispute Reconciliation Keeps The Suite Green
+The reconciliation MUST keep the build and the dispute test suite green, with no changes to `openDispute`, `resolveDispute`, or the `Dispute` data model.
+
+#### Scenario: Build and dispute tests
+- **WHEN** `npm run build` and the `disputes-flow` / `disputes-vm` / `compose-disputes` / `reconcile-disputes-flow` specs run
+- **THEN** they MUST pass (build exit 0; 17 integration + 8 E2E), with no selector changes needed beyond the additive «Контрагент» field
+
+## ADDED Requirements (transport-auth — Phase 8 auth surface, final change)
+
+> Added by change 8 (transport-auth, archived 2026-06-29) — the final change of the transport initiative (**8/8**). A reconcile + verification pass: the substance shipped earlier in `reground-auth-to-design` (archived), which built `app/_design/AuthDesign.tsx` directly on `gigly_full_design/Auth.dc.html`. This change diffed the live component against that reference (auth was never in the `design-reference/screens/` capture pipeline — no PNG; `Auth.dc.html` is the source), found it faithful, and required **no production-code change**. One deliberate, E2E-tested divergence from the static prototype is documented and kept: the step-2 back-arrow (re-choose role) and the step-3 secondary control that skips to `/dashboard` (the account already exists from step 2) — both reflect the real two-phase flow. Verified: build exit 0 (`/login` + `/register` prerendered, no `/auth` route); auth E2E **25** (`auth-flow` + `auth-navigation` + `auth-session` + `compose-auth-onboarding`).
+
+### Requirement: Auth Surface Transported From Auth.dc.html
+`/login` and `/register` MUST render `app/_design/AuthDesign.tsx` — the `Auth.dc.html` shell (blue **G** logomark, GIGLY wordmark, Handjet/Manrope, `pixel-wave.svg` shown on login + onboarding step 1 and hidden on steps 2/3, footer) on `app/_design/tokens.css` with no `@composed-screen` kit. It MUST implement the prototype's `view: 'login' | 'onboarding'` × `step: 1 | 2 | 3` state machine: login ↔ onboarding switches, onboarding 1→2→3, the step-2 back-arrow returning to step 1 (re-choose role). The two-phase wiring MUST be preserved — `registerUser` creates the account + session at step 2 «Зарегистрироваться»; `updateProfile` persists the role-specific profile at step 3 «Продолжить»; `loginUser` for login. The legacy `/auth` route MUST stay removed and the homepage MUST link to `/login`.
+
+#### Scenario: Login, onboarding, and the removed /auth route
+- **GIVEN** an unauthenticated visitor
+- **WHEN** they open `/login` («ВХОД В GIGLY») and switch via «Создать аккаунт», then complete onboarding (role → credentials «Зарегистрироваться» → setup «Продолжить»)
+- **THEN** the shared shell renders, the account is created at step 2 (auto-login) and the profile persists at step 3 landing on `/dashboard`; login errors surface in Russian within the view
+- **AND** `/auth` returns 404 (no route, no middleware reference) and the homepage links to `/login`
+
+## ADDED Requirements (transport-settings — Figma settings popup `3121:2609`)
+
+> Added by change transport-settings (archived 2026-06-29) — the deferred settings work from `openspec/planning/transport-design-from-prototype.md` (Decision 1). Transports the Figma settings popup (node `3121:2609`, captured at `design-reference/screens/settings.popup.png`) into the app as a true modal overlay rendered on `app/_design/tokens.css`, with each control either live-and-wired or grayed-and-inert. Verified: `npm run build` exit 0; `settings-vm` + `settings-actions` + `timezones` + `account-preferences` (18 integration) green; `compose-settings` + `theme-switch` (10 E2E) green.
+>
+> **⚠️ KNOWN FUNCTIONALITY GAPS (flagged at archive — by design, not defects).** This change shipped the popup and made the wired preferences **persist**, but the rest of the app does not **consume** several of them. A full audit (2026-06-29) found three persisted-but-unconsumed controls; per owner decision each is rendered **grayed/inert** in the MVP so it doesn't masquerade as functional, with consumption tracked as follow-up planning queries:
+> - **Currency** — `lib/utils/currency.ts:formatCurrency` hardcodes `ru-RU` / `RUB` and takes no preference, so all money renders in rubles regardless of `user.currency`. Honest consumption requires an FX-rate decision (amounts are stored in rubles; relabelling without conversion would fabricate value). → `currency-display`.
+> - **Language** — the app has no i18n layer; UI strings are hardcoded Russian literals, so `user.locale` changes nothing visible. Consumption requires a translation catalog + lookup layer. → `i18n-foundation`.
+> - **Notification toggles — PARTIALLY WIRED.** Of the 5 rows, the 3 with a real bell source are now **live**: `getUnreadNotifications` reads the prefs and gates the bell at *display* time (MESSAGE→`notifyMessages`, APPLICATION→`notifyApplications`, STATUS_CHANGE→`notifyStatusChanges`), reversibly (no rows dropped at creation). The 2 sourceless rows (`notifyPlatformNews`/`notifyNewGigs`) have no event source, so they stay **grayed/inert** (a toggle would gate nothing). The «Email» label was corrected to «Уведомления в приложении» — these are in-app notifications; **no email channel exists** (real email delivery stays deferred → `notification-preferences`).
+>
+> The stored preference is the **seam**; the follow-ups live in the transport plan's "Follow-ups" section. Timezone has no such gap — it is both persisted AND surfaced (on the profile page). Two further fields, `showRatingInProfile`/`showOnlineStatus`, persist but are neither rendered nor consumed (orphaned; documented as Gap D for a future privacy section).
+
+### Requirement: Settings Renders As The Design's Modal Popup
+The settings surface MUST be presented as the Figma popup: a backdrop-dimmed, centred, contained card (≤900px, `max-height` bounded with the section list scrolling **inside** the window via an inset rounded scrollbar tinted like the section cards — never running off-screen) with a pinned header «Настройки» showing a section counter and an X-close. It MUST be opened from the shell gear/«Настройки» control and be deep-linkable + dismissible via a URL query param (`?settings=1`), with backdrop-click / X / Esc closing it. The 6-section body MUST be a presentational `SettingsPanel` reused by both the modal and the `/settings` route (kept as a deep-link + no-JS fallback). It MUST render on the app's existing tokens/fonts (Handjet/Manrope), not the Figma file's raw Golos Text/SF Compact.
+
+#### Scenario: Open and close the contained settings modal
+- **WHEN** an authenticated user activates the shell «Настройки»/gear control
+- **THEN** the «Настройки» modal opens over the current page as a contained card (backdrop + counter + X-close) showing the 6 section cards, the body scrolls inside the window, and the URL carries `?settings=1`
+- **AND** clicking X, the backdrop, or pressing Esc closes it and returns to the underlying page
+
+#### Scenario: Deep-link and route fallback
+- **WHEN** the user navigates directly to `?settings=1` (or to `/settings`)
+- **THEN** the same 6-section `SettingsPanel` renders (modal over the page for the query param; full-page for the route)
+
+### Requirement: Every Settings Control Is Live-And-Wired Or Grayed-And-Inert
+`SettingsPanel` MUST render all six design sections 1:1, where each control is EITHER fully wired (mutating visible state on interaction + persisting where backed) OR rendered grayed and inert. No control may be a static look-alike that masquerades as functional, and none fabricates a backend. **Wired:** «Имя» (`updateAccountName` — partial-safe, no clobber); per-row session terminate (`terminateSession`) + «Завершить все неактивные сеансы» (`terminateInactiveSessions`); «Часовой пояс» (`updateTimezone` — partial-safe, also surfaced on the profile); «Удалить аккаунт навсегда» (`deleteAccount` email-gate); «Выйти» (`logoutUser`); **the 3 «Уведомления в приложении» rows that have a real bell source** (`notifyApplications`/`notifyMessages`/`notifyStatusChanges` via `updatePreferences`) — they gate the bell live (`getUnreadNotifications` display-time filter). **Grayed + inert** (muted, `cursor:not-allowed`, `pointer-events:none`, no handler) — both the never-backed controls AND the persisted-but-unconsumed MVP controls, so neither pretends to work: «Двухфакторность» (no `twoFactorEnabled` field), Email, Password, avatar «Загрузить фото»/remove, **currency ₽/$/€** (persists `currency` but money still renders ₽), **«Язык интерфейса»** (persists `locale` but no i18n), and **the 2 sourceless notification rows** (`notifyPlatformNews`/`notifyNewGigs` — no event source generates them). Wired controls autosave and surface the outcome — a transient «Сохранено» on success and «Не удалось сохранить» on error (errors are not swallowed). The session-row description MUST be the device + relative time only — it MUST NOT fabricate a per-session location, nor derive one from the timezone preference.
+
+#### Scenario: Wired controls change and persist
+- **WHEN** the user edits «Имя», picks a «Часовой пояс», terminates a session, or toggles a sourced notification row (e.g. «Новые сообщения в чатах»)
+- **THEN** the control updates immediately, the matching action persists it, and a reload reflects the change (timezone also surfaces on the profile; a disabled notification type stops appearing in the bell, reversibly)
+
+#### Scenario: Persisted-but-unconsumed controls are grayed and cannot be changed
+- **WHEN** the user views currency, «Язык интерфейса», or the two sourceless notification rows (platform news / new gigs)
+- **THEN** each renders 1:1 showing its stored value but is muted + non-interactive (`aria-disabled`/`disabled`, `pointer-events:none`, no handler), so it is visibly not changeable — reflecting that the app does not yet consume those preferences (see the KNOWN FUNCTIONALITY GAPS note)
+
+#### Scenario: Timezone persists AND surfaces on the profile
+- **WHEN** the user picks a timezone
+- **THEN** the dropdown updates, `updateTimezone` saves it partial-safely, and the profile page shows the same `(GMT±N) City` label (the modal calls `router.refresh()` so it updates without a reload)
+
+#### Scenario: Grayed controls cannot be interacted with
+- **WHEN** the user tries to toggle «Двухфакторность» or edit Email / Password / upload an avatar
+- **THEN** those controls render muted and do not respond — no state change, no submit, no persisted effect
+
+### Requirement: Timezone Options Cover Russian Zones + Relocation + World Hubs
+The «Часовой пояс» dropdown MUST offer all 11 major Russian time zones, a curated set of popular Russian-IT relocation hubs, AND the major world business/tech hubs (LA, New York, London, Tokyo, etc.). `lib/profiles.TIMEZONES` MUST be the single source (so onboarding and `updateTimezone`/`isTimezone` validation stay in sync), each entry rendered with a Russian `(GMT±N) City` label via `TIMEZONE_LABELS`/`timezoneLabel`. Additions are validated automatically by `isTimezone` (no value drift).
+
+#### Scenario: Dropdown lists Russian zones, relocation hubs, and major world hubs
+- **WHEN** the user opens «Часовой пояс»
+- **THEN** it lists the 11 Russian zones, popular relocation hubs (Тбилиси, Ереван, Алматы, Белград, Стамбул, Дубай, Кипр, Лиссабон, Бангкок, Бали, Ташкент, Бишкек, Буэнос-Айрес), and major world hubs (Лос-Анджелес, Нью-Йорк, Чикаго, Лондон, Берлин, Мумбаи, Шанхай, Сингапур, Токио, Сидней, Сан-Паулу), each with a `(GMT±N)` label, and selecting any persists via `updateTimezone`
+
+### Requirement: Settings Schema Is Cheap + Additive And Keeps The Suite Green
+The schema MUST gain `User.currency` (default `"rub"`), `notifyPlatformNews` + `notifyNewGigs` (default `true`), applied via `prisma db push` (the project mechanism); `getSettings`/`Preferences` MUST surface them and `getSettings` MUST also surface the profile `timezone` + `name`. `updatePreferences` MUST accept the new fields partial-safely. No `twoFactorEnabled` field is added (2FA is grayed). `updateAccountName`/`updateTimezone` MUST be partial-safe (write only their own field, never clobbering other profile fields the full `updateProfile` upsert would). Existing `terminateSession`/`deleteAccount`/`getSettings` signatures MUST be unchanged. `npm run build` MUST exit 0 and the `settings-vm`/`settings-actions`/`timezones`/`account-preferences`/`compose-settings` suites MUST pass with no weakened assertions.
+
+#### Scenario: Migration + VM expose the new fields with safe defaults
+- **WHEN** the schema is applied and `getSettings` runs for a user with no prior values
+- **THEN** `currency="rub"`, `notifyPlatformNews=true`, `notifyNewGigs=true` are returned, `timezone`/`name` are surfaced from the profile, and `updatePreferences` round-trips changes to each
+
+## ADDED Requirements (chat-realtime — optimistic send + live delta polling)
+
+> Added by change chat-realtime (archived 2026-07-03). Brings `/chats` to a modern messenger bar — optimistic send + live delta-polling — with **no new runtime dependency and no external service**, behind a swappable client seam so SSE/a managed bus can drop in later with no UI change. Preserves the gig-scoped model and hardens the message gate (finished gigs become read-only). Verified: `npm run build` exit 0; `messaging` + `chats-vm` integration (incl. `getMessagesSince`/`sendMessageLive`/terminal-state gates); `compose-chats` (9) + `messaging-flow-e2e` (2) E2E incl. optimistic-no-navigation, the disappearing-message regression, cross-context live receive, and the read-only completed-gig. The `sendMessage` MODIFIED requirement above carries the optimistic/no-JS-fallback behavior.
+
+### Requirement: Chat Thread Updates Live Via Delta Polling Behind A Swappable Seam
+The open `/chats` thread MUST update with the counterparty's new messages **without a manual reload**. The client MUST subscribe through a single hook `useThread(gigId, initialThread)`; the receive contract MUST be the single server action `getMessagesSince(gigId, afterIso)`, which returns only messages newer than the supplied timestamp. The hook MUST poll on a bounded interval (≈3s) for the open thread only, fetch deltas (not the whole thread), dedupe by message id, **pause polling when the document is hidden** (Page Visibility API) and resume on focus, and run **no timer when no thread is open**. Every `setMessages` updater MUST be pure (dedupe against the current list; no external-ref mutation inside an updater) so React Strict Mode / concurrent rendering cannot desync the list. The transport MUST be encapsulated so that replacing polling with SSE or a managed bus later requires changing only the hook's internals and `getMessagesSince`'s producer — **no change to `ChatsDesign` or the message VM**.
+
+#### Scenario: Counterparty message appears without reload
+- **GIVEN** two participants of a started gig each viewing `/chats?gig=<id>`
+- **WHEN** one sends a message
+- **THEN** the other's thread MUST show the new bubble within one poll interval, without any navigation or manual reload
+
+#### Scenario: Delta fetch and dedupe (no vanish, no duplicate)
+- **WHEN** the thread polls `getMessagesSince(gigId, afterIso)`
+- **THEN** it MUST return only messages with `createdAt` after `afterIso` (ordered ascending, capped), and the hook MUST append only ids not already present — an optimistic bubble MUST reconcile without vanishing and without duplicating, even when a poll lands mid-send
+
+#### Scenario: Idle and hidden are cheap
+- **WHEN** the browser tab is hidden, or no conversation is selected
+- **THEN** the thread MUST NOT poll (it resumes on focus / on selecting a conversation)
+
+### Requirement: Chat Remains Gig-Scoped, Starts Only After Gig Start, And Is Read-Only Once Finished
+Chat scope and lifetime MUST NOT change. A conversation MUST remain a Gig (no `Conversation` model, no per-message `readAt`). Messaging is permitted only during the **active window**: the gig MUST have an **assigned specialist**, MUST NOT be `closedByAdmin`, and MUST be in an active status (`OPEN`…`REVIEW`) — the **terminal states `COMPLETED` and `PAID` are read-only** (history shows, composing is refused). The actor MUST be a participant (gig owner or assigned specialist). `persistMessage` (shared by `sendMessage` + `sendMessageLive`) MUST enforce this gate; `getChatThread` MUST surface it as `composer.canSend` (+ a `closedReason`) so the UI hides the composer and shows a read-only notice instead of a control that would error on submit. No pre-assignment chat.
+
+#### Scenario: Non-participant, pre-assignment, and finished gigs are refused
+- **WHEN** a non-participant calls `getMessagesSince`/`sendMessageLive`, or any actor targets a gig with no assigned specialist, a `closedByAdmin` gig, or a **`COMPLETED`/`PAID`** gig
+- **THEN** the write MUST be refused (no message created), identically for both send paths
+
+#### Scenario: A finished conversation is read-only in the UI
+- **WHEN** a participant opens a `COMPLETED`/`PAID` (or admin-closed) conversation
+- **THEN** the message history MUST render, but the composer MUST be replaced by a read-only notice («…только для просмотра») — no text input, no send button — reflecting `composer.canSend === false`
+
+### Requirement: Send Guards Are Preserved By A Shared Core
+The message-write guards MUST be shared by both send paths via a single core (`persistMessage`): authentication, rate limiting (30/hour/user), input sanitization, length validation (≤2000, non-empty after trim), the participant/assignment/closed/terminal gates, and the `Notification` upsert. `sendMessageLive` MUST apply the identical core and return the created message; `sendMessage` MUST apply the identical core and keep its `redirect(redirectTo)` semantics. No guard may be weakened or duplicated.
+
+#### Scenario: Both paths enforce the same rules
+- **WHEN** a message is sent via the optimistic path (`sendMessageLive`) or the form path (`sendMessage`)
+- **THEN** both MUST enforce the same auth, rate-limit, sanitize, validation, and gating, and both MUST upsert the recipient's unread `Notification`

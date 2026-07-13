@@ -7,11 +7,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { GigCardVM, OnboardingCardVM, AttentionCardVM, ConversationItemVM } from "@/app/components/blocks/view-models";
 import { GigCard } from "@/app/_design/GigCard";
 import { AttentionCardDesign } from "@/app/_design/AttentionCardDesign";
-import { avatarColor } from "@/app/_design/util";
+import { avatarColor, applyGigFilters } from "@/app/_design/util";
 import "@/app/_design/tokens.css";
 
 export type DashboardVM = {
@@ -48,16 +48,30 @@ const countBadge: React.CSSProperties = {
   fontSize: 15,
 };
 
+function PencilIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325" />
+    </svg>
+  );
+}
+
 function OnboardingTile({
   card,
   img,
   imgStyle,
   onAction,
+  titleFontSize = 22,
+  titleLineHeight = "23px",
+  actionIcon,
 }: {
   card: OnboardingCardVM;
   img: string;
   imgStyle: React.CSSProperties;
   onAction: () => void;
+  titleFontSize?: number;
+  titleLineHeight?: string;
+  actionIcon?: React.ReactNode;
 }) {
   return (
     <div
@@ -84,7 +98,7 @@ function OnboardingTile({
         }}
       />
       <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
-        <span style={{ fontFamily: "'Handjet',monospace", fontWeight: 600, fontSize: 22, lineHeight: "23px", color: "var(--text-1)" }}>
+        <span style={{ fontFamily: "'Handjet',monospace", fontWeight: 600, fontSize: titleFontSize, lineHeight: titleLineHeight, color: "var(--text-1)" }}>
           {card.title}
         </span>
         <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 14, lineHeight: "16px", color: "var(--text-3)" }}>{card.subtitle}</span>
@@ -116,6 +130,7 @@ function OnboardingTile({
         }}
       >
         {card.cta.label}
+        {actionIcon}
       </button>
     </div>
   );
@@ -125,33 +140,71 @@ function MessageRow({ m }: { m: ConversationItemVM }) {
   return (
     <Link
       href={`/chats?gig=${m.id}`}
-      style={{ display: "flex", gap: 10, padding: 12, borderRadius: 8, background: "var(--surface-card)", textDecoration: "none", alignItems: "center" }}
+      style={{ display: "flex", flexDirection: "column", gap: 16, padding: "16px 12px 12px", borderRadius: 8, background: "var(--surface-card)", textDecoration: "none" }}
     >
+      {/* header: avatar + name pill, unread count */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <span
+          style={{
+            width: 26,
+            height: 26,
+            flex: "none",
+            borderRadius: 999,
+            background: avatarColor(m.name || "?"),
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 12,
+            fontWeight: 700,
+            color: "#fff",
+          }}
+        >
+          {(m.name || "?").slice(0, 1)}
+        </span>
+        <span style={{ flex: 1, minWidth: 0, fontFamily: "'Manrope',sans-serif", fontSize: 13, fontWeight: 600, color: "var(--text-1)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          {m.name}
+        </span>
+        {m.unread > 0 && (
+          <span
+            style={{
+              width: 22,
+              height: 22,
+              flex: "none",
+              borderRadius: 999,
+              background: "var(--om-accent, #0088ff)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontFamily: "'Handjet',monospace",
+              fontSize: 12,
+              color: "#fff",
+            }}
+          >
+            {m.unread}
+          </span>
+        )}
+      </div>
+      {/* 3-line preview */}
       <span
         style={{
-          width: 32,
-          height: 32,
-          flex: "none",
-          borderRadius: "50%",
-          background: avatarColor(m.name || "?"),
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: 13,
-          fontWeight: 700,
-          color: "#fff",
+          fontFamily: "'Manrope',sans-serif",
+          fontSize: 14,
+          lineHeight: "100%",
+          color: "var(--text-3)",
+          display: "-webkit-box",
+          WebkitBoxOrient: "vertical",
+          WebkitLineClamp: 3,
+          overflow: "hidden",
         }}
       >
-        {(m.name || "?").slice(0, 1)}
+        {m.preview}
       </span>
-      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
-          <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-1)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{m.name}</span>
-          <span style={{ fontFamily: "'Handjet',monospace", fontSize: 11, color: "var(--text-4)", flex: "none" }}>{m.timestamp}</span>
-        </div>
-        <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 13, color: "var(--text-3)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-          {m.preview}
+      {/* footer: subtitle (e.g. gig title) + relative time */}
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
+        <span style={{ flex: 1, minWidth: 0, fontFamily: "'Manrope',sans-serif", fontSize: 12, color: "var(--text-1)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          {m.subtitle ?? ""}
         </span>
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, color: "var(--text-3)", flex: "none" }}>{m.timestamp}</span>
       </div>
     </Link>
   );
@@ -159,11 +212,13 @@ function MessageRow({ m }: { m: ConversationItemVM }) {
 
 export function DashboardDesign({ vm }: { vm: DashboardVM }) {
   const router = useRouter();
+  const params = useSearchParams();
   const [tab, setTab] = useState("all");
   const [q, setQ] = useState("");
   const isCompany = vm.role === "CLIENT";
   const isSpecialist = vm.role === "SPECIALIST";
-  const feed = tab === "all" ? vm.gigCards : vm.gigCards.filter((g) => g.filterKey === tab);
+  const tabbed = tab === "all" ? vm.gigCards : vm.gigCards.filter((g) => g.filterKey === tab);
+  const feed = applyGigFilters(tabbed, params); // header chips (category/budget/rating/sort) filter this feed too
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -180,6 +235,7 @@ export function DashboardDesign({ vm }: { vm: DashboardVM }) {
               img="/assets/design-system/welcome/welcome-person.png"
               imgStyle={{ right: -30, top: -12, width: 179, height: 240 }}
               onAction={() => router.push("/profile")}
+              actionIcon={<PencilIcon />}
             />
           )}
           {vm.onboarding[1] && (
@@ -187,7 +243,9 @@ export function DashboardDesign({ vm }: { vm: DashboardVM }) {
               card={vm.onboarding[1]}
               img="/assets/design-system/welcome/welcome-sheets.png"
               imgStyle={{ right: -20, top: -19, width: 226, height: 303 }}
-              onAction={() => router.push("/profile")}
+              onAction={() => router.push("/guide")}
+              titleFontSize={18}
+              titleLineHeight="normal"
             />
           )}
         </div>
@@ -239,12 +297,12 @@ export function DashboardDesign({ vm }: { vm: DashboardVM }) {
                       padding: "0 14px",
                       borderRadius: 8,
                       cursor: "pointer",
-                      background: active ? "var(--om-accent, #0088ff)" : "transparent",
-                      boxShadow: active ? "none" : "inset 0 0 0 1px var(--hairline-08)",
+                      background: active ? "var(--surface-secondary)" : "transparent",
+                      boxShadow: active ? "inset 0 0 0 1px var(--hairline-08)" : "inset 0 0 0 1px transparent",
                     }}
                   >
-                    <span style={{ fontSize: 14, color: active ? "#fff" : "var(--text-3)" }}>{t.label}</span>
-                    <span style={{ fontFamily: "'Handjet',monospace", fontSize: 14, color: active ? "#fff" : "var(--text-4)" }}>{t.count ?? 0}</span>
+                    <span style={{ fontSize: 14, color: active ? "var(--switch-active-fg, var(--text-1))" : "var(--text-3)" }}>{t.label}</span>
+                    <span style={{ fontFamily: "'Handjet',monospace", fontSize: 14, color: active ? "var(--om-accent, #0088ff)" : "var(--text-4)" }}>{t.count ?? 0}</span>
                   </div>
                 );
               })}
@@ -314,7 +372,7 @@ export function DashboardDesign({ vm }: { vm: DashboardVM }) {
                 gap: 14,
               }}
             >
-              <h2 style={h2}>Создайте новый гиг</h2>
+              <h2 style={h2}>Создайте первый гиг</h2>
               <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 14, lineHeight: "18px", color: "var(--text-3)" }}>Опишите бюджет, сроки и точный результат.</span>
               <Link
                 href="/gigs/new"

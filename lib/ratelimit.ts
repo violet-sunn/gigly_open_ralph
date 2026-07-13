@@ -121,8 +121,9 @@ class InMemoryRateLimiter {
 // Login: 15 attempts per 15 minutes (IP-based)
 export const loginRateLimiter = new InMemoryRateLimiter(15, 15 * 60 * 1000)
 
-// Registration: 3 attempts per 1 hour (IP-based)
-export const registerRateLimiter = new InMemoryRateLimiter(3, 60 * 60 * 1000)
+// Registration: 20 attempts per 1 hour (IP-based). Raised from 3 so a live demo/defense where several people
+// register from the same IP (and may fumble a weak password a couple times) doesn't lock the IP out for an hour.
+export const registerRateLimiter = new InMemoryRateLimiter(20, 60 * 60 * 1000)
 
 // Application submission: 10 applications per 1 hour (user-based)
 export const applicationRateLimiter = new InMemoryRateLimiter(10, 60 * 60 * 1000)

@@ -1,19 +1,17 @@
-/* @composed-screen */
 "use client";
 
-import { useActionState, useState } from "react";
+// /admin/users — the full paginated user management, transported to the console's row vocabulary (dashboard.admin has
+// no own table screen; its «Пользователи» rows ARE the target). Role/status filters (token selects → URL params) +
+// console-style rows (avatar · email · role·registration · status · block-via-confirm / unblock) over the kept
+// suspendUser/unsuspendUser actions. Pagination + count live in the page.
+
+import { useActionState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Section } from "@/app/components/layout/Section";
-import { Stack } from "@/app/components/layout/Stack";
-import { Select, Button, StatusBadge, Tag } from "@/app/components/primitives";
-import { DataTable, ApplyPanel, Notice } from "@/app/components/blocks";
 import { suspendUser, unsuspendUser } from "@/app/actions/moderation";
 import type { AdminUserRow } from "@/lib/view-models";
-
-type ActionState = { error?: string } | null;
-function useAction(fn: unknown) {
-  return useActionState<ActionState, FormData>(fn as never, null);
-}
+import { ConfirmAction } from "@/app/_design/ConfirmDialog";
+import { cardBase, h2, rowBase, smallBtn, StatusDot, Avatar, FilterSelect } from "../_parts";
+import "@/app/_design/tokens.css";
 
 const ROLE_OPTIONS = [
   { value: "", label: "Все роли" },
@@ -27,55 +25,35 @@ const STATUS_OPTIONS = [
   { value: "suspended", label: "Заблокированные" },
 ];
 
-/** Inline moderation action — a label button reveals an ApplyPanel reason field + a submit, wired to the kept action. */
-function ModerationAction({
-  field,
-  value,
-  reveal,
-  submitLabel,
-  action,
-}: {
-  field: string;
-  value: string;
-  reveal: string;
-  submitLabel: string;
-  action: unknown;
-}) {
-  const [state, formAction] = useAction(action);
-  const [open, setOpen] = useState(false);
-  if (!open) {
+function UserAction({ id, name, suspended }: { id: string; name: string; suspended: boolean }) {
+  const [, unsuspend] = useActionState(unsuspendUser as never, null);
+  if (suspended) {
     return (
-      <Button type="button" variant="secondary" onClick={() => setOpen(true)}>
-        {reveal}
-      </Button>
+      <form action={unsuspend as never}>
+        <input type="hidden" name="userId" value={id} />
+        <input type="hidden" name="reason" value="Модерация" />
+        <button type="submit" style={smallBtn("var(--surface-secondary)", "var(--text-2)")}>Разблокировать</button>
+      </form>
     );
   }
   return (
-    <form action={formAction}>
-      <input type="hidden" name={field} value={value} />
-      <ApplyPanel
-        vm={{
-          fields: [{ name: "reason", label: "Причина", multiline: true, required: true, placeholder: "Укажите причину" }],
-          submitLabel,
-        }}
-      />
-      {state?.error && <Notice tone="error">{state.error}</Notice>}
-    </form>
+    <ConfirmAction
+      action={suspendUser}
+      hidden={{ userId: id, reason: "Модерация" }}
+      buttonLabel="Заблокировать"
+      buttonStyle={smallBtn("rgba(239,68,68,0.14)", "#ef4444")}
+      title="Заблокировать пользователя?"
+      body={`«${name}» не сможет войти на платформу. Действие обратимо.`}
+      confirmLabel="Заблокировать"
+    />
   );
 }
 
-/**
- * AdminUsers — the /admin/users screen, composed purely from the kit (prove-extensibility-admin, the generativity
- * proof). Renders inside the admin AppShell. Role/status filters (Select → URL params) + a DataTable of users (Tag for
- * role, StatusBadge for active/suspended, inline suspend/unsuspend) over the kept moderation actions. Template + slotted
- * blocks/primitives only — no className/style/off-token literal. Pagination + the count live in the page (orchestration).
- */
 export function AdminUsers({ rows }: { rows: AdminUserRow[] }) {
   const router = useRouter();
   const params = useSearchParams();
   const role = params.get("role") ?? "";
   const status = params.get("status") ?? "";
-  const [open, setOpen] = useState<string | null>(null);
 
   const navigate = (next: { role?: string; status?: string }) => {
     const sp = new URLSearchParams();
@@ -86,56 +64,31 @@ export function AdminUsers({ rows }: { rows: AdminUserRow[] }) {
     router.push(`/admin/users${sp.toString() ? `?${sp}` : ""}`);
   };
 
-  const tableRows = rows.map((u) => ({
-    id: u.id,
-    cells: [
-      u.email,
-      <Tag key="role">{u.role}</Tag>,
-      <StatusBadge key="status" variant="pill" status={u.suspended ? "rejected" : "completed"}>
-        {u.suspended ? "Заблокирован" : "Активен"}
-      </StatusBadge>,
-      u.registered,
-      u.suspended ? (
-        <ModerationAction key="act" field="userId" value={u.id} reveal="Unsuspend" submitLabel="Unsuspend User" action={unsuspendUser} />
-      ) : (
-        <ModerationAction key="act" field="userId" value={u.id} reveal="Suspend" submitLabel="Suspend User" action={suspendUser} />
-      ),
-    ],
-  }));
-
   return (
-    <Section title="Пользователи" gap={6}>
-      <Stack axis="row" gap={3}>
-        <Select
-          options={ROLE_OPTIONS}
-          value={role}
-          placeholder="Все роли"
-          expanded={open === "role"}
-          onToggle={() => setOpen((o) => (o === "role" ? null : "role"))}
-          onSelect={(v) => {
-            setOpen(null);
-            navigate({ role: v });
-          }}
-          aria-label="Фильтр по роли"
-        />
-        <Select
-          options={STATUS_OPTIONS}
-          value={status}
-          placeholder="Все статусы"
-          expanded={open === "status"}
-          onToggle={() => setOpen((o) => (o === "status" ? null : "status"))}
-          onSelect={(v) => {
-            setOpen(null);
-            navigate({ status: v });
-          }}
-          aria-label="Фильтр по статусу"
-        />
-      </Stack>
-      <DataTable
-        columns={["Email", "Роль", "Статус", "Регистрация", "Действия"]}
-        rows={tableRows}
-        empty="Пользователи не найдены"
-      />
-    </Section>
+    <div style={cardBase}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <h2 style={h2}>Пользователи</h2>
+        <span style={{ flex: 1 }} />
+        <FilterSelect value={role} options={ROLE_OPTIONS} ariaLabel="Фильтр по роли" onChange={(v) => navigate({ role: v })} />
+        <FilterSelect value={status} options={STATUS_OPTIONS} ariaLabel="Фильтр по статусу" onChange={(v) => navigate({ status: v })} />
+      </div>
+      {rows.length > 0 ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {rows.map((u) => (
+            <div key={u.id} data-row="user" style={rowBase}>
+              <Avatar name={u.email} />
+              <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
+                <span style={{ fontSize: 14, color: "var(--text-1)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{u.email}</span>
+                <span style={{ fontFamily: "'Handjet',monospace", fontSize: 12, color: "var(--text-4)" }}>{u.role} · {u.registered}</span>
+              </div>
+              <StatusDot color={u.suspended ? "#ef4444" : "#34c759"} label={u.suspended ? "Заблокирован" : "Активен"} />
+              <UserAction id={u.id} name={u.email} suspended={u.suspended} />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 13, color: "var(--text-3)" }}>Пользователи не найдены.</span>
+      )}
+    </div>
   );
 }

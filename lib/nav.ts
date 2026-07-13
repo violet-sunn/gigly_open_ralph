@@ -45,20 +45,28 @@ export function buildSidebarNav(role: NavRole, counts: NavCounts = {}): SidebarN
  * admin shell builds the VM from this + `markActive`, exactly like the role-based nav.
  */
 export function buildAdminNav(): SidebarNavItemVM[] {
+  // «Модерация» is the moderation console (overview); «Споры» is the dedicated full dispute list (all statuses +
+  // filter); «Пользователи»/«Гиги» are the paginated management tables. The prototype only has the single console —
+  // the dispute list + tables are the app's management extensions (see transport-admin-console).
   return [
-    { icon: 'dashboard', label: 'Дашборд', href: '/admin', active: false },
+    { icon: 'dashboard', label: 'Модерация', href: '/admin', active: false },
+    { icon: 'disputes', label: 'Споры', href: '/admin/disputes', active: false },
     { icon: 'search', label: 'Пользователи', href: '/admin/users', active: false },
     { icon: 'my-gigs', label: 'Гиги', href: '/admin/gigs', active: false },
   ]
 }
 
 /**
- * Mark the nav item matching the current pathname as active. `/dashboard` matches exactly (it is a prefix of
- * other routes); every other item matches by path prefix.
+ * Mark the active nav item as the one whose href is the LONGEST match for the current pathname — either an exact
+ * match or a path-segment prefix (`href + '/'`). Longest-match ensures a parent route (e.g. `/admin`, which is a
+ * prefix of `/admin/users` and `/admin/gigs`) is active ONLY on itself, not on its children — so exactly one item
+ * highlights at a time.
  */
 export function markActive(items: SidebarNavItemVM[], pathname: string): SidebarNavItemVM[] {
-  return items.map((item) => ({
-    ...item,
-    active: item.href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(item.href),
-  }))
+  let best = ''
+  for (const item of items) {
+    const matches = pathname === item.href || pathname.startsWith(item.href + '/')
+    if (matches && item.href.length > best.length) best = item.href
+  }
+  return items.map((item) => ({ ...item, active: best !== '' && item.href === best }))
 }

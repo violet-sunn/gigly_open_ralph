@@ -111,6 +111,9 @@ test.describe('e2e-admin-console — moderation console', () => {
       .last()
     await row.getByRole('button', { name: 'Заблокировать' }).click()
 
+    // The captured destructive-confirm dialog opens — confirm to fire suspendUser.
+    await page.getByRole('dialog').getByRole('button', { name: 'Заблокировать' }).click()
+
     // suspendUser redirects to the old-kit /admin/users; re-visit the console to confirm the flipped row state.
     await page.waitForURL('**/admin/users')
     await page.goto('/admin')
@@ -134,6 +137,9 @@ test.describe('e2e-admin-console — moderation console', () => {
       .filter({ has: page.getByRole('button', { name: 'Закрыть' }) })
       .last()
     await gigRow.getByRole('button', { name: 'Закрыть' }).click()
+
+    // The destructive-confirm dialog opens — confirm to fire closeGig.
+    await page.getByRole('dialog').getByRole('button', { name: 'Закрыть' }).click()
 
     // closeGig redirects to the old-kit /admin/gigs; re-visit the console to confirm the gig is now closed.
     await page.waitForURL('**/admin/gigs')

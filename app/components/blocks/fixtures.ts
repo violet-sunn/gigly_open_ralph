@@ -422,7 +422,7 @@ export const messagesPanelFixture: MessagesPanelVM = {
 
 export const chatPanelFixture: ChatPanelVM = {
   thread: messageBubbleFixtures,
-  composer: { canAttach: true },
+  composer: { canAttach: true, canSend: true },
   header: chatHeaderFixture,
 };
 

@@ -5,8 +5,10 @@
 // The shell header supplies the «МОИ ГИГИ» title, so no in-content title here.
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import type { GigCardVM } from "@/app/components/blocks/view-models";
 import { GigCard } from "@/app/_design/GigCard";
+import { applyGigFilters } from "@/app/_design/util";
 import "@/app/_design/tokens.css";
 
 type Card = GigCardVM & { tabKey: string };
@@ -19,7 +21,9 @@ export function MyGigsDesign({
   tabs: { value: string; label: string; count?: number }[];
 }) {
   const [tab, setTab] = useState("all");
-  const feed = tab === "all" ? gigCards : gigCards.filter((g) => g.tabKey === tab);
+  const params = useSearchParams();
+  const tabbed = tab === "all" ? gigCards : gigCards.filter((g) => g.tabKey === tab);
+  const feed = applyGigFilters(tabbed, params); // header chips (category/budget/rating/sort) filter this feed too
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
@@ -38,12 +42,12 @@ export function MyGigsDesign({
                 padding: "0 14px",
                 borderRadius: 8,
                 cursor: "pointer",
-                background: active ? "var(--om-accent, #0088ff)" : "transparent",
-                boxShadow: active ? "none" : "inset 0 0 0 1px var(--hairline-08)",
+                background: active ? "var(--surface-secondary)" : "transparent",
+                boxShadow: active ? "inset 0 0 0 1px var(--hairline-08)" : "inset 0 0 0 1px transparent",
               }}
             >
-              <span style={{ fontSize: 14, color: active ? "#fff" : "var(--text-3)" }}>{t.label}</span>
-              <span style={{ fontFamily: "'Handjet',monospace", fontSize: 14, color: active ? "#fff" : "var(--text-4)" }}>{t.count ?? 0}</span>
+              <span style={{ fontSize: 14, color: active ? "var(--switch-active-fg, var(--text-1))" : "var(--text-3)" }}>{t.label}</span>
+              <span style={{ fontFamily: "'Handjet',monospace", fontSize: 14, color: active ? "var(--om-accent, #0088ff)" : "var(--text-4)" }}>{t.count ?? 0}</span>
             </div>
           );
         })}

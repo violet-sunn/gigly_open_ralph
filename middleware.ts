@@ -34,6 +34,12 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
 
+    // ADMIN has no CLIENT/SPECIALIST dashboard — send them to their home (the moderation console) so they are not
+    // mislabelled as a «Компания» user with no admin nav.
+    if (session.role === 'ADMIN' && pathname.startsWith('/dashboard')) {
+      return NextResponse.redirect(new URL('/admin', request.url))
+    }
+
     // Role-based access control for specific routes
     // Browse gigs page (exact match) - SPECIALIST only
     if (pathname === '/gigs') {
@@ -51,12 +57,15 @@ export async function middleware(request: NextRequest) {
   }
 
   // Login — redirect to dashboard if already logged in.
-  // NOTE: /register is intentionally NOT redirected for authenticated users: the design's two-phase onboarding
-  // creates the account at step 2, so the user is authenticated while still on /register completing step-3 setup
-  // (Auth.dc.html). Bouncing them to /dashboard would abort onboarding.
-  if (pathname === '/login') {
+  // Only bounce GET navigations. The auth surface is an in-surface state machine: starting on /login and choosing
+  // «Создать аккаунт» keeps the URL at /login through the whole two-phase onboarding, so the step-3 updateProfile
+  // Server Action POSTs to /login *while already authenticated* (the account is created at step 2). Redirecting that
+  // POST returns a 307 in place of the action result → the client throws «An unexpected response was received from
+  // the server». Server Actions are POST, so gating on GET lets them through while still bouncing real page visits.
+  // (/register is likewise not matched here for the same onboarding reason.)
+  if (pathname === '/login' && request.method === 'GET') {
     if (session) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
+      return NextResponse.redirect(new URL(session.role === 'ADMIN' ? '/admin' : '/dashboard', request.url))
     }
   }
 

@@ -247,6 +247,31 @@ describe('Notification System', () => {
       expect(notifications[0].gigTitle).toBe('Gig 2') // Most recent first
       expect(notifications[1].gigTitle).toBe('Gig 1')
     })
+
+    it('respects the notification preference — a disabled type is hidden from the bell (reversibly)', async () => {
+      const client = await createTestUser(prisma, { role: 'CLIENT' })
+      const specialist = await createTestUser(prisma, { role: 'SPECIALIST' })
+      const gig = await createTestGig(prisma, {
+        clientId: client.id,
+        assignedSpecialistId: specialist.id,
+        status: 'IN_PROGRESS',
+      })
+      await createTestMessage(prisma, { gigId: gig.id, senderId: specialist.id, content: 'Hi' })
+
+      // Default ON → the message shows in the bell.
+      const before = await withAuthContext(client, () => getUnreadNotifications())
+      expect(before).toHaveLength(1)
+
+      // Disable «Новые сообщения в чатах» → display-time gating drops it (no rows removed).
+      await prisma.user.update({ where: { id: client.id }, data: { notifyMessages: false } })
+      const after = await withAuthContext(client, () => getUnreadNotifications())
+      expect(after).toHaveLength(0)
+
+      // Re-enable → it returns, proving the gating is reversible.
+      await prisma.user.update({ where: { id: client.id }, data: { notifyMessages: true } })
+      const restored = await withAuthContext(client, () => getUnreadNotifications())
+      expect(restored).toHaveLength(1)
+    })
   })
 
   describe('getUnreadCount', () => {

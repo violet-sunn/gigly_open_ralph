@@ -8,6 +8,10 @@ import { prisma } from '@/lib/prisma'
 export const LOCALES = ['ru', 'en'] as const // RU default
 export const isLocale = (s: string): boolean => (LOCALES as readonly string[]).includes(s)
 
+// transport-settings — «Валюта получения выплат» (Платежные данные). RUB default.
+export const CURRENCIES = ['rub', 'usd', 'eur'] as const
+export const isCurrency = (s: string): boolean => (CURRENCIES as readonly string[]).includes(s)
+
 export interface Preferences {
   locale: string
   notifyApplications: boolean
@@ -17,6 +21,10 @@ export interface Preferences {
   notifyPayments: boolean
   showRatingInProfile: boolean
   showOnlineStatus: boolean
+  // transport-settings — currency + the two extra Email-уведомления toggles (platform news / new gigs).
+  currency: string
+  notifyPlatformNews: boolean
+  notifyNewGigs: boolean
 }
 
 /** The default preferences (mirror the schema @default(true) + RU locale) — used when a user row is absent. */
@@ -28,6 +36,9 @@ export const DEFAULT_PREFERENCES: Preferences = {
   notifyPayments: true,
   showRatingInProfile: true,
   showOnlineStatus: true,
+  currency: 'rub',
+  notifyPlatformNews: true,
+  notifyNewGigs: true,
 }
 
 /**
@@ -44,6 +55,9 @@ export async function getPreferences(userId: string): Promise<Preferences | null
       notifyPayments: true,
       showRatingInProfile: true,
       showOnlineStatus: true,
+      currency: true,
+      notifyPlatformNews: true,
+      notifyNewGigs: true,
     },
   })
   return u ?? null

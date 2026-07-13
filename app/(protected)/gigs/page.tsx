@@ -5,25 +5,11 @@ import { Suspense } from 'react'
 import { GigSearchDesign } from './GigSearchDesign'
 import PaginationControls from '@/app/components/PaginationControls'
 import { getGigSearch } from '@/lib/view-models'
-import { CATEGORIES, isCategorySlug } from '@/lib/categories'
-import type { SelectOption } from '@/app/components/primitives'
+import { isCategorySlug } from '@/lib/categories'
 
 const PAGE_SIZE = 25
-
-const categoryOptions: SelectOption[] = [
-  { value: '', label: 'Все категории' },
-  ...CATEGORIES.map((c) => ({ value: c.slug, label: c.name })),
-]
-const sortOptions: SelectOption[] = [
-  { value: 'newest', label: 'Сначала новые' },
-  { value: 'budget-desc', label: 'Дороже' },
-  { value: 'budget-asc', label: 'Дешевле' },
-]
-const ratingOptions: SelectOption[] = [
-  { value: '', label: 'Любой рейтинг' },
-  { value: '4', label: '4★ и выше' },
-  { value: '3', label: '3★ и выше' },
-]
+// The browse filter chips (category / budget / sort / rating) live in the shared shell header (AppShellDesign), which
+// owns their option sets + URL-param wiring; this page only reads those params to build the query.
 
 export default async function GigBrowsePage({
   searchParams,
@@ -159,12 +145,7 @@ export default async function GigBrowsePage({
   return (
     <>
       <Suspense fallback={null}>
-        <GigSearchDesign
-          data={data}
-          categoryOptions={categoryOptions}
-          sortOptions={sortOptions}
-          ratingOptions={ratingOptions}
-        />
+        <GigSearchDesign data={data} />
       </Suspense>
       {totalPages > 1 && (
         <Suspense fallback={<div className="h-10" />}>

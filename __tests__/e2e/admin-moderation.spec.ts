@@ -132,9 +132,9 @@ test.describe('Admin Moderation E2E', () => {
       }
     ])
 
-    // Verify authentication by navigating to dashboard
-    await page.goto('http://localhost:3000/dashboard')
-    await expect(page).toHaveURL(/\/dashboard/)
+    // Verify authentication — an ADMIN's home is the moderation console (/dashboard redirects ADMINs to /admin).
+    await page.goto('http://localhost:3000/admin')
+    await expect(page).toHaveURL(/\/admin/)
 
     console.log(`✓ Admin authenticated successfully`)
 
@@ -146,23 +146,17 @@ test.describe('Admin Moderation E2E', () => {
     await page.waitForLoadState('networkidle')
     await expect(page).toHaveURL(/\/admin\/users/)
 
-    // Find the specialist user row by email
-    const specialistRow = page.locator(`tr:has-text("${specialistEmail}")`)
+    // Find the specialist user row by email (transported row markup — div rows, not a table)
+    const specialistRow = page.locator('[data-row="user"]').filter({ hasText: specialistEmail })
     await expect(specialistRow).toBeVisible()
 
-    // Click the "Suspend" button to open modal
-    await specialistRow.locator('button:has-text("Suspend")').click()
+    // Click the row's «Заблокировать» → the captured destructive-confirm dialog opens (no reason field; hardcoded reason)
+    await specialistRow.getByRole('button', { name: 'Заблокировать' }).click()
 
-    // Wait for modal to appear
-    await page.waitForSelector('textarea[name="reason"]', { state: 'visible' })
-
-    // Fill suspend reason
-    await page.fill('textarea[name="reason"]', 'Нарушение правил платформы')
-
-    // Click "Suspend User" button in modal and wait for navigation
+    // Confirm in the dialog and wait for the action to complete
     await Promise.all([
       page.waitForURL(/\/admin\/users/, { timeout: 10000 }),
-      page.click('button:has-text("Suspend User")')
+      page.getByRole('dialog').getByRole('button', { name: 'Заблокировать' }).click()
     ])
 
     // Wait for page to fully load
@@ -188,7 +182,7 @@ test.describe('Admin Moderation E2E', () => {
       }
     })
     expect(suspendLog).toBeTruthy()
-    expect(suspendLog?.reason).toContain('Нарушение правил платформы')
+    expect(suspendLog?.reason).toContain('Модерация')
 
     console.log(`✓ User suspended successfully`)
     console.log(`✓ ModerationLog entry created for SUSPEND_USER`)
@@ -230,9 +224,9 @@ test.describe('Admin Moderation E2E', () => {
     await page.fill('input[name="password"]', adminPassword)
     await page.click('button[type="submit"]')
 
-    // Wait for redirect to dashboard
-    await page.waitForURL(/\/dashboard/)
-    await expect(page).toHaveURL(/\/dashboard/)
+    // Wait for redirect to the admin's home (login routes ADMINs to /admin, not /dashboard)
+    await page.waitForURL(/\/admin/)
+    await expect(page).toHaveURL(/\/admin/)
 
     console.log(`✓ Admin re-authenticated successfully`)
 
@@ -244,23 +238,17 @@ test.describe('Admin Moderation E2E', () => {
     await page.waitForLoadState('networkidle')
     await expect(page).toHaveURL(/\/admin\/gigs/)
 
-    // Find the gig row by title
-    const gigRow = page.locator(`tr:has-text("${gig.title}")`)
+    // Find the gig row by title (transported row markup — div rows, not a table)
+    const gigRow = page.locator('[data-row="gig"]').filter({ hasText: gig.title })
     await expect(gigRow).toBeVisible()
 
-    // Click the "Close" button to open modal
-    await gigRow.locator('button:has-text("Close")').click()
+    // Click the row's «Закрыть» → the destructive-confirm dialog opens (no reason field; hardcoded reason)
+    await gigRow.getByRole('button', { name: 'Закрыть' }).click()
 
-    // Wait for modal to appear
-    await page.waitForSelector('textarea[name="reason"]', { state: 'visible' })
-
-    // Fill close reason
-    await page.fill('textarea[name="reason"]', 'Нарушение условий платформы')
-
-    // Click "Close Gig" button in modal and wait for navigation
+    // Confirm in the dialog and wait for the action to complete
     await Promise.all([
       page.waitForURL(/\/admin\/gigs/, { timeout: 10000 }),
-      page.click('button:has-text("Close Gig")')
+      page.getByRole('dialog').getByRole('button', { name: 'Закрыть' }).click()
     ])
 
     // Wait for page to fully load
@@ -287,7 +275,7 @@ test.describe('Admin Moderation E2E', () => {
       }
     })
     expect(closeLog).toBeTruthy()
-    expect(closeLog?.reason).toContain('Нарушение условий платформы')
+    expect(closeLog?.reason).toContain('Закрыт модератором')
 
     console.log(`✓ Gig closed successfully`)
     console.log(`✓ ModerationLog entry created for CLOSE_GIG`)
@@ -308,13 +296,13 @@ test.describe('Admin Moderation E2E', () => {
     const suspendLogVerify = moderationLogs.find(log => log.action === 'SUSPEND_USER')
     expect(suspendLogVerify).toBeTruthy()
     expect(suspendLogVerify?.targetUserId).toBe(specialist.id)
-    expect(suspendLogVerify?.reason).toContain('Нарушение правил платформы')
+    expect(suspendLogVerify?.reason).toContain('Модерация')
 
     // Verify CLOSE_GIG log
     const closeLogVerify = moderationLogs.find(log => log.action === 'CLOSE_GIG')
     expect(closeLogVerify).toBeTruthy()
     expect(closeLogVerify?.targetGigId).toBe(gig.id)
-    expect(closeLogVerify?.reason).toContain('Нарушение условий платформы')
+    expect(closeLogVerify?.reason).toContain('Закрыт модератором')
 
     console.log(`✓ Moderation history verified: ${moderationLogs.length} log entries`)
 

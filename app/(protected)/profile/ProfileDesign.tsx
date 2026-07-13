@@ -2,17 +2,34 @@
 
 // «Профиль» rebuilt on the prototype's profile blocks (Gigly App.dc.html line 309+ specialist, 407+ company): the ID
 // card (avatar + name + role + verified/since OR company реквизиты) then, for a SPECIALIST, the 2-col BLOCK — Стек,
-// Опыт (bio + experience), Избранные категории, Реализованные проекты (design GigCards). Owner edit pencils →
-// /profile/edit (the existing edit form). The shell header supplies the «ПРОФИЛЬ» title.
+// Опыт (bio + experience), Избранные категории, Реализованные проекты (design GigCards). Owner edit pencils open the
+// prototype's in-place edit modals (bio / cats / stack / company requisites), wired to updateProfile +
+// setFavoriteCategories — there is no standalone edit screen. The shell header supplies the «ПРОФИЛЬ» title.
 
+import { useState, useEffect, useActionState } from "react";
 import { useRouter } from "next/navigation";
 import type { ProfileData } from "@/lib/view-models";
+import { updateProfile } from "@/app/actions/profile";
+import { setFavoriteCategories } from "@/app/actions/category";
 import { GigCard } from "@/app/_design/GigCard";
-import { CAT_RGB, PatchIcon } from "@/app/_design/util";
+import { CAT_RGB, PatchIcon, tagRgb } from "@/app/_design/util";
 import "@/app/_design/tokens.css";
 
 const card: React.CSSProperties = { borderRadius: 8, background: "var(--surface-card)", padding: 20, display: "flex", flexDirection: "column", gap: 16 };
 const blockH2: React.CSSProperties = { fontFamily: "'Handjet',monospace", fontWeight: 600, fontSize: 22, color: "var(--text-1)" };
+const nameStyle: React.CSSProperties = { fontFamily: "'Manrope',sans-serif", fontWeight: 500, fontSize: 32, lineHeight: "36px", color: "var(--text-1)" };
+const roleTagStyle: React.CSSProperties = { alignSelf: "flex-start", fontFamily: "'Handjet',monospace", fontSize: 16, background: "#fff", color: "#0066cc", padding: "1px 6px", whiteSpace: "nowrap" };
+const sinceStyle: React.CSSProperties = { fontFamily: "'Handjet',monospace", fontSize: 13, color: "#9fa0a4" };
+
+// ---- edit modals (transported from the prototype's profile overlays) -------------------------------------------
+const overlay: React.CSSProperties = { position: "fixed", inset: 0, zIndex: 95, background: "rgba(1,3,14,0.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 };
+const cardOf = (w: number): React.CSSProperties => ({ width: w, maxWidth: "100%", borderRadius: 14, background: "var(--surface-card)", boxShadow: "inset 0 0 0 1px var(--hairline-10), 0 20px 60px rgba(0,0,0,0.6)", padding: 24, display: "flex", flexDirection: "column", gap: 16, boxSizing: "border-box" });
+const modalTitle: React.CSSProperties = { margin: 0, fontFamily: "'Handjet',monospace", fontWeight: 600, fontSize: 22, color: "var(--text-1)" };
+const fieldInput: React.CSSProperties = { height: 44, padding: "0 14px", borderRadius: 8, background: "var(--surface-sunken)", boxShadow: "inset 0 0 0 1px var(--hairline-08)", border: "none", outline: "none", color: "var(--text-1)", fontFamily: "'Manrope',sans-serif", fontSize: 14, width: "100%", boxSizing: "border-box" };
+const textareaStyle: React.CSSProperties = { height: 160, resize: "none", padding: 14, borderRadius: 8, background: "var(--surface-sunken)", boxShadow: "inset 0 0 0 1px var(--hairline-08)", border: "none", outline: "none", color: "var(--text-1)", fontFamily: "'Manrope',sans-serif", fontSize: 14, lineHeight: "20px", width: "100%", boxSizing: "border-box" };
+const saveBtn: React.CSSProperties = { height: 44, border: "none", borderRadius: 8, background: "var(--om-accent, #0088ff)", color: "#fff", fontSize: 15, fontWeight: 500, cursor: "pointer" };
+const fieldLabel: React.CSSProperties = { fontFamily: "'Handjet',monospace", fontSize: 13, color: "var(--text-4)" };
+const errStyle: React.CSSProperties = { fontFamily: "'Manrope',sans-serif", fontSize: 12, color: "#ef4444" };
 
 function Pencil({ onClick }: { onClick?: () => void }) {
   if (!onClick) return null;
@@ -25,9 +42,206 @@ function Pencil({ onClick }: { onClick?: () => void }) {
   );
 }
 
-export function ProfileDesign({ data }: { data: ProfileData }) {
+function GlobeIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m7.5-6.923c-.67.204-1.335.82-1.887 1.855A8 8 0 0 0 5.145 4H7.5zM4.09 4a9.3 9.3 0 0 1 .64-1.539 7 7 0 0 1 .597-.933A7.03 7.03 0 0 0 2.255 4zm-.582 3.5c.03-.877.138-1.718.312-2.5H1.674a7 7 0 0 0-.656 2.5zM4.847 5a18 18 0 0 0-.338 2.5H7.5V5zM8.5 5v2.5h2.99a18 18 0 0 0-.338-2.5zM4.51 8.5a18 18 0 0 0 .337 2.5H7.5V8.5zm3.99 0V11h2.653c.187-.765.306-1.608.338-2.5zM5.145 12q.208.58.468 1.068c.552 1.035 1.218 1.65 1.887 1.855V12zm.182 2.472a7 7 0 0 1-.597-.933A9.3 9.3 0 0 1 4.09 12H2.255a7 7 0 0 0 3.072 2.472M3.82 11a13.7 13.7 0 0 1-.312-2.5h-1.49c.062.89.291 1.733.656 2.5zm6.853 3.472A7 7 0 0 0 13.745 12H11.91a9.3 9.3 0 0 1-.64 1.539 7 7 0 0 1-.597.933M8.5 12v2.923c.67-.204 1.335-.82 1.887-1.855q.26-.487.468-1.068zm3.68-1h2.146c.365-.767.594-1.61.656-2.5h-1.49a13.7 13.7 0 0 1-.312 2.5m2.802-3.5a7 7 0 0 0-.656-2.5H12.18c.174.782.282 1.623.312 2.5zM11.27 2.461c.247.464.462.98.64 1.539h1.835a7 7 0 0 0-3.072-2.472q.317.435.597.933M10.855 4a8 8 0 0 0-.468-1.068C9.835 1.897 9.17 1.282 8.5 1.077V4z" />
+    </svg>
+  );
+}
+
+function ModalHeader({ title, onClose }: { title: string; onClose: () => void }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <h2 style={modalTitle}>{title}</h2>
+      <span onClick={onClose} style={{ color: "var(--text-4)", cursor: "pointer", fontSize: 14 }}>✕</span>
+    </div>
+  );
+}
+
+// Round-trip every field the action's full-record upsert touches EXCEPT the ones this modal edits, so a save doesn't
+// blank the siblings. `noRedirect` keeps updateProfile in-place (the modal refreshes + closes client-side instead).
+function HiddenFields({ fields, omit }: { fields: Record<string, string>; omit: string[] }) {
+  return (
+    <>
+      {Object.entries(fields)
+        .filter(([k]) => !omit.includes(k))
+        .map(([k, v]) => (
+          <input key={k} type="hidden" name={k} value={v} />
+        ))}
+      <input type="hidden" name="noRedirect" value="true" />
+    </>
+  );
+}
+
+function BioModal({ fields, onClose }: { fields: Record<string, string>; onClose: () => void }) {
   const router = useRouter();
-  const edit = data.isOwner ? () => router.push("/profile/edit?from=profile") : undefined;
+  const [state, action, pending] = useActionState(updateProfile, null);
+  useEffect(() => {
+    if (state?.success) {
+      onClose();
+      router.refresh();
+    }
+  }, [state, onClose, router]);
+  return (
+    <div style={overlay} onClick={onClose}>
+      <form action={action} onClick={(e) => e.stopPropagation()} style={cardOf(520)}>
+        <ModalHeader title="Редактировать описание" onClose={onClose} />
+        <HiddenFields fields={fields} omit={["bio"]} />
+        <textarea name="bio" defaultValue={fields.bio ?? ""} placeholder="Расскажите о специализации и опыте…" style={textareaStyle} />
+        {state?.error && <span style={errStyle}>{state.error}</span>}
+        <button type="submit" disabled={pending} style={saveBtn}>Сохранить</button>
+      </form>
+    </div>
+  );
+}
+
+function StackModal({ fields, onClose }: { fields: Record<string, string>; onClose: () => void }) {
+  const router = useRouter();
+  const [state, action, pending] = useActionState(updateProfile, null);
+  const [tags, setTags] = useState<string[]>(() => (fields.techStack ?? "").split(",").map((t) => t.trim()).filter(Boolean));
+  const [draft, setDraft] = useState("");
+  useEffect(() => {
+    if (state?.success) {
+      onClose();
+      router.refresh();
+    }
+  }, [state, onClose, router]);
+  const add = () => {
+    const t = draft.trim();
+    if (t && !tags.includes(t)) setTags([...tags, t]);
+    setDraft("");
+  };
+  return (
+    <div style={overlay} onClick={onClose}>
+      <form action={action} onClick={(e) => e.stopPropagation()} style={cardOf(460)}>
+        <ModalHeader title="Редактировать стек" onClose={onClose} />
+        <HiddenFields fields={fields} omit={["techStack"]} />
+        <input type="hidden" name="techStack" value={tags.join(",")} />
+        <div style={{ display: "flex", gap: 8 }}>
+          <input
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                add();
+              }
+            }}
+            placeholder="Добавить технологию и Enter"
+            style={{ ...fieldInput, flex: 1, minWidth: 0 }}
+          />
+          <button type="button" onClick={add} style={{ flex: "0 0 auto", height: 44, padding: "0 18px", border: "none", borderRadius: 8, background: "var(--om-accent, #0088ff)", color: "#fff", fontSize: 14, fontWeight: 500, cursor: "pointer" }}>
+            Добавить
+          </button>
+        </div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {tags.map((t, i) => {
+            const rgb = tagRgb(t);
+            return (
+              <span key={i} onClick={() => setTags(tags.filter((_, j) => j !== i))} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: `rgb(${rgb})`, background: `rgba(${rgb},0.12)`, borderRadius: 6, padding: "5px 12px", cursor: "pointer" }}>
+                {t}
+                <span style={{ color: "var(--text-4)" }}>✕</span>
+              </span>
+            );
+          })}
+        </div>
+        {state?.error && <span style={errStyle}>{state.error}</span>}
+        <button type="submit" disabled={pending} style={saveBtn}>Сохранить</button>
+      </form>
+    </div>
+  );
+}
+
+function CatsModal({ categories, onClose }: { categories: { slug: string; label: string; favorite: boolean }[]; onClose: () => void }) {
+  const router = useRouter();
+  const [state, action, pending] = useActionState(setFavoriteCategories, null);
+  const [sel, setSel] = useState<Set<string>>(() => new Set(categories.filter((c) => c.favorite).map((c) => c.slug)));
+  useEffect(() => {
+    if (state?.success) {
+      onClose();
+      router.refresh();
+    }
+  }, [state, onClose, router]);
+  const toggle = (slug: string) =>
+    setSel((prev) => {
+      const n = new Set(prev);
+      if (n.has(slug)) n.delete(slug);
+      else n.add(slug);
+      return n;
+    });
+  return (
+    <div style={overlay} onClick={onClose}>
+      <form action={action} onClick={(e) => e.stopPropagation()} style={cardOf(460)}>
+        <ModalHeader title="Избранные категории" onClose={onClose} />
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 13, color: "var(--text-4)" }}>Выберите направления, в которых работаете.</span>
+        {[...sel].map((s) => (
+          <input key={s} type="hidden" name="categories" value={s} />
+        ))}
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {categories.map((c) => {
+            const rgb = CAT_RGB[c.slug] ?? "0,136,255";
+            const on = sel.has(c.slug);
+            return (
+              <div key={c.slug} onClick={() => toggle(c.slug)} style={{ padding: "8px 16px", borderRadius: 8, cursor: "pointer", fontSize: 14, color: on ? `rgb(${rgb})` : "var(--text-3)", background: on ? `rgba(${rgb},0.15)` : "transparent", boxShadow: on ? `rgba(${rgb},0.6) 0 0 0 1px inset` : "inset 0 0 0 1px var(--hairline-10)" }}>
+                {c.label}
+              </div>
+            );
+          })}
+        </div>
+        {state?.error && <span style={errStyle}>{state.error}</span>}
+        <button type="submit" disabled={pending} style={saveBtn}>Сохранить</button>
+      </form>
+    </div>
+  );
+}
+
+function CompanyModal({ fields, onClose }: { fields: Record<string, string>; onClose: () => void }) {
+  const router = useRouter();
+  const [state, action, pending] = useActionState(updateProfile, null);
+  useEffect(() => {
+    if (state?.success) {
+      onClose();
+      router.refresh();
+    }
+  }, [state, onClose, router]);
+  return (
+    <div style={overlay} onClick={onClose}>
+      <form action={action} onClick={(e) => e.stopPropagation()} style={cardOf(520)}>
+        <ModalHeader title="Редактировать реквизиты" onClose={onClose} />
+        <HiddenFields fields={fields} omit={["companyName", "inn", "kpp", "about"]} />
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <span style={fieldLabel}>Название компании</span>
+          <input name="companyName" defaultValue={fields.companyName ?? ""} style={fieldInput} />
+        </div>
+        <div style={{ display: "flex", gap: 12 }}>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+            <span style={fieldLabel}>ИНН</span>
+            <input name="inn" defaultValue={fields.inn ?? ""} style={fieldInput} />
+          </div>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+            <span style={fieldLabel}>КПП</span>
+            <input name="kpp" defaultValue={fields.kpp ?? ""} style={fieldInput} />
+          </div>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <span style={fieldLabel}>О компании</span>
+          <textarea name="about" defaultValue={fields.about ?? ""} placeholder="Коротко о компании и задачах…" style={textareaStyle} />
+        </div>
+        {state?.error && <span style={errStyle}>{state.error}</span>}
+        <button type="submit" disabled={pending} style={saveBtn}>Сохранить</button>
+      </form>
+    </div>
+  );
+}
+
+type ModalKey = "bio" | "cats" | "stack" | "company";
+
+export function ProfileDesign({ data }: { data: ProfileData }) {
+  const [modal, setModal] = useState<ModalKey | null>(null);
+  const owner = data.isOwner;
+  const fields = data.editFields ?? {};
+  const open = (k: ModalKey) => (owner ? () => setModal(k) : undefined);
   const h = data.header;
   const initials = h.name.split(/\s+/).map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase() || "?";
 
@@ -60,26 +274,55 @@ export function ProfileDesign({ data }: { data: ProfileData }) {
         </div>
 
         <div style={{ flex: 1, minWidth: 0, display: "flex", gap: 24, alignItems: "stretch", padding: "12px 0" }}>
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 12, padding: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <span style={{ fontFamily: "'Manrope',sans-serif", fontWeight: 500, fontSize: 32, lineHeight: "36px", color: "var(--text-1)" }}>{h.name}</span>
-              <Pencil onClick={edit} />
-            </div>
-            <span style={{ alignSelf: "flex-start", fontFamily: "'Handjet',monospace", fontSize: 16, background: "#fff", color: "#0066cc", padding: "1px 6px", whiteSpace: "nowrap" }}>{h.roleTag}</span>
-            {data.role === "SPECIALIST" && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 4 }}>
+          {data.role === "SPECIALIST" ? (
+            // Specialist: name+roleTag pinned top, verified+since pushed to the bottom (no name pencil — name/level
+            // are onboarding-time fields not exposed for inline editing; the card edits are Стек/Опыт/Категории).
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 24, padding: 12 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <span style={nameStyle}>{h.name}</span>
+                <span style={roleTagStyle}>{h.roleTag}</span>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {h.verified && (
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <span style={{ color: "var(--om-accent, #0088ff)", display: "flex", flex: "none" }}>
                       <PatchIcon size={16} />
                     </span>
-                    <span style={{ fontFamily: "'Handjet',monospace", fontSize: 13, color: "#9fa0a4" }}>Номер телефона верифицирован</span>
+                    <span style={sinceStyle}>Номер телефона верифицирован</span>
                   </div>
                 )}
-                <span style={{ fontFamily: "'Handjet',monospace", fontSize: 13, color: "#9fa0a4" }}>На платформе с {h.memberSince}</span>
+                {h.timezone && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ color: "var(--text-3)", display: "flex", flex: "none" }}>
+                      <GlobeIcon size={16} />
+                    </span>
+                    <span style={sinceStyle}>{h.timezone}</span>
+                  </div>
+                )}
+                <span style={sinceStyle}>На платформе с {h.memberSince}</span>
               </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            // Company: name (with requisites pencil) + role tag + the «О компании» about paragraph.
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 12, padding: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <span style={nameStyle}>{h.name}</span>
+                <Pencil onClick={open("company")} />
+              </div>
+              <span style={roleTagStyle}>{h.roleTag}</span>
+              {h.timezone && (
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ color: "var(--text-3)", display: "flex", flex: "none" }}>
+                    <GlobeIcon size={16} />
+                  </span>
+                  <span style={sinceStyle}>{h.timezone}</span>
+                </div>
+              )}
+              {data.company?.about && (
+                <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 14, lineHeight: "19px", color: "var(--text-3)", maxWidth: 420 }}>{data.company.about}</span>
+              )}
+            </div>
+          )}
 
           {data.role === "SPECIALIST" ? (
             <div style={{ flex: 1, borderRadius: 12, background: "radial-gradient(380px 475px at 50% 50%, rgba(0,136,255,0.3) 0%, rgba(255,255,255,0) 100%), var(--hairline-05)", boxShadow: "inset 0 0 0 1px var(--hairline-10)", display: "flex", flexDirection: "column", gap: 12, justifyContent: "center", alignItems: "center", padding: 24, textAlign: "center" }}>
@@ -110,13 +353,16 @@ export function ProfileDesign({ data }: { data: ProfileData }) {
             <div style={card}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <span style={blockH2}>Стек</span>
-                <Pencil onClick={edit} />
+                <Pencil onClick={open("stack")} />
               </div>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 {data.stack.tags.length > 0 ? (
-                  data.stack.tags.map((t, i) => (
-                    <span key={i} style={{ fontSize: 13, color: "#4ea3ff", background: "rgba(0,136,255,0.1)", borderRadius: 6, padding: "5px 12px" }}>{t.label}</span>
-                  ))
+                  data.stack.tags.map((t, i) => {
+                    const rgb = tagRgb(t.label);
+                    return (
+                      <span key={i} style={{ fontSize: 13, color: `rgb(${rgb})`, background: `rgba(${rgb},0.12)`, borderRadius: 6, padding: "5px 12px" }}>{t.label}</span>
+                    );
+                  })
                 ) : (
                   <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 13, color: "var(--text-4)" }}>Стек не указан.</span>
                 )}
@@ -126,7 +372,7 @@ export function ProfileDesign({ data }: { data: ProfileData }) {
             <div style={card}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <span style={blockH2}>Опыт</span>
-                <Pencil onClick={edit} />
+                <Pencil onClick={open("bio")} />
               </div>
               {data.experience.bio && (
                 <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 14, lineHeight: "18px", color: "var(--text-3)", whiteSpace: "pre-line" }}>{data.experience.bio}</span>
@@ -152,7 +398,7 @@ export function ProfileDesign({ data }: { data: ProfileData }) {
             <div style={card}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <span style={blockH2}>Избранные категории</span>
-                <Pencil onClick={edit} />
+                <Pencil onClick={open("cats")} />
               </div>
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                 {data.categories.categories.filter((c) => c.favorite).length > 0 ? (
@@ -183,6 +429,12 @@ export function ProfileDesign({ data }: { data: ProfileData }) {
           </div>
         </div>
       )}
+
+      {/* edit modals (owner only) */}
+      {modal === "bio" && <BioModal fields={fields} onClose={() => setModal(null)} />}
+      {modal === "stack" && <StackModal fields={fields} onClose={() => setModal(null)} />}
+      {modal === "cats" && data.categories && <CatsModal categories={data.categories.categories} onClose={() => setModal(null)} />}
+      {modal === "company" && <CompanyModal fields={fields} onClose={() => setModal(null)} />}
     </div>
   );
 }

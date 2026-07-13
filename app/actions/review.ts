@@ -24,7 +24,7 @@ export async function leaveReview(
   const rawComment = (formData.get('comment') as string) ?? ''
 
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
-    return { error: 'Please choose a rating from 1 to 5 stars.' }
+    return { error: 'Выберите оценку от 1 до 5 звёзд.' }
   }
 
   const comment = sanitizeInput(rawComment).trim()
@@ -34,11 +34,11 @@ export async function leaveReview(
 
   const gig = await prisma.gig.findUnique({ where: { id: gigId } })
   if (!gig) {
-    return { error: 'This gig no longer exists or has been removed.' }
+    return { error: 'Этот гиг больше не существует или был удалён.' }
   }
 
   if (gig.status !== 'COMPLETED' && gig.status !== 'PAID') {
-    return { error: 'You can only leave a review once the gig is completed.' }
+    return { error: 'Оставить отзыв можно только после завершения гига.' }
   }
 
   // The author must be a party; the target is the counterparty.
@@ -48,11 +48,11 @@ export async function leaveReview(
   } else if (gig.assignedSpecialistId === session.userId) {
     targetId = gig.clientId
   } else {
-    return { error: 'Only the client or the assigned specialist can review this gig.' }
+    return { error: 'Оставить отзыв может только заказчик или назначенный специалист.' }
   }
 
   if (!targetId) {
-    return { error: 'This gig has no counterparty to review.' }
+    return { error: 'По этому гигу некого оценивать.' }
   }
 
   // One review per author per gig (also enforced by @@unique([gigId, authorId])).
@@ -60,7 +60,7 @@ export async function leaveReview(
     where: { gigId_authorId: { gigId, authorId: session.userId } },
   })
   if (existing) {
-    return { error: 'You have already reviewed this gig.' }
+    return { error: 'Вы уже оставили отзыв по этому гигу.' }
   }
 
   await prisma.review.create({

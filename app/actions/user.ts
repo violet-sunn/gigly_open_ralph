@@ -15,7 +15,7 @@ export async function dismissGuidance(
 
   // Validate type parameter
   if (type !== 'gigCreation' && type !== 'application') {
-    return { error: 'Invalid guidance type. Please contact support if you see this error.' };
+    return { error: 'Некорректный тип подсказки. Если видите эту ошибку — обратитесь в поддержку.' };
   }
 
   try {
@@ -33,6 +33,6 @@ export async function dismissGuidance(
     return {};
   } catch (error) {
     console.error('Error dismissing guidance:', error);
-    return { error: 'Failed to dismiss guidance. Please try again. If the problem persists, contact support.' };
+    return { error: 'Не удалось скрыть подсказку. Попробуйте ещё раз; если проблема повторяется — обратитесь в поддержку.' };
   }
 }

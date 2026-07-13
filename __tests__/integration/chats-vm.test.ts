@@ -16,7 +16,7 @@ vi.mock('next/navigation', () => ({
   }),
 }))
 
-import { getConversations, getChatThread, getUnreadChatCount } from '@/lib/view-models'
+import { getConversations, getChatThread, getUnreadChatCount, getNewMessages } from '@/lib/view-models'
 
 async function seedConversation() {
   const prisma = getTestPrismaClient()
@@ -99,6 +99,29 @@ describe('getChatThread', () => {
     expect(thread!.header.specialty).toBeUndefined() // companies have no Специальность
   })
 
+  it('is sendable (canSend=true, no closedReason) for an active IN_PROGRESS gig', async () => {
+    const { client, gig } = await seedConversation() // seeded IN_PROGRESS
+    const thread = await getChatThread(gig.id, { userId: client.id, role: 'CLIENT' })
+    expect(thread!.chat.composer.canSend).toBe(true)
+    expect(thread!.chat.composer.closedReason).toBeUndefined()
+  })
+
+  it('is read-only (canSend=false + reason) for a COMPLETED gig', async () => {
+    const { prisma, client, gig } = await seedConversation()
+    await prisma.gig.update({ where: { id: gig.id }, data: { status: 'COMPLETED' } })
+    const thread = await getChatThread(gig.id, { userId: client.id, role: 'CLIENT' })
+    expect(thread!.chat.composer.canSend).toBe(false)
+    expect(thread!.chat.composer.closedReason).toMatch(/завершён/)
+  })
+
+  it('is read-only for a gig closed by admin', async () => {
+    const { prisma, client, gig } = await seedConversation()
+    await prisma.gig.update({ where: { id: gig.id }, data: { closedByAdmin: true } })
+    const thread = await getChatThread(gig.id, { userId: client.id, role: 'CLIENT' })
+    expect(thread!.chat.composer.canSend).toBe(false)
+    expect(thread!.chat.composer.closedReason).toMatch(/администратором/)
+  })
+
   it('returns null for a non-participant viewer', async () => {
     const { prisma, gig } = await seedConversation()
     const stranger = await createTestUser(prisma, { role: 'SPECIALIST' })
@@ -116,5 +139,52 @@ describe('getUnreadChatCount', () => {
   it('counts conversations with ≥1 unread message', async () => {
     const { client } = await seedConversation()
     expect(await getUnreadChatCount({ userId: client.id, role: 'CLIENT' })).toBe(1)
+  })
+})
+
+describe('getNewMessages (chat-realtime delta poll)', () => {
+  it('returns only messages strictly newer than the cursor, ascending', async () => {
+    const prisma = getTestPrismaClient()
+    const client = await createTestUser(prisma, { role: 'CLIENT' })
+    const specialist = await createTestUser(prisma, { role: 'SPECIALIST' })
+    const gig = await createTestGig(prisma, { clientId: client.id, status: 'IN_PROGRESS', assignedSpecialistId: specialist.id })
+    const m1 = await createTestMessage(prisma, { gigId: gig.id, senderId: specialist.id, content: 'one' })
+    await new Promise((r) => setTimeout(r, 10))
+    const m2 = await createTestMessage(prisma, { gigId: gig.id, senderId: specialist.id, content: 'two' })
+
+    const all = await getNewMessages(gig.id, new Date(0).toISOString(), { userId: client.id, role: 'CLIENT' })
+    expect(all.map((b) => b.body)).toEqual(['one', 'two'])
+
+    const afterM1 = await getNewMessages(gig.id, new Date(m1.createdAt).toISOString(), { userId: client.id, role: 'CLIENT' })
+    expect(afterM1.map((b) => b.body)).toEqual(['two']) // m1 excluded (gt), m2 included
+    expect(afterM1[0].id).toBe(m2.id)
+    expect(afterM1[0].direction).toBe('in') // from the specialist, for the CLIENT viewer
+    expect(afterM1[0].createdAt).toBeTruthy()
+
+    const afterM2 = await getNewMessages(gig.id, new Date(m2.createdAt).toISOString(), { userId: client.id, role: 'CLIENT' })
+    expect(afterM2).toHaveLength(0)
+  })
+
+  it('refuses a non-participant (returns [])', async () => {
+    const prisma = getTestPrismaClient()
+    const client = await createTestUser(prisma, { role: 'CLIENT' })
+    const specialist = await createTestUser(prisma, { role: 'SPECIALIST' })
+    const stranger = await createTestUser(prisma, { role: 'SPECIALIST' })
+    const gig = await createTestGig(prisma, { clientId: client.id, status: 'IN_PROGRESS', assignedSpecialistId: specialist.id })
+    await createTestMessage(prisma, { gigId: gig.id, senderId: specialist.id, content: 'secret' })
+
+    const res = await getNewMessages(gig.id, new Date(0).toISOString(), { userId: stranger.id, role: 'SPECIALIST' })
+    expect(res).toEqual([])
+  })
+
+  it('returns [] for a missing gig or an invalid cursor', async () => {
+    const prisma = getTestPrismaClient()
+    const client = await createTestUser(prisma, { role: 'CLIENT' })
+    const specialist = await createTestUser(prisma, { role: 'SPECIALIST' })
+    const gig = await createTestGig(prisma, { clientId: client.id, status: 'IN_PROGRESS', assignedSpecialistId: specialist.id })
+    await createTestMessage(prisma, { gigId: gig.id, senderId: specialist.id, content: 'hi' })
+
+    expect(await getNewMessages('nope', new Date(0).toISOString(), { userId: client.id, role: 'CLIENT' })).toEqual([])
+    expect(await getNewMessages(gig.id, 'not-a-date', { userId: client.id, role: 'CLIENT' })).toEqual([])
   })
 })

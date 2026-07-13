@@ -7,7 +7,7 @@ import { PrismaLibSql } from '@prisma/adapter-libsql'
  * compose-client-dashboard — verifies the CLIENT /dashboard rebuilt on the gigly_full_design prototype
  * (app/(protected)/dashboard/DashboardDesign.tsx): WELCOME «Добро пожаловать в Gigly!» + the «Мои гиги»
  * panel with the four CLIENT <div> tab chips (Все/В работе/На проверке/Завершённые — no «Заявки») + the
- * design GigCard feed; col2 = the «Создайте новый гиг» panel + «Сообщения». The company shows NO «Требует
+ * design GigCard feed; col2 = the «Создайте первый гиг» panel + «Сообщения». The company shows NO «Требует
  * внимания» strip (attention is empty for CLIENT), and the page title lives in the shell header
  * (<h1>«ДАШБОРД»</h1>). Seeds a CLIENT + an OPEN gig directly into the E2E db (file:./test.db).
  */
@@ -57,7 +57,7 @@ test.describe('compose-client-dashboard — rebuilt CLIENT dashboard', () => {
       // CLIENT has four tabs — NO «Заявки». The only seed gig is OPEN, so no tab/card status collision.
       await expect(page.getByText(label, { exact: true }).first()).toBeVisible()
     }
-    await expect(page.getByRole('heading', { name: 'Создайте новый гиг' })).toBeVisible() // col2 create panel
+    await expect(page.getByRole('heading', { name: 'Создайте первый гиг' })).toBeVisible() // col2 create panel
     await expect(page.getByRole('link', { name: /Создать гиг/ }).first()).toBeVisible() // create CTA
     await expect(page.getByText('E2E Dashboard Gig')).toBeVisible() // a GigCard
     await expect(page.getByRole('heading', { name: 'Сообщения' })).toBeVisible() // col2 messages panel

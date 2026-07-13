@@ -3,12 +3,12 @@ import { Stack } from "@/app/components/layout/Stack";
 /**
  * AuthFooter block (add-onboarding-screen, DESIGN_SYSTEM_SPEC §3.2) — the onboarding/auth legal footer links
  * («Политика конфиденциальности» · «Условия пользования» · «Помощь»), rendered over the AuthLayout checkerboard band.
- * Token-pure; links are placeholders (`#`) until the legal pages exist.
+ * Token-pure; links point to the public legal/help pages (app/privacy, app/terms, app/help).
  */
 const LINKS = [
-  { label: "Политика конфиденциальности", href: "#" },
-  { label: "Условия пользования", href: "#" },
-  { label: "Помощь", href: "#" },
+  { label: "Политика конфиденциальности", href: "/privacy" },
+  { label: "Условия пользования", href: "/terms" },
+  { label: "Помощь", href: "/help" },
 ];
 
 export function AuthFooter() {

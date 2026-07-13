@@ -137,7 +137,7 @@ test.describe('compose-disputes — composed disputes screen', () => {
     await expect(page.getByText('E2E Open-From-Gig')).toBeVisible({ timeout: 10000 })
   })
 
-  test('an admin resolves a dispute via a verdict button; the status updates to «Завершён»', async ({ page }) => {
+  test('an admin resolves a dispute via a verdict button; the status updates to «Решён»', async ({ page }) => {
     await setE2ESession(page, { id: adminId, email: adminEmail, role: 'ADMIN' })
     await page.goto(`/disputes/${disputeResolveId}`)
 
@@ -149,7 +149,7 @@ test.describe('compose-disputes — composed disputes screen', () => {
 
     // the detail now shows the resolved status + the prefixed resolution.
     await page.goto(`/disputes/${disputeResolveId}`)
-    await expect(page.getByText('Завершён')).toBeVisible()
+    await expect(page.getByText('Решён', { exact: true })).toBeVisible() // status pill (exact: «раз-решён» appears in the resolution text)
     // The resolution «В пользу заказчика …» appears in both the banner and the moderator timeline entry → assert the first.
     await expect(page.getByText(/В пользу заказчика/).first()).toBeVisible()
   })

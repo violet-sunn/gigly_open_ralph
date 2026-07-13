@@ -14,6 +14,16 @@ export default async function ProtectedLayout({ children }: { children: ReactNod
   const session = await getSession()
   if (!session) redirect('/login')
 
+  // An ADMIN reaching a (protected) route — e.g. a dispute detail at /disputes/[id] — gets the admin shell (admin nav +
+  // «Админ» indicator), NOT the CLIENT/«Компания» one. Mirrors app/admin/layout.tsx.
+  if (session.role === 'ADMIN') {
+    return (
+      <AppShellDesign role="CLIENT" counts={{}} admin profile={{ name: session.email, sub: 'Админ' }}>
+        {children}
+      </AppShellDesign>
+    )
+  }
+
   const role = session.role === 'SPECIALIST' ? 'SPECIALIST' : 'CLIENT'
   const [gigs, unreadChats, user] = await Promise.all([
     prisma.gig.count({

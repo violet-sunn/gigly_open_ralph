@@ -69,7 +69,7 @@ export function GigCard({ vm, full = false, href }: { vm: GigCardVM; full?: bool
               </span>
               {vm.rating.verified && (
                 <span style={{ color: "var(--om-accent, #0088ff)", display: "flex", flex: "none" }}>
-                  <PatchIcon />
+                  <PatchIcon size={16} />
                 </span>
               )}
               <span style={{ color: "var(--text-5)", fontSize: 11, letterSpacing: 1, flex: "none" }}>★★★★★</span>

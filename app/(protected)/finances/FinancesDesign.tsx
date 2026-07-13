@@ -14,6 +14,7 @@ export function FinancesDesign({ stats, ledger }: FinancesData) {
           <div key={i} style={{ flex: 1, borderRadius: 12, background: "var(--surface-card)", boxShadow: "inset 0 0 0 1px var(--hairline-08)", padding: 20, display: "flex", flexDirection: "column", gap: 8 }}>
             <span style={{ fontFamily: "'Handjet',monospace", fontSize: 14, color: "var(--text-3)" }}>{s.label}</span>
             <span style={{ fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 28, color: "var(--text-1)" }}>{s.value}</span>
+            {s.caption && <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, color: "var(--text-4)" }}>{s.caption}</span>}
           </div>
         ))}
       </div>
@@ -28,7 +29,7 @@ export function FinancesDesign({ stats, ledger }: FinancesData) {
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {ledger.entries.length > 0 ? (
             ledger.entries.map((t, i) => {
-              const statusColor = `rgb(${STATUS_RGB[t.status] ?? "138,143,153"})`;
+              const statusColor = `rgb(${t.statusColor ?? STATUS_RGB[t.status] ?? "138,143,153"})`;
               const statusLabel = t.statusLabel ?? STATUS_LABEL_RU[t.status] ?? t.status;
               return (
                 <div key={i} style={{ display: "flex", alignItems: "center", gap: 14, padding: "16px 20px", borderRadius: 10, background: "var(--surface-card)", boxShadow: "inset 0 0 0 1px var(--hairline-06)" }}>

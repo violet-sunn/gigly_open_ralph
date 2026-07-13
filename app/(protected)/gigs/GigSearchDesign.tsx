@@ -1,13 +1,14 @@
 "use client";
 
-// Gig browse/search rebuilt on the prototype's «ПОИСК ГИГОВ» block (Gigly App.dc.html line 238+): a filter row +
-// «Найдено {count}» + a 2-col grid of FULL design GigCards + the centred empty state. Filters are URL params (so
-// pagination preserves them); the page owns the query + PaginationControls. The shell header supplies the title.
+// Gig browse/search rebuilt on the prototype's «ПОИСК ГИГОВ» block (Gigly App.dc.html line 238+): «Найдено {count}» +
+// a 2-col grid of FULL design GigCards + the centred empty state. The filter row (category / budget / sort / rating)
+// lives in the SHARED SHELL HEADER beside the search field (the prototype's data-dc-tpl="51" cluster), not here — the
+// shell owns the URL-param wiring so the filters sit to the right of the search on every list screen. This screen only
+// reads those params (to preserve them on the card links + the reset button).
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { GigCard } from "@/app/_design/GigCard";
 import type { GigSearchData } from "@/lib/view-models";
-import type { SelectOption } from "@/app/components/primitives";
 import "@/app/_design/tokens.css";
 
 const h2: React.CSSProperties = {
@@ -34,70 +35,14 @@ const countBadge: React.CSSProperties = {
   fontSize: 15,
 };
 
-function DSelect({ value, onChange, options, ariaLabel }: { value: string; onChange: (v: string) => void; options: SelectOption[]; ariaLabel: string }) {
-  return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      aria-label={ariaLabel}
-      style={{
-        height: 48,
-        padding: "0 14px",
-        borderRadius: 8,
-        background: "var(--surface-sunken)",
-        color: "var(--text-1)",
-        border: "none",
-        boxShadow: "inset 0 0 0 1px var(--hairline-08)",
-        fontFamily: "'Handjet',monospace",
-        fontSize: 15,
-        outline: "none",
-        cursor: "pointer",
-      }}
-    >
-      {options.map((o) => (
-        <option key={o.value} value={o.value} style={{ background: "var(--surface-card)", color: "var(--text-1)" }}>
-          {o.label}
-        </option>
-      ))}
-    </select>
-  );
-}
-
-export function GigSearchDesign({
-  data,
-  categoryOptions,
-  sortOptions,
-  ratingOptions,
-}: {
-  data: GigSearchData;
-  categoryOptions: SelectOption[];
-  sortOptions: SelectOption[];
-  ratingOptions: SelectOption[];
-}) {
+export function GigSearchDesign({ data }: { data: GigSearchData }) {
   const router = useRouter();
   const params = useSearchParams();
-
-  const nav = (mut: (p: URLSearchParams) => void) => {
-    const p = new URLSearchParams(params.toString());
-    mut(p);
-    p.delete("page");
-    router.push(`/gigs?${p.toString()}`);
-  };
-  const set = (key: string, value: string, clearWhen?: string) =>
-    nav((p) => (value && value !== clearWhen ? p.set(key, value) : p.delete(key)));
-
   const cards = data.gigCards;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      {/* filter row (text search lives in the shell header → ?search=; these refine it) */}
-      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-        <DSelect ariaLabel="Категория" value={params.get("category") ?? ""} onChange={(c) => set("category", c)} options={categoryOptions} />
-        <DSelect ariaLabel="Сортировка" value={params.get("sort") ?? "newest"} onChange={(s) => set("sort", s, "newest")} options={sortOptions} />
-        <DSelect ariaLabel="Минимальный рейтинг" value={params.get("minRating") ?? ""} onChange={(r) => set("minRating", r)} options={ratingOptions} />
-      </div>
-
-      {/* Найдено */}
+      {/* Найдено (the filter chips are in the shell header) */}
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <h2 style={h2}>Найдено</h2>
         <span style={countBadge}>{data.count}</span>
@@ -106,7 +51,7 @@ export function GigSearchDesign({
       {cards.length > 0 ? (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
           {cards.map((vm) => (
-            <GigCard key={vm.id} vm={vm} full href={`/gigs/${vm.id}?from=browse&${params.toString()}`} />
+            <GigCard key={vm.id} vm={vm} full href={`/gigs/${vm.id}?from=browse&${params?.toString() ?? ""}`} />
           ))}
         </div>
       ) : (

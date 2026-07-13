@@ -93,7 +93,9 @@ export function ApplicationsDesign({ data }: { data: GigApplicationsData }) {
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {data.applicants.length > 0 ? (
           data.applicants.map((a) => {
-            const statusColor = `rgb(${STATUS_RGB[a.status.tone] ?? "138,143,153"})`;
+            // A fresh application reads «Новый отклик» in accent blue (the reference); accepted/rejected keep their tone colour.
+            const statusColor = a.pending ? "var(--om-accent, #0088ff)" : `rgb(${STATUS_RGB[a.status.tone] ?? "138,143,153"})`;
+            const statusLabel = a.pending ? "Новый отклик" : a.status.label;
             const dim = data.assignedName && a.status.tone === "rejected" ? 0.55 : 1;
             return (
               <div
@@ -111,7 +113,7 @@ export function ApplicationsDesign({ data }: { data: GigApplicationsData }) {
                       <span style={{ fontSize: 15, fontWeight: 600, color: "var(--text-1)", flex: "none" }}>{a.name}</span>
                       {a.verified && (
                         <span style={{ color: "var(--om-accent, #0088ff)", display: "flex", flex: "none" }}>
-                          <PatchIcon size={14} />
+                          <PatchIcon size={16} />
                         </span>
                       )}
                       {a.level && (
@@ -126,7 +128,7 @@ export function ApplicationsDesign({ data }: { data: GigApplicationsData }) {
                   <div style={{ flex: 1 }} />
                   <span style={{ display: "inline-flex", alignItems: "center", gap: 6, flex: "none", fontFamily: "'Handjet',monospace", fontSize: 12, color: statusColor }}>
                     <span style={{ width: 7, height: 7, borderRadius: "50%", background: statusColor }} />
-                    {a.status.label}
+                    {statusLabel}
                   </span>
                 </div>
 

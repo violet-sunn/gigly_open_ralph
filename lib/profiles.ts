@@ -7,19 +7,89 @@ import type { ProfileHeaderVM, StatVM } from '@/app/components/blocks/view-model
  * populates its <select>s from these, and `updateProfile` validates supplied values against them so
  * stored data never drifts from the dropdowns.
  */
+// transport-settings — the «Часовой пояс» dropdown covers all 11 Russian zones + popular Russian-IT relocation hubs
+// (Тбилиси/Ереван/Алматы/Белград/Стамбул/Дубай/Кипр/Лиссабон/Бангкок/Бали/Ташкент/Бишкек/Буэнос-Айрес) + the major
+// world business/tech hubs (LA/NY/London/Berlin/Mumbai/Shanghai/Singapore/Tokyo/Sydney/São Paulo). Ordered by GMT
+// offset ascending so the dropdown reads geographically. `TIMEZONE_LABELS` MUST cover every entry (validated in tests).
 export const TIMEZONES = [
+  'America/Los_Angeles',
+  'America/Chicago',
+  'America/New_York',
+  'America/Sao_Paulo',
+  'America/Argentina/Buenos_Aires',
+  'Europe/London',
+  'Europe/Lisbon',
+  'Europe/Berlin',
+  'Europe/Belgrade',
   'Europe/Kaliningrad',
+  'Asia/Nicosia',
   'Europe/Moscow',
+  'Europe/Istanbul',
   'Europe/Samara',
+  'Asia/Tbilisi',
+  'Asia/Yerevan',
+  'Asia/Dubai',
   'Asia/Yekaterinburg',
+  'Asia/Almaty',
+  'Asia/Tashkent',
+  'Asia/Kolkata',
   'Asia/Omsk',
+  'Asia/Bishkek',
   'Asia/Krasnoyarsk',
+  'Asia/Bangkok',
   'Asia/Irkutsk',
+  'Asia/Shanghai',
+  'Asia/Singapore',
+  'Asia/Makassar',
   'Asia/Yakutsk',
+  'Asia/Tokyo',
   'Asia/Vladivostok',
+  'Australia/Sydney',
   'Asia/Magadan',
   'Asia/Kamchatka',
 ] as const
+
+/** Russian `(GMT±N) City` display labels for the «Часовой пояс» dropdown. One entry per `TIMEZONES` value. */
+export const TIMEZONE_LABELS: Record<string, string> = {
+  'America/Los_Angeles': '(GMT-8) Лос-Анджелес, Сан-Франциско',
+  'America/Chicago': '(GMT-6) Чикаго',
+  'America/New_York': '(GMT-5) Нью-Йорк',
+  'America/Sao_Paulo': '(GMT-3) Сан-Паулу',
+  'America/Argentina/Buenos_Aires': '(GMT-3) Буэнос-Айрес',
+  'Europe/London': '(GMT+0) Лондон',
+  'Europe/Lisbon': '(GMT+0) Лиссабон',
+  'Europe/Berlin': '(GMT+1) Берлин, Париж',
+  'Europe/Belgrade': '(GMT+1) Белград, Подгорица',
+  'Europe/Kaliningrad': '(GMT+2) Калининград',
+  'Asia/Nicosia': '(GMT+2) Кипр (Лимасол)',
+  'Europe/Moscow': '(GMT+3) Москва, Санкт-Петербург',
+  'Europe/Istanbul': '(GMT+3) Стамбул',
+  'Europe/Samara': '(GMT+4) Самара, Ижевск',
+  'Asia/Tbilisi': '(GMT+4) Тбилиси',
+  'Asia/Yerevan': '(GMT+4) Ереван',
+  'Asia/Dubai': '(GMT+4) Дубай',
+  'Asia/Yekaterinburg': '(GMT+5) Екатеринбург',
+  'Asia/Almaty': '(GMT+5) Алматы, Астана',
+  'Asia/Tashkent': '(GMT+5) Ташкент',
+  'Asia/Kolkata': '(GMT+5:30) Мумбаи, Бангалор',
+  'Asia/Omsk': '(GMT+6) Омск',
+  'Asia/Bishkek': '(GMT+6) Бишкек',
+  'Asia/Krasnoyarsk': '(GMT+7) Красноярск, Новосибирск',
+  'Asia/Bangkok': '(GMT+7) Бангкок, Пхукет',
+  'Asia/Irkutsk': '(GMT+8) Иркутск',
+  'Asia/Shanghai': '(GMT+8) Шанхай, Пекин',
+  'Asia/Singapore': '(GMT+8) Сингапур',
+  'Asia/Makassar': '(GMT+8) Бали',
+  'Asia/Yakutsk': '(GMT+9) Якутск',
+  'Asia/Tokyo': '(GMT+9) Токио',
+  'Asia/Vladivostok': '(GMT+10) Владивосток',
+  'Australia/Sydney': '(GMT+10) Сидней',
+  'Asia/Magadan': '(GMT+11) Магадан, Сахалин',
+  'Asia/Kamchatka': '(GMT+12) Камчатка, Анадырь',
+}
+
+/** Display label for a timezone (falls back to the raw IANA id if unmapped). */
+export const timezoneLabel = (tz: string): string => TIMEZONE_LABELS[tz] ?? tz
 
 export const SPECIALIZATIONS = [
   'Frontend',

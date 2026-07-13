@@ -1,24 +1,23 @@
-/* @composed-screen */
 "use client";
 
-import { useActionState, useState } from "react";
+// /admin/gigs — the full paginated gig management, transported to the console's «Гиги» row vocabulary (dashboard.admin
+// has no own table screen). Status/closed filters (token selects → URL params) + console-style rows (avatar · title ·
+// client·budget · status · close-via-confirm) over the kept closeGig action. Pagination + count live in the page.
+
 import { useRouter, useSearchParams } from "next/navigation";
-import { Section } from "@/app/components/layout/Section";
-import { Stack } from "@/app/components/layout/Stack";
-import { Select, Button, StatusBadge } from "@/app/components/primitives";
-import { DataTable, ApplyPanel, Notice } from "@/app/components/blocks";
 import { closeGig } from "@/app/actions/moderation";
 import type { AdminGigRow } from "@/lib/view-models";
-import type { Status } from "@/app/components/blocks/view-models";
+import { ConfirmAction } from "@/app/_design/ConfirmDialog";
+import { STATUS_RGB } from "@/app/_design/util";
+import { cardBase, h2, rowBase, smallBtn, StatusDot, Avatar, FilterSelect } from "../_parts";
+import "@/app/_design/tokens.css";
 
-type ActionState = { error?: string } | null;
-
-const GIG_STATUS: Record<string, Status> = {
-  OPEN: "open",
-  IN_PROGRESS: "in-progress",
-  REVIEW: "review",
-  COMPLETED: "completed",
-  PAID: "completed",
+const GIG_RAW: Record<string, { label: string; tone: string }> = {
+  OPEN: { label: "Открыт", tone: "open" },
+  IN_PROGRESS: { label: "В работе", tone: "in-progress" },
+  REVIEW: { label: "На проверке", tone: "verification" },
+  COMPLETED: { label: "Завершён", tone: "completed" },
+  PAID: { label: "Оплачен", tone: "completed" },
 };
 
 const STATUS_OPTIONS = [
@@ -35,43 +34,25 @@ const CLOSED_OPTIONS = [
   { value: "true", label: "Закрытые" },
 ];
 
-/** Inline close-gig action — a "Close" button reveals an ApplyPanel reason + "Close Gig" submit, over the kept action. */
-function CloseAction({ gigId }: { gigId: string }) {
-  const [state, formAction] = useActionState<ActionState, FormData>(closeGig as never, null);
-  const [open, setOpen] = useState(false);
-  if (!open) {
-    return (
-      <Button type="button" variant="secondary" onClick={() => setOpen(true)}>
-        Close
-      </Button>
-    );
-  }
+function GigCloseAction({ id, title }: { id: string; title: string }) {
   return (
-    <form action={formAction}>
-      <input type="hidden" name="gigId" value={gigId} />
-      <ApplyPanel
-        vm={{
-          fields: [{ name: "reason", label: "Причина", multiline: true, required: true, placeholder: "Укажите причину" }],
-          submitLabel: "Close Gig",
-        }}
-      />
-      {state?.error && <Notice tone="error">{state.error}</Notice>}
-    </form>
+    <ConfirmAction
+      action={closeGig}
+      hidden={{ gigId: id, reason: "Закрыт модератором" }}
+      buttonLabel="Закрыть"
+      buttonStyle={smallBtn("rgba(239,68,68,0.14)", "#ef4444")}
+      title="Закрыть гиг?"
+      body={`Гиг «${title}» будет снят с публикации. Действие обратимо.`}
+      confirmLabel="Закрыть"
+    />
   );
 }
 
-/**
- * AdminGigs — the /admin/gigs screen, composed purely from the kit (prove-extensibility-admin, the generativity proof).
- * Renders inside the admin AppShell. Status/closed filters (Select → URL params) + a DataTable of gigs (StatusBadge,
- * mono budget, inline close) over the kept `closeGig`. Template + slotted blocks/primitives only — no className/style/
- * off-token literal. Pagination + the count live in the page (orchestration).
- */
 export function AdminGigs({ rows }: { rows: AdminGigRow[] }) {
   const router = useRouter();
   const params = useSearchParams();
   const status = params.get("status") ?? "";
   const closed = params.get("closed") ?? "";
-  const [open, setOpen] = useState<string | null>(null);
 
   const navigate = (next: { status?: string; closed?: string }) => {
     const sp = new URLSearchParams();
@@ -82,52 +63,36 @@ export function AdminGigs({ rows }: { rows: AdminGigRow[] }) {
     router.push(`/admin/gigs${sp.toString() ? `?${sp}` : ""}`);
   };
 
-  const tableRows = rows.map((g) => ({
-    id: g.id,
-    cells: [
-      g.title,
-      <StatusBadge key="status" variant="pill" status={g.closed ? "rejected" : GIG_STATUS[g.status] ?? "open"}>
-        {g.closed ? "Закрыт" : g.status}
-      </StatusBadge>,
-      g.budget,
-      g.created,
-      g.closed ? "—" : <CloseAction key="act" gigId={g.id} />,
-    ],
-  }));
-
   return (
-    <Section title="Гиги" gap={6}>
-      <Stack axis="row" gap={3}>
-        <Select
-          options={STATUS_OPTIONS}
-          value={status}
-          placeholder="Все статусы"
-          expanded={open === "status"}
-          onToggle={() => setOpen((o) => (o === "status" ? null : "status"))}
-          onSelect={(v) => {
-            setOpen(null);
-            navigate({ status: v });
-          }}
-          aria-label="Фильтр по статусу"
-        />
-        <Select
-          options={CLOSED_OPTIONS}
-          value={closed}
-          placeholder="Все"
-          expanded={open === "closed"}
-          onToggle={() => setOpen((o) => (o === "closed" ? null : "closed"))}
-          onSelect={(v) => {
-            setOpen(null);
-            navigate({ closed: v });
-          }}
-          aria-label="Фильтр по закрытию"
-        />
-      </Stack>
-      <DataTable
-        columns={["Гиг", "Статус", "Бюджет", "Создан", "Действия"]}
-        rows={tableRows}
-        empty="Гиги не найдены"
-      />
-    </Section>
+    <div style={cardBase}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <h2 style={h2}>Гиги</h2>
+        <span style={{ flex: 1 }} />
+        <FilterSelect value={status} options={STATUS_OPTIONS} ariaLabel="Фильтр по статусу" onChange={(v) => navigate({ status: v })} />
+        <FilterSelect value={closed} options={CLOSED_OPTIONS} ariaLabel="Фильтр по закрытию" onChange={(v) => navigate({ closed: v })} />
+      </div>
+      {rows.length > 0 ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {rows.map((g) => {
+            const meta = GIG_RAW[g.status] ?? { label: g.status, tone: "open" };
+            const color = g.closed ? "#ef4444" : `rgb(${STATUS_RGB[meta.tone] ?? "138,143,153"})`;
+            const sub = [g.client, g.budget].filter(Boolean).join(" · ");
+            return (
+              <div key={g.id} data-row="gig" style={rowBase}>
+                <Avatar name={g.title} />
+                <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
+                  <span style={{ fontSize: 14, color: "var(--text-1)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.title}</span>
+                  <span style={{ fontFamily: "'Handjet',monospace", fontSize: 12, color: "var(--text-4)" }}>{sub}</span>
+                </div>
+                <StatusDot color={color} label={g.closed ? "Закрыт" : meta.label} />
+                {!g.closed && <GigCloseAction id={g.id} title={g.title} />}
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 13, color: "var(--text-3)" }}>Гиги не найдены.</span>
+      )}
+    </div>
   );
 }

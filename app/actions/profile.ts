@@ -7,7 +7,7 @@ import { sanitizeInput } from '@/lib/sanitize'
 import { isTimezone, isSpecialization } from '@/lib/profiles'
 
 export async function updateProfile(
-  prevState: { error?: string } | null,
+  prevState: { error?: string; success?: boolean } | null,
   formData: FormData
 ) {
   const session = await getSession()
@@ -35,15 +35,15 @@ export async function updateProfile(
 
       // Validate experienceLevel
       if (experienceLevel && !['MIDDLE', 'SENIOR'].includes(experienceLevel)) {
-        return { error: 'Experience level must be Middle or Senior. Please select one of these options.' }
+        return { error: 'Уровень должен быть Middle или Senior. Выберите один из вариантов.' }
       }
 
       // Validate the new dropdown-backed fields against their canonical datasets (when supplied)
       if (timezone && !isTimezone(timezone)) {
-        return { error: 'Please choose a valid timezone.' }
+        return { error: 'Выберите корректный часовой пояс.' }
       }
       if (specialization && !isSpecialization(specialization)) {
-        return { error: 'Please choose a valid specialization.' }
+        return { error: 'Выберите корректную специализацию.' }
       }
 
       // Upsert SpecialistProfile
@@ -82,6 +82,7 @@ export async function updateProfile(
       const companyName = sanitizeInput((formData.get('companyName') as string) || '').trim()
       const inn = sanitizeInput((formData.get('inn') as string) || '').trim()
       const kpp = sanitizeInput((formData.get('kpp') as string) || '').trim()
+      const about = sanitizeInput((formData.get('about') as string) || '').trim()
       const contactPerson = sanitizeInput((formData.get('contactPerson') as string) || '').trim()
       const phoneNumber = sanitizeInput((formData.get('phoneNumber') as string) || '').trim()
 
@@ -113,6 +114,7 @@ export async function updateProfile(
           companyName,
           inn,
           kpp,
+          about,
           contactPerson,
           position,
           phoneNumber,
@@ -125,6 +127,7 @@ export async function updateProfile(
           companyName,
           inn,
           kpp,
+          about,
           contactPerson,
           position,
           phoneNumber,
@@ -135,10 +138,16 @@ export async function updateProfile(
         },
       })
     } else {
-      return { error: 'Invalid user role. Please contact support if you see this error.' }
+      return { error: 'Некорректная роль пользователя. Если видите эту ошибку — обратитесь в поддержку.' }
     }
   } catch (error) {
-    return { error: 'Failed to update profile. Please check your information and try again. If the problem persists, contact support.' }
+    return { error: 'Не удалось сохранить профиль. Проверьте данные и попробуйте ещё раз; если проблема повторяется — обратитесь в поддержку.' }
+  }
+
+  // The profile-screen edit modals submit with noRedirect=true and stay in place: they refresh + close client-side
+  // on success (a redirect would unmount the modal mid-transition). All other callers navigate.
+  if (formData.get('noRedirect') === 'true') {
+    return { success: true }
   }
 
   // Most callers (profile-edit) land back on /profile; the onboarding step-3 setup passes redirectTo=/dashboard.
@@ -165,7 +174,7 @@ export async function setWorkExperience(
   }
 
   if (session.role !== 'SPECIALIST') {
-    return { error: 'Only specialists can edit work experience.' }
+    return { error: 'Редактировать опыт работы могут только специалисты.' }
   }
 
   let entries: {
@@ -178,10 +187,10 @@ export async function setWorkExperience(
   try {
     entries = JSON.parse((formData.get('entries') as string) || '[]')
     if (!Array.isArray(entries)) {
-      return { error: 'Invalid work experience data.' }
+      return { error: 'Некорректные данные об опыте работы.' }
     }
   } catch {
-    return { error: 'Invalid work experience data.' }
+    return { error: 'Некорректные данные об опыте работы.' }
   }
 
   const nowYear = new Date().getFullYear()
@@ -197,18 +206,18 @@ export async function setWorkExperience(
   for (const [i, e] of entries.entries()) {
     const company = sanitizeInput((e.company ?? '').toString()).trim()
     if (!company) {
-      return { error: 'Each work experience entry needs a company.' }
+      return { error: 'У каждой записи об опыте укажите компанию.' }
     }
     const startYear = e.startYear == null || e.startYear === '' ? null : Number(e.startYear)
     const endYear = e.endYear == null || e.endYear === '' ? null : Number(e.endYear)
     if (startYear != null && (!Number.isInteger(startYear) || startYear < 1970 || startYear > nowYear)) {
-      return { error: 'Start year is invalid.' }
+      return { error: 'Некорректный год начала.' }
     }
     if (endYear != null && (!Number.isInteger(endYear) || endYear < 1970 || endYear > nowYear)) {
-      return { error: 'End year is invalid.' }
+      return { error: 'Некорректный год окончания.' }
     }
     if (startYear != null && endYear != null && endYear < startYear) {
-      return { error: 'End year cannot be before start year.' }
+      return { error: 'Год окончания не может быть раньше года начала.' }
     }
     clean.push({
       company,
@@ -232,7 +241,7 @@ export async function setWorkExperience(
         : []),
     ])
   } catch (error) {
-    return { error: 'Failed to save work experience. Please try again.' }
+    return { error: 'Не удалось сохранить опыт работы. Попробуйте ещё раз.' }
   }
 
   return { success: true }

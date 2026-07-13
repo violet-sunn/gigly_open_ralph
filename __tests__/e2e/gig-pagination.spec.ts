@@ -95,7 +95,7 @@ test.describe('Gig Pagination E2E', () => {
     await expect(count(page, '60')).toBeVisible()
 
     // Verify page 2 is active
-    await expect(page.locator('[aria-current="page"]')).toHaveText('2')
+    await expect(page.locator('nav[aria-label="Pagination"] [aria-current="page"]')).toHaveText('2')
 
     // Click Next again to go to page 3
     await page.click('a[aria-label="Next page"]')
@@ -118,7 +118,7 @@ test.describe('Gig Pagination E2E', () => {
     // Verify we're on page 2
     await expect(page).toHaveURL(/page=2/)
     await expect(count(page, '60')).toBeVisible()
-    await expect(page.locator('[aria-current="page"]')).toHaveText('2')
+    await expect(page.locator('nav[aria-label="Pagination"] [aria-current="page"]')).toHaveText('2')
   })
 
   test('should navigate using page number buttons', async ({ page }) => {
@@ -131,7 +131,7 @@ test.describe('Gig Pagination E2E', () => {
     await page.waitForURL(/page=3/)
     await expect(page).toHaveURL(/page=3/)
     await expect(count(page, '60')).toBeVisible()
-    await expect(page.locator('[aria-current="page"]')).toHaveText('3')
+    await expect(page.locator('nav[aria-label="Pagination"] [aria-current="page"]')).toHaveText('3')
   })
 
   test('should redirect invalid page numbers to valid pages', async ({ page }) => {
@@ -176,9 +176,9 @@ test.describe('Gig Pagination E2E', () => {
     await page.waitForLoadState('networkidle')
     await expect(page).toHaveURL(/page=2/)
 
-    // Change a filter via a native <select> (sort) → GigSearchDesign drops `page` (resets to page 1). Sort keeps all
-    // 60 gigs (text search now lives in the shell header, not a content searchbox).
-    await page.getByRole('combobox').filter({ hasText: 'Сначала новые' }).selectOption({ label: 'Дороже' })
+    // Change a filter via a native <select> (sort, in the shell header) → the header drops `page` (resets to page 1).
+    // Sort keeps all 60 gigs (text search lives in the shell header, not a content searchbox).
+    await page.getByRole('combobox').filter({ hasText: 'По новизне' }).selectOption({ label: 'Сначала дороже' })
     await page.waitForURL(/sort=budget-desc/)
 
     // Verify pagination reset to page 1 (no page param in URL)

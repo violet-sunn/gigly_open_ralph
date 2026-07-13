@@ -4,6 +4,7 @@ import { CATEGORIES } from '@/lib/categories'
 import { getLedger, getFinanceStats } from '@/lib/finances'
 import { getDisputeList, getDisputeDetail } from '@/lib/disputes'
 import { getPreferences, DEFAULT_PREFERENCES, type Preferences } from '@/lib/preferences'
+import { timezoneLabel } from '@/lib/profiles'
 import { formatUserAgent } from '@/lib/user-agent'
 import { getRecentMessages } from '@/app/actions/message'
 import { getNotificationDisplayText, getNotificationIcon } from '@/lib/notification-utils'
@@ -120,6 +121,7 @@ export async function toGigCardVM(gig: GigForCard, layout: 'grid' | 'list' = 'gr
     tags: gig.tags ? gig.tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
     status: gigDisplayStatus(gig.status, gig.applicationCount ?? 0),
     budget: money(gig.budget),
+    budgetValue: Math.round(gig.budget / 100), // roubles — for client-side filtering on the dashboard/my-gigs feeds
     deadlineDays: gig.deadlineDays,
     rating,
     company: gig.clientCompany,
@@ -691,6 +693,12 @@ export async function getGigDetail(
     fee: isOwner ? { service: money(gig.serviceFee), total: money(gig.totalAmount) } : undefined,
   }
 
+  // Read-only once the engagement is finished/closed — same terminal gate as getChatThread / persistMessage.
+  const chatClosedReason = gig.closedByAdmin
+    ? 'Гиг закрыт администратором — переписка доступна только для просмотра.'
+    : gig.status === 'COMPLETED' || gig.status === 'PAID'
+      ? 'Гиг завершён — переписка доступна только для просмотра.'
+      : undefined
   const chat: ChatPanelVM = {
     thread: gig.messages.map((m) => ({
       direction: (m.senderId === viewer.userId ? 'out' : 'in') as 'in' | 'out',
@@ -698,7 +706,7 @@ export async function getGigDetail(
       timestamp: new Date(m.createdAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
       body: m.content,
     })),
-    composer: { canAttach: false },
+    composer: { canAttach: false, canSend: !chatClosedReason, closedReason: chatClosedReason },
   }
 
   const apply: ApplyPanelVM = {
@@ -792,10 +800,15 @@ export interface ProfileData {
   categories?: CategoryTagsVM // SPECIALIST only
   experience?: ExperienceListVM // SPECIALIST only
   realized: GigCardVM[] // SPECIALIST: COMPLETED/PAID assigned gigs (empty for CLIENT)
-  /** CLIENT only — the company «Реквизиты» (design company profile). */
-  company?: { inn: string; kpp: string }
+  /** CLIENT only — the company «Реквизиты» (design company profile). Carries the full editable set so the owner's
+   * requisites modal can submit non-edited fields back to updateProfile's upsert without clobbering them. */
+  company?: { companyName: string; inn: string; kpp: string; about: string; contactPerson: string; phoneNumber: string }
   rating: { value: number; count: number; verified: boolean }
   isOwner: boolean
+  /** Owner-only raw snapshot of every field updateProfile reads, as strings (phoneVerified = 'true'/'false'). The
+   * edit modals render hidden inputs for the fields they don't own so updateProfile's full-record upsert doesn't
+   * blank them. Undefined for non-owners. */
+  editFields?: Record<string, string>
 }
 
 const longDate = (d: Date): string =>
@@ -863,6 +876,7 @@ export async function getProfile(
       verified: sp.phoneVerified,
       memberSince: longDate(user.createdAt),
       location: sp.location || undefined,
+      timezone: sp.timezone ? timezoneLabel(sp.timezone) : undefined,
       online: false,
       stats: [
         { label: 'Рейтинг', value: ratingValue },
@@ -895,7 +909,23 @@ export async function getProfile(
       })),
     }
 
-    return { role: 'SPECIALIST', header, stats: statsPlaceholder(), stack, categories, experience, realized, rating, isOwner }
+    const editFields = isOwner
+      ? {
+          displayName: sp.displayName,
+          techStack: sp.techStack,
+          experienceLevel: sp.experienceLevel,
+          bio: sp.bio,
+          avatarUrl: sp.avatarUrl,
+          phoneNumber: sp.phoneNumber,
+          phoneVerified: sp.phoneVerified ? 'true' : 'false',
+          position: sp.position,
+          specialization: sp.specialization,
+          location: sp.location,
+          timezone: sp.timezone,
+        }
+      : undefined
+
+    return { role: 'SPECIALIST', header, stats: statsPlaceholder(), stack, categories, experience, realized, rating, isOwner, editFields }
   }
 
   // CLIENT profile (no mock — composed from the same blocks).
@@ -911,6 +941,7 @@ export async function getProfile(
       roleTag: 'Заказчик',
       verified: cp.phoneVerified,
       memberSince: longDate(user.createdAt),
+      timezone: cp.timezone ? timezoneLabel(cp.timezone) : undefined,
       online: false,
       stats: [
         { label: 'Рейтинг', value: ratingValue },
@@ -919,7 +950,37 @@ export async function getProfile(
       ],
     }
 
-    return { role: 'CLIENT', header, stats: statsPlaceholder(), realized: [], company: { inn: cp.inn, kpp: cp.kpp }, rating, isOwner }
+    return {
+      role: 'CLIENT',
+      header,
+      stats: statsPlaceholder(),
+      realized: [],
+      company: {
+        companyName: cp.companyName,
+        inn: cp.inn,
+        kpp: cp.kpp,
+        about: cp.about,
+        contactPerson: cp.contactPerson,
+        phoneNumber: cp.phoneNumber,
+      },
+      rating,
+      isOwner,
+      editFields: isOwner
+        ? {
+            companyName: cp.companyName,
+            inn: cp.inn,
+            kpp: cp.kpp,
+            about: cp.about,
+            contactPerson: cp.contactPerson,
+            phoneNumber: cp.phoneNumber,
+            avatarUrl: cp.avatarUrl,
+            phoneVerified: cp.phoneVerified ? 'true' : 'false',
+            position: cp.position,
+            location: cp.location,
+            timezone: cp.timezone,
+          }
+        : undefined,
+    }
   }
 
   // User exists but the role's profile is unset → not-set-up.
@@ -991,6 +1052,56 @@ export async function getConversations(viewer: { userId: string; role: string })
 }
 
 /**
+ * chat-realtime — map a Message row → MessageBubbleVM. Shared by getChatThread (initial thread) and getNewMessages
+ * (delta poll) so the bubble shape is identical. Carries `id` + `createdAt` (ISO) for the client's dedupe + poll cursor.
+ */
+export function toMessageBubble(
+  m: { id: string; senderId: string; content: string; createdAt: Date; sender?: { email: string } | null },
+  viewerId: string,
+): MessageBubbleVM {
+  const out = m.senderId === viewerId
+  return {
+    id: m.id,
+    direction: out ? 'out' : 'in',
+    author: out ? 'Вы' : m.sender?.email ?? 'Собеседник',
+    timestamp: timeOfDay(m.createdAt),
+    date: longDate(m.createdAt),
+    body: m.content,
+    createdAt: new Date(m.createdAt).toISOString(),
+  }
+}
+
+/**
+ * chat-realtime — the delta-poll receive contract: messages of `gigId` newer than `afterIso`, ascending, capped. Applies
+ * the SAME participant gate as getChatThread (gig must exist + viewer must be owner or assigned specialist) — returns []
+ * otherwise, never exposing a non-participant's messages. Server-only.
+ */
+export async function getNewMessages(
+  gigId: string,
+  afterIso: string,
+  viewer: { userId: string; role: string },
+): Promise<MessageBubbleVM[]> {
+  const after = new Date(afterIso)
+  if (isNaN(after.getTime())) return []
+
+  const gig = await prisma.gig.findUnique({
+    where: { id: gigId },
+    select: { clientId: true, assignedSpecialistId: true },
+  })
+  if (!gig) return []
+  const isParticipant = gig.clientId === viewer.userId || gig.assignedSpecialistId === viewer.userId
+  if (!isParticipant) return []
+
+  const messages = await prisma.message.findMany({
+    where: { gigId, createdAt: { gt: after } },
+    orderBy: { createdAt: 'asc' },
+    include: { sender: true },
+    take: 200,
+  })
+  return messages.map((m) => toMessageBubble(m, viewer.userId))
+}
+
+/**
  * The selected conversation: the gig's messages → MessageBubble thread (direction per viewer, time, long-date for day
  * separators) + the counterparty ChatHeader (name + avatar + rating + presence). Authorizes the viewer (gig owner or
  * assigned specialist) — returns null otherwise. Server-only; reuses getRatingForUser.
@@ -1012,13 +1123,7 @@ export async function getChatThread(
   const isParticipant = gig.clientId === viewer.userId || gig.assignedSpecialistId === viewer.userId
   if (!isParticipant) return null
 
-  const thread: MessageBubbleVM[] = gig.messages.map((m) => ({
-    direction: (m.senderId === viewer.userId ? 'out' : 'in') as 'in' | 'out',
-    author: m.senderId === viewer.userId ? 'Вы' : m.sender.email,
-    timestamp: timeOfDay(m.createdAt),
-    date: longDate(m.createdAt),
-    body: m.content,
-  }))
+  const thread: MessageBubbleVM[] = gig.messages.map((m) => toMessageBubble(m, viewer.userId))
 
   // Counterparty = the other party.
   const viewerIsClient = gig.clientId === viewer.userId
@@ -1046,7 +1151,16 @@ export async function getChatThread(
     specialty,
   }
 
-  return { header, chat: { thread, composer: { canAttach: false }, header } }
+  // Read-only once the engagement is finished/closed — mirrors the persistMessage gate so the composer isn't shown when
+  // a send would be rejected. Active window is OPEN…REVIEW; COMPLETED/PAID/closedByAdmin are terminal.
+  const closedReason = gig.closedByAdmin
+    ? 'Гиг закрыт администратором — переписка доступна только для просмотра.'
+    : gig.status === 'COMPLETED' || gig.status === 'PAID'
+      ? 'Гиг завершён — переписка доступна только для просмотра.'
+      : undefined
+  const canSend = !closedReason
+
+  return { header, chat: { thread, composer: { canAttach: false, canSend, closedReason }, header } }
 }
 
 /** The sidebar «Чаты» badge: count of the viewer's conversations with ≥1 unread message (matches the inbox). */
@@ -1104,7 +1218,7 @@ export async function getDispute(
   id: string,
   viewer: { userId: string; role: string }
 ): Promise<DisputeDetailVM | null> {
-  const d = await getDisputeDetail(id)
+  const d = await getDisputeDetail(id, viewer)
   if (!d) return null
   if (viewer.role === 'ADMIN') return d
   // Participant check: the opener, or the gig's client / assigned specialist (the scoped list encodes exactly this).
@@ -1119,6 +1233,10 @@ export interface SettingsData {
   email: string
   /** «Активные сессии» (reconcile-settings) — the viewer's sessions, current marked `active`. */
   sessions: SessionRowVM[]
+  /** transport-settings — «Часовой пояс»: the profile-level timezone preference (same value the profile shows). */
+  timezone: string
+  /** transport-settings — «Имя» (Учетные данные): displayName (SPECIALIST) / contactPerson|companyName (CLIENT). */
+  name: string
 }
 
 /** Relative «last active» label for a session row (e.g. «только что», «5 мин назад», «3 ч назад», «2 дн назад»). */
@@ -1153,11 +1271,22 @@ export async function getActiveSessions(userId: string, currentSid?: string): Pr
  * missing. Server-only.
  */
 export async function getSettings(viewer: { userId: string; email: string; sid?: string }): Promise<SettingsData> {
-  const [prefs, sessions] = await Promise.all([
+  const [prefs, sessions, profileRow] = await Promise.all([
     getPreferences(viewer.userId),
     getActiveSessions(viewer.userId, viewer.sid),
+    prisma.user.findUnique({
+      where: { id: viewer.userId },
+      select: {
+        specialistProfile: { select: { displayName: true, timezone: true } },
+        clientProfile: { select: { contactPerson: true, companyName: true, timezone: true } },
+      },
+    }),
   ])
-  return { prefs: prefs ?? DEFAULT_PREFERENCES, email: viewer.email, sessions }
+  const sp = profileRow?.specialistProfile
+  const cp = profileRow?.clientProfile
+  const timezone = sp?.timezone || cp?.timezone || ''
+  const name = sp?.displayName || cp?.contactPerson || cp?.companyName || ''
+  return { prefs: prefs ?? DEFAULT_PREFERENCES, email: viewer.email, sessions, timezone, name }
 }
 
 // ---- Admin (prove-extensibility-admin) ------------------------------------
@@ -1178,6 +1307,8 @@ export interface AdminGigRow {
   closed: boolean
   budget: string
   created: string
+  /** Client company name (or email) — shown under the gig title in the console «Гиги» rows (dashboard.admin). */
+  client: string
 }
 export interface AdminListData<T> {
   rows: T[]
@@ -1300,6 +1431,7 @@ export async function getAdminGigs(opts: {
       skip: (opts.page - 1) * ADMIN_PAGE_SIZE,
       take: ADMIN_PAGE_SIZE,
       orderBy: { createdAt: 'desc' },
+      include: { client: { include: { clientProfile: true } } },
     }),
     prisma.gig.count({ where }),
   ])
@@ -1312,6 +1444,7 @@ export async function getAdminGigs(opts: {
       closed: g.closedByAdmin,
       budget: money(g.budget),
       created: new Date(g.createdAt).toLocaleDateString('ru-RU'),
+      client: g.client?.clientProfile?.companyName || g.client?.email || '',
     })),
     page: opts.page,
     totalPages: Math.ceil(totalCount / ADMIN_PAGE_SIZE),

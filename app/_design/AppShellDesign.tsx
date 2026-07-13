@@ -8,18 +8,42 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Icon } from "@/app/components/primitives";
 import { ICON } from "@/app/components/primitives/tokens";
 import { NotificationBell } from "@/app/components/NotificationBell";
 import { logoutUser } from "@/app/actions/auth";
 import { buildSidebarNav, buildAdminNav, markActive, type NavRole, type NavCounts } from "@/lib/nav";
 import { getStoredTheme, applyTheme, type Theme } from "@/lib/theme";
+import { CATEGORIES } from "@/lib/categories";
+import { SettingsModal } from "@/app/(protected)/settings/SettingsModal";
 import "./tokens.css";
+
+// The prototype's header filter cluster (data-dc-tpl="51", beside the search field) on every list screen. Option sets
+// transported from the prototype's FILTERS array; wired to the browse query's URL params (category / minBudget+maxBudget
+// / sort / minRating). Budget is a range → two params.
+const CATEGORY_OPTS = [{ value: "", label: "Все категории" }, ...CATEGORIES.map((c) => ({ value: c.slug, label: c.name }))];
+const BUDGET_RANGES = [
+  { value: "", label: "Любой", min: "", max: "" },
+  { value: "0-50000", label: "до 50 000 ₽", min: "", max: "50000" },
+  { value: "50000-150000", label: "50 000–150 000 ₽", min: "50000", max: "150000" },
+  { value: "150000-", label: "от 150 000 ₽", min: "150000", max: "" },
+];
+const SORT_OPTS = [
+  { value: "newest", label: "По новизне" },
+  { value: "budget-desc", label: "Сначала дороже" },
+  { value: "budget-asc", label: "Сначала дешевле" },
+];
+const RATING_OPTS = [
+  { value: "", label: "Любой рейтинг" },
+  { value: "4", label: "4★ и выше" },
+  { value: "3", label: "3★ и выше" },
+];
 
 // pathname → the design's uppercase RU page title (Gigly App.dc.html TITLES). Most-specific prefix first.
 function pageTitle(pathname: string): string {
   if (pathname === "/admin") return "МОДЕРАЦИЯ";
+  if (pathname.startsWith("/admin/disputes")) return "СПОРЫ";
   if (pathname.startsWith("/admin/users")) return "ПОЛЬЗОВАТЕЛИ";
   if (pathname.startsWith("/admin/gigs")) return "ГИГИ";
   if (pathname === "/dashboard") return "ДАШБОРД";
@@ -36,6 +60,7 @@ function pageTitle(pathname: string): string {
   if (pathname.startsWith("/disputes")) return "СПОРЫ";
   if (pathname.startsWith("/settings")) return "НАСТРОЙКИ";
   if (pathname.startsWith("/profile")) return "ПРОФИЛЬ";
+  if (pathname.startsWith("/guide")) return "КАК ЭТО РАБОТАЕТ";
   return "GIGLY";
 }
 // The design shows the search bar only on the list screens (dashboard / browse / my-gigs).
@@ -56,8 +81,30 @@ export function AppShellDesign({
 }) {
   const pathname = usePathname() ?? "";
   const router = useRouter();
+  const params = useSearchParams();
   const items = markActive(admin ? buildAdminNav() : buildSidebarNav(role, counts), pathname);
   const title = pageTitle(pathname);
+
+  // Header filters refine the CURRENT route's query in place (no redirect): preserve existing params, set/clear the one
+  // filter, drop pagination. On /gigs this drives the browse query; on other list screens the params are simply carried.
+  const navFilter = (mut: (p: URLSearchParams) => void) => {
+    const p = new URLSearchParams(params?.toString() ?? "");
+    mut(p);
+    p.delete("page");
+    router.push(`${pathname}?${p.toString()}`);
+  };
+  const setParam = (key: string, value: string, clearWhen = "") =>
+    navFilter((p) => (value && value !== clearWhen ? p.set(key, value) : p.delete(key)));
+  const curBudget = BUDGET_RANGES.find((b) => b.min === (params?.get("minBudget") ?? "") && b.max === (params?.get("maxBudget") ?? ""))?.value ?? "";
+  const onBudget = (v: string) => {
+    const r = BUDGET_RANGES.find((b) => b.value === v);
+    navFilter((p) => {
+      if (r && r.min) p.set("minBudget", r.min);
+      else p.delete("minBudget");
+      if (r && r.max) p.set("maxBudget", r.max);
+      else p.delete("maxBudget");
+    });
+  };
 
   const [theme, setTheme] = useState<Theme>("dark");
   useEffect(() => setTheme(getStoredTheme()), []);
@@ -70,6 +117,13 @@ export function AppShellDesign({
   const [q, setQ] = useState("");
   const onSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") router.push(q.trim() ? `/gigs?search=${encodeURIComponent(q.trim())}` : "/gigs");
+  };
+
+  // The gear opens the «Настройки» popup over the current page (query-param driven — SettingsModal renders on ?settings=1).
+  const openSettings = () => {
+    const p = new URLSearchParams(params?.toString() ?? "");
+    p.set("settings", "1");
+    router.push(`${pathname}?${p.toString()}`);
   };
 
   // The prototype's sidebar always shows all three role segments (Специалист / Компания / Админ) — a demo
@@ -134,43 +188,55 @@ export function AppShellDesign({
             boxShadow: "inset 0 0 0 1px var(--hairline-08)",
           }}
         >
-          <span
-            style={{
-              width: 40,
-              height: 40,
-              flex: "none",
-              borderRadius: "50%",
-              background: "var(--surface-secondary)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontWeight: 700,
-              fontSize: 15,
-              color: "var(--text-3)",
-            }}
+          {/* avatar + name/role → /profile (the bell/gear column stays outside this link — no nested interactives) */}
+          <Link
+            href="/profile"
+            aria-label="Профиль"
+            style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 10, textDecoration: "none", color: "inherit" }}
           >
-            {profile.name.slice(0, 1).toUpperCase()}
-          </span>
-          <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
             <span
               style={{
-                fontSize: 14,
+                width: 40,
+                height: 40,
+                flex: "none",
+                borderRadius: "50%",
+                background: "var(--surface-secondary)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                 fontWeight: 700,
-                color: "var(--text-1)",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
+                fontSize: 15,
+                color: "var(--text-3)",
               }}
             >
-              {profile.name}
+              {profile.name.slice(0, 1).toUpperCase()}
             </span>
-            <span style={{ fontSize: 12, color: "var(--text-3)" }}>{profile.sub}</span>
-          </div>
+            <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
+              <span
+                style={{
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: "var(--text-1)",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {profile.name}
+              </span>
+              <span style={{ fontSize: 12, color: "var(--text-3)" }}>{profile.sub}</span>
+            </div>
+          </Link>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, color: "var(--text-3)" }}>
             <NotificationBell />
-            <Link href="/settings" aria-label="Настройки" style={{ color: "var(--text-3)", display: "flex" }}>
+            <button
+              type="button"
+              onClick={openSettings}
+              aria-label="Настройки"
+              style={{ color: "var(--text-3)", display: "flex", background: "none", border: "none", padding: 0, cursor: "pointer" }}
+            >
               <GearIcon />
-            </Link>
+            </button>
           </div>
         </div>
 
@@ -201,6 +267,7 @@ export function AppShellDesign({
             <Link
               key={item.href}
               href={item.href}
+              aria-current={item.active ? "page" : undefined}
               style={{
                 position: "relative",
                 display: "flex",
@@ -384,6 +451,10 @@ export function AppShellDesign({
                   }}
                 />
               </div>
+              <HeaderFilter label="Категория" value={params?.get("category") ?? ""} options={CATEGORY_OPTS} onChange={(v) => setParam("category", v)} />
+              <HeaderFilter label="Бюджет" value={curBudget} options={BUDGET_RANGES} onChange={onBudget} />
+              <HeaderFilter label="Сортировка" value={params?.get("sort") ?? "newest"} defaultValue="newest" options={SORT_OPTS} onChange={(v) => setParam("sort", v, "newest")} />
+              <HeaderFilter label="Рейтинг" value={params?.get("minRating") ?? ""} options={RATING_OPTS} onChange={(v) => setParam("minRating", v)} />
             </div>
           )}
         </header>
@@ -394,7 +465,68 @@ export function AppShellDesign({
           {children}
         </div>
       </main>
+
+      {/* «Настройки» popup — overlays the current page when ?settings=1 is set (opened by the sidebar gear). */}
+      <SettingsModal />
     </div>
+  );
+}
+
+// Header filter chip (prototype data-dc-tpl="57"): funnel + fixed label + «⌄», with a full-bleed transparent native
+// <select> overlaid for real dropdown behaviour + a11y. The chip border tints accent when a non-default value is set.
+function HeaderFilter({
+  label,
+  value,
+  defaultValue = "",
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  defaultValue?: string;
+  options: { value: string; label: string }[];
+  onChange: (v: string) => void;
+}) {
+  const active = value !== defaultValue;
+  return (
+    <div
+      style={{
+        position: "relative",
+        flex: "none",
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        height: 48,
+        padding: "0 16px",
+        borderRadius: 8,
+        background: "var(--surface-sunken)",
+        boxShadow: active ? "inset 0 0 0 1px var(--om-accent)" : "inset 0 0 0 1px var(--hairline-06)",
+        whiteSpace: "nowrap",
+      }}
+    >
+      <FilterFunnelIcon />
+      <span style={{ fontFamily: "'Handjet',monospace", fontSize: 16, color: active ? "var(--text-1)" : "var(--text-3)" }}>{label}</span>
+      <span style={{ color: "var(--text-4)", fontSize: 13 }}>⌄</span>
+      <select
+        aria-label={label}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0, cursor: "pointer", border: "none", appearance: "none", WebkitAppearance: "none" }}
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value} style={{ background: "var(--surface-card)", color: "var(--text-1)" }}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+function FilterFunnelIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ color: "var(--text-3)", flex: "none" }}>
+      <path d="M2.5 3.5h11l-4.2 5v4l-2.6-1.3v-2.7z" />
+    </svg>
   );
 }
 

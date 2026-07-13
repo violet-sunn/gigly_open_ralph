@@ -42,6 +42,7 @@ vi.mock('next/navigation', () => ({
 
 // Import server actions after mocks
 import { sendMessage } from '@/app/actions/gig'
+import { sendMessageLive } from '@/app/actions/messaging'
 
 describe('Messaging System Tests', () => {
   beforeEach(() => {
@@ -604,7 +605,7 @@ describe('Messaging System Tests', () => {
       await prisma.user.delete({ where: { id: specialist.id } })
     })
 
-    it('Can send messages in COMPLETED status', async () => {
+    it('Cannot send messages in COMPLETED status (terminal — read-only history)', async () => {
       const prisma = getTestPrismaClient()
 
       const client = await createTestUser(prisma, { role: 'CLIENT' })
@@ -621,17 +622,14 @@ describe('Messaging System Tests', () => {
       formData.append('content', 'Message in COMPLETED')
 
       await withAuthContext(client, async () => {
-        try {
-          await sendMessage(null, formData)
-        } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT')
-        }
+        const result = await sendMessage(null, formData)
+        expect(result).toHaveProperty('error')
+        expect(result.error).toBe('Cannot send messages to a completed gig. The work has been finalized.')
       })
 
       const messages = await prisma.message.findMany({ where: { gigId: gig.id } })
-      expect(messages).toHaveLength(1)
+      expect(messages).toHaveLength(0)
 
-      await prisma.message.deleteMany({ where: { gigId: gig.id } })
       await prisma.gig.delete({ where: { id: gig.id } })
       await prisma.user.delete({ where: { id: client.id } })
       await prisma.user.delete({ where: { id: specialist.id } })
@@ -657,7 +655,7 @@ describe('Messaging System Tests', () => {
       await withAuthContext(client, async () => {
         const result = await sendMessage(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toBe('Cannot send messages to completed and paid gigs. The work has been finalized.')
+        expect(result.error).toBe('Cannot send messages to a completed gig. The work has been finalized.')
       })
 
       const messages = await prisma.message.findMany({ where: { gigId: gig.id } })
@@ -688,7 +686,7 @@ describe('Messaging System Tests', () => {
       await withAuthContext(specialist, async () => {
         const result = await sendMessage(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toBe('Cannot send messages to completed and paid gigs. The work has been finalized.')
+        expect(result.error).toBe('Cannot send messages to a completed gig. The work has been finalized.')
       })
 
       const messages = await prisma.message.findMany({ where: { gigId: gig.id } })
@@ -989,5 +987,93 @@ describe('Messaging System Tests', () => {
       await prisma.user.delete({ where: { id: client.id } })
       await prisma.user.delete({ where: { id: specialist.id } })
     })
+  })
+})
+
+describe('sendMessageLive (chat-realtime optimistic send)', () => {
+  beforeEach(() => setTestSessionToken(undefined))
+  afterEach(() => setTestSessionToken(undefined))
+
+  it('persists the message, returns the echo bubble, and upserts the recipient notification', async () => {
+    const prisma = getTestPrismaClient()
+    const client = await createTestUser(prisma, { role: 'CLIENT' })
+    const specialist = await createTestUser(prisma, { role: 'SPECIALIST' })
+    const gig = await createTestGig(prisma, { clientId: client.id, status: 'IN_PROGRESS', assignedSpecialistId: specialist.id })
+
+    const res = await withAuthContext(client, () => sendMessageLive(gig.id, 'Привет!'))
+    expect('message' in res).toBe(true)
+    if ('message' in res) {
+      expect(res.message.body).toBe('Привет!')
+      expect(res.message.direction).toBe('out') // the sender's own echo
+      expect(res.message.author).toBe('Вы')
+      expect(res.message.id).toBeTruthy()
+      expect(res.message.createdAt).toBeTruthy()
+    }
+
+    const rows = await prisma.message.findMany({ where: { gigId: gig.id } })
+    expect(rows).toHaveLength(1)
+    expect(rows[0].content).toBe('Привет!')
+
+    // recipient (the specialist) gets an unread notification
+    const notif = await prisma.notification.findUnique({ where: { userId_gigId: { userId: specialist.id, gigId: gig.id } } })
+    expect(notif).not.toBeNull()
+    expect(notif!.lastReadAt).toBeNull()
+  })
+
+  it('rejects a non-participant (same gate as sendMessage)', async () => {
+    const prisma = getTestPrismaClient()
+    const client = await createTestUser(prisma, { role: 'CLIENT' })
+    const specialist = await createTestUser(prisma, { role: 'SPECIALIST' })
+    const stranger = await createTestUser(prisma, { role: 'SPECIALIST' })
+    const gig = await createTestGig(prisma, { clientId: client.id, status: 'IN_PROGRESS', assignedSpecialistId: specialist.id })
+
+    const res = await withAuthContext(stranger, () => sendMessageLive(gig.id, 'intruder'))
+    expect('error' in res).toBe(true)
+    expect(await prisma.message.count({ where: { gigId: gig.id } })).toBe(0)
+  })
+
+  it('rejects pre-assignment chat (no assigned specialist)', async () => {
+    const prisma = getTestPrismaClient()
+    const client = await createTestUser(prisma, { role: 'CLIENT' })
+    const gig = await createTestGig(prisma, { clientId: client.id, status: 'OPEN' })
+
+    const res = await withAuthContext(client, () => sendMessageLive(gig.id, 'too early'))
+    expect('error' in res).toBe(true)
+    if ('error' in res) expect(res.error).toMatch(/specialist is assigned/)
+    expect(await prisma.message.count({ where: { gigId: gig.id } })).toBe(0)
+  })
+
+  it('rejects an empty message', async () => {
+    const prisma = getTestPrismaClient()
+    const client = await createTestUser(prisma, { role: 'CLIENT' })
+    const specialist = await createTestUser(prisma, { role: 'SPECIALIST' })
+    const gig = await createTestGig(prisma, { clientId: client.id, status: 'IN_PROGRESS', assignedSpecialistId: specialist.id })
+
+    const res = await withAuthContext(client, () => sendMessageLive(gig.id, '   '))
+    expect('error' in res).toBe(true)
+    expect(await prisma.message.count({ where: { gigId: gig.id } })).toBe(0)
+  })
+
+  it('rejects sending to a COMPLETED gig (terminal — read-only history)', async () => {
+    const prisma = getTestPrismaClient()
+    const client = await createTestUser(prisma, { role: 'CLIENT' })
+    const specialist = await createTestUser(prisma, { role: 'SPECIALIST' })
+    const gig = await createTestGig(prisma, { clientId: client.id, status: 'COMPLETED', assignedSpecialistId: specialist.id })
+
+    const res = await withAuthContext(client, () => sendMessageLive(gig.id, 'after completion'))
+    expect('error' in res).toBe(true)
+    if ('error' in res) expect(res.error).toMatch(/завершён|completed/i)
+    expect(await prisma.message.count({ where: { gigId: gig.id } })).toBe(0)
+  })
+
+  it('rejects sending to a PAID gig (terminal)', async () => {
+    const prisma = getTestPrismaClient()
+    const client = await createTestUser(prisma, { role: 'CLIENT' })
+    const specialist = await createTestUser(prisma, { role: 'SPECIALIST' })
+    const gig = await createTestGig(prisma, { clientId: client.id, status: 'PAID', assignedSpecialistId: specialist.id })
+
+    const res = await withAuthContext(client, () => sendMessageLive(gig.id, 'after payment'))
+    expect('error' in res).toBe(true)
+    expect(await prisma.message.count({ where: { gigId: gig.id } })).toBe(0)
   })
 })

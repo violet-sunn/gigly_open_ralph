@@ -11,14 +11,26 @@ export default async function ProfilePage() {
 
   const data = await getProfile(session.userId, { userId: session.userId, role: session.role })
 
-  // Profile not set up yet (or unknown role) — guide the user to the edit form (the shell header supplies the title).
+  // No profile record. For real specialists/clients this can't happen — registration step 3 is enforced and always
+  // creates the profile record — so the only account that reaches here is ADMIN, which has no public profile by design.
   if (!data) {
+    if (session.role === 'ADMIN') {
+      return (
+        <Notice tone="info">
+          У администратора нет публичного профиля.{' '}
+          <Link href="/admin" className="underline">
+            Перейти в панель администратора
+          </Link>
+        </Notice>
+      )
+    }
     return (
       <Notice tone="warning">
-        Профиль ещё не заполнен.{' '}
-        <Link href="/profile/edit?from=profile" className="underline">
-          Заполнить профиль
+        Профиль ещё не заполнен. Заполните его при регистрации, либо{' '}
+        <Link href="/settings" className="underline">
+          в настройках аккаунта
         </Link>
+        .
       </Notice>
     )
   }

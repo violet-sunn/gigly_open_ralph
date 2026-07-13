@@ -1,7 +1,7 @@
 # Transport Design From Prototype
 
 **Created:** 2026-06-25
-**Status:** IN_PROGRESS
+**Status:** COMPLETE
 
 ## Problem
 
@@ -62,7 +62,7 @@ The premise — *move the real artifact, don't reconstruct* — only holds if ev
 
 Two places where the app diverged from the prototype. Both are now decided (2026-06-25):
 
-1. **Settings — DEFERRED.** The prototype exposes settings only as a small *appearance/theme modal* (gear icon), but the app has a richer `/settings` route (`app/(protected)/settings/SettingsDesign.tsx`) with theme, language, currency, notifications, privacy, sessions, and delete-account. **Decision: leave the current `/settings` page exactly as-is for now** — it is *not* part of this initiative and will be brought to the design language in a separate, later effort. The shell's gear icon (change 2) simply routes to the existing `/settings` page, unchanged. See the Deferred section.
+1. **Settings — DEFERRED → ✅ RESOLVED (transport-settings, archived 2026-06-29).** The prototype exposes settings only as a small *appearance/theme modal* (gear icon), but the app has a richer `/settings` route with theme, language, currency, notifications, privacy, sessions, and delete-account. It was deferred from this initiative and then shipped as its own change — built against the **newer Figma settings popup** (node `3121:2609`), as a contained `?settings=1` modal opened from the shell gear, every control live-or-gray. One accepted gap remains (stored-but-not-consumed currency/language) — see the **Follow-ups** section.
 
 2. **Profile editing — CONFIRMED: use the prototype's modals.** The prototype edits the profile via inline modals (`bio` / `cats` / `stack`) on the profile screen; there is **no standalone profile-edit screen** in the design. The app has a separate `/profile/edit` Tailwind page (`app/(protected)/profile/edit/`). **Decision: transport the profile screen *with* its edit modals**, route the existing profile-update actions through those modals, and redirect `/profile/edit` → `/profile` (reuse the route's server-side logic behind the modals; do not delete it). Handled by change 5.
 
@@ -114,21 +114,58 @@ Each is a separate `/ralphy-plan` → `/ralphy-implement` cycle. Only changes **
 
 - [x] 1. transport-capture-pipeline
 - [x] 2. transport-shared-shell
-- [ ] 3. transport-dashboards-search
-- [ ] 4. transport-gig-lifecycle
-- [ ] 5. transport-chats-finance-profile
-- [ ] 6. transport-disputes
-- [ ] 7. transport-admin-console
-- [ ] 8. transport-auth
+- [x] 3. transport-dashboards-search
+- [x] 4. transport-gig-lifecycle
+- [x] 5. transport-chats-finance-profile
+- [x] 6. transport-disputes
+- [x] 7. transport-admin-console
+- [x] 8. transport-auth
 
-**Progress:** 2/8 changes completed
+**Progress:** 8/8 changes completed
 **Started:** 2026-06-25
-**Completed:** Not completed
+**Completed:** 2026-06-29
 
-## Deferred (out of scope for now)
+## Deferred — now DONE
 
-**Settings.** The app's richer `/settings` page is intentionally left as-is for this initiative (see Decision 1). When ready to bring it to the design language later, run:
+**Settings — ✅ SHIPPED (transport-settings, archived 2026-06-29).** The deferred settings work (Decision 1) was planned and implemented against the newer Figma settings popup (node `3121:2609`, not the prototype's small theme modal) as a contained `?settings=1` modal on app tokens, with every control either live-and-wired-or-grayed-and-inert, an expanded timezone dataset, and 3 cheap additive schema fields. Verified: build exit 0; 18 integration + 10 E2E green. Folded into `openspec/specs/ui/spec.md` ("ADDED Requirements (transport-settings …)"). See the follow-ups below for the one accepted gap.
 
+## Follow-ups — settings that persist a preference but don't actually do anything
+
+`transport-settings` shipped the popup and made the wired controls **persist**, but a full audit (2026-06-29) shows several preferences are stored yet **never consumed** — the app does not act on them. These are the real functionality gaps behind the settings UI. None of them is a defect in the transport (the popup is faithful); they are *missing downstream wiring* that predates or was deferred by this change. Captured here so nothing is silently dead. Each follow-up is honest about the real work (an FX decision, a translation layer, notification gating + an email channel) and fabricates no value.
+
+**Audit of every settings control:**
+
+| Control | Persists? | Consumed (does something)? | Disposition |
+|---|---|---|---|
+| **Имя** | ✅ | ✅ surfaced on the profile | Functional — keep |
+| **Часовой пояс** | ✅ | ✅ surfaced on the profile | Functional — keep |
+| **Активные сессии** / «Завершить все» | ✅ | ✅ real session rows terminated | Functional — keep |
+| **Удалить аккаунт** / **Выйти** | ✅ | ✅ real | Functional — keep |
+| **Валюта** | ✅ | ❌ all money still renders ₽ (`formatCurrency` hardcodes `ru-RU`/`RUB`) | **Gap A** — grayed/inert in MVP |
+| **Язык интерфейса** | ✅ | ❌ no i18n layer; UI is hardcoded Russian | **Gap B** — grayed/inert in MVP |
+| **Notification rows (5)** | ✅ | ⚠️ the 3 sourced rows now gate the bell live (`getUnreadNotifications` reads prefs, display-time); the 2 sourceless rows + email are still unwired | **Gap C — partially done**: in-app gating shipped; email deferred |
+| **2FA / Email / Password / avatar upload** | — | — (no backend) | Honestly grayed already — see deferred list above |
+| **showRatingInProfile / showOnlineStatus** | ✅ | ❌ not even rendered in the new modal; nothing reads them (profile hardcodes `online: false`, always shows rating) | **Gap D** — orphaned; wire or remove |
+
+Currency (A) and Language (B) are **grayed/inert** in the live modal (owner decision, MVP scope) so they don't masquerade as functional. The notification rows (C) are now **partially wired** — the 3 sourced rows gate the bell live; the 2 sourceless rows are grayed. The orphaned fields (D) are documented-only (owner decision: leave in place).
+
+### A. Currency is stored but the whole app still renders rubles
 ```bash
-/ralphy-plan transport-settings "Bring the existing /settings route to the design language. The app's /settings page (app/(protected)/settings/SettingsDesign.tsx) has more than the prototype's small appearance/theme modal (theme, language, currency, notifications, privacy, sessions, delete-account) — KEEP all of it. Requirements: (1) Restyle SettingsDesign.tsx to the prototype's visual language (tokens, Handjet/Manrope, surfaces/hairlines); (2) Optionally surface the prototype's appearance/theme modal as the shell gear's quick-toggle; (3) Wire to existing settings server actions. Test: build + existing E2E green; all settings actions work; appearance matches the design language."
+/ralphy-plan currency-display "Make the app render money in the user's chosen currency (user.currency, already persisted by transport-settings) instead of hardcoded rubles. Today lib/utils/currency.ts:formatCurrency hardcodes ru-RU/RUB and takes no preference, so every amount shows ₽ regardless of the setting. Requirements: (1) DECISION FIRST — amounts are stored in rubles, so changing the currency requires conversion, not just a symbol swap (relabelling 50000₽ as \$50000 would fabricate value — forbidden). Choose and document an FX source: RECOMMENDED a small fixed rate table (rub→usd/eur) in lib so display is deterministic and honest, with the rate/date shown; a live FX API is a heavier alternative. (2) Make formatCurrency(amount, currency?) preference-aware (convert + correct locale + symbol) and thread the viewer's currency through the ~10 call sites (finances, gig cards, gig detail, create-gig fee panel, disputes — see grep for formatCurrency/₽). (3) Server-render with the viewer's preference so SSR and client agree. Non-goals: editing/quoting gig budgets in foreign currency (display-only this round); per-gig currency. Test: build + existing E2E green; a user who selects USD sees converted \$ amounts across finances/gig cards/detail with the documented rate; rub users unchanged."
 ```
+
+### B. Language is stored but there is no i18n layer (UI stays Russian)
+```bash
+/ralphy-plan i18n-foundation "Introduce an internationalization layer so user.locale (already persisted by transport-settings) actually switches the UI language. Today every screen hardcodes Russian string literals, so selecting English changes nothing visible. This is a foundation change, not a one-screen tweak. Requirements: (1) Adopt a lightweight i18n approach (RECOMMENDED next-intl or a small typed dictionary in lib/i18n with a useTranslations()/getTranslations() seam that reads the viewer's locale server-side and client-side); (2) Establish the ru + en catalogs and the key convention; (3) Migrate a FIRST vertical slice end-to-end as the proof — the settings modal + the app shell chrome — leaving a documented, repeatable pattern + a checklist of the remaining ~30 screens to migrate incrementally (do NOT attempt all screens in one change). (4) Default/fallback locale = ru; missing keys fall back to ru, never blank. Test: build + existing E2E green; with locale=en the migrated slice (settings + shell) renders in English and persists across reload; ru unchanged; a lint/test guards against missing keys in the migrated slice."
+```
+
+### C. Notification toggles — in-app gating DONE; email deferred
+**✅ Done (2026-06-30):** the 3 notification rows with a real bell source now actually work — `getUnreadNotifications` (app/actions/notification.ts) reads the recipient's prefs and gates the bell at **display time** (MESSAGE→`notifyMessages`, APPLICATION→`notifyApplications`, STATUS_CHANGE→`notifyStatusChanges`), reversibly (no rows dropped at creation; covered by `notifications.test.ts`). The false «Email-уведомления» label was corrected to «Уведомления в приложении». The 2 sourceless rows (`notifyPlatformNews`/`notifyNewGigs`) stay **grayed/inert** because nothing generates those events yet.
+
+**Still deferred (the remaining `notification-preferences` work):** (1) a real **email-delivery** channel (no nodemailer/resend/transport exists), and (2) **event sources** for platform-news / new-gig-match so those two toggles have something to gate. When ready:
+```bash
+/ralphy-plan notification-preferences "Finish the notification preferences. In-app (bell) gating already ships — getUnreadNotifications gates MESSAGE/APPLICATION/STATUS_CHANGE on the prefs (display-time, reversible), the section is relabelled «Уведомления в приложении», and the 2 sourceless rows (notifyPlatformNews/notifyNewGigs) are grayed. This change closes the two remaining gaps. Requirements: (1) EMAIL CHANNEL — introduce a real email transport (RECOMMENDED resend or nodemailer behind a lib/email seam) and send the enabled notification types to the user's email, honoring the same prefs as the bell; behind env/feature-flag so dev/test don't send. (2) EVENT SOURCES — generate the events the 2 sourceless toggles describe (platform news broadcast; a 'new gig matching your stack' notification on gig creation matched to specialist techStack), then un-gray those two rows and gate them like the others. Test: a user who disables a type gets neither the bell entry nor an email for it; enabled types deliver both; the two new event sources fire and respect their toggles; build + existing E2E green; no real email is sent in test."
+```
+
+### D. Orphaned privacy preferences (no UI, no consumer)
+`showRatingInProfile` and `showOnlineStatus` exist on `Preferences` + `updatePreferences` and persist, but (a) the new settings modal does **not** render them (the Figma popup has no privacy section) and (b) nothing consumes them — `ProfileHeaderVM` hardcodes `online: false` and the profile always shows the rating. They are dead fields. **Decision needed (no code yet):** either *wire* them (add a privacy sub-section to the modal + have `getProfile`/`ProfileDesign` respect them) or *remove* them. **RECOMMENDED: remove** the two fields until the design actually calls for a privacy section — carrying stored-but-dead state invites exactly the confusion that surfaced here. Run a `/ralphy-plan` once the direction is chosen.

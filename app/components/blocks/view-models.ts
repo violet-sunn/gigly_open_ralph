@@ -27,6 +27,8 @@ export interface RatingVM {
 export interface StatVM {
   label: string;
   value: string | number;
+  /** Optional muted caption line under the value (e.g. «комиссия Gigly 10%») — finance tiles. */
+  caption?: string;
 }
 export interface KeyVal {
   key: string;
@@ -59,6 +61,8 @@ export interface GigCardVM {
   tags: string[];
   status: Status;
   budget: Money;
+  /** Numeric budget in roubles (for client-side budget filtering/sorting on the dashboard & my-gigs feeds). */
+  budgetValue?: number;
   deadlineDays: number;
   rating: { value: number; count: number; verified: boolean };
   clientName?: string;
@@ -92,6 +96,8 @@ export interface ProfileHeaderVM {
   verified: boolean;
   memberSince: DateISO;
   location?: string;
+  /** transport-settings — the «Часовой пояс» preference, rendered as a (GMT…) label under the header. */
+  timezone?: string;
   online?: boolean;
   stats: StatVM[];
 }
@@ -146,6 +152,8 @@ export interface LedgerTableVM {
     subtitle?: string;
     /** Optional status-badge label override (e.g. «Оплачено» for PAID, which has no design Status). */
     statusLabel?: string;
+    /** Optional "r,g,b" dot/label colour override (e.g. the awaiting-payment green that isn't in STATUS_RGB). */
+    statusColor?: string;
   }[];
   balance: Money;
 }
@@ -181,6 +189,8 @@ export interface DisputeEntryVM {
 export interface DisputeDetailVM {
   id: string;
   gig: string;
+  /** «Контрагент» — the other party in the dispute, viewer-relative (disputeDetail.* header). */
+  counterparty?: string;
   opener: string;
   openerRole: "specialist" | "company" | "";
   amount: Money;
@@ -218,6 +228,8 @@ export interface FilterBarVM {
 
 // ---- Messaging ----------------------------------------------------------
 export interface MessageBubbleVM {
+  /** Message id — delta-poll dedupe + optimistic reconcile (absent on legacy fixtures). */
+  id?: string;
   direction: "in" | "out";
   author: string;
   timestamp: DateISO;
@@ -225,6 +237,11 @@ export interface MessageBubbleVM {
   readState?: "sent" | "read";
   /** Long-form day label (e.g. «1 апреля 2026 г.») — ChatPanel inserts a day separator when it changes. */
   date?: DateISO;
+  /** ISO timestamp — the delta-poll cursor + ordering key (chat-realtime). */
+  createdAt?: DateISO;
+  /** Optimistic send state: pending = not yet confirmed by the server; failed = the send errored. */
+  pending?: boolean;
+  failed?: boolean;
 }
 /** Bio block (Figma `bio` 2931:2365 + `bio/message/COMPANY` 2931:2366 → one block). The identity row:
  *  avatar + name + verify-patch + stars + `Специальность`. `user: 'company'` omits the specialty. */
@@ -303,7 +320,8 @@ export interface MessagesPanelVM {
 }
 export interface ChatPanelVM {
   thread: MessageBubbleVM[];
-  composer: { canAttach: boolean };
+  /** `canSend`=false → the gig is finished/closed (COMPLETED/PAID/closedByAdmin); the thread is read-only history. */
+  composer: { canAttach: boolean; canSend: boolean; closedReason?: string };
   /** Optional thread header (counterparty) rendered above the thread. */
   header?: ChatHeaderVM;
 }

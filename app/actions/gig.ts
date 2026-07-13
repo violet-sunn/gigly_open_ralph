@@ -4,7 +4,8 @@ import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/session'
 import { sanitizeInput } from '@/lib/sanitize'
-import { applicationRateLimiter, messageRateLimiter, getRateLimitError } from '@/lib/ratelimit'
+import { applicationRateLimiter, getRateLimitError } from '@/lib/ratelimit'
+import { persistMessage } from '@/lib/messaging'
 import { createNotification, createNotificationsBulk } from '@/lib/notifications'
 import { isCategorySlug } from '@/lib/categories'
 
@@ -16,7 +17,7 @@ export async function createGig(
   if (!session) redirect('/login')
 
   if (session.role !== 'CLIENT') {
-    return { error: 'Only clients can post gigs. Switch to a client account or register as a client to continue.' }
+    return { error: 'Публиковать гиги могут только заказчики. Войдите как компания или зарегистрируйтесь в роли заказчика.' }
   }
 
   // Sanitize all text fields before validation
@@ -34,16 +35,16 @@ export async function createGig(
   const constraints = sanitizeInput((formData.get('constraints') as string) || '').trim()
 
   if (!title || !description || !acceptanceCriteria) {
-    return { error: 'Please fill in all required fields: title, description, and acceptance criteria.' }
+    return { error: 'Заполните обязательные поля: название, описание и критерии приёмки.' }
   }
 
   if (acceptanceCriteria.length < 50) {
-    return { error: 'Acceptance criteria must be at least 50 characters. Add more detail about what defines success for this gig.' }
+    return { error: 'Критерии приёмки должны быть не короче 50 символов. Опишите подробнее, что считается результатом.' }
   }
 
   const budgetRoubles = Number(budgetRaw)
   if (!budgetRoubles || budgetRoubles <= 0 || !Number.isFinite(budgetRoubles)) {
-    return { error: 'Budget must be a positive number in roubles. Enter the amount you\'ll pay the specialist (service fee will be calculated automatically).' }
+    return { error: 'Бюджет должен быть положительным числом в рублях. Укажите сумму для специалиста (сервисный сбор считается автоматически).' }
   }
 
   const budgetKopecks = Math.round(budgetRoubles * 100)
@@ -53,7 +54,7 @@ export async function createGig(
   // Optional category — must be one of the canonical five if supplied (safe-default: null when absent)
   const category = (formData.get('category') as string) || null
   if (category && !isCategorySlug(category)) {
-    return { error: 'Please choose a valid category.' }
+    return { error: 'Выберите корректную категорию.' }
   }
 
   // Optional deadline (Срок выполнения) — whole days 1–365; absent → 0 (unspecified, rendered gracefully)
@@ -62,7 +63,7 @@ export async function createGig(
   if (deadlineRaw != null && deadlineRaw !== '') {
     const n = Number(deadlineRaw)
     if (!Number.isInteger(n) || n < 1 || n > 365) {
-      return { error: 'Срок выполнения must be a whole number of days between 1 and 365.' }
+      return { error: 'Срок выполнения должен быть целым числом дней от 1 до 365.' }
     }
     deadlineDays = n
   }
@@ -73,7 +74,7 @@ export async function createGig(
   if (stageRaw != null && stageRaw !== '') {
     const n = Number(stageRaw)
     if (!Number.isInteger(n) || n < 1 || n > 50) {
-      return { error: 'Number of stages (этапы) must be a whole number between 1 and 50.' }
+      return { error: 'Количество этапов должно быть целым числом от 1 до 50.' }
     }
     stageCount = n
   }
@@ -126,7 +127,7 @@ export async function applyToGig(
   if (!session) redirect('/login')
 
   if (session.role !== 'SPECIALIST') {
-    return { error: 'Only specialists can apply to gigs. Switch to a specialist account or register as a specialist to continue.' }
+    return { error: 'Откликаться на гиги могут только специалисты. Войдите как специалист или зарегистрируйтесь в этой роли.' }
   }
 
   // Check rate limit AFTER auth, BEFORE validation
@@ -144,29 +145,29 @@ export async function applyToGig(
 
   // Validate required fields
   if (!approach) {
-    return { error: 'Technical approach is required.' }
+    return { error: 'Опишите ваш подход к задаче.' }
   }
   if (!questions) {
-    return { error: 'Clarifying questions are required.' }
+    return { error: 'Задайте уточняющие вопросы.' }
   }
 
   // Validate minimum lengths
   if (approach.length < 100) {
-    return { error: 'Technical approach must be at least 100 characters. Please provide more detail about your methodology.' }
+    return { error: 'Описание подхода должно быть не короче 100 символов. Расскажите подробнее о вашем методе.' }
   }
   if (questions.length < 50) {
-    return { error: 'Clarifying questions must be at least 50 characters. What do you need to know about the requirements?' }
+    return { error: 'Уточняющие вопросы должны быть не короче 50 символов. Что нужно прояснить по задаче?' }
   }
 
   // Validate maximum lengths
   if (approach.length > 2000) {
-    return { error: 'Technical approach is too long. Maximum 2000 characters allowed.' }
+    return { error: 'Описание подхода слишком длинное. Максимум 2000 символов.' }
   }
   if (questions.length > 1000) {
-    return { error: 'Clarifying questions are too long. Maximum 1000 characters allowed.' }
+    return { error: 'Уточняющие вопросы слишком длинные. Максимум 1000 символов.' }
   }
   if (estimatedEffort.length > 200) {
-    return { error: 'Estimated effort is too long. Maximum 200 characters allowed.' }
+    return { error: 'Оценка трудозатрат слишком длинная. Максимум 200 символов.' }
   }
 
   // Optional proposed terms (TermsTabs "Предложено"). Budget in roubles → kopecks; absent → null.
@@ -175,7 +176,7 @@ export async function applyToGig(
   if (pbRaw != null && pbRaw !== '') {
     const r = Number(pbRaw)
     if (!Number.isFinite(r) || r <= 0) {
-      return { error: 'Proposed budget must be a positive number in roubles.' }
+      return { error: 'Предложенный бюджет должен быть положительным числом в рублях.' }
     }
     proposedBudget = Math.round(r * 100)
   }
@@ -184,33 +185,33 @@ export async function applyToGig(
   if (pdRaw != null && pdRaw !== '') {
     const n = Number(pdRaw)
     if (!Number.isInteger(n) || n < 1 || n > 365) {
-      return { error: 'Proposed срок must be a whole number of days between 1 and 365.' }
+      return { error: 'Предложенный срок должен быть целым числом дней от 1 до 365.' }
     }
     proposedDeadlineDays = n
   }
 
   const gig = await prisma.gig.findUnique({ where: { id: gigId } })
   if (!gig) {
-    return { error: 'This gig no longer exists or has been removed.' }
+    return { error: 'Этот гиг больше не существует или был удалён.' }
   }
 
   if (gig.isExample) {
-    return { error: 'This is an example gig for demonstration. Browse real gigs to find work opportunities.' }
+    return { error: 'Это демонстрационный гиг. Откликайтесь на реальные гиги в поиске.' }
   }
 
   if (gig.closedByAdmin) {
-    return { error: 'This gig has been closed by administrators and is no longer available.' }
+    return { error: 'Этот гиг закрыт администрацией и больше недоступен.' }
   }
 
   if (gig.status !== 'OPEN') {
-    return { error: 'This gig is no longer accepting applications. It may already have an assigned specialist.' }
+    return { error: 'Этот гиг больше не принимает отклики — возможно, специалист уже назначен.' }
   }
 
   const existing = await prisma.application.findUnique({
     where: { gigId_specialistId: { gigId, specialistId: session.userId } },
   })
   if (existing) {
-    return { error: 'You\'ve already applied to this gig. Check your dashboard to see your application status.' }
+    return { error: 'Вы уже откликнулись на этот гиг. Статус отклика виден в вашем дашборде.' }
   }
 
   // Get specialist profile for notification
@@ -292,7 +293,7 @@ export async function acceptApplication(
   if (!session) redirect('/login')
 
   if (session.role !== 'CLIENT') {
-    return { error: 'Only clients can manage applications. If you\'re the specialist, wait for the client\'s decision.' }
+    return { error: 'Управлять откликами могут только заказчики. Если вы специалист — дождитесь решения заказчика.' }
   }
 
   const applicationId = formData.get('applicationId') as string
@@ -303,19 +304,19 @@ export async function acceptApplication(
   })
 
   if (!application) {
-    return { error: 'This application no longer exists or has been removed.' }
+    return { error: 'Этот отклик больше не существует или был удалён.' }
   }
 
   if (application.gig.clientId !== session.userId) {
-    return { error: 'Only the client who posted this gig can accept applications.' }
+    return { error: 'Принимать отклики может только заказчик, опубликовавший гиг.' }
   }
 
   if (application.gig.status !== 'OPEN') {
-    return { error: 'This gig is no longer accepting applications. It may already have an assigned specialist.' }
+    return { error: 'Этот гиг больше не принимает отклики — возможно, специалист уже назначен.' }
   }
 
   if (application.status !== 'PENDING') {
-    return { error: 'This application has already been accepted or rejected.' }
+    return { error: 'Этот отклик уже принят или отклонён.' }
   }
 
   // Get all pending applications that will be auto-rejected
@@ -395,7 +396,7 @@ export async function rejectApplication(
   if (!session) redirect('/login')
 
   if (session.role !== 'CLIENT') {
-    return { error: 'Only clients can manage applications. If you\'re the specialist, wait for the client\'s decision.' }
+    return { error: 'Управлять откликами могут только заказчики. Если вы специалист — дождитесь решения заказчика.' }
   }
 
   const applicationId = formData.get('applicationId') as string
@@ -406,15 +407,15 @@ export async function rejectApplication(
   })
 
   if (!application) {
-    return { error: 'This application no longer exists or has been removed.' }
+    return { error: 'Этот отклик больше не существует или был удалён.' }
   }
 
   if (application.gig.clientId !== session.userId) {
-    return { error: 'Only the client who posted this gig can reject applications.' }
+    return { error: 'Отклонять отклики может только заказчик, опубликовавший гиг.' }
   }
 
   if (application.status !== 'PENDING') {
-    return { error: 'This application has already been accepted or rejected.' }
+    return { error: 'Этот отклик уже принят или отклонён.' }
   }
 
   await prisma.application.update({
@@ -442,7 +443,7 @@ export async function submitWork(
   if (!session) redirect('/login')
 
   if (session.role !== 'SPECIALIST') {
-    return { error: 'Only specialists can submit work. If you\'re the client, wait for the specialist to submit their deliverables.' }
+    return { error: 'Сдавать работу могут только специалисты. Если вы заказчик — дождитесь сдачи от специалиста.' }
   }
 
   const gigId = formData.get('gigId') as string
@@ -450,15 +451,15 @@ export async function submitWork(
   const gig = await prisma.gig.findUnique({ where: { id: gigId } })
 
   if (!gig) {
-    return { error: 'This gig no longer exists or has been removed.' }
+    return { error: 'Этот гиг больше не существует или был удалён.' }
   }
 
   if (gig.status !== 'IN_PROGRESS') {
-    return { error: 'Work can only be submitted for gigs that are in progress.' }
+    return { error: 'Сдать работу можно только по гигу в статусе «В работе».' }
   }
 
   if (gig.assignedSpecialistId !== session.userId) {
-    return { error: 'Only the assigned specialist can submit work for this gig.' }
+    return { error: 'Сдать работу может только назначенный специалист.' }
   }
 
   await prisma.gig.update({
@@ -486,7 +487,7 @@ export async function approveWork(
   if (!session) redirect('/login')
 
   if (session.role !== 'CLIENT') {
-    return { error: 'Only clients can approve work. If you\'re the specialist, wait for the client to review your submission.' }
+    return { error: 'Принимать работу могут только заказчики. Если вы специалист — дождитесь проверки заказчиком.' }
   }
 
   const gigId = formData.get('gigId') as string
@@ -494,15 +495,15 @@ export async function approveWork(
   const gig = await prisma.gig.findUnique({ where: { id: gigId } })
 
   if (!gig) {
-    return { error: 'This gig no longer exists or has been removed.' }
+    return { error: 'Этот гиг больше не существует или был удалён.' }
   }
 
   if (gig.status !== 'REVIEW') {
-    return { error: 'Work can only be approved for gigs under review. The specialist needs to submit their work first.' }
+    return { error: 'Принять работу можно только по гигу на проверке — сначала специалист должен её сдать.' }
   }
 
   if (gig.clientId !== session.userId) {
-    return { error: 'Only the client who posted this gig can approve the work.' }
+    return { error: 'Принять работу может только заказчик, опубликовавший гиг.' }
   }
 
   await prisma.gig.update({
@@ -537,7 +538,7 @@ export async function requestRevision(
   if (!session) redirect('/login')
 
   if (session.role !== 'CLIENT') {
-    return { error: 'Only clients can return work for revision.' }
+    return { error: 'Возвращать работу на доработку могут только заказчики.' }
   }
 
   const gigId = formData.get('gigId') as string
@@ -545,15 +546,15 @@ export async function requestRevision(
   const gig = await prisma.gig.findUnique({ where: { id: gigId } })
 
   if (!gig) {
-    return { error: 'This gig no longer exists or has been removed.' }
+    return { error: 'Этот гиг больше не существует или был удалён.' }
   }
 
   if (gig.status !== 'REVIEW') {
-    return { error: 'Work can only be returned while it is under review.' }
+    return { error: 'Вернуть работу можно только пока она на проверке.' }
   }
 
   if (gig.clientId !== session.userId) {
-    return { error: 'Only the client who posted this gig can return the work.' }
+    return { error: 'Вернуть работу может только заказчик, опубликовавший гиг.' }
   }
 
   await prisma.gig.update({
@@ -583,7 +584,7 @@ export async function markAsPaid(
   if (!session) redirect('/login')
 
   if (session.role !== 'CLIENT') {
-    return { error: 'Only clients can mark gigs as paid. If you\'re the specialist, wait for the client to confirm payment.' }
+    return { error: 'Отмечать оплату могут только заказчики. Если вы специалист — дождитесь подтверждения оплаты.' }
   }
 
   const gigId = formData.get('gigId') as string
@@ -591,19 +592,19 @@ export async function markAsPaid(
   const gig = await prisma.gig.findUnique({ where: { id: gigId } })
 
   if (!gig) {
-    return { error: 'This gig no longer exists or has been removed.' }
+    return { error: 'Этот гиг больше не существует или был удалён.' }
   }
 
   if (gig.clientId !== session.userId) {
-    return { error: 'Only the client who posted this gig can mark it as paid.' }
+    return { error: 'Отметить оплату может только заказчик, опубликовавший гиг.' }
   }
 
   if (gig.status === 'PAID') {
-    return { error: 'This gig has already been marked as paid.' }
+    return { error: 'Этот гиг уже отмечен как оплаченный.' }
   }
 
   if (gig.status !== 'COMPLETED') {
-    return { error: 'Only completed gigs can be marked as paid. The work needs to be approved first.' }
+    return { error: 'Отметить оплату можно только по завершённому гигу — сначала нужно принять работу.' }
   }
 
   const paidAt = new Date()
@@ -638,7 +639,7 @@ export async function withdrawApplication(
   if (!session) redirect('/login')
 
   if (session.role !== 'SPECIALIST') {
-    return { error: 'Only specialists can withdraw applications. If you\'re the client, you can reject applications instead.' }
+    return { error: 'Отзывать отклики могут только специалисты. Заказчик может отклонить отклик.' }
   }
 
   const applicationId = formData.get('applicationId') as string
@@ -649,31 +650,31 @@ export async function withdrawApplication(
   })
 
   if (!application) {
-    return { error: 'This application no longer exists or has been removed.' }
+    return { error: 'Этот отклик больше не существует или был удалён.' }
   }
 
   if (!application.gig) {
-    return { error: 'This gig no longer exists or has been removed.' }
+    return { error: 'Этот гиг больше не существует или был удалён.' }
   }
 
   if (application.specialistId !== session.userId) {
-    return { error: 'You can only withdraw your own applications.' }
+    return { error: 'Вы можете отозвать только свои отклики.' }
   }
 
   if (application.status === 'WITHDRAWN') {
-    return { error: 'This application has already been withdrawn.' }
+    return { error: 'Этот отклик уже отозван.' }
   }
 
   if (application.status !== 'PENDING') {
-    return { error: 'You can only withdraw pending applications. This application has already been accepted or rejected.' }
+    return { error: 'Отозвать можно только отклик на рассмотрении — этот уже принят или отклонён.' }
   }
 
   if (application.gig.closedByAdmin) {
-    return { error: 'Cannot withdraw applications from closed gigs.' }
+    return { error: 'Нельзя отозвать отклик по закрытому гигу.' }
   }
 
   if (application.gig.isExample) {
-    return { error: 'Cannot withdraw applications from example gigs.' }
+    return { error: 'Нельзя отозвать отклик по демонстрационному гигу.' }
   }
 
   // Get specialist profile for notification
@@ -711,95 +712,19 @@ export async function sendMessage(
   const session = await getSession()
   if (!session) redirect('/login')
 
-  // Check rate limit AFTER auth, BEFORE validation
-  const rateLimitResult = await messageRateLimiter.limit(session.userId)
-  if (!rateLimitResult.success) {
-    return { error: getRateLimitError(rateLimitResult.reset, 'messages') }
-  }
-
   const gigId = formData.get('gigId') as string
   const contentRaw = (formData.get('content') as string) || ''
 
-  // Sanitize content before validation
-  const contentSanitized = sanitizeInput(contentRaw)
-
-  // Validate length before trimming (check sanitized content)
-  if (contentSanitized.length > 2000) {
-    return { error: 'Message is too long. Maximum 2000 characters allowed.' }
+  // All guards (rate limit, sanitize, validate, gig/participant gates, notification) live in the shared core so this
+  // form path and the optimistic `sendMessageLive` can never diverge.
+  const result = await persistMessage(session.userId, gigId, contentRaw)
+  if ('error' in result) {
+    return { error: result.error }
   }
 
-  const content = contentSanitized.trim()
-
-  if (!content) {
-    return { error: 'Message cannot be empty. Please enter a message to send.' }
-  }
-
-  const gig = await prisma.gig.findUnique({
-    where: { id: gigId },
-    select: {
-      id: true,
-      clientId: true,
-      assignedSpecialistId: true,
-      closedByAdmin: true,
-      status: true,
-    },
-  })
-
-  if (!gig) {
-    return { error: 'This gig no longer exists or has been removed.' }
-  }
-
-  if (gig.closedByAdmin) {
-    return { error: 'Cannot send messages to closed gigs. This gig has been closed by administrators.' }
-  }
-
-  if (gig.status === 'PAID') {
-    return { error: 'Cannot send messages to completed and paid gigs. The work has been finalized.' }
-  }
-
-  if (!gig.assignedSpecialistId) {
-    return { error: 'Cannot send messages until a specialist is assigned to this gig. Wait for the client to accept an application.' }
-  }
-
-  const isOwner = gig.clientId === session.userId
-  const isAssignedSpecialist = gig.assignedSpecialistId === session.userId
-
-  if (!isOwner && !isAssignedSpecialist) {
-    return { error: 'You can only send messages if you\'re the client who posted this gig or the assigned specialist.' }
-  }
-
-  // Create message
-  await prisma.message.create({
-    data: {
-      gigId,
-      senderId: session.userId,
-      content,
-    },
-  })
-
-  // Determine recipient and create/update notification
-  const recipientId = isOwner ? gig.assignedSpecialistId : gig.clientId
-
-  try {
-    await prisma.notification.upsert({
-      where: {
-        userId_gigId: {
-          userId: recipientId!,
-          gigId,
-        },
-      },
-      create: {
-        userId: recipientId!,
-        gigId,
-        lastReadAt: null,
-      },
-      update: {
-        updatedAt: new Date(),
-      },
-    })
-  } catch (error) {
-    console.error('Failed to create/update notification:', error)
-  }
-
-  redirect(`/gigs/${gigId}`)
+  // Default back to the gig detail; the chats screen passes redirectTo=/chats?gig=<id> so a send keeps the user in
+  // their conversation instead of bouncing them to the gig page. Only same-origin absolute paths are honoured
+  // (open-redirect guard, mirroring updateProfile). This remains the no-JS progressive-enhancement path.
+  const requested = (formData.get('redirectTo') as string) || ''
+  redirect(requested.startsWith('/') ? requested : `/gigs/${gigId}`)
 }

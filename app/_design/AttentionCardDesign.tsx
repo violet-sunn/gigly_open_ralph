@@ -2,6 +2,7 @@
 // type-coloured left bar + radial wash, a marker column (emoji) + title/date header, and the embedded gig card (the
 // clickable part → gig detail). Notification-TYPE accents (distinct from gig status).
 
+import Link from "next/link";
 import type { AttentionCardVM } from "@/app/components/blocks/view-models";
 import { GigCard } from "./GigCard";
 import "./tokens.css";
@@ -20,7 +21,7 @@ export function AttentionCardDesign({ vm }: { vm: AttentionCardVM }) {
   return (
     <div
       style={{
-        width: 320,
+        width: 280,
         flex: "none",
         borderRadius: 12,
         overflow: "hidden",
@@ -45,7 +46,7 @@ export function AttentionCardDesign({ vm }: { vm: AttentionCardVM }) {
             padding: 6,
           }}
         >
-          <span style={{ fontSize: 20, lineHeight: 1 }}>{vm.marker}</span>
+          <span style={{ fontSize: 22, lineHeight: 1 }}>{vm.marker}</span>
         </div>
         <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 12, padding: 12 }}>
           <span
@@ -54,7 +55,8 @@ export function AttentionCardDesign({ vm }: { vm: AttentionCardVM }) {
               minWidth: 0,
               fontFamily: "'Handjet',monospace",
               fontWeight: 600,
-              fontSize: 15,
+              fontSize: 16,
+              lineHeight: "20px",
               color: "var(--text-1)",
               whiteSpace: "nowrap",
               overflow: "hidden",
@@ -66,9 +68,28 @@ export function AttentionCardDesign({ vm }: { vm: AttentionCardVM }) {
           <span style={{ fontFamily: "'Handjet',monospace", fontSize: 12, color: "var(--text-4)", flex: "none" }}>{vm.date}</span>
         </div>
       </div>
-      <div style={{ padding: "0 12px" }}>
+      <div style={{ padding: "0 12px 0 16px", display: "flex", flexDirection: "column", gap: 12 }}>
         {vm.embed.kind === "gig" ? (
-          <GigCard vm={vm.embed.gig} />
+          <>
+            <GigCard vm={vm.embed.gig} />
+            <Link
+              href={`/gigs/${vm.embed.gig.id}`}
+              style={{
+                height: 40,
+                borderRadius: 8,
+                background: "var(--om-accent, #0088ff)",
+                color: "#fff",
+                fontSize: 14,
+                fontWeight: 500,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                textDecoration: "none",
+              }}
+            >
+              {vm.cta}
+            </Link>
+          </>
         ) : (
           <div
             style={{

@@ -4,13 +4,10 @@ import { PrismaClient } from '@prisma/client'
 import { PrismaLibSql } from '@prisma/adapter-libsql'
 
 /**
- * e2e-settings (reconciliation #11) — verifies /settings is reconciled to the prototype «Настройки» page card
- * (SettingsDesign.tsx). Five sections: ВНЕШНИЙ ВИД (Тема segmented «Тёмная»/«Светлая» → lib/theme; Язык «Русский»;
- * display-only «₽ Рубль»), УВЕДОМЛЕНИЯ + ПРИВАТНОСТЬ (bare-div toggles whose state lives in hidden inputs, persisted
- * via updatePreferences behind «Сохранить»), АКТИВНЫЕ СЕССИИ (real Session backend, terminate via «Завершить»), АККАУНТ
- * («Выйти из аккаунта» + reveal-to-confirm «Удалить аккаунт»). The shell header supplies the «НАСТРОЙКИ» title.
- * Section names are UPPERCASE <span>s (not headings); toggles have no role/aria-checked — state is asserted via the
- * row's hidden <input value="true|false">. Seeds users + a Session row directly into the E2E db (file:./test.db).
+ * transport-settings — the «Настройки» popup (Figma node 3121:2609) opened from the shell gear (?settings=1), over the
+ * current page. Six section cards: Учетные данные · Платежные данные · Уведомления · Безопасность · Язык и регион ·
+ * Удалить аккаунт. Every control is WIRED (visibly changes + persists) or GRAYED+inert (2FA / Email / Password / avatar).
+ * Seeds users + a Session row directly into the E2E db (file:./test.db).
  */
 let prefsId: string
 let prefsEmail: string
@@ -20,23 +17,21 @@ let delEmail: string
 test.beforeAll(async () => {
   const prisma = new PrismaClient({ adapter: new PrismaLibSql({ url: 'file:./test.db' }) as any })
   const stamp = Date.now()
-  prefsEmail = `cset-prefs-${stamp}@example.com`
-  delEmail = `cset-del-${stamp}@example.com`
+  prefsEmail = `tset-prefs-${stamp}@example.com`
+  delEmail = `tset-del-${stamp}@example.com`
 
   const prefs = await prisma.user.create({
     data: {
       email: prefsEmail,
       password: 'x',
       role: 'CLIENT',
-      clientProfile: { create: { companyName: 'ООО Настройки', inn: '7700000020' } },
+      clientProfile: { create: { companyName: 'ООО Настройки', inn: '7700000021' } },
     },
   })
   prefsId = prefs.id
-  // A real session row → the «Активные сессии» list renders it. The E2E token is sid-less, so this row is non-current
-  // → terminable via «Завершить». The UA parses to «Chrome · Windows» (lib/user-agent).
-  await prisma.session.create({
-    data: { userId: prefs.id, userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64) Chrome/120.0 Safari/537.36' },
-  })
+  // Two real session rows for the «Активные сессии» list + terminate-all (the E2E token is sid-less → both non-current).
+  await prisma.session.create({ data: { userId: prefs.id, userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64) Chrome/120.0 Safari/537.36' } })
+  await prisma.session.create({ data: { userId: prefs.id, userAgent: 'Mozilla/5.0 (iPhone) Safari/605.1' } })
 
   const del = await prisma.user.create({
     data: {
@@ -51,100 +46,100 @@ test.beforeAll(async () => {
   await prisma.$disconnect()
 })
 
-test.describe('e2e-settings — reconciled settings screen', () => {
-  test('the sidebar gear links to /settings', async ({ page }) => {
-    await setE2ESession(page, { id: prefsId, email: prefsEmail, role: 'CLIENT' })
-    await page.goto('/dashboard')
-    const gearLink = page.locator('a[href="/settings"]')
-    await expect(gearLink).toBeVisible()
-    await gearLink.click()
-    await expect(page).toHaveURL('/settings')
+async function openSettings(page: any, id: string, email: string, role: 'CLIENT' | 'SPECIALIST' = 'CLIENT') {
+  await setE2ESession(page, { id, email, role })
+  await page.goto('/dashboard')
+  await page.getByRole('button', { name: 'Настройки' }).click()
+  await page.waitForURL(/settings=1/)
+  await expect(page.getByRole('heading', { name: 'Учетные данные' })).toBeVisible()
+}
+
+test.describe('transport-settings — «Настройки» popup', () => {
+  test('the gear opens the modal (?settings=1) with all six sections, and X closes it', async ({ page }) => {
+    await openSettings(page, prefsId, prefsEmail)
+
+    // modal chrome
+    await expect(page.getByRole('dialog', { name: 'Настройки' })).toBeVisible()
+    for (const title of ['Учетные данные', 'Платежные данные', 'Уведомления', 'Безопасность', 'Язык и регион', 'Удалить аккаунт']) {
+      await expect(page.getByRole('heading', { name: title })).toBeVisible()
+    }
+
+    await page.getByRole('button', { name: 'Закрыть' }).click()
+    await expect(page).toHaveURL(/\/dashboard$/)
+    await expect(page.getByRole('dialog', { name: 'Настройки' })).toHaveCount(0)
   })
 
-  test('renders the five sections + ВНЕШНИЙ ВИД controls and the account logout', async ({ page }) => {
-    await setE2ESession(page, { id: prefsId, email: prefsEmail, role: 'CLIENT' })
-    await page.goto('/settings')
+  test('wired notification toggles flip + persist; sourceless ones are grayed', async ({ page }) => {
+    await openSettings(page, prefsId, prefsEmail)
 
-    // Section labels are UPPERCASE <span>s (not headings).
-    await expect(page.getByText('ВНЕШНИЙ ВИД', { exact: true })).toBeVisible()
-    await expect(page.getByText('УВЕДОМЛЕНИЯ', { exact: true })).toBeVisible()
-    await expect(page.getByText('ПРИВАТНОСТЬ', { exact: true })).toBeVisible()
-    await expect(page.getByText('АККАУНТ', { exact: true })).toBeVisible()
+    // Wired (real bell source) — flips live + persists. Gates the in-app notification at display time.
+    const msg = page.getByRole('switch', { name: 'Новые сообщения в чатах' })
+    await expect(msg).toBeEnabled()
+    await expect(msg).toHaveAttribute('aria-checked', 'true') // seeded default on
+    await msg.click()
+    await expect(msg).toHaveAttribute('aria-checked', 'false') // visibly flipped
+    await expect(page.getByText('Сохранено')).toBeVisible()
 
-    // ВНЕШНИЙ ВИД controls: Тема segmented, Язык «Русский», display-only «₽ Рубль».
-    await expect(page.getByText('Тёмная')).toBeVisible()
-    await expect(page.getByText('Светлая')).toBeVisible()
+    await page.reload() // ?settings=1 persists → modal re-opens with fresh data
+    await expect(page.getByRole('switch', { name: 'Новые сообщения в чатах' })).toHaveAttribute('aria-checked', 'false')
+
+    // Sourceless rows — nothing generates them, so they stay grayed/inert.
+    await expect(page.getByRole('switch', { name: 'Новости и обновления платформы' })).toBeDisabled()
+    await expect(page.getByRole('switch', { name: 'Новые гиги по вашему стеку' })).toBeDisabled()
+  })
+
+  test('currency is present but grayed/inert (out of MVP scope)', async ({ page }) => {
+    await openSettings(page, prefsId, prefsEmail)
+
+    // The currency control renders 1:1 but cannot be changed: the radiogroup is aria-disabled and pointer-events:none.
+    const group = page.getByRole('radiogroup', { name: 'Валюта получения выплат' })
+    await expect(group).toHaveAttribute('aria-disabled', 'true')
+    await expect(group).toHaveCSS('pointer-events', 'none')
+    // The seeded default (RUB) is shown selected; the others are visibly present but not selectable.
+    await expect(page.getByRole('radio', { name: 'RUB' })).toHaveAttribute('aria-checked', 'true')
+    await expect(page.getByRole('radio', { name: 'USD' })).toHaveAttribute('aria-checked', 'false')
+  })
+
+  test('language is grayed/inert (out of MVP scope); timezone stays wired and persists', async ({ page }) => {
+    await openSettings(page, prefsId, prefsEmail)
+
+    // Язык интерфейса: no interactive <select> is rendered; the value renders muted/inert showing the default «Русский».
+    await expect(page.getByLabel('Язык интерфейса')).toHaveCount(0)
     await expect(page.getByText('Русский')).toBeVisible()
-    await expect(page.getByText('₽ Рубль')).toBeVisible()
 
-    // Notification + privacy row labels (bare-div toggles — asserted by their text labels here).
-    await expect(page.getByText('Новые отклики')).toBeVisible()
-    await expect(page.getByText('Сообщения')).toBeVisible()
-    await expect(page.getByText('Уведомления об оплатах')).toBeVisible()
-    await expect(page.getByText('Показывать статус «онлайн»')).toBeVisible()
-
-    // Account logout action present.
-    await expect(page.getByRole('button', { name: 'Выйти из аккаунта' })).toBeVisible()
-  })
-
-  test('the Тема segmented control switches the theme via lib/theme', async ({ page }) => {
-    await setE2ESession(page, { id: prefsId, email: prefsEmail, role: 'CLIENT' })
-    await page.goto('/settings')
-
-    await page.getByText('Светлая').click()
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
-
-    await page.getByText('Тёмная').click()
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
-  })
-
-  test('toggling a notification + Save persists (reflected on reload)', async ({ page }) => {
-    await setE2ESession(page, { id: prefsId, email: prefsEmail, role: 'CLIENT' })
-    await page.goto('/settings')
-
-    // The toggle is a bare <div> with no role/aria — its submitted state lives in the row's hidden input.
-    const hidden = page.locator('input[name="notifyMessages"]')
-    await expect(hidden).toHaveValue('true') // seeded default on
-
-    // Click the toggle <div> that follows the «Сообщения» label, then Save.
-    await page.getByText('Сообщения', { exact: true }).locator('xpath=following-sibling::div').click()
-    await expect(hidden).toHaveValue('false')
-    await page.getByRole('button', { name: 'Сохранить' }).click()
-    await expect(page.getByText('Настройки сохранены.')).toBeVisible()
+    // Часовой пояс remains fully wired — it persists and is surfaced on the profile.
+    await page.getByLabel('Часовой пояс').selectOption('Asia/Tbilisi')
+    await expect(page.getByText('Сохранено')).toBeVisible()
 
     await page.reload()
-    await expect(page.locator('input[name="notifyMessages"]')).toHaveValue('false') // persisted
+    await expect(page.getByLabel('Часовой пояс')).toHaveValue('Asia/Tbilisi')
   })
 
-  test('the active-sessions list renders the device and a session can be terminated', async ({ page }) => {
-    await setE2ESession(page, { id: prefsId, email: prefsEmail, role: 'CLIENT' })
-    await page.goto('/settings')
+  test('grayed controls (2FA / Email / Password) are present but inert', async ({ page }) => {
+    await openSettings(page, prefsId, prefsEmail)
 
-    await expect(page.getByText('АКТИВНЫЕ СЕССИИ')).toBeVisible()
-    await expect(page.getByText('Chrome · Windows')).toBeVisible() // parsed from the seeded UA
-    await page.getByRole('button', { name: 'Завершить' }).first().click()
-    await expect(page.getByText('Chrome · Windows')).toHaveCount(0) // removed after terminate + refresh
+    await expect(page.getByRole('switch', { name: 'Двухфакторность' })).toBeDisabled()
+    await expect(page.getByLabel('Email')).toBeDisabled()
+    await expect(page.getByLabel('Password')).toBeDisabled()
   })
 
-  test('delete-account: wrong email is rejected, correct email tears down and redirects to /', async ({ page }) => {
-    await setE2ESession(page, { id: delId, email: delEmail, role: 'SPECIALIST' })
-    await page.goto('/settings')
+  test('«Завершить все неактивные сеансы» clears the inactive sessions', async ({ page }) => {
+    await openSettings(page, prefsId, prefsEmail)
 
-    await page.getByRole('button', { name: 'Удалить аккаунт' }).click() // reveal confirm
+    await expect(page.locator('[data-session-row]')).toHaveCount(2)
+    await page.getByRole('button', { name: 'Завершить все неактивные сеансы' }).click()
+    await expect(page.locator('[data-session-row]')).toHaveCount(0)
+  })
+
+  test('delete-account: correct email tears down and redirects to /', async ({ page }) => {
+    await openSettings(page, delId, delEmail, 'SPECIALIST')
+
+    await page.getByRole('button', { name: 'Удалить аккаунт навсегда' }).click()
     await expect(page.getByText(/Это действие необратимо/)).toBeVisible()
-
-    // Wrong email → rejected, still on /settings, account intact.
-    await page.locator('input[name="confirmEmail"]').fill('wrong@example.com')
-    await page.getByRole('button', { name: 'Подтвердить удаление' }).click()
-    await expect(page.getByText(/type your account email/i)).toBeVisible()
-    await expect(page).toHaveURL('/settings')
-
-    // Reload for a clean confirm form, then the correct email → teardown + redirect to /.
-    await page.reload()
-    await page.getByRole('button', { name: 'Удалить аккаунт' }).click()
     await page.locator('input[name="confirmEmail"]').fill(delEmail)
     await page.getByRole('button', { name: 'Подтвердить удаление' }).click()
-    await page.waitForURL((url) => url.pathname === '/', { timeout: 15000 })
+
+    await page.waitForURL((url: URL) => url.pathname === '/', { timeout: 15000 })
     expect(new URL(page.url()).pathname).toBe('/')
   })
 })

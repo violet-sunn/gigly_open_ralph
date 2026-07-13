@@ -13,7 +13,12 @@ import "@/app/_design/tokens.css";
 
 type ActionState = { error?: string } | null;
 
-const CRITERIA_SUGGESTIONS = ["Есть тесты", "Передача исходников", "Документация"];
+const CRITERIA_SUGGESTIONS = [
+  "все автотесты проходят, сборка зелёная",
+  "заказчик принял демо без критичных замечаний",
+  "исходники в репозитории + краткая инструкция",
+  "нет регрессий в текущих сценариях",
+];
 const rub = (n: number) => `${new Intl.NumberFormat("ru-RU").format(n)} ₽`;
 
 const card: React.CSSProperties = { borderRadius: 8, background: "var(--surface-card)", padding: 20, display: "flex", flexDirection: "column", gap: 16 };
@@ -65,18 +70,28 @@ export function CreateGigDesign({ categoryOptions }: { categoryOptions: { key: s
 
   // 7-point «Готовность брифа» checklist (mirrors the prototype).
   const checks = [
-    { label: "Название", done: title.trim() !== "" },
-    { label: "Категория", done: category !== "" },
-    { label: "Описание", done: description.trim().length >= 20 },
-    { label: "Цель", done: goal.trim() !== "" },
-    { label: "Ожидаемый результат", done: deliverables.trim() !== "" },
-    { label: "Критерии приёмки", done: criteria.length > 0 },
-    { label: "Бюджет и срок", done: budgetNum > 0 && deadline.trim() !== "" },
+    { label: "Название", hint: "Коротко и по делу — как заголовок задачи.", done: title.trim() !== "" },
+    { label: "Категория", hint: "Помогает гигу попасть к нужным специалистам.", done: category !== "" },
+    { label: "Описание", hint: "Контекст и текущее состояние: что есть и что болит.", done: description.trim().length >= 20 },
+    { label: "Цель", hint: "Зачем это нужно — результат для бизнеса, а не «как».", done: goal.trim() !== "" },
+    { label: "Ожидаемый результат", hint: "Что заказчик получит на выходе: PR, демо, инструкция.", done: deliverables.trim() !== "" },
+    { label: "Критерии приёмки", hint: "Главное: по ним принимается работа. Снижает споры и правки. Минимум 50 символов суммарно.", done: criteria.join("\n").trim().length >= 50 },
+    { label: "Бюджет и срок", hint: "Понятные ожидания по деньгам и времени.", done: budgetNum > 0 && deadline.trim() !== "" },
   ];
   const done = checks.filter((c) => c.done).length;
   const pct = Math.round((done / checks.length) * 100);
   const scoreColor = done >= 6 ? "#34c759" : done >= 4 ? "var(--om-accent, #0088ff)" : "#f59e0b";
   const firstGap = checks.find((c) => !c.done);
+
+  // Gate «Опубликовать» on exactly what the server (createGig) requires, so a valid-looking brief can't be bounced:
+  // title + description + category + acceptance criteria ≥ 50 chars + positive budget + a deadline (avoids «0 дней»).
+  const canSubmit =
+    title.trim() !== "" &&
+    description.trim() !== "" &&
+    category !== "" &&
+    criteria.join("\n").trim().length >= 50 &&
+    budgetNum > 0 &&
+    deadline.trim() !== "";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -136,8 +151,8 @@ export function CreateGigDesign({ categoryOptions }: { categoryOptions: { key: s
                         cursor: "pointer",
                         fontSize: 14,
                         color: `rgb(${rgb})`,
-                        background: active ? `rgba(${rgb},0.16)` : "transparent",
-                        boxShadow: `inset 0 0 0 1px rgba(${rgb},${active ? 0.7 : 0.35})`,
+                        background: active ? `rgba(${rgb},0.15)` : "transparent",
+                        boxShadow: active ? `inset 0 0 0 1px rgba(${rgb},0.6)` : "inset 0 0 0 1px var(--hairline-12)",
                       }}
                     >
                       {ct.label}
@@ -205,7 +220,7 @@ export function CreateGigDesign({ categoryOptions }: { categoryOptions: { key: s
                 </button>
               </div>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                {CRITERIA_SUGGESTIONS.map((s) => (
+                {CRITERIA_SUGGESTIONS.filter((s) => !criteria.includes(s)).slice(0, 3).map((s) => (
                   <span
                     key={s}
                     onClick={() => addCrit(s)}
@@ -220,7 +235,7 @@ export function CreateGigDesign({ categoryOptions }: { categoryOptions: { key: s
                   {criteria.map((c, i) => (
                     <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 12px", borderRadius: 8, background: "var(--surface-sunken)", boxShadow: "inset 0 0 0 1px var(--hairline-06)" }}>
                       <span style={{ color: "#34c759", fontSize: 13, lineHeight: "18px", flex: "none" }}>✓</span>
-                      <span style={{ flex: 1, fontFamily: "'Manrope',sans-serif", fontSize: 13, lineHeight: "18px", color: "var(--text-2)" }}>Готово, когда {c}</span>
+                      <span style={{ flex: 1, fontFamily: "'Manrope',sans-serif", fontSize: 13, lineHeight: "18px", color: "var(--text-2)" }}>{c}</span>
                       <span onClick={() => setCriteria((arr) => arr.filter((_, idx) => idx !== i))} style={{ color: "var(--text-4)", cursor: "pointer", flex: "none" }}>✕</span>
                     </div>
                   ))}
@@ -280,8 +295,8 @@ export function CreateGigDesign({ categoryOptions }: { categoryOptions: { key: s
                 <span style={{ fontFamily: "'Handjet',monospace", fontSize: 12, color: "var(--text-4)" }}>Специалист получит эту сумму полностью.</span>
               </div>
               <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
-                <label style={label}>Срок, дней</label>
-                <input name="deadlineDays" type="number" min="1" step="1" value={deadline} onChange={(e) => setDeadline(e.target.value)} placeholder="Напр.: 14" style={inputStyle} />
+                <label style={label}>Срок</label>
+                <input name="deadlineDays" type="number" min="1" step="1" value={deadline} onChange={(e) => setDeadline(e.target.value)} placeholder="Напр.: 14 дней" style={inputStyle} />
               </div>
             </div>
           </div>
@@ -295,7 +310,7 @@ export function CreateGigDesign({ categoryOptions }: { categoryOptions: { key: s
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span style={{ fontFamily: "'Handjet',monospace", fontSize: 14, color: "var(--text-3)" }}>Заполнено</span>
-                <span style={{ fontFamily: "'Handjet',monospace", fontWeight: 700, fontSize: 14, color: scoreColor }}>{done} / {checks.length}</span>
+                <span style={{ fontFamily: "'Handjet',monospace", fontWeight: 700, fontSize: 14, color: scoreColor }}>{done} из {checks.length}</span>
               </div>
               <div style={{ height: 6, borderRadius: 6, background: "var(--hairline-08)", overflow: "hidden" }}>
                 <div style={{ height: "100%", borderRadius: 6, background: scoreColor, width: `${pct}%` }} />
@@ -311,10 +326,10 @@ export function CreateGigDesign({ categoryOptions }: { categoryOptions: { key: s
             </div>
             <div style={{ borderRadius: 8, background: "rgba(0,136,255,0.06)", boxShadow: "inset 0 0 0 1px rgba(0,136,255,0.2)", padding: 12, display: "flex", flexDirection: "column", gap: 4 }}>
               <span style={{ fontFamily: "'Handjet',monospace", fontWeight: 600, fontSize: 13, color: "var(--om-accent, #0088ff)" }}>
-                {firstGap ? "Следующий шаг" : "Бриф готов к публикации"}
+                {firstGap ? `Добавьте: ${firstGap.label}` : "Бриф готов ✓"}
               </span>
               <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, lineHeight: "16px", color: "var(--text-3)" }}>
-                {firstGap ? `Добавьте: ${firstGap.label.toLowerCase()}.` : "Все ключевые поля заполнены — можно публиковать."}
+                {firstGap ? firstGap.hint : "Бриф готов — отличные шансы на сильные отклики."}
               </span>
             </div>
           </div>
@@ -336,9 +351,14 @@ export function CreateGigDesign({ categoryOptions }: { categoryOptions: { key: s
                 <span style={{ color: "var(--om-accent, #0088ff)" }}>{rub(budgetNum + fee)}</span>
               </div>
             </div>
-            <button type="submit" style={{ height: 46, border: "none", borderRadius: 8, background: "var(--om-accent, #0088ff)", color: "#fff", fontSize: 15, fontWeight: 500, cursor: "pointer" }}>
+            <button type="submit" disabled={!canSubmit} style={{ height: 46, border: "none", borderRadius: 8, background: "var(--om-accent, #0088ff)", color: "#fff", fontSize: 15, fontWeight: 500, cursor: canSubmit ? "pointer" : "not-allowed", opacity: canSubmit ? 1 : 0.5 }}>
               Опубликовать гиг
             </button>
+            {!canSubmit && firstGap && (
+              <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, color: "var(--text-4)", textAlign: "center" }}>
+                Чтобы опубликовать, заполните: {firstGap.label.toLowerCase()}
+              </span>
+            )}
             {state?.error && <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, color: "#ef4444" }}>{state.error}</span>}
             <span style={{ fontFamily: "'Handjet',monospace", fontSize: 12, textAlign: "center", color: "var(--text-4)" }}>
               Сбор 10% — за нахождение специалиста и сопровождение сделки.

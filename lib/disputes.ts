@@ -91,11 +91,19 @@ export async function getNewDisputeContext(
   return { gigId: gig.id, gigTitle: gig.title }
 }
 
-export async function getDisputeDetail(id: string) {
+export async function getDisputeDetail(
+  id: string,
+  viewer?: { userId: string; role: string },
+) {
   const d = await prisma.dispute.findUnique({
     where: { id },
     include: {
-      gig: true,
+      gig: {
+        include: {
+          client: { include: { clientProfile: true } },
+          assignedSpecialist: { include: { specialistProfile: true } },
+        },
+      },
       opener: { include: { specialistProfile: true, clientProfile: true } },
       resolvedBy: true,
       resolutionLog: true,
@@ -103,9 +111,22 @@ export async function getDisputeDetail(id: string) {
     },
   })
   if (!d) return null
+
+  // «Контрагент» — the other party in the dispute, viewer-relative (disputeDetail.*). A SPECIALIST viewer sees the
+  // client company; a CLIENT viewer sees the assigned specialist; an ADMIN (or no viewer) sees the client/заказчик,
+  // matching the prototype's resolve view («открыл: Специалист · Kryston»).
+  const clientName =
+    d.gig?.client?.clientProfile?.companyName || d.gig?.client?.email || ''
+  const specialistName =
+    d.gig?.assignedSpecialist?.specialistProfile?.displayName || d.gig?.assignedSpecialist?.email || ''
+  const viewerIsClient = !!viewer && d.gig?.clientId === viewer.userId
+  const counterparty =
+    viewer && viewer.role !== 'ADMIN' ? (viewerIsClient ? specialistName : clientName) : clientName
+
   return {
     id: d.id,
     gig: d.gig?.title ?? '',
+    counterparty,
     opener: openerName(d.opener),
     openerRole: (d.openerRole === 'company' ? 'company' : d.openerRole === 'specialist' ? 'specialist' : '') as
       | 'specialist'

@@ -8,8 +8,10 @@ import { PrismaLibSql } from '@prisma/adapter-libsql'
  * blocks (ProfileDesign.tsx): the ID card (avatar + name + role tag + an `offline` pill; for a SPECIALIST a verified
  * badge + «На платформе с …»; for a CLIENT the «Реквизиты» ИНН/КПП panel), then — SPECIALIST only — «Стек» / «Опыт» /
  * «Избранные категории» / «Реализованные проекты» (design GigCards). The owner edit affordance is a bare Pencil <span>
- * (no accessible name) located by DOM position → /profile/edit (the existing edit form). The shell header supplies the
- * «ПРОФИЛЬ» title. Seeds a SPECIALIST + a CLIENT viewer + a COMPLETED realized gig + review into the E2E db (file:./test.db).
+ * (no accessible name) located by DOM position; clicking it opens an in-place edit modal (bio / stack / categories /
+ * company requisites) wired to updateProfile + setFavoriteCategories — there is NO standalone /profile/edit screen (it
+ * redirects to /profile). The shell header supplies the «ПРОФИЛЬ» title. Seeds a SPECIALIST + a CLIENT viewer (with an
+ * «about») + a COMPLETED realized gig + review into the E2E db (file:./test.db).
  */
 let specId: string
 let specEmail: string
@@ -65,7 +67,7 @@ test.beforeAll(async () => {
       email: viewerEmail,
       password: 'x',
       role: 'CLIENT',
-      clientProfile: { create: { companyName: 'ООО Зритель', inn: '7700000001' } },
+      clientProfile: { create: { companyName: 'ООО Зритель', inn: '7700000001', about: 'Продуктовая IT-компания.' } },
     },
   })
   viewerId = viewer.id
@@ -121,6 +123,7 @@ test.describe('e2e-profile — reconciled profile screen', () => {
     await page.goto('/profile')
 
     await expect(page.getByText('Заказчик')).toBeVisible() // CLIENT roleTag
+    await expect(page.getByText('Продуктовая IT-компания.')).toBeVisible() // company «about» paragraph
     await expect(page.getByText('Реквизиты')).toBeVisible()
     await expect(page.getByText('ИНН', { exact: true })).toBeVisible()
     await expect(page.getByText('7700000001')).toBeVisible() // seeded inn
@@ -143,20 +146,46 @@ test.describe('e2e-profile — reconciled profile screen', () => {
     await expect(page.locator('span:has(path[d^="M12.146.146"])')).toHaveCount(0)
   })
 
-  // Destructive (mutates the seeded specialist) — runs last so the read-only tests above see the pristine seed.
-  test('the owner edit Pencil navigates to /profile/edit and a save round-trips', async ({ page }) => {
+  test('the retired /profile/edit route redirects to /profile', async ({ page }) => {
+    await setE2ESession(page, { id: specId, email: specEmail, role: 'SPECIALIST' })
+    await page.goto('/profile/edit')
+    await expect(page).toHaveURL(/\/profile(\?|$)/)
+    await expect(page).not.toHaveURL(/\/profile\/edit/)
+  })
+
+  // Destructive (mutates the seeded specialist's bio) — runs after the read-only tests so they see the pristine seed.
+  test('the specialist Опыт pencil opens the bio modal in place and a save round-trips', async ({ page }) => {
     await setE2ESession(page, { id: specId, email: specEmail, role: 'SPECIALIST' })
     await page.goto('/profile')
 
-    // The edit affordance is a bare Pencil <span> (no accessible name) — located by its unique svg path. The first one
-    // is beside the name; all owner pencils route to /profile/edit. (getByText('name') would also match the sidebar.)
+    // Owner pencils share one svg path; DOM order is [0]=Стек, [1]=Опыт(bio), [2]=Избранные категории (no name pencil).
+    // The Опыт pencil opens the «Редактировать описание» modal in place — no navigation to a separate edit screen.
+    await page.locator('span:has(path[d^="M12.146.146"])').nth(1).click()
+    await expect(page.getByRole('heading', { name: 'Редактировать описание' })).toBeVisible()
+    await expect(page).not.toHaveURL(/\/profile\/edit/)
+
+    const newBio = `Обновлённое описание ${Date.now()}`
+    await page.locator('textarea[name="bio"]').fill(newBio)
+    await page.getByRole('button', { name: 'Сохранить' }).click()
+
+    // Modal closes (noRedirect → refresh in place) and the new bio is persisted in the «Опыт» block.
+    await expect(page.getByRole('heading', { name: 'Редактировать описание' })).toHaveCount(0)
+    await expect(page.getByText(newBio)).toBeVisible()
+  })
+
+  // Destructive (mutates the company viewer's requisites) — runs last.
+  test('the company name pencil opens the requisites modal and a save round-trips', async ({ page }) => {
+    await setE2ESession(page, { id: viewerId, email: viewerEmail, role: 'CLIENT' })
+    await page.goto('/profile')
+
+    // The company has a single pencil (beside the name) → the «Редактировать реквизиты» modal.
     await page.locator('span:has(path[d^="M12.146.146"])').first().click()
-    await expect(page).toHaveURL(/\/profile\/edit/)
+    await expect(page.getByRole('heading', { name: 'Редактировать реквизиты' })).toBeVisible()
 
-    await page.fill('#displayName', 'Иван Обновлённый')
-    await page.getByRole('button', { name: /Save Profile/ }).click()
+    await page.locator('input[name="kpp"]').fill('770801001')
+    await page.getByRole('button', { name: 'Сохранить' }).click()
 
-    await expect(page).toHaveURL(/\/profile(\?|$)/)
-    await expect(page.getByText('Иван Обновлённый').first()).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Редактировать реквизиты' })).toHaveCount(0)
+    await expect(page.getByText('770801001')).toBeVisible() // new КПП persisted
   })
 })

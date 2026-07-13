@@ -1,21 +1,27 @@
 "use client";
 
-// «Модерация» console rebuilt on the prototype's `isAdminConsole` block (Gigly App.dc.html line 988+): stat tiles +
-// the 2-col board — LEFT «Споры на модерации» (queue → /disputes/[id] to resolve), «Пользователи» (block/unblock),
-// «Гиги» (close); RIGHT «Журнал модерации» (audit log). Wired to the existing moderation actions. The full paginated
-// user/gig management remains at /admin/users · /admin/gigs (this console shows the top rows).
+// «Модерация» console rebuilt on the prototype's `isAdminConsole` block (dashboard.admin): stat tiles (with caption
+// lines) + the 2-col board — LEFT «Споры на модерации» (queue → /disputes/[id] to resolve), «Пользователи» (block via
+// the captured confirm dialog / unblock), «Гиги» (close via confirm); RIGHT «Журнал модерации» (audit log). Wired to the
+// existing moderation actions. The full paginated user/gig management remains at /admin/users · /admin/gigs (top rows here).
 
 import { useActionState } from "react";
 import { useRouter } from "next/navigation";
 import { suspendUser, unsuspendUser, closeGig } from "@/app/actions/moderation";
 import type { AdminDashboardData } from "@/lib/view-models";
-import { avatarColor, STATUS_RGB, STATUS_LABEL_RU } from "@/app/_design/util";
+import { STATUS_RGB, disputeLabel } from "@/app/_design/util";
+import { ConfirmAction } from "@/app/_design/ConfirmDialog";
+import { cardBase, h2, rowBase, smallBtn, StatusDot, Avatar } from "./_parts";
 import "@/app/_design/tokens.css";
 
-const cardBase: React.CSSProperties = { borderRadius: 12, background: "var(--surface-card)", padding: 20, display: "flex", flexDirection: "column", gap: 14 };
-const h2: React.CSSProperties = { margin: 0, fontFamily: "'Handjet',monospace", fontWeight: 600, fontSize: 22, color: "var(--text-1)" };
-const rowBase: React.CSSProperties = { display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 8, background: "var(--surface-sunken)", boxShadow: "inset 0 0 0 1px var(--hairline-06)" };
-const smallBtn = (bg: string, color: string): React.CSSProperties => ({ flex: "none", height: 32, padding: "0 14px", border: "none", borderRadius: 7, background: bg, color, fontSize: 12, cursor: "pointer" });
+// Stat-tile static copy (Method §2): labels + caption lines are verbatim design copy; only the value binds (by index,
+// matching getAdminDashboard's fixed order: users · gigs · suspended · closed).
+const STAT_META = [
+  { label: "Пользователи", caption: "на платформе" },
+  { label: "Гиги", caption: "всего опубликовано" },
+  { label: "Заблокировано", caption: "пользователей" },
+  { label: "Закрыто гигов", caption: "модерацией" },
+];
 
 const GIG_RAW: Record<string, { label: string; tone: string }> = {
   OPEN: { label: "Открыт", tone: "open" },
@@ -25,43 +31,42 @@ const GIG_RAW: Record<string, { label: string; tone: string }> = {
   PAID: { label: "Оплачен", tone: "completed" },
 };
 
-function StatusDot({ color, label }: { color: string; label: string }) {
+function UserAction({ id, name, suspended }: { id: string; name: string; suspended: boolean }) {
+  const [, unsuspend] = useActionState(unsuspendUser as never, null);
+  if (suspended) {
+    // Unblock is reversible/non-destructive — fires directly, no confirm gate.
+    return (
+      <form action={unsuspend as never}>
+        <input type="hidden" name="userId" value={id} />
+        <input type="hidden" name="reason" value="Модерация из консоли" />
+        <button type="submit" style={smallBtn("var(--surface-secondary)", "var(--text-2)")}>Разблокировать</button>
+      </form>
+    );
+  }
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, flex: "none", fontFamily: "'Handjet',monospace", fontSize: 12, color }}>
-      <span style={{ width: 7, height: 7, borderRadius: "50%", background: color }} />
-      {label}
-    </span>
-  );
-}
-function Avatar({ name, size = 32 }: { name: string; size?: number }) {
-  return (
-    <span style={{ width: size, height: size, flex: "none", borderRadius: "50%", background: avatarColor(name || "?"), display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "#fff" }}>
-      {(name || "?").slice(0, 1).toUpperCase()}
-    </span>
+    <ConfirmAction
+      action={suspendUser}
+      hidden={{ userId: id, reason: "Модерация из консоли" }}
+      buttonLabel="Заблокировать"
+      buttonStyle={smallBtn("rgba(239,68,68,0.14)", "#ef4444")}
+      title="Заблокировать пользователя?"
+      body={`«${name}» не сможет войти на платформу. Действие обратимо.`}
+      confirmLabel="Заблокировать"
+    />
   );
 }
 
-function UserAction({ id, suspended }: { id: string; suspended: boolean }) {
-  const [, suspend] = useActionState(suspendUser as never, null);
-  const [, unsuspend] = useActionState(unsuspendUser as never, null);
+function GigCloseAction({ id, title }: { id: string; title: string }) {
   return (
-    <form action={(suspended ? unsuspend : suspend) as never}>
-      <input type="hidden" name="userId" value={id} />
-      <input type="hidden" name="reason" value="Модерация из консоли" />
-      <button type="submit" style={smallBtn(suspended ? "var(--surface-secondary)" : "rgba(239,68,68,0.14)", suspended ? "var(--text-2)" : "#ef4444")}>
-        {suspended ? "Разблокировать" : "Заблокировать"}
-      </button>
-    </form>
-  );
-}
-function GigCloseAction({ id }: { id: string }) {
-  const [, close] = useActionState(closeGig as never, null);
-  return (
-    <form action={close as never}>
-      <input type="hidden" name="gigId" value={id} />
-      <input type="hidden" name="reason" value="Закрыт из консоли" />
-      <button type="submit" style={smallBtn("rgba(239,68,68,0.14)", "#ef4444")}>Закрыть</button>
-    </form>
+    <ConfirmAction
+      action={closeGig}
+      hidden={{ gigId: id, reason: "Закрыт из консоли" }}
+      buttonLabel="Закрыть"
+      buttonStyle={smallBtn("rgba(239,68,68,0.14)", "#ef4444")}
+      title="Закрыть гиг?"
+      body={`Гиг «${title}» будет снят с публикации. Действие обратимо.`}
+      confirmLabel="Закрыть"
+    />
   );
 }
 
@@ -73,10 +78,11 @@ export function AdminConsoleDesign({ stats, disputes, log, users, gigs }: AdminD
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
       {/* stat tiles */}
       <div style={{ display: "flex", gap: 16 }}>
-        {stats.stats.map((s, i) => (
+        {STAT_META.map((m, i) => (
           <div key={i} style={{ flex: 1, borderRadius: 12, background: "var(--surface-card)", boxShadow: "inset 0 0 0 1px var(--hairline-08)", padding: 18, display: "flex", flexDirection: "column", gap: 6 }}>
-            <span style={{ fontFamily: "'Handjet',monospace", fontSize: 13, color: "var(--text-3)" }}>{s.label}</span>
-            <span style={{ fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 26, color: "var(--text-1)" }}>{s.value}</span>
+            <span style={{ fontFamily: "'Handjet',monospace", fontSize: 13, color: "var(--text-3)" }}>{m.label}</span>
+            <span style={{ fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 26, color: "var(--text-1)" }}>{stats.stats[i]?.value ?? 0}</span>
+            <span style={{ fontFamily: "'Handjet',monospace", fontSize: 12, color: "var(--text-4)" }}>{m.caption}</span>
           </div>
         ))}
       </div>
@@ -101,8 +107,8 @@ export function AdminConsoleDesign({ stats, disputes, log, users, gigs }: AdminD
                       <span style={{ fontSize: 14, color: "var(--text-1)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{d.gig}</span>
                       <span style={{ fontFamily: "'Handjet',monospace", fontSize: 12, color: "var(--text-4)" }}>{[d.reason, d.amount].filter(Boolean).join(" · ")}</span>
                     </div>
-                    <StatusDot color={`rgb(${STATUS_RGB[d.status] ?? "138,143,153"})`} label={STATUS_LABEL_RU[d.status] ?? d.status} />
-                    <button type="button" onClick={() => router.push(`/disputes/${d.id}`)} style={smallBtn("rgba(245,158,11,0.16)", "#f59e0b")}>
+                    <StatusDot color={`rgb(${STATUS_RGB[d.status] ?? "138,143,153"})`} label={disputeLabel(d.status)} />
+                    <button type="button" onClick={() => router.push(`/disputes/${d.id}?from=${encodeURIComponent("/admin")}`)} style={smallBtn("rgba(245,158,11,0.16)", "#f59e0b")}>
                       Рассмотреть
                     </button>
                   </div>
@@ -114,7 +120,7 @@ export function AdminConsoleDesign({ stats, disputes, log, users, gigs }: AdminD
           </div>
 
           {/* Пользователи */}
-          <div style={{ ...cardBase, boxShadow: "inset 0 0 0 1px var(--hairline-08)" }}>
+          <div style={cardBase}>
             <h2 style={h2}>Пользователи</h2>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {users.map((u) => (
@@ -125,14 +131,14 @@ export function AdminConsoleDesign({ stats, disputes, log, users, gigs }: AdminD
                     <span style={{ fontFamily: "'Handjet',monospace", fontSize: 12, color: "var(--text-4)" }}>{u.role} · {u.registered}</span>
                   </div>
                   <StatusDot color={u.suspended ? "#ef4444" : "#34c759"} label={u.suspended ? "Заблокирован" : "Активен"} />
-                  <UserAction id={u.id} suspended={u.suspended} />
+                  <UserAction id={u.id} name={u.email} suspended={u.suspended} />
                 </div>
               ))}
             </div>
           </div>
 
           {/* Гиги */}
-          <div style={{ ...cardBase, boxShadow: "inset 0 0 0 1px var(--hairline-08)" }}>
+          <div style={cardBase}>
             <h2 style={h2}>Гиги</h2>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {gigs.map((g) => {
@@ -143,10 +149,10 @@ export function AdminConsoleDesign({ stats, disputes, log, users, gigs }: AdminD
                     <Avatar name={g.title} />
                     <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
                       <span style={{ fontSize: 14, color: "var(--text-1)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.title}</span>
-                      <span style={{ fontFamily: "'Handjet',monospace", fontSize: 12, color: "var(--text-4)" }}>{g.budget} · {g.created}</span>
+                      <span style={{ fontFamily: "'Handjet',monospace", fontSize: 12, color: "var(--text-4)" }}>{g.client || g.budget}</span>
                     </div>
                     <StatusDot color={color} label={g.closed ? "Закрыт" : meta.label} />
-                    {!g.closed && <GigCloseAction id={g.id} />}
+                    {!g.closed && <GigCloseAction id={g.id} title={g.title} />}
                   </div>
                 );
               })}
@@ -155,7 +161,7 @@ export function AdminConsoleDesign({ stats, disputes, log, users, gigs }: AdminD
         </div>
 
         {/* RIGHT — Журнал модерации */}
-        <div style={{ width: 340, flex: "none", ...cardBase, boxShadow: "inset 0 0 0 1px var(--hairline-08)" }}>
+        <div style={{ width: 340, flex: "none", ...cardBase }}>
           <h2 style={h2}>Журнал модерации</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
             {log.length > 0 ? (

@@ -56,6 +56,10 @@ describe('account-preferences — read/update', () => {
       notifyPayments: true,
       showRatingInProfile: true,
       showOnlineStatus: true,
+      // transport-settings — currency + the two extra Email-уведомления toggles (default on)
+      currency: 'rub',
+      notifyPlatformNews: true,
+      notifyNewGigs: true,
     })
   })
 

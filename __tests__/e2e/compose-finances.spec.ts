@@ -19,6 +19,7 @@ let emptyEmail: string
 
 const PAID_TITLE = 'E2E Finances Paid Gig'
 const ACTIVE_TITLE = 'E2E Finances Active Gig'
+const DONE_TITLE = 'E2E Finances Completed Gig'
 
 test.beforeAll(async () => {
   const prisma = new PrismaClient({ adapter: new PrismaLibSql({ url: 'file:./test.db' }) as any })
@@ -82,6 +83,24 @@ test.beforeAll(async () => {
     },
   })
 
+  // Gig C — COMPLETED (work done, payment pending). The prototype's awaiting-payment row: role-aware label
+  // «Ожидает оплаты» (specialist) / «К оплате» (client) on the #34C759 green.
+  await prisma.gig.create({
+    data: {
+      title: DONE_TITLE,
+      description: 'Finances completed test gig.',
+      acceptanceCriteria: 'Acceptance criteria with at least fifty characters to pass validation here.',
+      budget: 3000000,
+      serviceFee: 300000,
+      totalAmount: 3300000,
+      status: 'COMPLETED',
+      tags: 'React',
+      deadlineDays: 14,
+      clientId: payer.id,
+      assignedSpecialistId: spec.id,
+    },
+  })
+
   const empty = await prisma.user.create({
     data: {
       email: emptyEmail,
@@ -104,16 +123,20 @@ test.describe('e2e-finances — finances screen', () => {
     await expect(page.getByText('Выплачено')).toBeVisible()
     await expect(page.getByText('В резерве')).toBeVisible()
     await expect(page.getByText('Сервисный сбор')).toBeVisible()
+    // The stat-tile caption line under the value (the only place the 10% fee rate is surfaced).
+    await expect(page.getByText('комиссия Gigly 10%')).toBeVisible()
 
-    // «Операции» heading + its count badge (the adjacent sibling span — scoped away from the sidebar «Мои гиги 2»).
+    // «Операции» heading + its count badge (the adjacent sibling span — scoped away from the sidebar «Мои гиги»).
     await expect(page.getByRole('heading', { name: 'Операции' })).toBeVisible()
-    await expect(page.locator('h2:text-is("Операции") + span')).toHaveText('2')
+    await expect(page.locator('h2:text-is("Операции") + span')).toHaveText('3')
 
     // Ledger rows: titles + statuses + the specialist counterparty subtitle.
     await expect(page.getByText(PAID_TITLE)).toBeVisible()
     await expect(page.getByText('Оплачено')).toBeVisible() // PAID → statusLabel «Оплачено»
     await expect(page.getByText(ACTIVE_TITLE)).toBeVisible()
     await expect(page.getByText('В работе').first()).toBeVisible() // IN_PROGRESS status badge
+    await expect(page.getByText(DONE_TITLE)).toBeVisible()
+    await expect(page.getByText('К оплате')).toBeVisible() // COMPLETED → client awaiting-payment label
     await expect(page.getByText('Иван Финанс').first()).toBeVisible() // counterparty (CLIENT → specialist)
   })
 
@@ -125,9 +148,14 @@ test.describe('e2e-finances — finances screen', () => {
     await expect(page.getByText('Заработано')).toBeVisible()
     await expect(page.getByText('На проверке')).toBeVisible()
     await expect(page.getByText('В работе').first()).toBeVisible()
+    // The stat-tile caption line under «Заработано».
+    await expect(page.getByText('выплачено по завершённым')).toBeVisible()
 
     await expect(page.getByRole('heading', { name: 'Операции' })).toBeVisible()
-    await expect(page.locator('h2:text-is("Операции") + span')).toHaveText('2')
+    await expect(page.locator('h2:text-is("Операции") + span')).toHaveText('3')
+
+    // COMPLETED → specialist awaiting-payment label «Ожидает оплаты» (distinct from the client's «К оплате»).
+    await expect(page.getByText('Ожидает оплаты')).toBeVisible()
 
     // Counterparty = the company (SPECIALIST viewer); amount = budget (role-aware) → «100 000 ₽».
     await expect(page.getByText('ООО Финанс').first()).toBeVisible()

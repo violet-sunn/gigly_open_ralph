@@ -14,9 +14,13 @@ import { PrismaLibSql } from '@prisma/adapter-libsql'
 let clientId: string
 let clientEmail: string
 let gigId: string
+let doneClientId: string
+let doneClientEmail: string
+let doneGigId: string
 const GIG_TITLE = 'E2E Chats Gig — миграция дашборда'
 const FIRST_MSG = 'Здравствуйте! Готов приступить.'
 const LAST_MSG = 'Уточните сроки по первому этапу.' // < 50 chars → preview equals it verbatim
+const DONE_MSG = 'Работа сдана и принята.'
 
 test.beforeAll(async () => {
   const prisma = new PrismaClient({ adapter: new PrismaLibSql({ url: 'file:./test.db' }) as any })
@@ -65,6 +69,36 @@ test.beforeAll(async () => {
   await prisma.message.create({ data: { gigId: gig.id, senderId: spec.id, content: FIRST_MSG } })
   await prisma.message.create({ data: { gigId: gig.id, senderId: spec.id, content: LAST_MSG } })
 
+  // A COMPLETED gig with history → its thread must be read-only. Uses its OWN client so it doesn't pollute the primary
+  // client's inbox (conversation count / unread badge assertions above).
+  const doneClient = await prisma.user.create({
+    data: {
+      email: `cchat-doneclient-${stamp}@example.com`,
+      password: 'x',
+      role: 'CLIENT',
+      clientProfile: { create: { companyName: 'ООО Завершённый', inn: '7700000004' } },
+    },
+  })
+  doneClientId = doneClient.id
+  doneClientEmail = doneClient.email
+  const doneGig = await prisma.gig.create({
+    data: {
+      title: 'E2E Completed Gig',
+      description: 'A finished gig.',
+      acceptanceCriteria: 'Acceptance criteria with at least fifty characters to pass validation here.',
+      budget: 3000000,
+      serviceFee: 300000,
+      totalAmount: 3300000,
+      status: 'COMPLETED',
+      tags: 'React',
+      deadlineDays: 7,
+      clientId: doneClient.id,
+      assignedSpecialistId: spec.id,
+    },
+  })
+  doneGigId = doneGig.id
+  await prisma.message.create({ data: { gigId: doneGig.id, senderId: spec.id, content: DONE_MSG } })
+
   await prisma.$disconnect()
 })
 
@@ -104,7 +138,7 @@ test.describe('e2e-chats — two-pane inbox', () => {
     await expect(page.getByText(/\d{1,2}\s+\S+\s+\d{4}\s*г\./).first()).toBeVisible()
   })
 
-  test('sending a message via the composer reuses sendMessage and persists (read back on /chats)', async ({ page }) => {
+  test('sending is optimistic — the bubble appears with no navigation and is not duplicated', async ({ page }) => {
     await setE2ESession(page, { id: clientId, email: clientEmail, role: 'CLIENT' })
     await page.goto(`/chats?gig=${gigId}`)
 
@@ -112,13 +146,53 @@ test.describe('e2e-chats — two-pane inbox', () => {
     await page.getByRole('textbox', { name: 'Сообщение' }).fill(msg)
     await page.getByLabel('Отправить').click()
 
-    // sendMessage is reused verbatim → it redirects to /gigs/<id>.
-    await expect(page).toHaveURL(new RegExp(`/gigs/${gigId}`))
+    // Optimistic: the bubble shows immediately, the URL never changes (no redirect/navigation), and the input clears.
+    await expect(page.getByText(msg)).toBeVisible()
+    await expect(page).toHaveURL(new RegExp(`/chats\\?gig=${gigId}`))
+    await expect(page.getByRole('textbox', { name: 'Сообщение' })).toHaveValue('')
 
-    // Rebuilt gig-detail no longer renders the thread — read the new bubble back by re-opening the conversation.
-    // The just-sent message is now also the list preview, so it appears twice → assert the thread bubble (.last()).
-    await page.goto(`/chats?gig=${gigId}`)
+    // Reconciled to the persisted message (the delta poll must not append a duplicate of the sender's own message).
+    await page.waitForTimeout(3500) // one poll interval
+    await expect(page.getByText(msg)).toHaveCount(1)
+
+    // And it survives a real reload (persisted).
+    await page.reload()
     await expect(page.getByText(msg).last()).toBeVisible()
+  })
+
+  test('optimistic bubbles never vanish — survive across multiple poll cycles (reconcile/poll collision)', async ({ page }) => {
+    // Regression for the disappearing-message bug: a poll landing mid-send must not drop the optimistic bubble. Send a
+    // burst spanning several ~3s poll cycles, then assert every message is still present exactly once (no vanish, no
+    // duplicate), all without any reload.
+    await setE2ESession(page, { id: clientId, email: clientEmail, role: 'CLIENT' })
+    await page.goto(`/chats?gig=${gigId}`)
+
+    const stamp = Date.now()
+    const msgs = Array.from({ length: 4 }, (_, i) => `Серия ${stamp}#${i}`)
+    for (const m of msgs) {
+      await page.getByRole('textbox', { name: 'Сообщение' }).fill(m)
+      await page.getByLabel('Отправить').click()
+      await expect(page.getByText(m)).toBeVisible()
+      await page.waitForTimeout(2500) // straddle the poll interval so some sends collide with a poll
+    }
+
+    // After the bursts + extra poll cycles, every message is still on screen exactly once — none disappeared.
+    await page.waitForTimeout(3500)
+    for (const m of msgs) {
+      await expect(page.getByText(m), `"${m}" must still be visible (no vanish)`).toHaveCount(1)
+    }
+  })
+
+  test('a COMPLETED gig is read-only — history shows, but no composer', async ({ page }) => {
+    await setE2ESession(page, { id: doneClientId, email: doneClientEmail, role: 'CLIENT' })
+    await page.goto(`/chats?gig=${doneGigId}`)
+
+    // History is visible…
+    await expect(page.getByText(DONE_MSG).last()).toBeVisible()
+    // …but there is NO composer, and a read-only notice is shown instead.
+    await expect(page.getByRole('textbox', { name: 'Сообщение' })).toHaveCount(0)
+    await expect(page.getByLabel('Отправить')).toHaveCount(0)
+    await expect(page.getByText(/только для просмотра/)).toBeVisible()
   })
 
   test('the live search filters the conversation list', async ({ page }) => {

@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/session';
 import { prisma } from '@/lib/prisma';
 import { getNotificationDisplayText, getNotificationIcon } from '@/lib/notification-utils';
+import { getPreferences, DEFAULT_PREFERENCES } from '@/lib/preferences';
 
 export async function getUnreadNotifications() {
   const session = await getSession();
@@ -12,6 +13,10 @@ export async function getUnreadNotifications() {
   }
 
   const userId = session.userId;
+
+  // The user's notification preferences (settings → «Уведомления»). Gating is applied at DISPLAY time below (not at
+  // creation), so toggling a type back on instantly restores it — no notification rows are ever dropped.
+  const prefs = (await getPreferences(userId)) ?? DEFAULT_PREFERENCES;
 
   // Get all gigs where user is owner OR assigned specialist
   const gigs = await prisma.gig.findMany({
@@ -119,8 +124,22 @@ export async function getUnreadNotifications() {
     }
   }
 
+  // Respect the user's notification preferences (in-app/bell gating). Types without a settings toggle (PAYMENT) and the
+  // two with no event source yet (notifyPlatformNews/notifyNewGigs) are unaffected — they fall through to `true`.
+  const typeEnabled = (type: string): boolean => {
+    switch (type) {
+      case 'MESSAGE': return prefs.notifyMessages;
+      case 'APPLICATION': return prefs.notifyApplications;
+      case 'STATUS_CHANGE': return prefs.notifyStatusChanges;
+      case 'PAYMENT': return prefs.notifyPayments;
+      default: return true;
+    }
+  };
+
   // Sort by most recent
-  return unreadNotifications.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  return unreadNotifications
+    .filter((n) => typeEnabled(n.type))
+    .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 }
 
 export async function getUnreadCount() {
@@ -146,7 +165,7 @@ export async function markNotificationAsRead(gigId: string) {
   });
 
   if (!gig) {
-    return { error: 'This gig no longer exists or has been removed.' };
+    return { error: 'Этот гиг больше не существует или был удалён.' };
   }
 
   // Check authorization: user must be gig owner OR assigned specialist
@@ -154,7 +173,7 @@ export async function markNotificationAsRead(gigId: string) {
     gig.clientId === userId || gig.assignedSpecialistId === userId;
 
   if (!isAuthorized) {
-    return { error: 'You are not authorized to mark this notification as read.' };
+    return { error: 'Недостаточно прав, чтобы отметить это уведомление прочитанным.' };
   }
 
   // Upsert notification record

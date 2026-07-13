@@ -81,7 +81,7 @@ export default function ProfileCompletionCard({
       <p className="text-sm text-neutral-default mb-4">{percentage}% complete</p>
 
       <Link
-        href="/profile/edit"
+        href="/profile"
         className="inline-block bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-medium transition-colors text-sm"
       >
         Complete Profile

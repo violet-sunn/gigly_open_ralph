@@ -88,7 +88,7 @@ test.describe('Admin Users Pagination E2E', () => {
     await expect(page.locator('text=Showing 31-60 of 91 users')).toBeVisible()
 
     // Verify page 2 is active
-    await expect(page.locator('[aria-current="page"]')).toHaveText('2')
+    await expect(page.locator('nav[aria-label="Pagination"] [aria-current="page"]')).toHaveText('2')
 
     // Click Next again to go to page 3
     await page.click('a[aria-label="Next page"]')
@@ -111,7 +111,7 @@ test.describe('Admin Users Pagination E2E', () => {
     // Verify we're on page 2
     await expect(page).toHaveURL(/page=2/)
     await expect(page.locator('text=Showing 31-60 of 91 users')).toBeVisible()
-    await expect(page.locator('[aria-current="page"]')).toHaveText('2')
+    await expect(page.locator('nav[aria-label="Pagination"] [aria-current="page"]')).toHaveText('2')
   })
 
   test('should navigate using page number buttons on users page', async ({ page }) => {
@@ -124,7 +124,7 @@ test.describe('Admin Users Pagination E2E', () => {
     await page.waitForURL(/page=3/)
     await expect(page).toHaveURL(/page=3/)
     await expect(page.locator('text=Showing 61-90 of 91 users')).toBeVisible()
-    await expect(page.locator('[aria-current="page"]')).toHaveText('3')
+    await expect(page.locator('nav[aria-label="Pagination"] [aria-current="page"]')).toHaveText('3')
   })
 
   test('should redirect invalid page numbers to valid pages on users page', async ({ page }) => {
@@ -150,9 +150,8 @@ test.describe('Admin Users Pagination E2E', () => {
     await page.goto('/admin/users')
     await page.waitForLoadState('networkidle')
 
-    // Apply CLIENT role filter (the kit Select primitive: open the trigger, pick the option)
-    await page.getByRole('button', { name: 'Фильтр по роли' }).click()
-    await page.getByRole('option', { name: 'CLIENT' }).click()
+    // Apply CLIENT role filter (transported native select)
+    await page.getByRole('combobox', { name: 'Фильтр по роли' }).selectOption('CLIENT')
     await page.waitForURL(/role=CLIENT/)
 
     // Wait for filtered results to render (and pagination to appear/disappear)
@@ -171,9 +170,8 @@ test.describe('Admin Users Pagination E2E', () => {
     await page.waitForLoadState('networkidle')
     await expect(page).toHaveURL(/page=2/)
 
-    // Apply a filter (the kit Select primitive)
-    await page.getByRole('button', { name: 'Фильтр по роли' }).click()
-    await page.getByRole('option', { name: 'CLIENT' }).click()
+    // Apply a filter (transported native select)
+    await page.getByRole('combobox', { name: 'Фильтр по роли' }).selectOption('CLIENT')
     await page.waitForURL(/role=CLIENT/)
 
     // Verify pagination reset to page 1 (no page param in URL)
@@ -315,7 +313,7 @@ test.describe('Admin Gigs Pagination E2E', () => {
     await expect(page.locator('text=Showing 31-60 of 90 gigs')).toBeVisible()
 
     // Verify page 2 is active
-    await expect(page.locator('[aria-current="page"]')).toHaveText('2')
+    await expect(page.locator('nav[aria-label="Pagination"] [aria-current="page"]')).toHaveText('2')
 
     // Click Next again to go to page 3
     await page.click('a[aria-label="Next page"]')
@@ -338,7 +336,7 @@ test.describe('Admin Gigs Pagination E2E', () => {
     // Verify we're on page 2
     await expect(page).toHaveURL(/page=2/)
     await expect(page.locator('text=Showing 31-60 of 90 gigs')).toBeVisible()
-    await expect(page.locator('[aria-current="page"]')).toHaveText('2')
+    await expect(page.locator('nav[aria-label="Pagination"] [aria-current="page"]')).toHaveText('2')
   })
 
   test('should navigate using page number buttons on gigs page', async ({ page }) => {
@@ -351,7 +349,7 @@ test.describe('Admin Gigs Pagination E2E', () => {
     await page.waitForURL(/page=3/)
     await expect(page).toHaveURL(/page=3/)
     await expect(page.locator('text=Showing 61-90 of 90 gigs')).toBeVisible()
-    await expect(page.locator('[aria-current="page"]')).toHaveText('3')
+    await expect(page.locator('nav[aria-label="Pagination"] [aria-current="page"]')).toHaveText('3')
   })
 
   test('should redirect invalid page numbers to valid pages on gigs page', async ({ page }) => {
@@ -377,9 +375,8 @@ test.describe('Admin Gigs Pagination E2E', () => {
     await page.goto('/admin/gigs')
     await page.waitForLoadState('networkidle')
 
-    // Apply OPEN status filter (the kit Select primitive)
-    await page.getByRole('button', { name: 'Фильтр по статусу' }).click()
-    await page.getByRole('option', { name: 'OPEN', exact: true }).click()
+    // Apply OPEN status filter (transported native select)
+    await page.getByRole('combobox', { name: 'Фильтр по статусу' }).selectOption('OPEN')
     await page.waitForURL(/status=OPEN/)
 
     // Verify filtered results
@@ -407,9 +404,8 @@ test.describe('Admin Gigs Pagination E2E', () => {
     await page.waitForLoadState('networkidle')
     await expect(page).toHaveURL(/page=2/)
 
-    // Apply a filter (the kit Select primitive)
-    await page.getByRole('button', { name: 'Фильтр по статусу' }).click()
-    await page.getByRole('option', { name: 'OPEN', exact: true }).click()
+    // Apply a filter (transported native select)
+    await page.getByRole('combobox', { name: 'Фильтр по статусу' }).selectOption('OPEN')
     await page.waitForURL(/status=OPEN/)
 
     // Verify pagination reset to page 1 (no page param in URL)

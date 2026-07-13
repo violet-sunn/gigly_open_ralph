@@ -49,13 +49,19 @@ async function loginAs(page: any, user: { id: string; email: string; role: strin
   ])
 }
 
-/** Send a message through the /chats composer for the given gig; asserts the unchanged sendMessage redirect. */
+/** Send a message through the /chats composer for the given gig; the composer keeps the user in the conversation.
+ *  Sending is optimistic (no navigation) — wait for the bubble to reconcile (the «отправка…» pending state to clear,
+ *  i.e. the server write committed) before the caller reads the message back. */
 async function sendViaChats(page: any, gigId: string, content: string) {
   await page.goto(`/chats?gig=${gigId}`)
   await page.getByRole('textbox', { name: 'Сообщение' }).fill(content)
   await page.getByLabel('Отправить').click()
-  // sendMessage redirects to the gig page (unchanged behaviour).
-  await expect(page).toHaveURL(new RegExp(`/gigs/${gigId}`))
+  // Optimistic bubble appears immediately and the user stays in the conversation (no redirect).
+  await expect(page.getByText(content).last()).toBeVisible()
+  await expect(page).toHaveURL(new RegExp(`/chats\\?gig=${gigId}`))
+  // Reconciled = persisted: the pending marker is gone and the send did not fail.
+  await expect(page.getByText('отправка…')).toHaveCount(0)
+  await expect(page.getByText('не отправлено')).toHaveCount(0)
 }
 
 test.describe('Messaging Flow E2E', () => {
@@ -246,5 +252,49 @@ test.describe('Messaging Flow E2E', () => {
     expect(finalGig?.assignedSpecialist?.specialistProfile?.displayName).toBe('Дмитрий Соколов')
     expect(finalGig?.assignedSpecialist?.specialistProfile?.techStack).toBe('React, TypeScript, Node.js, PostgreSQL')
     expect(finalGig?.assignedSpecialist?.specialistProfile?.experienceLevel).toBe('SENIOR')
+  })
+
+  test('live receive — the counterparty sees a new message without reloading (delta poll)', async ({ page, browser }) => {
+    const stamp = `${Date.now()}-${Math.random().toString(36).slice(2)}`
+    const client = await createTestUser(prisma, {
+      role: 'CLIENT', email: `live-client-${stamp}@test.com`, companyName: 'ООО Лайв', inn: '7700000044',
+    })
+    const specialist = await createTestUser(prisma, {
+      role: 'SPECIALIST', email: `live-spec-${stamp}@test.com`, displayName: 'Лайв Спец', techStack: 'React', experienceLevel: 'SENIOR',
+    })
+    const gig = await createTestGig(prisma, {
+      clientId: client.id, title: 'Live receive gig', status: 'IN_PROGRESS', assignedSpecialistId: specialist.id,
+    })
+
+    // Client viewing the thread in the primary context.
+    await loginAs(page, { id: client.id, email: client.email, role: 'CLIENT' })
+    await page.goto(`/chats?gig=${gig.id}`)
+
+    // Specialist viewing the SAME thread in a second context (no shared cookies).
+    const ctx2 = await browser.newContext()
+    const page2 = await ctx2.newPage()
+    // Force the receiver tab to always report "visible". The hook (correctly) pauses polling when the tab is hidden, but
+    // in one headless run only one page is foreground at a time — without this the cross-context receive is flaky. In
+    // real life each user has their own focused tab, so this faithfully models the poll-while-visible path.
+    await page2.addInitScript(() => {
+      Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'visible' })
+      Object.defineProperty(document, 'hidden', { configurable: true, get: () => false })
+    })
+    await loginAs(page2, { id: specialist.id, email: specialist.email, role: 'SPECIALIST' })
+    await page2.goto(`/chats?gig=${gig.id}`)
+
+    // Client sends; the specialist's open thread must show it via the delta poll — no reload, no navigation.
+    const liveMsg = `Live ${stamp}`
+    await page.getByRole('textbox', { name: 'Сообщение' }).fill(liveMsg)
+    await page.getByLabel('Отправить').click()
+    // Wait for the client's send to COMMIT (optimistic «отправка…» cleared) so the receiver's poll can't race ahead of
+    // the DB write.
+    await expect(page.getByText(liveMsg)).toBeVisible()
+    await expect(page.getByText('отправка…')).toHaveCount(0)
+
+    // The receiver (always-visible) picks it up on its next delta poll — no reload, no navigation.
+    await expect(page2.getByText(liveMsg)).toBeVisible({ timeout: 15000 })
+
+    await ctx2.close()
   })
 })

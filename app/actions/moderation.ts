@@ -15,24 +15,24 @@ export async function suspendUser(
   }
 
   if (session.role !== 'ADMIN') {
-    return { error: 'Only admins can perform moderation actions.' }
+    return { error: 'Действия модерации доступны только администраторам.' }
   }
 
   const userId = formData.get('userId') as string
   const reason = formData.get('reason') as string
 
   if (!reason || reason.trim() === '') {
-    return { error: 'Reason is required for suspension.' }
+    return { error: 'Укажите причину блокировки.' }
   }
 
   try {
     const user = await prisma.user.findUnique({ where: { id: userId } })
     if (!user) {
-      return { error: 'This user no longer exists or has been removed.' }
+      return { error: 'Этот пользователь больше не существует или был удалён.' }
     }
 
     if (user.suspended) {
-      return { error: 'User is already suspended.' }
+      return { error: 'Пользователь уже заблокирован.' }
     }
 
     await prisma.$transaction([
@@ -50,7 +50,7 @@ export async function suspendUser(
       })
     ])
   } catch (error) {
-    return { error: 'Failed to suspend user. Please try again. If the problem persists, contact technical support.' }
+    return { error: 'Не удалось заблокировать пользователя. Попробуйте ещё раз; если проблема повторяется — обратитесь в поддержку.' }
   }
 
   revalidatePath('/admin/users')
@@ -68,24 +68,24 @@ export async function unsuspendUser(
   }
 
   if (session.role !== 'ADMIN') {
-    return { error: 'Only admins can perform moderation actions.' }
+    return { error: 'Действия модерации доступны только администраторам.' }
   }
 
   const userId = formData.get('userId') as string
   const reason = formData.get('reason') as string
 
   if (!reason || reason.trim() === '') {
-    return { error: 'Reason is required for unsuspension.' }
+    return { error: 'Укажите причину разблокировки.' }
   }
 
   try {
     const user = await prisma.user.findUnique({ where: { id: userId } })
     if (!user) {
-      return { error: 'This user no longer exists or has been removed.' }
+      return { error: 'Этот пользователь больше не существует или был удалён.' }
     }
 
     if (!user.suspended) {
-      return { error: 'User is not suspended.' }
+      return { error: 'Пользователь не заблокирован.' }
     }
 
     await prisma.$transaction([
@@ -103,7 +103,7 @@ export async function unsuspendUser(
       })
     ])
   } catch (error) {
-    return { error: 'Failed to unsuspend user. Please try again. If the problem persists, contact technical support.' }
+    return { error: 'Не удалось разблокировать пользователя. Попробуйте ещё раз; если проблема повторяется — обратитесь в поддержку.' }
   }
 
   revalidatePath('/admin/users')
@@ -121,24 +121,24 @@ export async function closeGig(
   }
 
   if (session.role !== 'ADMIN') {
-    return { error: 'Only admins can perform moderation actions.' }
+    return { error: 'Действия модерации доступны только администраторам.' }
   }
 
   const gigId = formData.get('gigId') as string
   const reason = formData.get('reason') as string
 
   if (!reason || reason.trim() === '') {
-    return { error: 'Reason is required for closing a gig.' }
+    return { error: 'Укажите причину закрытия гига.' }
   }
 
   try {
     const gig = await prisma.gig.findUnique({ where: { id: gigId } })
     if (!gig) {
-      return { error: 'This gig no longer exists or has been removed.' }
+      return { error: 'Этот гиг больше не существует или был удалён.' }
     }
 
     if (gig.closedByAdmin) {
-      return { error: 'Gig is already closed.' }
+      return { error: 'Гиг уже закрыт.' }
     }
 
     await prisma.$transaction([
@@ -159,7 +159,7 @@ export async function closeGig(
       })
     ])
   } catch (error) {
-    return { error: 'Failed to close gig. Please try again. If the problem persists, contact technical support.' }
+    return { error: 'Не удалось закрыть гиг. Попробуйте ещё раз; если проблема повторяется — обратитесь в поддержку.' }
   }
 
   revalidatePath('/admin/gigs')

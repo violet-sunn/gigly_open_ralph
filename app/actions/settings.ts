@@ -3,7 +3,10 @@
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getSession, destroySession } from '@/lib/session'
-import { isLocale } from '@/lib/preferences'
+import { isLocale, isCurrency } from '@/lib/preferences'
+import { isTimezone } from '@/lib/profiles'
+import { sanitizeInput } from '@/lib/sanitize'
+import { getSettings, type SettingsData } from '@/lib/view-models'
 
 /**
  * Update the authenticated user's account preferences (locale + notification toggles). Partial-safe: only fields
@@ -26,14 +29,26 @@ export async function updatePreferences(
     notifyPayments?: boolean
     showRatingInProfile?: boolean
     showOnlineStatus?: boolean
+    currency?: string
+    notifyPlatformNews?: boolean
+    notifyNewGigs?: boolean
   } = {}
 
   if (formData.has('locale')) {
     const locale = (formData.get('locale') as string) || ''
     if (!isLocale(locale)) {
-      return { error: 'Please choose a supported language.' }
+      return { error: 'Выберите поддерживаемый язык.' }
     }
     data.locale = locale
+  }
+
+  // transport-settings — «Валюта получения выплат» (Платежные данные).
+  if (formData.has('currency')) {
+    const currency = (formData.get('currency') as string) || ''
+    if (!isCurrency(currency)) {
+      return { error: 'Выберите поддерживаемую валюту.' }
+    }
+    data.currency = currency
   }
 
   const asBool = (v: FormDataEntryValue | null) => v === 'true' || v === 'on'
@@ -43,10 +58,110 @@ export async function updatePreferences(
   if (formData.has('notifyPayments')) data.notifyPayments = asBool(formData.get('notifyPayments'))
   if (formData.has('showRatingInProfile')) data.showRatingInProfile = asBool(formData.get('showRatingInProfile'))
   if (formData.has('showOnlineStatus')) data.showOnlineStatus = asBool(formData.get('showOnlineStatus'))
+  // transport-settings — the two extra Email-уведомления rows.
+  if (formData.has('notifyPlatformNews')) data.notifyPlatformNews = asBool(formData.get('notifyPlatformNews'))
+  if (formData.has('notifyNewGigs')) data.notifyNewGigs = asBool(formData.get('notifyNewGigs'))
 
   await prisma.user.update({ where: { id: session.userId }, data })
 
   return { success: true }
+}
+
+/**
+ * transport-settings — «Имя» (Учетные данные). Partial-safe: updates ONLY the name field (so it never clobbers other
+ * profile fields the full `updateProfile` upsert would). SPECIALIST → `displayName`; CLIENT → `contactPerson`.
+ */
+export async function updateAccountName(
+  prevState: { error?: string; success?: boolean } | null,
+  formData: FormData
+) {
+  const session = await getSession()
+  if (!session) {
+    redirect('/login')
+  }
+
+  const name = sanitizeInput((formData.get('name') as string) || '').trim()
+  try {
+    if (session.role === 'SPECIALIST') {
+      await prisma.specialistProfile.upsert({
+        where: { userId: session.userId },
+        create: { userId: session.userId, displayName: name },
+        update: { displayName: name },
+      })
+    } else if (session.role === 'CLIENT') {
+      // companyName is required on create, so update-only (the profile exists post-onboarding) — partial + non-clobbering.
+      await prisma.clientProfile.update({ where: { userId: session.userId }, data: { contactPerson: name } })
+    } else {
+      return { error: 'Эта учётная запись не редактируется здесь.' }
+    }
+  } catch {
+    return { error: 'Не удалось сохранить имя. Попробуйте ещё раз.' }
+  }
+  return { success: true }
+}
+
+/**
+ * transport-settings — «Часовой пояс» (Язык и регион). Partial-safe like `updateAccountName`: writes ONLY `timezone`
+ * (a personal preference on the profile, also surfaced on the profile page) without clobbering other profile fields.
+ */
+export async function updateTimezone(
+  prevState: { error?: string; success?: boolean } | null,
+  formData: FormData
+) {
+  const session = await getSession()
+  if (!session) {
+    redirect('/login')
+  }
+
+  const timezone = sanitizeInput((formData.get('timezone') as string) || '').trim()
+  if (timezone && !isTimezone(timezone)) {
+    return { error: 'Выберите корректный часовой пояс.' }
+  }
+  try {
+    if (session.role === 'SPECIALIST') {
+      await prisma.specialistProfile.upsert({
+        where: { userId: session.userId },
+        create: { userId: session.userId, timezone },
+        update: { timezone },
+      })
+    } else if (session.role === 'CLIENT') {
+      await prisma.clientProfile.update({ where: { userId: session.userId }, data: { timezone } })
+    } else {
+      return { error: 'Эта учётная запись не редактируется здесь.' }
+    }
+  } catch {
+    return { error: 'Не удалось сохранить часовой пояс.' }
+  }
+  return { success: true }
+}
+
+/**
+ * transport-settings — «Завершить все неактивные сеансы» (Безопасность). Deletes every session of the caller EXCEPT
+ * the current one (its id === the JWT `sid`), so the user stays logged in. Ownership-scoped by `userId`.
+ */
+export async function terminateInactiveSessions() {
+  const session = await getSession()
+  if (!session) {
+    redirect('/login')
+  }
+
+  await prisma.session.deleteMany({
+    where: { userId: session.userId, ...(session.sid ? { NOT: { id: session.sid } } : {}) },
+  })
+
+  return { success: true }
+}
+
+/**
+ * transport-settings — lazy data load for the «Настройки» modal (opened via `?settings=1` from the shell). Returns the
+ * same `SettingsData` the `/settings` route uses, for the current session.
+ */
+export async function loadSettings(): Promise<SettingsData> {
+  const session = await getSession()
+  if (!session) {
+    redirect('/login')
+  }
+  return getSettings({ userId: session.userId, email: session.email, sid: session.sid })
 }
 
 /**
@@ -62,7 +177,7 @@ export async function terminateSession(sessionId: string) {
 
   const row = await prisma.session.findUnique({ where: { id: sessionId } })
   if (!row || row.userId !== session.userId) {
-    return { error: 'Session not found.' }
+    return { error: 'Сессия не найдена.' }
   }
 
   await prisma.session.delete({ where: { id: sessionId } })
@@ -92,7 +207,7 @@ export async function deleteAccount(
 
   const confirmEmail = ((formData.get('confirmEmail') as string) || '').trim()
   if (confirmEmail !== session.email) {
-    return { error: 'Please type your account email to confirm deletion.' }
+    return { error: 'Введите email вашего аккаунта, чтобы подтвердить удаление.' }
   }
 
   const userId = session.userId

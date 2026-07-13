@@ -84,8 +84,15 @@ export function GigDetail({ data }: { data: GigDetailData }) {
   const showCompletedSpec = !closed && data.isAssignedSpecialist && data.status === "COMPLETED";
   const showPaid = !closed && paid;
   const showDone = closed;
+  // Dispute link only while the work is live (в работе / на проверке) — matches the prototype's
+  // `showDisputeLink: !isAdmin && (gigInProgress || gigReview)`; not merely "assigned" (which lingers into
+  // completed/paid and over-showed the link there).
   const showDisputeLink =
-    !closed && (data.isOwner || data.isAssignedSpecialist) && data.messaging.assigned && !data.isExample;
+    !closed &&
+    (data.isOwner || data.isAssignedSpecialist) &&
+    data.messaging.assigned &&
+    !data.isExample &&
+    (data.status === "IN_PROGRESS" || data.status === "REVIEW");
 
   return (
     <div style={{ display: "flex", gap: 6, alignItems: "flex-start" }}>
@@ -685,11 +692,17 @@ function ApplyBlock({
   const [withdrawStateRaw, withdrawAction] = useAction(withdrawApplication);
   const withdrawState = withdrawStateRaw;
 
-  const valid = approach.trim().length >= 20 && questions.trim().length >= 10;
+  // Mirror the server thresholds in applyToGig (approach ≥ 100, questions ≥ 50) so the button gates before submit
+  // instead of the server bouncing the user after a click.
+  const APPROACH_MIN = 100;
+  const QUESTIONS_MIN = 50;
+  const aLen = approach.trim().length;
+  const qLen = questions.trim().length;
+  const valid = aLen >= APPROACH_MIN && qLen >= QUESTIONS_MIN;
   const applyBtnBg = valid ? "var(--om-accent, #0088ff)" : "var(--surface-secondary)";
   const applyHint = valid
     ? "Нажимая кнопку, вы соглашаетесь с правилами платформы"
-    : "Заполните подход (от 20 симв.) и хотя бы один вопрос";
+    : `Подход — минимум ${APPROACH_MIN} симв. (${aLen}/${APPROACH_MIN}), вопросы — минимум ${QUESTIONS_MIN} (${qLen}/${QUESTIONS_MIN})`;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -737,7 +750,7 @@ function ApplyBlock({
               style={{ ...fieldStyle, height: 42, padding: "0 12px", lineHeight: "normal" }}
             />
           </div>
-          <button type="submit" style={primaryBtn(applyBtnBg)}>
+          <button type="submit" disabled={!valid} style={{ ...primaryBtn(applyBtnBg), cursor: valid ? "pointer" : "not-allowed" }}>
             Отправить заявку
           </button>
           {errLine(applyState?.error)}

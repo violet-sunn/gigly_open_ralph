@@ -168,7 +168,7 @@ describe('ProfileCompletionCard', () => {
   })
 
   describe('Complete Profile link', () => {
-    it('links to /profile/edit', () => {
+    it('links to /profile (editing is done via the on-screen modals; /profile/edit is retired)', () => {
       render(
         <ProfileCompletionCard
           role="CLIENT"
@@ -177,7 +177,7 @@ describe('ProfileCompletionCard', () => {
       )
 
       const link = screen.getByRole('link', { name: 'Complete Profile' })
-      expect(link).toHaveAttribute('href', '/profile/edit')
+      expect(link).toHaveAttribute('href', '/profile')
     })
   })
 })

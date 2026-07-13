@@ -7,10 +7,10 @@
 // loginUser / registerUser / updateProfile actions. Replaces the legacy /login + the kit /auth + RegisterWizard.
 
 import { useActionState, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { loginUser, registerUser } from "@/app/actions/auth";
 import { updateProfile } from "@/app/actions/profile";
 import { SPECIALIZATIONS, TIMEZONES } from "@/lib/profiles";
+import { checkPasswordRules, validatePassword } from "@/lib/password";
 import "./tokens.css";
 
 type View = "login" | "onboarding";
@@ -195,10 +195,19 @@ const fieldStyle: React.CSSProperties = {
   width: "100%",
 };
 
-function PrimaryButton({ children, type = "submit" }: { children: React.ReactNode; type?: "submit" | "button" }) {
+function PrimaryButton({
+  children,
+  type = "submit",
+  disabled = false,
+}: {
+  children: React.ReactNode;
+  type?: "submit" | "button";
+  disabled?: boolean;
+}) {
   return (
     <button
       type={type}
+      disabled={disabled}
       style={{
         height: 48,
         border: "none",
@@ -207,12 +216,37 @@ function PrimaryButton({ children, type = "submit" }: { children: React.ReactNod
         color: "#fff",
         fontSize: 15,
         fontWeight: 500,
-        cursor: "pointer",
+        cursor: disabled ? "not-allowed" : "pointer",
+        opacity: disabled ? 0.5 : 1,
         width: "100%",
       }}
     >
       {children}
     </button>
+  );
+}
+
+function PasswordChecklist({ password }: { password: string }) {
+  if (password.length === 0) return null;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 5, marginTop: 2 }}>
+      {checkPasswordRules(password).map((r) => (
+        <div
+          key={r.label}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            fontFamily: GROTESK,
+            fontSize: 12,
+            color: r.ok ? "var(--accents-green, #34c759)" : "var(--text-3)",
+          }}
+        >
+          <span style={{ width: 14, display: "inline-flex", justifyContent: "center" }}>{r.ok ? "✓" : "○"}</span>
+          {r.label}
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -251,6 +285,8 @@ function Footer({ single }: { single?: boolean }) {
     fontSize: 14,
     color: "var(--text-3)",
     textDecoration: "underline",
+    // the footer container is pointer-events:none (so it doesn't block the form/wave); re-enable it on the links.
+    pointerEvents: "auto",
   };
   if (single) {
     return (
@@ -280,17 +316,22 @@ function Footer({ single }: { single?: boolean }) {
         bottom: 0,
         left: 0,
         width: "100%",
-        display: "flex",
-        justifyContent: "space-between",
+        // 1fr auto 1fr keeps the middle link centered on the PAGE (equal side columns), unlike space-between which
+        // shifts it right because the left link is wider than the right one.
+        display: "grid",
+        gridTemplateColumns: "1fr auto 1fr",
+        alignItems: "center",
         padding: "20px 40px",
         boxSizing: "border-box",
-        zIndex: 1,
+        // above centerColumn (zIndex 4) so the links are actually clickable; container stays pointer-events:none
+        // (links re-enable via linkStyle) so it never blocks the form or pixel-wave.
+        zIndex: 6,
         pointerEvents: "none",
       }}
     >
-      <a href="#" style={linkStyle}>Политика конфиденциальности</a>
-      <a href="#" style={linkStyle}>Условия пользования</a>
-      <a href="#" style={linkStyle}>Помощь</a>
+      <a href="/privacy" style={{ ...linkStyle, justifySelf: "start" }}>Политика конфиденциальности</a>
+      <a href="/terms" style={{ ...linkStyle, justifySelf: "center" }}>Условия пользования</a>
+      <a href="/help" style={{ ...linkStyle, justifySelf: "end" }}>Помощь</a>
     </div>
   );
 }
@@ -436,6 +477,12 @@ function OnboardingStep2({
   onLogin: () => void;
   onBack: () => void;
 }) {
+  const pv = validatePassword(pass);
+  const rules = checkPasswordRules(pass);
+  // Failures NOT covered by the 4 visible checklist rows (non-Latin chars / over 72 chars) are surfaced as a note,
+  // but only once those 4 are satisfied, so the message doesn't fight the checklist.
+  const extraError = pass.length > 0 && !pv.valid && rules.every((r) => r.ok) ? pv.error : undefined;
+  const canSubmit = pv.valid && confirm.length > 0 && !mismatch;
   return (
     <div style={centerColumn}>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20 }}>
@@ -460,6 +507,8 @@ function OnboardingStep2({
             onChange={(e) => onPass(e.target.value)}
             style={fieldStyle}
           />
+          <PasswordChecklist password={pass} />
+          {extraError && <ErrorNote error={extraError} />}
           <input
             name="confirmPassword"
             type="password"
@@ -474,7 +523,7 @@ function OnboardingStep2({
         <ErrorNote error={error} />
         <div style={{ display: "flex", gap: 12, marginTop: 14 }}>
           <BackArrow onClick={onBack} label="Назад к выбору роли" />
-          <PrimaryButton>Зарегистрироваться</PrimaryButton>
+          <PrimaryButton disabled={!canSubmit}>Зарегистрироваться</PrimaryButton>
         </div>
         <button
           type="button"
@@ -497,10 +546,18 @@ function OnboardingStep3({
   role: Role | null;
   error?: string;
 }) {
-  const router = useRouter();
   const isCompany = role === "CLIENT";
   const title = isCompany ? "ДОБРО ПОЖАЛОВАТЬ" : "НАСТРОЙТЕ СВОЙ АККАУНТ";
   const subtitle = isCompany ? "Настройте свой аккаунт." : "Введите данные";
+
+  // Registration must not proceed on an empty profile (the data has to reach /profile). Track the fields and gate
+  // «Продолжить» until the required ones are filled; there is no «Пропустить» skip.
+  const [vals, setVals] = useState<Record<string, string>>({});
+  const set = (k: string) => (v: string) => setVals((s) => ({ ...s, [k]: v }));
+  const requiredKeys = isCompany
+    ? ["companyName", "contactPerson", "position", "timezone"]
+    : ["displayName", "specialization", "timezone"];
+  const canSubmit = requiredKeys.every((k) => (vals[k] ?? "").trim().length > 0);
 
   return (
     <div style={centerColumn}>
@@ -526,23 +583,21 @@ function OnboardingStep3({
         <input type="hidden" name="redirectTo" value="/dashboard" />
         {isCompany ? (
           <>
-            <Field name="companyName" label="Компания" placeholder='ООО "Компания"' />
-            <Field name="contactPerson" label="ФИО" placeholder="Фамилия Имя Отчество" />
-            <Field name="position" label="Должность" placeholder="Ваша должность" />
-            <SelectField name="timezone" label="Местоположение и часовой пояс" options={TIMEZONES} />
+            <Field name="companyName" label="Компания" placeholder='ООО "Компания"' required value={vals.companyName ?? ""} onChange={set("companyName")} />
+            <Field name="contactPerson" label="ФИО" placeholder="Фамилия Имя Отчество" required value={vals.contactPerson ?? ""} onChange={set("contactPerson")} />
+            <Field name="position" label="Должность" placeholder="Ваша должность" required value={vals.position ?? ""} onChange={set("position")} />
+            <SelectField name="timezone" label="Местоположение и часовой пояс" options={TIMEZONES} required value={vals.timezone ?? ""} onChange={set("timezone")} />
           </>
         ) : (
           <>
-            <Field name="displayName" label="ФИО" placeholder="Фамилия Имя Отчество" />
-            <SelectField name="specialization" label="Специализация" options={SPECIALIZATIONS} />
-            <SelectField name="timezone" label="Местоположение и часовой пояс" options={TIMEZONES} />
+            <Field name="displayName" label="ФИО" placeholder="Фамилия Имя Отчество" required value={vals.displayName ?? ""} onChange={set("displayName")} />
+            <SelectField name="specialization" label="Специализация" options={SPECIALIZATIONS} required value={vals.specialization ?? ""} onChange={set("specialization")} />
+            <SelectField name="timezone" label="Местоположение и часовой пояс" options={TIMEZONES} required value={vals.timezone ?? ""} onChange={set("timezone")} />
           </>
         )}
         <ErrorNote error={error} />
-        <div style={{ display: "flex", gap: 12, marginTop: 14 }}>
-          {/* account already exists (created at step 2) — skipping setup goes to the dashboard */}
-          <BackArrow onClick={() => router.push("/dashboard")} label="Пропустить настройку" />
-          <PrimaryButton>Продолжить</PrimaryButton>
+        <div style={{ marginTop: 14 }}>
+          <PrimaryButton disabled={!canSubmit}>Продолжить</PrimaryButton>
         </div>
       </form>
     </div>
@@ -573,20 +628,62 @@ function BackArrow({ onClick, label }: { onClick: () => void; label: string }) {
   );
 }
 
-function Field({ name, label, placeholder }: { name: string; label: string; placeholder?: string }) {
+function Field({
+  name,
+  label,
+  placeholder,
+  required,
+  value,
+  onChange,
+}: {
+  name: string;
+  label: string;
+  placeholder?: string;
+  required?: boolean;
+  value?: string;
+  onChange?: (v: string) => void;
+}) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
       <Label>{label}</Label>
-      <input name={name} placeholder={placeholder} style={fieldStyle} />
+      <input
+        name={name}
+        placeholder={placeholder}
+        required={required}
+        value={value}
+        onChange={onChange ? (e) => onChange(e.target.value) : undefined}
+        style={fieldStyle}
+      />
     </div>
   );
 }
 
-function SelectField({ name, label, options }: { name: string; label: string; options: readonly string[] }) {
+function SelectField({
+  name,
+  label,
+  options,
+  required,
+  value,
+  onChange,
+}: {
+  name: string;
+  label: string;
+  options: readonly string[];
+  required?: boolean;
+  value?: string;
+  onChange?: (v: string) => void;
+}) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
       <Label>{label}</Label>
-      <select name={name} defaultValue="" style={{ ...fieldStyle, appearance: "none" }} aria-label={label}>
+      <select
+        name={name}
+        required={required}
+        value={value}
+        onChange={onChange ? (e) => onChange(e.target.value) : undefined}
+        style={{ ...fieldStyle, appearance: "none" }}
+        aria-label={label}
+      >
         <option value="" disabled>
           Выберите из списка
         </option>

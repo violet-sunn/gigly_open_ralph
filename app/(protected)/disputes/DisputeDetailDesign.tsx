@@ -7,10 +7,10 @@
 // (no backend action yet — known gap). The shell header supplies the «СПОР» title.
 
 import { useActionState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { resolveDispute } from "@/app/actions/dispute";
 import type { DisputeDetailVM } from "@/app/components/blocks/view-models";
-import { avatarColor, STATUS_RGB, STATUS_LABEL_RU } from "@/app/_design/util";
+import { avatarColor, STATUS_RGB, disputeLabel } from "@/app/_design/util";
 import "@/app/_design/tokens.css";
 
 const ROLE: Record<string, { label: string; color: string }> = {
@@ -36,6 +36,13 @@ function ResolveBtn({ disputeId, verdict, resolution, label, bg, ring, color }: 
 
 export function DisputeDetailDesign({ dispute, isAdmin }: { dispute: DisputeDetailVM; isAdmin: boolean }) {
   const router = useRouter();
+  const params = useSearchParams();
+  // Back target: honour the `from` entry point (the admin disputes list / console / participant list), validated as an
+  // internal path; otherwise fall back per role. The label follows the destination.
+  const fromParam = params.get("from");
+  const from = fromParam && fromParam.startsWith("/") && !fromParam.startsWith("//") ? fromParam : null;
+  const backHref = from || (isAdmin ? "/admin" : "/disputes");
+  const backLabel = backHref === "/admin" ? "Назад к модерации" : "Назад к спорам";
   const statusColor = `rgb(${STATUS_RGB[dispute.status] ?? "138,143,153"})`;
   const isResolved = dispute.status !== "open";
   const canResolve = isAdmin && dispute.status === "open";
@@ -43,10 +50,10 @@ export function DisputeDetailDesign({ dispute, isAdmin }: { dispute: DisputeDeta
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 860 }}>
       <div
-        onClick={() => router.push(isAdmin ? "/admin" : "/disputes")}
+        onClick={() => router.push(backHref)}
         style={{ display: "inline-flex", alignSelf: "flex-start", alignItems: "center", gap: 8, color: "var(--text-3)", fontFamily: "'Handjet',monospace", fontSize: 14, cursor: "pointer", padding: "4px 0" }}
       >
-        ← {isAdmin ? "Назад к модерации" : "Назад к спорам"}
+        ← {backLabel}
       </div>
 
       {/* header card */}
@@ -54,18 +61,24 @@ export function DisputeDetailDesign({ dispute, isAdmin }: { dispute: DisputeDeta
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             <h2 style={{ margin: 0, fontFamily: "'Handjet',monospace", fontWeight: 600, fontSize: 22, color: "var(--text-1)" }}>{dispute.gig}</h2>
-            <span style={{ fontFamily: "'Handjet',monospace", fontSize: 13, color: "var(--text-4)" }}>Причина: {dispute.reason} · открыл: {dispute.opener}</span>
+            <span style={{ fontFamily: "'Handjet',monospace", fontSize: 13, color: "var(--text-4)" }}>Причина: {dispute.reason} · открыл: {(dispute.openerRole && ROLE[dispute.openerRole]?.label) || dispute.opener}</span>
           </div>
           <span style={{ display: "inline-flex", alignItems: "center", gap: 6, flex: "none", fontFamily: "'Handjet',monospace", fontSize: 13, color: statusColor }}>
             <span style={{ width: 8, height: 8, borderRadius: "50%", background: statusColor }} />
-            {STATUS_LABEL_RU[dispute.status] ?? dispute.status}
+            {disputeLabel(dispute.status)}
           </span>
         </div>
-        <div style={{ display: "flex", gap: 24 }}>
+        <div style={{ display: "flex", gap: 48 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
             <span style={{ fontFamily: "'Handjet',monospace", fontSize: 12, color: "var(--text-4)" }}>Сумма по гигу</span>
             <span style={{ fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 16, color: "var(--text-1)" }}>{dispute.amount}</span>
           </div>
+          {dispute.counterparty && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <span style={{ fontFamily: "'Handjet',monospace", fontSize: 12, color: "var(--text-4)" }}>Контрагент</span>
+              <span style={{ fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 16, color: "var(--text-1)" }}>{dispute.counterparty}</span>
+            </div>
+          )}
         </div>
         {isResolved && dispute.resolution && (
           <div style={{ borderRadius: 8, background: "rgba(16,185,129,0.12)", boxShadow: "inset 0 0 0 1px rgba(16,185,129,0.4)", padding: "12px 14px", display: "flex", alignItems: "center", gap: 10 }}>

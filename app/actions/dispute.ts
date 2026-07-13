@@ -38,7 +38,7 @@ export async function openDispute(
   const evidence = sanitizeInput((formData.get('evidence') as string) || '').trim() // CSV of file names (optional)
 
   if (!rawReason && !description) {
-    return { error: 'A reason is required to open a dispute.' }
+    return { error: 'Укажите причину открытия спора.' }
   }
   // Normalize to the DATA-MODEL enum; a free-text legacy reason becomes «Другое» + the opening timeline entry.
   const reason = normalizeReason(rawReason)
@@ -46,26 +46,26 @@ export async function openDispute(
 
   const gig = await prisma.gig.findUnique({ where: { id: gigId } })
   if (!gig) {
-    return { error: 'This gig no longer exists or has been removed.' }
+    return { error: 'Этот гиг больше не существует или был удалён.' }
   }
   if (gig.isExample) {
-    return { error: 'Cannot open a dispute on an example gig.' }
+    return { error: 'Нельзя открыть спор по демонстрационному гигу.' }
   }
   if (!gig.assignedSpecialistId) {
-    return { error: 'A dispute can only be opened once a specialist is assigned.' }
+    return { error: 'Спор можно открыть только после назначения специалиста.' }
   }
 
   const isParticipant =
     gig.clientId === session.userId || gig.assignedSpecialistId === session.userId
   if (!isParticipant) {
-    return { error: 'Only the client or the assigned specialist can open a dispute.' }
+    return { error: 'Открыть спор может только заказчик или назначенный специалист.' }
   }
 
   const existing = await prisma.dispute.findUnique({
     where: { gigId_openerId: { gigId, openerId: session.userId } },
   })
   if (existing) {
-    return { error: 'You already have a dispute on this gig.' }
+    return { error: 'У вас уже есть спор по этому гигу.' }
   }
 
   // Capture role + amount at open (point-in-time, per DATA-MODEL).
@@ -110,7 +110,7 @@ export async function resolveDispute(
   }
 
   if (session.role !== 'ADMIN') {
-    return { error: 'Only admins can resolve disputes.' }
+    return { error: 'Разрешать споры могут только администраторы.' }
   }
 
   const disputeId = formData.get('disputeId') as string
@@ -127,7 +127,7 @@ export async function resolveDispute(
   const resolution = verdict ? (note ? `${verdict} — ${note}` : verdict) : note
 
   if (!resolution) {
-    return { error: 'A resolution note is required.' }
+    return { error: 'Укажите решение по спору.' }
   }
 
   const dispute = await prisma.dispute.findUnique({
@@ -135,10 +135,10 @@ export async function resolveDispute(
     include: { gig: true },
   })
   if (!dispute) {
-    return { error: 'This dispute no longer exists or has been removed.' }
+    return { error: 'Этот спор больше не существует или был удалён.' }
   }
   if (dispute.status !== 'OPEN') {
-    return { error: 'This dispute has already been resolved.' }
+    return { error: 'Этот спор уже разрешён.' }
   }
 
   try {
@@ -165,7 +165,7 @@ export async function resolveDispute(
       })
     })
   } catch (error) {
-    return { error: 'Failed to resolve the dispute. Please try again.' }
+    return { error: 'Не удалось разрешить спор. Попробуйте ещё раз.' }
   }
 
   // Notify the opener (fire-and-forget).

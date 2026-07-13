@@ -17,7 +17,7 @@ export async function setFavoriteCategories(
   if (!session) redirect('/login')
 
   if (session.role !== 'SPECIALIST') {
-    return { error: 'Only specialists can set favorite categories.' }
+    return { error: 'Избранные категории могут выбирать только специалисты.' }
   }
 
   const slugs = (formData.getAll('categories') as string[]).filter(isCategorySlug)

@@ -75,15 +75,15 @@ test.describe('e2e-create-gig — guided brief', () => {
     await page.getByText('Программирование', { exact: true }).click()
     await expect(page.locator('input[name="category"]')).toHaveValue('programming')
 
-    // Criteria editor: input (by placeholder) + «Добавить» → a «Готово, когда …» row + the hidden mirror.
+    // Criteria editor: input (by placeholder) + «Добавить» → a criterion row (raw text) + the hidden mirror.
     await page.getByPlaceholder(/например/).fill(LONG_CRITERION)
     await page.getByRole('button', { name: 'Добавить' }).click()
-    await expect(page.getByText(/Готово, когда .*Лендинг проходит lighthouse/)).toBeVisible()
+    await expect(page.getByText(/Лендинг проходит lighthouse/)).toBeVisible()
     await expect(page.locator('input[name="acceptanceCriteria"]')).toHaveValue(/Лендинг проходит lighthouse/)
 
-    // A suggestion chip appends a second criterion.
-    await page.getByText(/Есть тесты/).click()
-    await expect(page.getByText(/Готово, когда .*Есть тесты/)).toBeVisible()
+    // A suggestion chip appends a second criterion (the prototype's real suggestion phrases).
+    await page.getByText(/все автотесты проходят/).click()
+    await expect(page.getByText('все автотесты проходят, сборка зелёная')).toBeVisible()
 
     // Tag input: type + Enter → a chip + the hidden comma-joined mirror.
     await page.getByPlaceholder(/Введите тег/).fill('Node.js')
@@ -105,13 +105,13 @@ test.describe('e2e-create-gig — guided brief', () => {
     // One criterion, long enough to pass the server's ≥50-char acceptanceCriteria floor.
     await page.getByPlaceholder(/например/).fill(LONG_CRITERION)
     await page.getByRole('button', { name: 'Добавить' }).click()
-    await expect(page.getByText(/Готово, когда .*Лендинг проходит lighthouse/)).toBeVisible()
+    await expect(page.getByText(/Лендинг проходит lighthouse/)).toBeVisible()
 
     await page.locator('input[name="budget"]').fill('100000')
     await page.locator('input[name="deadlineDays"]').fill('14')
 
-    // All seven readiness rows satisfied → the «Заполнено» score reads 7 / 7.
-    await expect(page.getByText('7 / 7')).toBeVisible()
+    // All seven readiness rows satisfied → the «Заполнено» score reads 7 из 7.
+    await expect(page.getByText('7 из 7')).toBeVisible()
 
     await page.getByRole('button', { name: 'Опубликовать гиг' }).click()
 
