@@ -1,0 +1,41 @@
+# Prod image = ONLY what the app needs to build and run (app/, lib/, prisma/, public/, config files).
+# Everything below is excluded from the Docker build context, so it never reaches the running app.
+
+# deps / build output / vcs
+node_modules
+.next
+out
+build
+.git
+.gitignore
+
+# secrets & local databases — the prod DB is created fresh on the /data volume
+.env
+.env.*
+*.db
+*.db-journal
+*.db-*
+prisma/dev.db*
+
+# specs, docs, design sources, reference material — working artifacts, not runtime
+openspec
+docs
+gigly_full_design
+design-reference
+screens
+ralphy-spec
+.cursor
+.claude
+
+# tests & tooling (scripts/ stays — tailwind.config.ts imports scripts/generated-tokens.js at build)
+__tests__
+test-results
+playwright-report
+coverage
+scratchpad
+
+# root-level markdown / status reports / logs (README, DEPLOY, SECURITY, etc. — not needed at runtime)
+/*.md
+*.log
+npm-debug.log*
+test-output.txt

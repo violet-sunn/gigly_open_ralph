@@ -63,3 +63,16 @@ tsconfig.tsbuildinfo
 
 # fidelity-harness run artifacts (generated; Phase-2 baselines live elsewhere)
 docs/design-system/fidelity/out/
+
+# local scratch / verification artifacts (throwaway)
+test-output.txt
+*.log
+_*.mjs
+_*.png
+devserver*.log
+
+# local-only status reports (kept out of the repo)
+VALIDATION_REPORT.md
+PROJECT_STATUS.md
+COMPLETED_CHANGES.md
+MVP_BUSINESS_IMPROVEMENTS.md

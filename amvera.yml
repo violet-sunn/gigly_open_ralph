@@ -1,0 +1,8 @@
+# Amvera Cloud deploy config. Build from the Dockerfile; the app listens on 3000 and
+# keeps its SQLite database on the persistent volume mounted at /data.
+build:
+  dockerfile: Dockerfile
+
+run:
+  containerPort: 3000
+  persistenceMount: /data
