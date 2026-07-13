@@ -12,8 +12,25 @@
    on kit screens is untouched (the design vars are additive).
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Handjet:wght@100..900&family=Inter:wght@100..900&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@100..800&family=Manrope:wght@200..800&display=swap');
 @import './fig-tokens.css';
+
+/* Self-hosted OFL fonts (github.com/google/fonts) — no Google Fonts request at build OR runtime, so the
+   РФ build cluster and РФ end-users never depend on Google (unreliable/blocked there). Files: public/fonts/.
+   These register the literal 'Handjet'/'Manrope' family names used across the inline styles. */
+@font-face {
+  font-family: 'Handjet';
+  src: url('/fonts/Handjet.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Manrope';
+  src: url('/fonts/Manrope.ttf') format('truetype');
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
+}
 
 :root {
   --surface-app:        #01030e;
