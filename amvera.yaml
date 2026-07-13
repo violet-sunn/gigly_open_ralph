@@ -1,5 +1,10 @@
 # Amvera Cloud deploy config. Build from the Dockerfile; the app listens on 3000 and
 # keeps its SQLite database on the persistent volume mounted at /data.
+meta:
+  environment: docker
+  toolchain:
+    name: docker
+
 build:
   dockerfile: Dockerfile
 

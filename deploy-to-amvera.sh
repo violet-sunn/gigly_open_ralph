@@ -32,7 +32,7 @@ INCLUDE=(
   package.json package-lock.json
   next.config.ts tsconfig.json tailwind.config.ts postcss.config.mjs
   .eslintrc.json prisma.config.ts middleware.ts
-  Dockerfile docker-entrypoint.sh amvera.yml .dockerignore
+  Dockerfile docker-entrypoint.sh amvera.yaml .dockerignore
 )
 
 STAGE="$(mktemp -d)"
