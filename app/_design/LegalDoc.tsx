@@ -1,7 +1,10 @@
+"use client";
 // Shared shell for the public legal / help pages linked from the auth footer (/privacy, /terms, /help).
 // Presentational only — token-pure via app/_design/tokens.css, matching the AuthDesign surface (Handjet wordmark,
 // Manrope body). Scoped <style> lets the page bodies write plain semantic h2/p/ul without global CSS bleed.
+// Client component so the "back" control can return to the actual referrer (landing OR /login), not a hardcoded route.
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import "./tokens.css";
 
 const MONO = "'Handjet',monospace";
@@ -16,6 +19,7 @@ export function LegalDoc({
   updated: string;
   children: React.ReactNode;
 }) {
+  const router = useRouter();
   return (
     <div style={{ minHeight: "100vh", width: "100%", background: "var(--surface-app)", color: "var(--text-1)" }}>
       <div style={{ maxWidth: 760, margin: "0 auto", padding: "56px 24px 96px", boxSizing: "border-box" }}>
@@ -34,9 +38,13 @@ export function LegalDoc({
         </article>
 
         <div style={{ marginTop: 48 }}>
-          <Link href="/login" style={{ fontFamily: MONO, fontSize: 15, color: "var(--om-accent)", textDecoration: "none" }}>
-            ← Вернуться ко входу
-          </Link>
+          <button
+            type="button"
+            onClick={() => router.back()}
+            style={{ fontFamily: MONO, fontSize: 15, color: "var(--om-accent)", textDecoration: "none", background: "none", border: "none", padding: 0, cursor: "pointer" }}
+          >
+            ← Назад
+          </button>
         </div>
       </div>
 
