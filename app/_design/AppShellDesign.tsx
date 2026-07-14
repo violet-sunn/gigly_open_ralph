@@ -126,16 +126,6 @@ export function AppShellDesign({
     router.push(`${pathname}?${p.toString()}`);
   };
 
-  // The prototype's sidebar always shows all three role segments (Специалист / Компания / Админ) — a demo
-  // switcher. In the real app a user has one role, so this is a non-interactive indicator: all three are
-  // shown (matching the prototype) and the active one is highlighted.
-  const activeRole = admin ? "Админ" : role === "SPECIALIST" ? "Специалист" : "Компания";
-  const roleSegs: [string, boolean][] = [
-    ["Специалист", activeRole === "Специалист"],
-    ["Компания", activeRole === "Компания"],
-    ["Админ", activeRole === "Админ"],
-  ];
-
   return (
     <div
       style={{
@@ -238,27 +228,6 @@ export function AppShellDesign({
               <GearIcon />
             </button>
           </div>
-        </div>
-
-        {/* role indicator (the prototype's role switcher — a single-role app shows the active side, non-interactive) */}
-        <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: 10, background: "var(--surface-deep)", marginTop: -12 }}>
-          {roleSegs.map(([label, active]) => (
-            <div
-              key={label}
-              style={{
-                flex: 1,
-                textAlign: "center",
-                padding: "8px 0",
-                borderRadius: 7,
-                fontSize: 12,
-                whiteSpace: "nowrap",
-                background: active ? "rgba(255,255,255,0.06)" : "transparent",
-                color: active ? "var(--text-1)" : "var(--text-4)",
-              }}
-            >
-              {label}
-            </div>
-          ))}
         </div>
 
         {/* nav */}

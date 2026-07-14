@@ -60,7 +60,8 @@ Each is a separate `/ralphy-plan` → `/ralphy-implement` cycle. Ordered by prio
 /ralphy-plan gig-editing-with-notification "Add the ability for a client to EDIT an already-published gig, and notify every applied specialist when terms change. Reported: Заказчик #3 — a client made a typo in a gig field («Результаты») and had no way to fix it. Requirements: (1) Add an edit action + form for a published gig covering the editable fields (title, description, goal/цель, deliverables/результаты, constraints/ограничения, acceptance criteria, budget, deadline, category, stages) with the SAME validation gates as create-gig (criteria ≥ 50, budget > 0, etc.); (2) entry point: an obvious «Редактировать» control on the client's own gig detail (reuse the existing edit-affordance pattern, but make it clearly a button — see the profile-edit friction in Change 6); (3) on save, if terms materially changed (budget, deadline, scope fields), create a Notification for EVERY specialist with a non-withdrawn application to that gig, stating the gig's terms were updated; (4) guard: only the owning client can edit; decide with the user whether editing is allowed after a specialist is assigned / gig left OPEN status (default: allow while OPEN, restrict once IN_PROGRESS). Files: app/actions/gig.ts (new updateGig), a gig-edit form (reuse CreateGigDesign structure), Notification fan-out, GigDetail owner controls. Test plan: E2E — client edits an OPEN gig with prior applicants → save succeeds, validation enforced → each applicant receives a notification about the update; non-owners cannot edit; verify the corrected field renders. Verify live."
 ```
 
-### 4. Remove the Специалист/Компания/Админ role-switcher from the shell
+### 4. Remove the Специалист/Компания/Админ role-switcher from the shell — **IMPLEMENTED ✓ (2026-07-14)**
+> Change proposal written: `openspec/changes/remove-role-switcher-panel/`. The switcher was a non-interactive demo panel transported verbatim from the prototype (highlight-only, no click handler), fully self-contained in `app/_design/AppShellDesign.tsx` (the `roleSegs`/`activeRole` derivation + the 3-segment render block). **Removed both** (31-line deletion, one file); nav/titles are driven independently from the `role`/`admin` props (`buildSidebarNav`/`buildAdminNav`) and are untouched; the profile card's role label (`profile.sub`), avatar, name, bell, and gear stay intact. Verified live across all three roles (SPECIALIST→/dashboard, CLIENT→/dashboard, ADMIN→/admin): no switcher trio, card + nav render, zero console errors; app-source typecheck clean; grep confirms `roleSegs`/`activeRole` gone. No schema/server/dependency change.
 ```bash
 /ralphy-plan remove-role-switcher-panel "Remove the «Специалист / Компания / Админ» tab switcher that appears in the sidebar profile card (Спец #3). It is a demo/dev role-preview control that leaked into the production UI; a real user's role is fixed by their account and they must not see or use a role switcher. Requirements: (1) Locate the switcher in app/_design/AppShellDesign.tsx (or the sidebar profile-card component) and remove it and any dead role-preview state it drives; (2) ensure nothing else depended on that state (nav, titles); (3) leave the profile card (avatar, name, role label, bell, gear) intact. Test plan: the sidebar renders for each role with NO role-switcher; navigation and page titles still work; no console errors; grep confirms the switcher component/state is gone. Verify live in all three roles."
 ```
@@ -89,10 +90,10 @@ Each is a separate `/ralphy-plan` → `/ralphy-implement` cycle. Ordered by prio
 - [x] fix-application-lifecycle — IMPLEMENTED & verified (integration + live E2E) 2026-07-14
 - [x] fix-terms-negotiation — IMPLEMENTED & verified (integration + live E2E) 2026-07-14
 - [x] gig-editing-with-notification — IMPLEMENTED & verified (integration 18/18 + live E2E 3/3 + build green) 2026-07-14
-- [ ] remove-role-switcher-panel
+- [x] remove-role-switcher-panel — IMPLEMENTED & verified (live 3-role E2E: no switcher, card+nav intact, no console errors; typecheck clean) 2026-07-14
 - [ ] shell-nav-support-fixes
 - [ ] profile-experience-fixes
 - [ ] auth-surface-polish
 - [ ] content-cosmetic-fixes
 
-**Progress:** 3/8 changes completed
+**Progress:** 4/8 changes completed

@@ -7658,15 +7658,47 @@ The sidebar MUST match the prototype's sidebar as captured in `design-reference/
 #### Scenario: Sidebar structure and content
 - **GIVEN** the rendered sidebar
 - **WHEN** compared to the captured reference (e.g. `design-reference/screens/dashboard.specialist.png`)
-- **THEN** it MUST contain, in order: the GIGLY wordmark, the profile card (avatar + name + role sub-label + notifications bell with unread badge + settings gear), the role framing, the nav list, the support/help card, and the logout control
+- **THEN** it MUST contain, in order: the GIGLY wordmark, the profile card (avatar + name + role sub-label + notifications bell with unread badge + settings gear), the nav list, the support/help card, and the logout control
 - **AND** the support/help card MUST use the prototype's verbatim copy — the «Поддержка» heading, the welcome body text, and the «Что случилось?» control (not a paraphrase)
 - **AND** the active nav item MUST show the accent active-bar and accent label/icon treatment
 
-#### Scenario: Role framing reflects the user's actual role
+#### Scenario: No role switcher is shown
 - **GIVEN** a specialist, a company, or an admin session
 - **WHEN** the sidebar renders
-- **THEN** the role framing MUST show all three segments (Специалист / Компания / Админ) matching the prototype and highlight the user's actual role
-- **AND** it MUST be non-interactive (no live role-switching unless the product supports it)
+- **THEN** it MUST NOT show the prototype's three-segment role framing (Специалист / Компания / Админ) — that demo affordance is removed (see «The app shell MUST NOT present a role switcher…» below)
+- **AND** the user's role MUST be communicated only by the profile card's role sub-label and the role-appropriate nav
+
+### Requirement: The app shell MUST NOT present a role switcher or role-selector affordance
+
+> Merged from change `remove-role-switcher-panel` (archived 2026-07-14). Supersedes the prototype's «all three segments» role-framing mandate above: the panel was a non-interactive demo artifact transported verbatim from the prototype and is removed. A user's role is fixed by their account; the shell communicates it only through the profile card's role sub-label (`profile.sub`) and the role-appropriate navigation. Deletion changes no behavior (the panel had no click handler).
+
+The authenticated app shell (`app/_design/AppShellDesign.tsx`) MUST NOT render any control that lists the platform roles («Специалист» / «Компания» / «Админ») as selectable or role-preview segments.
+
+#### Scenario: Specialist sees no role switcher
+- **GIVEN** an authenticated user whose account role is `SPECIALIST`
+- **WHEN** the app shell sidebar renders on any protected route
+- **THEN** there MUST be no panel or control listing «Специалист / Компания / Админ» as segments
+- **AND** the profile card MUST still show the avatar, name, role label, notification bell, and settings gear
+- **AND** the specialist's navigation items and the derived page title MUST render and navigate correctly
+
+#### Scenario: Client sees no role switcher
+- **GIVEN** an authenticated user whose account role is `CLIENT`
+- **WHEN** the app shell sidebar renders on any protected route
+- **THEN** there MUST be no «Специалист / Компания / Админ» segment panel
+- **AND** the profile card (avatar, name, role label, bell, gear) MUST remain intact
+- **AND** the client's navigation items and page titles MUST be unaffected
+
+#### Scenario: Admin sees no role switcher
+- **GIVEN** an authenticated admin viewing the admin shell (`admin = true`)
+- **WHEN** the app shell sidebar renders
+- **THEN** there MUST be no «Специалист / Компания / Админ» segment panel
+- **AND** the admin navigation (`buildAdminNav`) and admin page titles MUST render correctly
+
+#### Scenario: No dead role-preview state remains
+- **GIVEN** the app shell source after this change
+- **WHEN** the repository is grepped under `app/`
+- **THEN** there MUST be no `roleSegs`, no role-preview `activeRole` derivation feeding a switcher, and no three-role segment map
+- **AND** the shell MUST compile and render for all three roles with no new console errors or warnings
 
 ### Requirement: Header Reconciled To Captured Reference
 The header MUST match the prototype's header, with the page title derived per-route.
