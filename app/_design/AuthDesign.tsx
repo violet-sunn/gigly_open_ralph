@@ -321,6 +321,32 @@ function ErrorNote({ error }: { error?: string }) {
   );
 }
 
+// Login-scoped error: a self-contained, bounded alert on its own row (Гигли баги #3). Unlike the bare-text ErrorNote,
+// its tinted fill + border occlude the pixel-wave beneath (the form sits at centerColumn zIndex 4 > wave zIndex 1), so
+// the message never bleeds over the «Войти» button or the decoration. Tokens only — Manrope + the red accent.
+function LoginErrorAlert({ error }: { error?: string }) {
+  if (!error) return null;
+  return (
+    <div
+      role="alert"
+      style={{
+        boxSizing: "border-box",
+        width: "100%",
+        padding: "12px 14px",
+        borderRadius: 8,
+        background: "rgba(255, 56, 60, 0.12)",
+        border: "1px solid var(--accents-red, #ff383c)",
+        color: "var(--accents-red, #ff383c)",
+        fontFamily: GROTESK,
+        fontSize: 13,
+        lineHeight: 1.4,
+      }}
+    >
+      {error}
+    </div>
+  );
+}
+
 function PixelWave({ hidden }: { hidden?: boolean }) {
   if (hidden) return null;
   return (
@@ -422,6 +448,11 @@ function LoginView({
   error?: string;
   onCreateAccount: () => void;
 }) {
+  // Controlled Email + Пароль so a failed-submit re-render preserves what the user typed (Гигли баги #3). React 19
+  // auto-resets uncontrolled <form> fields once the Server Action resolves, wiping both fields; controlled state is
+  // driven by React and survives that reset. The password stays entirely client-side — loginUser never echoes it back.
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   return (
     <div style={centerColumn}>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20 }}>
@@ -431,11 +462,19 @@ function LoginView({
       <form action={action} style={{ display: "flex", flexDirection: "column", gap: 16, width: 360, marginTop: 36 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <Label>Email</Label>
-          <input name="email" type="email" required placeholder="example@gmail.com" style={fieldStyle} />
+          <input
+            name="email"
+            type="email"
+            required
+            placeholder="example@gmail.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            style={fieldStyle}
+          />
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <Label>Пароль</Label>
-          <PasswordField name="password" required placeholder="Ваш пароль" />
+          <PasswordField name="password" required placeholder="Ваш пароль" value={password} onChange={setPassword} />
           <a
             href="#"
             style={{
@@ -449,7 +488,7 @@ function LoginView({
             Забыли пароль?
           </a>
         </div>
-        <ErrorNote error={error} />
+        <LoginErrorAlert error={error} />
         <div style={{ marginTop: 6 }}>
           <PrimaryButton>Войти</PrimaryButton>
         </div>
