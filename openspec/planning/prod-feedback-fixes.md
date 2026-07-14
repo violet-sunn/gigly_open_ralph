@@ -94,7 +94,7 @@ Each is a separate `/ralphy-plan` → `/ralphy-implement` cycle. Ordered by prio
 - [x] gig-editing-with-notification — IMPLEMENTED & verified (integration 18/18 + live E2E 3/3 + build green) 2026-07-14
 - [x] remove-role-switcher-panel — IMPLEMENTED & verified (live 3-role E2E: no switcher, card+nav intact, no console errors; typecheck clean) 2026-07-14
 - [x] shell-nav-support-fixes — IMPLEMENTED & verified (live 3-role E2E: collapse toggles+persists, wordmark→home, dropdown on-screen, support→/help; typecheck clean; 0 console errors normal use) 2026-07-14
-- [x] profile-experience-fixes — IMPLEMENTED & verified (integration 26/26 + settings 9/9 + live Playwright 8/8 both roles; typecheck clean; schema +User.lastSeenAt) 2026-07-14
+- [x] profile-experience-fixes — IMPLEMENTED & verified (integration 27/27 + settings 9/9 + live Playwright 8/8 both roles; typecheck clean; schema +User.lastSeenAt) 2026-07-14; ARCHIVED → `openspec/archive/profile-experience-fixes/`, canonical `profile/spec.md` reconciled (4 requirements merged)
 - [ ] auth-surface-polish
 - [ ] content-cosmetic-fixes
 
