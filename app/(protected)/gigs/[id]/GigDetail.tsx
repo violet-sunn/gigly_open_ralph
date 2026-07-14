@@ -114,6 +114,8 @@ export function GigDetail({ data }: { data: GigDetailData }) {
       <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 6 }}>
         <div
           onClick={() => router.push("/gigs")}
+          onMouseEnter={(e) => { e.currentTarget.style.color = "var(--text-1)"; e.currentTarget.style.background = "var(--hairline-05)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-3)"; e.currentTarget.style.background = "transparent"; }}
           style={{
             display: "inline-flex",
             alignSelf: "flex-start",
@@ -121,9 +123,13 @@ export function GigDetail({ data }: { data: GigDetailData }) {
             gap: 8,
             color: "var(--text-3)",
             fontFamily: "'Handjet',monospace",
-            fontSize: 14,
+            fontSize: 16,
             cursor: "pointer",
-            padding: "4px 0",
+            padding: "8px 12px",
+            marginLeft: -12,
+            minHeight: 36,
+            borderRadius: 8,
+            transition: "color 0.12s, background 0.12s",
           }}
         >
           ← Назад к гигам

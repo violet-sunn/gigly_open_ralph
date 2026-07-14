@@ -8,6 +8,7 @@ import { timezoneLabel } from '@/lib/profiles'
 import { formatUserAgent } from '@/lib/user-agent'
 import { getRecentMessages } from '@/app/actions/message'
 import { getNotificationDisplayText, getNotificationIcon } from '@/lib/notification-utils'
+import { days, stages } from '@/lib/utils/plural'
 import type {
   GigCardVM,
   GigHeaderVM,
@@ -557,7 +558,7 @@ export async function getGigApplications(
       estimate: a.estimatedEffort || undefined,
       // Counter-terms (fix-terms-negotiation): surface the applicant's proposal so the client sees it before accepting.
       proposedBudget: a.proposedBudget != null ? money(a.proposedBudget) : undefined,
-      proposedDeadline: a.proposedDeadlineDays != null ? `${a.proposedDeadlineDays} дней` : undefined,
+      proposedDeadline: a.proposedDeadlineDays != null ? days(a.proposedDeadlineDays) : undefined,
       status: APPLICATION_STATUS[a.status] ?? { label: a.status, tone: 'open' as Status },
       pending: a.status === 'PENDING',
     })),
@@ -573,7 +574,7 @@ export async function getGigApplications(
     count: gig.applications.length,
     assignedName,
     gigBudget: money(gig.budget),
-    gigDeadline: `${gig.deadlineDays} дней`,
+    gigDeadline: days(gig.deadlineDays),
     applicants,
   }
 }
@@ -700,11 +701,11 @@ export async function getGigDetail(
   const terms: TermsTabsVM = {
     proposed: [
       { label: 'Бюджет', value: money(proposedBudget) },
-      { label: 'Срок', value: `${proposedDeadline} дней` },
+      { label: 'Срок', value: days(proposedDeadline) },
     ],
     client: [
       { label: 'Бюджет', value: money(gig.budget) },
-      { label: 'Срок', value: `${gig.deadlineDays} дней` },
+      { label: 'Срок', value: days(gig.deadlineDays) },
     ],
   }
 
@@ -714,9 +715,9 @@ export async function getGigDetail(
   const conditions: ConditionsPanelVM = {
     company: client.name,
     status: { label: STATUS_LABEL_RU[displayStatus], tone: displayStatus },
-    client: { deadline: `${gig.deadlineDays} дней`, budget: money(gig.budget) },
-    proposed: { deadline: `${proposedDeadline} дней`, budget: money(proposedBudget) },
-    deadlineNote: `${gig.stageCount} этап`,
+    client: { deadline: days(gig.deadlineDays), budget: money(gig.budget) },
+    proposed: { deadline: days(proposedDeadline), budget: money(proposedBudget) },
+    deadlineNote: stages(gig.stageCount),
     budgetNote: 'фикс. цена',
     fee: isOwner ? { service: money(gig.serviceFee), total: money(gig.totalAmount) } : undefined,
   }

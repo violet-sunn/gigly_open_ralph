@@ -4,6 +4,7 @@ import { Stack } from "@/app/components/layout/Stack";
 import { cx } from "@/app/components/layout/scale";
 import { STATUS_LABEL, CATEGORY_LABEL } from "./util";
 import type { GigCardVM, Status } from "./view-models";
+import { days } from "@/lib/utils/plural";
 
 /** Status-coloured top accent (border-top width + per-status border colour). */
 const STATUS_ACCENT: Record<Status, string> = {
@@ -44,7 +45,7 @@ export function GigCard({ vm, onOpen }: GigCardProps) {
     </Stack>
   );
   const budget = <span className="font-mono text-mono text-strong">{vm.budget}</span>;
-  const deadline = <span className="text-caption font-caption text-muted">{vm.deadlineDays} дней</span>;
+  const deadline = <span className="text-caption font-caption text-muted">{days(vm.deadlineDays)}</span>;
   const rating = <Rating value={vm.rating.value} count={vm.rating.count} verified={vm.rating.verified} />;
   const cta = (
     <Button variant="primary" onClick={onOpen}>

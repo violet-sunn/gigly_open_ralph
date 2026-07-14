@@ -259,7 +259,8 @@ function CatsModal({ categories, onClose }: { categories: { slug: string; label:
             const rgb = CAT_RGB[c.slug] ?? "0,136,255";
             const on = sel.has(c.slug);
             return (
-              <div key={c.slug} onClick={() => toggle(c.slug)} style={{ padding: "8px 16px", borderRadius: 8, cursor: "pointer", fontSize: 14, color: on ? `rgb(${rgb})` : "var(--text-3)", background: on ? `rgba(${rgb},0.15)` : "transparent", boxShadow: on ? `rgba(${rgb},0.6) 0 0 0 1px inset` : "inset 0 0 0 1px var(--hairline-10)" }}>
+              <div key={c.slug} onClick={() => toggle(c.slug)} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, cursor: "pointer", fontSize: 14, fontWeight: on ? 600 : 400, color: on ? `rgb(${rgb})` : "var(--text-3)", background: on ? `rgba(${rgb},0.18)` : "transparent", boxShadow: on ? "none" : "inset 0 0 0 1px var(--hairline-10)" }}>
+                {on && <span aria-hidden style={{ fontSize: 12, lineHeight: 1 }}>✓</span>}
                 {c.label}
               </div>
             );

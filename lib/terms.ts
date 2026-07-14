@@ -1,9 +1,9 @@
 import { prisma } from '@/lib/prisma'
 import type { TermsTabsVM, TermRow } from '@/app/components/blocks/view-models'
+import { days } from '@/lib/utils/plural'
 
 // kopecks → "300 400 ₽" (matches the UI's `formatRoubles` + " ₽" and the TermsTabs fixture)
 const money = (kopecks: number): string => `${new Intl.NumberFormat('ru-RU').format(kopecks / 100)} ₽`
-const days = (n: number): string => `${n} дней`
 
 /**
  * Assemble the TermsTabs view-model for an application — the {proposed, client} term rows the block renders.

@@ -95,7 +95,7 @@ test.describe('Terms Negotiation — «Мои условия» on /gigs/[id]', (
     // Applied state; the terms tabs now diverge.
     await expect(page.getByText(/Заявка отправлена/)).toBeVisible()
     await page.getByText('Мои условия', { exact: true }).click()
-    await expect(page.getByText('21 дней')).toBeVisible() // proposed срок
+    await expect(page.getByText('21 день')).toBeVisible() // proposed срок
     await page.getByText(/^Условия/).click() // «Условия {компания}»
     await expect(page.getByText('14 дней')).toBeVisible() // gig срок — toggle visibly swaps
 
@@ -103,7 +103,7 @@ test.describe('Terms Negotiation — «Мои условия» on /gigs/[id]', (
     await setE2ESession(page, { id: ownerId, email: ownerEmail, role: 'CLIENT' })
     await page.goto(`/gigs/${gigId}/applications`)
     await expect(page.getByText('Предложил свои условия')).toBeVisible()
-    await expect(page.getByText('21 дней')).toBeVisible()
+    await expect(page.getByText('21 день')).toBeVisible()
     await expect(page.getByText(/150.?000/)).toBeVisible() // 150 000 ₽ (nbsp group separator)
 
     // ── Accept adopts the counter into the gig's effective terms ──
@@ -111,7 +111,7 @@ test.describe('Terms Negotiation — «Мои условия» on /gigs/[id]', (
     await page.getByRole('button', { name: 'Принять' }).click()
     await page.waitForURL(`**/gigs/${gigId}`)
     // Owner view: single terms panel showing the adopted terms.
-    await expect(page.getByText('21 дней')).toBeVisible()
+    await expect(page.getByText('21 день')).toBeVisible()
     await expect(page.getByText(/150.?000/)).toBeVisible()
     await expect(page.getByText('14 дней')).toHaveCount(0) // old срок no longer the gig's terms
   })
@@ -150,7 +150,7 @@ test.describe('Terms Negotiation — «Мои условия» on /gigs/[id]', (
     await expect(page.locator('input[name="proposedBudget"]')).toHaveValue('111000')
     await expect(page.locator('input[name="proposedDeadlineDays"]')).toHaveValue('11')
 
-    // Re-apply with DIFFERENT terms (22 дней) → «Мои условия» reflects the new counter, not the stale one.
+    // Re-apply with DIFFERENT terms (22 дня) → «Мои условия» reflects the new counter, not the stale one.
     await page.locator('textarea[name="approach"]').fill(longApproach)
     await page.locator('textarea[name="questions"]').fill(longQuestions)
     await page.locator('input[name="proposedBudget"]').fill('222000')
@@ -158,7 +158,7 @@ test.describe('Terms Negotiation — «Мои условия» on /gigs/[id]', (
     await page.getByRole('button', { name: 'Отправить заявку' }).click()
     await expect(page.getByText(/Заявка отправлена/)).toBeVisible()
     await page.getByText('Мои условия', { exact: true }).click()
-    await expect(page.getByText('22 дней')).toBeVisible()
+    await expect(page.getByText('22 дня')).toBeVisible()
     await expect(page.getByText('11 дней')).toHaveCount(0) // stale counter cleared
   })
 })

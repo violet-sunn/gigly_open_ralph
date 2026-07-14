@@ -97,7 +97,9 @@ export function CreateGigDesign({ categoryOptions }: { categoryOptions: { key: s
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       <div
         onClick={() => router.push("/my-gigs")}
-        style={{ display: "inline-flex", alignSelf: "flex-start", alignItems: "center", gap: 8, color: "var(--text-3)", fontFamily: "'Handjet',monospace", fontSize: 14, cursor: "pointer", padding: "4px 0" }}
+        onMouseEnter={(e) => { e.currentTarget.style.color = "var(--text-1)"; e.currentTarget.style.background = "var(--hairline-05)"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-3)"; e.currentTarget.style.background = "transparent"; }}
+        style={{ display: "inline-flex", alignSelf: "flex-start", alignItems: "center", gap: 8, color: "var(--text-3)", fontFamily: "'Handjet',monospace", fontSize: 16, cursor: "pointer", padding: "8px 12px", marginLeft: -12, minHeight: 36, borderRadius: 8, transition: "color 0.12s, background 0.12s" }}
       >
         ← Назад к гигам
       </div>
@@ -194,7 +196,7 @@ export function CreateGigDesign({ categoryOptions }: { categoryOptions: { key: s
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               <label style={label}>Критерии приёмки — «Готово, когда…»</label>
-              <div style={{ display: "flex", gap: 8 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 <input
                   value={critInput}
                   onChange={(e) => setCritInput(e.target.value)}
@@ -206,7 +208,7 @@ export function CreateGigDesign({ categoryOptions }: { categoryOptions: { key: s
                     }
                   }}
                   placeholder="…например: память не растёт при 500 подключениях за 6 часов"
-                  style={{ ...inputStyle, flex: 1, minWidth: 0, height: 44 }}
+                  style={{ ...inputStyle, width: "100%", boxSizing: "border-box", height: 44 }}
                 />
                 <button
                   type="button"
@@ -214,7 +216,7 @@ export function CreateGigDesign({ categoryOptions }: { categoryOptions: { key: s
                     addCrit(critInput);
                     setCritInput("");
                   }}
-                  style={{ flex: "none", height: 44, padding: "0 18px", border: "none", borderRadius: 8, background: "var(--om-accent, #0088ff)", color: "#fff", fontSize: 14, fontWeight: 500, cursor: "pointer" }}
+                  style={{ alignSelf: "flex-start", height: 40, padding: "0 20px", border: "none", borderRadius: 8, background: "var(--om-accent, #0088ff)", color: "#fff", fontSize: 14, fontWeight: 500, cursor: "pointer" }}
                 >
                   Добавить
                 </button>

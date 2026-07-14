@@ -5,6 +5,7 @@
 import Link from "next/link";
 import type { GigCardVM } from "@/app/components/blocks/view-models";
 import { avatarColor, PatchIcon, STATUS_RGB, STATUS_LABEL_RU, CAT_RGB, CAT_LABEL } from "./util";
+import { days } from "@/lib/utils/plural";
 import "./tokens.css";
 
 export function GigCard({ vm, full = false, href }: { vm: GigCardVM; full?: boolean; href?: string }) {
@@ -138,7 +139,7 @@ export function GigCard({ vm, full = false, href }: { vm: GigCardVM; full?: bool
             </div>
             <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
               <span style={{ fontSize: 11, letterSpacing: "0.2px", color: "var(--text-3)" }}>Срок выполнения</span>
-              <span style={{ fontWeight: 600, fontSize: 15, color: "var(--text-1)" }}>{vm.deadlineDays} дней</span>
+              <span style={{ fontWeight: 600, fontSize: 15, color: "var(--text-1)" }}>{days(vm.deadlineDays)}</span>
             </div>
             <span
               style={{
