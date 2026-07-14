@@ -76,3 +76,6 @@ VALIDATION_REPORT.md
 PROJECT_STATUS.md
 COMPLETED_CHANGES.md
 MVP_BUSINESS_IMPROVEMENTS.md
+
+# Claude Code local (personal) settings — not shared
+.claude/settings.local.json
