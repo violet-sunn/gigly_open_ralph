@@ -736,22 +736,17 @@ export function GigDetail({ data }: { data: GigDetailData }) {
           )}
 
           {showDisputeLink && (
-            <div
-              onClick={() => router.push(`/disputes/new?gig=${data.gigId}`)}
-              style={{
-                display: "inline-flex",
-                alignSelf: "flex-start",
-                alignItems: "center",
-                gap: 7,
-                fontFamily: "'Handjet',monospace",
-                fontSize: 13,
-                color: "var(--text-3)",
-                cursor: "pointer",
-                paddingTop: 2,
-              }}
-            >
-              <span style={{ color: "#f59e0b" }}>⚖</span> Возникли разногласия? Открыть спор
-            </div>
+            <button type="button" onClick={() => router.push(`/disputes/new?gig=${data.gigId}`)} style={disputeBtn}>
+              <span aria-hidden style={{ fontSize: 16, color: "#f59e0b", lineHeight: 1 }}>⚖</span>
+              <span style={{ display: "flex", flexDirection: "column", gap: 1, textAlign: "left" }}>
+                <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 11, color: "var(--text-3)", lineHeight: "14px" }}>
+                  Возникли разногласия?
+                </span>
+                <span style={{ fontFamily: "'Handjet',monospace", fontWeight: 600, fontSize: 15, color: "#f59e0b", lineHeight: "18px" }}>
+                  Открыть спор
+                </span>
+              </span>
+            </button>
           )}
         </div>
       </div>
@@ -772,6 +767,20 @@ function primaryBtn(bg: string): React.CSSProperties {
     cursor: "pointer",
   };
 }
+// Dispute CTA: a real, comfortably-sized button (≥44px) with an amber-tinted bounded surface —
+// secondary in weight to the primary chat/action buttons but unmistakably a control (Гигли баги #7).
+const disputeBtn: React.CSSProperties = {
+  minHeight: 44,
+  alignSelf: "flex-start",
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 10,
+  padding: "6px 16px",
+  borderRadius: 8,
+  background: "rgba(245,158,11,0.10)",
+  border: "1px solid rgba(245,158,11,0.45)",
+  cursor: "pointer",
+};
 function noticeBox(bg: string, ring: string): React.CSSProperties {
   return {
     borderRadius: 8,
