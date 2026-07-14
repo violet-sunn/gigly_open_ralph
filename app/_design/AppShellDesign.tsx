@@ -114,6 +114,26 @@ export function AppShellDesign({
     setTheme(next);
   };
 
+  // «« sidebar collapse (Спец #7): a real toggle, persisted in localStorage and restored on load. Default expanded on
+  // first visit. Collapsed → an icon-only rail (labels/counts/profile text/support copy hidden; icons remain).
+  const [collapsed, setCollapsed] = useState(false);
+  useEffect(() => {
+    try {
+      setCollapsed(window.localStorage.getItem("gigly.sidebar.collapsed") === "1");
+    } catch {}
+  }, []);
+  const toggleCollapsed = () =>
+    setCollapsed((c) => {
+      const next = !c;
+      try {
+        window.localStorage.setItem("gigly.sidebar.collapsed", next ? "1" : "0");
+      } catch {}
+      return next;
+    });
+
+  // The GIGLY wordmark + collapse-expand icon rail route home for the current shell (Спец #14).
+  const home = admin ? "/admin" : "/dashboard";
+
   const [q, setQ] = useState("");
   const onSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") router.push(q.trim() ? `/gigs?search=${encodeURIComponent(q.trim())}` : "/gigs");
@@ -149,28 +169,44 @@ export function AppShellDesign({
       {/* ░░ SIDEBAR ░░ */}
       <aside
         style={{
-          width: 283,
+          width: collapsed ? 76 : 283,
           flex: "none",
           minHeight: "100vh",
           display: "flex",
           flexDirection: "column",
-          padding: "24px 20px",
+          padding: collapsed ? "24px 14px" : "24px 20px",
           boxSizing: "border-box",
           gap: 24,
+          transition: "width 160ms ease",
         }}
         aria-label="Навигация"
       >
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 4px 0" }}>
-          <div style={{ fontFamily: "'Handjet',monospace", fontWeight: 700, fontSize: 30, letterSpacing: 2, color: "var(--text-1)", lineHeight: 1 }}>
-            GIGLY
-          </div>
-          <div style={{ color: "var(--text-4)", fontSize: 22, cursor: "pointer", lineHeight: 1 }}>«</div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: collapsed ? "center" : "space-between", padding: "4px 4px 0" }}>
+          {!collapsed && (
+            <Link
+              href={home}
+              aria-label="На главную"
+              style={{ fontFamily: "'Handjet',monospace", fontWeight: 700, fontSize: 30, letterSpacing: 2, color: "var(--text-1)", lineHeight: 1, textDecoration: "none" }}
+            >
+              GIGLY
+            </Link>
+          )}
+          <button
+            type="button"
+            onClick={toggleCollapsed}
+            aria-label={collapsed ? "Развернуть меню" : "Свернуть меню"}
+            aria-expanded={!collapsed}
+            style={{ color: "var(--text-4)", fontSize: 22, cursor: "pointer", lineHeight: 1, background: "none", border: "none", padding: 0 }}
+          >
+            {collapsed ? "»" : "«"}
+          </button>
         </div>
 
         {/* profile card (avatar + name/role + bell + gear) */}
         <div
           style={{
             display: "flex",
+            flexDirection: collapsed ? "column" : "row",
             alignItems: "center",
             gap: 10,
             padding: 12,
@@ -182,7 +218,7 @@ export function AppShellDesign({
           <Link
             href="/profile"
             aria-label="Профиль"
-            style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 10, textDecoration: "none", color: "inherit" }}
+            style={{ flex: collapsed ? "none" : 1, minWidth: 0, display: "flex", alignItems: "center", gap: 10, textDecoration: "none", color: "inherit" }}
           >
             <span
               style={{
@@ -201,21 +237,23 @@ export function AppShellDesign({
             >
               {profile.name.slice(0, 1).toUpperCase()}
             </span>
-            <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
-              <span
-                style={{
-                  fontSize: 14,
-                  fontWeight: 700,
-                  color: "var(--text-1)",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {profile.name}
-              </span>
-              <span style={{ fontSize: 12, color: "var(--text-3)" }}>{profile.sub}</span>
-            </div>
+            {!collapsed && (
+              <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
+                <span
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 700,
+                    color: "var(--text-1)",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {profile.name}
+                </span>
+                <span style={{ fontSize: 12, color: "var(--text-3)" }}>{profile.sub}</span>
+              </div>
+            )}
           </Link>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, color: "var(--text-3)" }}>
             <NotificationBell />
@@ -237,13 +275,15 @@ export function AppShellDesign({
               key={item.href}
               href={item.href}
               aria-current={item.active ? "page" : undefined}
+              title={collapsed ? item.label : undefined}
               style={{
                 position: "relative",
                 display: "flex",
                 alignItems: "center",
-                gap: 12,
+                justifyContent: collapsed ? "center" : "flex-start",
+                gap: collapsed ? 0 : 12,
                 height: 44,
-                padding: "0 12px",
+                padding: collapsed ? 0 : "0 12px",
                 borderRadius: 8,
                 textDecoration: "none",
                 background: item.active ? "var(--hairline-06)" : "transparent",
@@ -261,8 +301,10 @@ export function AppShellDesign({
               >
                 <Icon src={(ICON as Record<string, string>)[item.icon] ?? item.icon} />
               </span>
-              <span style={{ flex: 1, fontSize: 16, color: item.active ? "var(--text-1)" : "var(--text-3)" }}>{item.label}</span>
-              {item.count != null && (
+              {!collapsed && (
+                <span style={{ flex: 1, fontSize: 16, color: item.active ? "var(--text-1)" : "var(--text-3)" }}>{item.label}</span>
+              )}
+              {!collapsed && item.count != null && (
                 <span style={{ fontFamily: "'Handjet',monospace", fontSize: 16, color: item.active ? "var(--text-1)" : "var(--text-4)" }}>
                   {item.count}
                 </span>
@@ -276,61 +318,86 @@ export function AppShellDesign({
 
         <div style={{ flex: 1 }} />
 
-        {/* support card — the prototype's «Поддержка» block (copy transported verbatim) */}
-        <div
-          style={{
-            borderRadius: 12,
-            background: "var(--surface-card)",
-            boxShadow: "inset 0 0 0 1px var(--hairline-08)",
-            padding: 14,
-            display: "flex",
-            flexDirection: "column",
-            gap: 10,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ color: "var(--text-3)", display: "flex" }}>
-              <QuestionIcon />
-            </span>
-            <span style={{ fontFamily: "'Handjet',monospace", fontWeight: 600, fontSize: 18, color: "var(--text-1)" }}>Поддержка</span>
-          </div>
-          <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, lineHeight: "16px", color: "var(--text-3)" }}>
-            Привет! Вы на ранней версии платформы. Если что-то пошло не так — напишите. Мы рядом и поможем разобраться.
-          </span>
-          <button
-            type="button"
-            aria-label="Что случилось?"
+        {/* support card — the prototype's «Поддержка» block (copy transported verbatim). The «Что случилось?» control
+            is wired to the in-app /help support page (mailto + FAQ) — Спец #2. Collapsed → a single icon link to /help. */}
+        {collapsed ? (
+          <Link
+            href="/help"
+            title="Поддержка"
+            aria-label="Поддержка — что случилось?"
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 8,
-              height: 40,
-              padding: "0 12px",
+              justifyContent: "center",
+              height: 44,
               borderRadius: 8,
-              background: "var(--surface-sunken)",
-              boxShadow: "inset 0 0 0 1px var(--hairline-06)",
-              border: "none",
-              cursor: "pointer",
+              background: "var(--surface-card)",
+              boxShadow: "inset 0 0 0 1px var(--hairline-08)",
+              color: "var(--text-3)",
+              textDecoration: "none",
             }}
           >
-            <span style={{ flex: 1, textAlign: "left", color: "var(--text-3)", fontFamily: "'Handjet',monospace", fontSize: 14 }}>Что случилось?</span>
-            <span style={{ color: "var(--text-3)", display: "flex" }}>
-              <SendIcon />
+            <QuestionIcon />
+          </Link>
+        ) : (
+          <div
+            style={{
+              borderRadius: 12,
+              background: "var(--surface-card)",
+              boxShadow: "inset 0 0 0 1px var(--hairline-08)",
+              padding: 14,
+              display: "flex",
+              flexDirection: "column",
+              gap: 10,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ color: "var(--text-3)", display: "flex" }}>
+                <QuestionIcon />
+              </span>
+              <span style={{ fontFamily: "'Handjet',monospace", fontWeight: 600, fontSize: 18, color: "var(--text-1)" }}>Поддержка</span>
+            </div>
+            <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, lineHeight: "16px", color: "var(--text-3)" }}>
+              Привет! Вы на ранней версии платформы. Если что-то пошло не так — напишите. Мы рядом и поможем разобраться.
             </span>
-          </button>
-        </div>
+            <Link
+              href="/help"
+              aria-label="Что случилось?"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                height: 40,
+                padding: "0 12px",
+                borderRadius: 8,
+                background: "var(--surface-sunken)",
+                boxShadow: "inset 0 0 0 1px var(--hairline-06)",
+                border: "none",
+                cursor: "pointer",
+                textDecoration: "none",
+              }}
+            >
+              <span style={{ flex: 1, textAlign: "left", color: "var(--text-3)", fontFamily: "'Handjet',monospace", fontSize: 14 }}>Что случилось?</span>
+              <span style={{ color: "var(--text-3)", display: "flex" }}>
+                <SendIcon />
+              </span>
+            </Link>
+          </div>
+        )}
 
         <form action={logoutUser}>
           <button
             type="submit"
             title="Выйти"
+            aria-label="Выйти"
             style={{
               display: "flex",
               alignItems: "center",
+              justifyContent: collapsed ? "center" : "flex-start",
               gap: 10,
               width: "100%",
               height: 44,
-              padding: "0 12px",
+              padding: collapsed ? 0 : "0 12px",
               borderRadius: 8,
               border: "none",
               background: "transparent",
@@ -339,7 +406,8 @@ export function AppShellDesign({
               cursor: "pointer",
             }}
           >
-            <LogoutIcon /> Выйти
+            <LogoutIcon />
+            {!collapsed && "Выйти"}
           </button>
         </form>
       </aside>

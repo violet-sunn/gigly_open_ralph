@@ -72,7 +72,10 @@ export function NotificationDropdown({ isOpen, onClose }: NotificationDropdownPr
 
   return (
     <div
-      className="absolute right-0 mt-2 w-80 bg-surface-level-1 rounded-lg shadow-lg border border-neutral-weak z-50"
+      // The bell lives in the left-hand sidebar, so the panel opens toward the content area (rightward, top-aligned
+      // to the bell) instead of `right-0` — which anchored a 320px panel to the bell's right edge and pushed it off
+      // the left of the viewport (Спец #13). max-h keeps it within the viewport height with internal scroll.
+      className="absolute left-full top-0 ml-3 w-80 max-w-[calc(100vw-2rem)] bg-surface-level-1 rounded-lg shadow-lg border border-neutral-weak z-50"
       role="menu"
       aria-label="Notifications menu"
     >
