@@ -130,14 +130,15 @@ export function GigCard({ vm, full = false, href }: { vm: GigCardVM; full?: bool
           )}
         </div>
 
-        {/* full footer (search results) */}
+        {/* full footer (search results). flexWrap lets the «К проекту» button drop below the price/срок columns when
+            the card is narrow (single-column phone grid) — desktop keeps one row (never wraps with room to spare). */}
         {full && (
-          <div style={{ display: "flex", alignItems: "flex-end", gap: 16, padding: "14px 20px" }}>
-            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+          <div style={{ display: "flex", alignItems: "flex-end", flexWrap: "wrap", gap: 16, padding: "14px 20px" }}>
+            <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 6 }}>
               <span style={{ fontSize: 11, letterSpacing: "0.2px", color: "var(--text-3)" }}>Фикс. цена</span>
               <span style={{ fontWeight: 600, fontSize: 15, color: "var(--text-1)" }}>{vm.budget}</span>
             </div>
-            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+            <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 6 }}>
               <span style={{ fontSize: 11, letterSpacing: "0.2px", color: "var(--text-3)" }}>Срок выполнения</span>
               <span style={{ fontWeight: 600, fontSize: 15, color: "var(--text-1)" }}>{days(vm.deadlineDays)}</span>
             </div>

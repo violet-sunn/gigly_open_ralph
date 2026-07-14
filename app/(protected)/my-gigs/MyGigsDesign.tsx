@@ -9,6 +9,7 @@ import { useSearchParams } from "next/navigation";
 import type { GigCardVM } from "@/app/components/blocks/view-models";
 import { GigCard } from "@/app/_design/GigCard";
 import { applyGigFilters } from "@/app/_design/util";
+import { useIsNarrow } from "@/app/_design/useIsNarrow";
 import "@/app/_design/tokens.css";
 
 type Card = GigCardVM & { tabKey: string };
@@ -22,6 +23,7 @@ export function MyGigsDesign({
 }) {
   const [tab, setTab] = useState("all");
   const params = useSearchParams();
+  const isNarrow = useIsNarrow(); // phone-width reflow (Гигли баги #5): single-column card grid at <1024px
   const tabbed = tab === "all" ? gigCards : gigCards.filter((g) => g.tabKey === tab);
   const feed = applyGigFilters(tabbed, params); // header chips (category/budget/rating/sort) filter this feed too
 
@@ -54,14 +56,14 @@ export function MyGigsDesign({
       </div>
 
       {feed.length > 0 ? (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+        <div style={{ display: "grid", gridTemplateColumns: isNarrow ? "minmax(0, 1fr)" : "1fr 1fr", gap: isNarrow ? 12 : 24 }}>
           {feed.map((g) => (
             <GigCard key={g.id} vm={g} full />
           ))}
         </div>
       ) : (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 300 }}>
-          <div style={{ width: 420, display: "flex", flexDirection: "column", alignItems: "center", gap: 12, textAlign: "center" }}>
+          <div style={{ width: 420, maxWidth: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: 12, textAlign: "center" }}>
             <div
               style={{
                 width: 56,

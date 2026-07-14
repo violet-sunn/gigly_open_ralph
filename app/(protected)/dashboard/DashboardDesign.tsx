@@ -12,6 +12,7 @@ import type { GigCardVM, OnboardingCardVM, AttentionCardVM, ConversationItemVM }
 import { GigCard } from "@/app/_design/GigCard";
 import { AttentionCardDesign } from "@/app/_design/AttentionCardDesign";
 import { avatarColor, applyGigFilters } from "@/app/_design/util";
+import { useIsNarrow } from "@/app/_design/useIsNarrow";
 import "@/app/_design/tokens.css";
 
 export type DashboardVM = {
@@ -213,6 +214,7 @@ function MessageRow({ m }: { m: ConversationItemVM }) {
 export function DashboardDesign({ vm }: { vm: DashboardVM }) {
   const router = useRouter();
   const params = useSearchParams();
+  const isNarrow = useIsNarrow(); // phone-width reflow (Гигли баги #5): stack columns, single-col grid at <1024px
   const [tab, setTab] = useState("all");
   const [q, setQ] = useState("");
   const isCompany = vm.role === "CLIENT";
@@ -223,12 +225,12 @@ export function DashboardDesign({ vm }: { vm: DashboardVM }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       {/* WELCOME */}
-      <div style={{ display: "flex", gap: 32, padding: 24, borderRadius: 12, background: "var(--surface-sunken)", boxSizing: "border-box" }}>
-        <div style={{ width: 317, flex: "none", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: 24 }}>
+      <div style={{ display: "flex", flexDirection: isNarrow ? "column" : "row", gap: isNarrow ? 16 : 32, padding: isNarrow ? 16 : 24, borderRadius: 12, background: "var(--surface-sunken)", boxSizing: "border-box" }}>
+        <div style={{ width: isNarrow ? "auto" : 317, flex: "none", display: "flex", flexDirection: "column", justifyContent: "space-between", gap: isNarrow ? 6 : 0, padding: isNarrow ? "4px 4px 0" : 24 }}>
           <span style={{ fontFamily: "'Handjet',monospace", fontWeight: 600, fontSize: 18, color: "var(--om-accent, #0088ff)" }}>Добро пожаловать в Gigly!</span>
           <span style={{ fontFamily: "'Handjet',monospace", fontWeight: 600, fontSize: 24, lineHeight: "26px", color: "var(--text-1)" }}>Вот что важно знать на старте</span>
         </div>
-        <div style={{ flex: 1, display: "flex", gap: 16 }}>
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: isNarrow ? "column" : "row", gap: 16 }}>
           {vm.onboarding[0] && (
             <OnboardingTile
               card={vm.onboarding[0]}
@@ -252,7 +254,7 @@ export function DashboardDesign({ vm }: { vm: DashboardVM }) {
       </div>
 
       {/* BOARD */}
-      <div style={{ display: "flex", gap: 6, alignItems: "flex-start" }}>
+      <div style={{ display: "flex", flexDirection: isNarrow ? "column" : "row", gap: 6, alignItems: "stretch" }}>
         {/* col 1 — Мои гиги */}
         <div style={{ flex: 1, minWidth: 0, borderRadius: 12, background: "var(--surface-sunken)", overflow: "hidden" }}>
           <div style={{ padding: "24px 24px 16px", display: "flex", flexDirection: "column", gap: 18 }}>
@@ -308,7 +310,7 @@ export function DashboardDesign({ vm }: { vm: DashboardVM }) {
               })}
             </div>
           </div>
-          <div style={{ padding: "0 16px 24px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div style={{ padding: "0 16px 24px", display: "grid", gridTemplateColumns: isNarrow ? "minmax(0, 1fr)" : "1fr 1fr", gap: 12 }}>
             {feed.length > 0 ? (
               feed.map((g) => <GigCard key={g.id} vm={g} />)
             ) : (
@@ -320,7 +322,7 @@ export function DashboardDesign({ vm }: { vm: DashboardVM }) {
         </div>
 
         {/* col 2 */}
-        <div style={{ width: 400, flex: "none", display: "flex", flexDirection: "column", gap: 6 }}>
+        <div style={{ width: isNarrow ? "auto" : 400, flex: "none", minWidth: 0, display: "flex", flexDirection: "column", gap: 6 }}>
           {isSpecialist && (
             <div
               style={{

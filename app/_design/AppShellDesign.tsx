@@ -18,6 +18,7 @@ import { getStoredTheme, applyTheme, type Theme } from "@/lib/theme";
 import { CATEGORIES } from "@/lib/categories";
 import { SettingsModal } from "@/app/(protected)/settings/SettingsModal";
 import { Heartbeat } from "./Heartbeat";
+import { useIsNarrow } from "./useIsNarrow";
 import "./tokens.css";
 
 // The prototype's header filter cluster (data-dc-tpl="51", beside the search field) on every list screen. Option sets
@@ -117,20 +118,33 @@ export function AppShellDesign({
 
   // «« sidebar collapse (Спец #7): a real toggle, persisted in localStorage and restored on load. Default expanded on
   // first visit. Collapsed → an icon-only rail (labels/counts/profile text/support copy hidden; icons remain).
-  const [collapsed, setCollapsed] = useState(false);
+  const [desktopCollapsed, setDesktopCollapsed] = useState(false);
   useEffect(() => {
     try {
-      setCollapsed(window.localStorage.getItem("gigly.sidebar.collapsed") === "1");
+      setDesktopCollapsed(window.localStorage.getItem("gigly.sidebar.collapsed") === "1");
     } catch {}
   }, []);
   const toggleCollapsed = () =>
-    setCollapsed((c) => {
+    setDesktopCollapsed((c) => {
       const next = !c;
       try {
         window.localStorage.setItem("gigly.sidebar.collapsed", next ? "1" : "0");
       } catch {}
       return next;
     });
+
+  // Phone-width reflow (responsive-my-gigs / Гигли баги #5): below 1024px the row-shell + fixed 283px sidebar overflow
+  // horizontally. At narrow widths the sidebar becomes an off-canvas DRAWER (position:fixed, out of flow → main takes
+  // the full viewport width) toggled by a header hamburger; it's always shown EXPANDED there (the icon-rail collapse is
+  // a desktop-only affordance). Everything below branches on the effective `collapsed` — false whenever narrow.
+  const isNarrow = useIsNarrow();
+  const collapsed = isNarrow ? false : desktopCollapsed;
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  // Close the drawer whenever the route changes (a nav tap navigates) or we leave narrow widths.
+  useEffect(() => setMobileNavOpen(false), [pathname]);
+  useEffect(() => {
+    if (!isNarrow) setMobileNavOpen(false);
+  }, [isNarrow]);
 
   // The GIGLY wordmark + collapse-expand icon rail route home for the current shell (Спец #14).
   const home = admin ? "/admin" : "/dashboard";
@@ -168,6 +182,15 @@ export function AppShellDesign({
         Перейти к основному содержимому
       </a>
 
+      {/* ░░ mobile drawer backdrop — closes the off-canvas sidebar on tap (narrow widths only) ░░ */}
+      {isNarrow && mobileNavOpen && (
+        <div
+          onClick={() => setMobileNavOpen(false)}
+          aria-hidden="true"
+          style={{ position: "fixed", inset: 0, zIndex: 55, background: "rgba(1,3,14,0.55)" }}
+        />
+      )}
+
       {/* ░░ SIDEBAR ░░ */}
       <aside
         style={{
@@ -180,7 +203,23 @@ export function AppShellDesign({
           boxSizing: "border-box",
           gap: 24,
           transition: "width 160ms ease",
+          ...(isNarrow
+            ? {
+                position: "fixed",
+                top: 0,
+                left: 0,
+                height: "100dvh",
+                minHeight: "100dvh",
+                zIndex: 60,
+                background: "var(--surface-app)",
+                boxShadow: "2px 0 24px rgba(0,0,0,0.4)",
+                overflowY: "auto",
+                transform: mobileNavOpen ? "translateX(0)" : "translateX(-100%)",
+                transition: "transform 200ms ease",
+              }
+            : null),
         }}
+        aria-hidden={isNarrow && !mobileNavOpen ? true : undefined}
         aria-label="Навигация"
       >
         <div style={{ display: "flex", alignItems: "center", justifyContent: collapsed ? "center" : "space-between", padding: "4px 4px 0" }}>
@@ -195,12 +234,12 @@ export function AppShellDesign({
           )}
           <button
             type="button"
-            onClick={toggleCollapsed}
-            aria-label={collapsed ? "Развернуть меню" : "Свернуть меню"}
-            aria-expanded={!collapsed}
+            onClick={isNarrow ? () => setMobileNavOpen(false) : toggleCollapsed}
+            aria-label={isNarrow ? "Закрыть меню" : collapsed ? "Развернуть меню" : "Свернуть меню"}
+            aria-expanded={isNarrow ? mobileNavOpen : !collapsed}
             style={{ color: "var(--text-4)", fontSize: 22, cursor: "pointer", lineHeight: 1, background: "none", border: "none", padding: 0 }}
           >
-            {collapsed ? "»" : "«"}
+            {isNarrow ? "×" : collapsed ? "»" : "«"}
           </button>
         </div>
 
@@ -416,19 +455,34 @@ export function AppShellDesign({
 
       {/* ░░ MAIN ░░ */}
       <main style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
-        <header style={{ padding: "40px 48px 0 24px", display: "flex", flexDirection: "column", gap: 24 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-              <div style={{ width: 4, height: 30, borderRadius: 4, background: "var(--om-accent)" }} />
+        <header style={{ padding: isNarrow ? "16px 16px 0 16px" : "40px 48px 0 24px", display: "flex", flexDirection: "column", gap: isNarrow ? 16 : 24 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
+              {isNarrow && (
+                <button
+                  type="button"
+                  onClick={() => setMobileNavOpen(true)}
+                  aria-label="Открыть меню"
+                  aria-expanded={mobileNavOpen}
+                  style={{ flex: "none", width: 40, height: 40, borderRadius: 8, background: "var(--surface-sunken)", color: "var(--text-2)", display: "flex", alignItems: "center", justifyContent: "center", border: "none", cursor: "pointer", padding: 0 }}
+                >
+                  <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                    <path d="M2 4.5h12a.5.5 0 0 0 0-1H2a.5.5 0 0 0 0 1zm0 4h12a.5.5 0 0 0 0-1H2a.5.5 0 0 0 0 1zm0 4h12a.5.5 0 0 0 0-1H2a.5.5 0 0 0 0 1z" />
+                  </svg>
+                </button>
+              )}
+              <div style={{ width: 4, height: 30, borderRadius: 4, background: "var(--om-accent)", flex: "none" }} />
               <h1
                 style={{
                   margin: 0,
                   fontFamily: "'Handjet',monospace",
                   fontWeight: 700,
-                  fontSize: 34,
+                  fontSize: isNarrow ? 24 : 34,
                   letterSpacing: 1,
                   color: "var(--text-1)",
-                  whiteSpace: "nowrap",
+                  whiteSpace: isNarrow ? "normal" : "nowrap",
+                  overflowWrap: "anywhere",
+                  minWidth: 0,
                 }}
               >
                 {title}
@@ -457,10 +511,11 @@ export function AppShellDesign({
           </div>
 
           {showSearch(pathname) && (
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: isNarrow ? "wrap" : "nowrap" }}>
               <div
                 style={{
                   flex: 1,
+                  minWidth: isNarrow ? "100%" : 0,
                   display: "flex",
                   alignItems: "center",
                   gap: 12,
@@ -500,7 +555,7 @@ export function AppShellDesign({
 
         {/* The design's standard content padding (--om-content-pad) lives here so each screen doesn't repeat it; the
             header's pad-bottom is 0, so content starts right below the title. */}
-        <div id="main-content" tabIndex={-1} style={{ minWidth: 0, flex: 1, outline: "none", padding: "24px 48px 48px 24px" }}>
+        <div id="main-content" tabIndex={-1} style={{ minWidth: 0, flex: 1, outline: "none", padding: isNarrow ? "16px 16px 32px 16px" : "24px 48px 48px 24px" }}>
           {children}
         </div>
       </main>
