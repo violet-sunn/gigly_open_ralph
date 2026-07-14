@@ -28,43 +28,43 @@ export function getNotificationDisplayText(notification: {
   if (type === 'APPLICATION') {
     switch (eventType) {
       case 'application_submitted':
-        return `New application from ${data.specialistName || 'a specialist'}`;
+        return `Новая заявка от ${data.specialistName || 'специалиста'}`;
       case 'application_accepted':
-        return 'Your application was accepted';
+        return 'Ваша заявка принята';
       case 'application_rejected':
-        return 'Your application was not accepted';
+        return 'Ваша заявка отклонена';
       case 'application_withdrawn':
-        return `${data.specialistName || 'A specialist'} withdrew their application`;
+        return `${data.specialistName || 'Специалист'} отозвал(а) заявку`;
       default:
-        return 'New application update';
+        return 'Обновление по заявке';
     }
   }
 
   // PAYMENT notifications (DATA-MODEL payment type)
   if (type === 'PAYMENT') {
-    return 'Payment has been marked as paid';
+    return 'Оплата отмечена';
   }
 
   // STATUS_CHANGE notifications
   if (type === 'STATUS_CHANGE') {
     switch (eventType) {
       case 'work_submitted':
-        return 'Work submitted for review';
+        return 'Работа отправлена на проверку';
       case 'work_approved':
-        return 'Your work was approved';
+        return 'Ваша работа принята';
       case 'payment_marked':
-        return 'Payment has been marked as paid';
+        return 'Оплата отмечена';
       case 'gig_updated':
         // gig-editing-with-notification: the owner edited an OPEN gig's terms; applicants who applied under the old
         // terms are told so they can re-evaluate. Russian to match the shipped app surface.
         return 'Условия гига обновлены';
       default:
-        return 'Gig status updated';
+        return 'Статус гига обновлён';
     }
   }
 
   // MESSAGE notifications (default/backward compatibility)
-  return 'New message';
+  return 'Новое сообщение';
 }
 
 /**

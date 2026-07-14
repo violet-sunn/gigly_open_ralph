@@ -20,6 +20,15 @@ interface NotificationDropdownProps {
   onClose: () => void;
 }
 
+// RU plural for «обновление» (updates): 1 → обновление, 2–4 → обновления, 0/5–20 → обновлений.
+function pluralizeUpdates(n: number): string {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return 'обновление';
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return 'обновления';
+  return 'обновлений';
+}
+
 function formatRelativeTime(date: Date): string {
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -27,11 +36,11 @@ function formatRelativeTime(date: Date): string {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMinutes < 1) return 'just now';
-  if (diffMinutes < 60) return `${diffMinutes}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays === 1) return 'yesterday';
-  if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffMinutes < 1) return 'только что';
+  if (diffMinutes < 60) return `${diffMinutes} мин назад`;
+  if (diffHours < 24) return `${diffHours} ч назад`;
+  if (diffDays === 1) return 'вчера';
+  if (diffDays < 7) return `${diffDays} дн назад`;
   return date.toLocaleDateString('ru-RU', { month: 'short', day: 'numeric' });
 }
 
@@ -54,7 +63,7 @@ export function NotificationDropdown({ isOpen, onClose }: NotificationDropdownPr
       setNotifications(result);
     } catch (err) {
       console.error('Failed to fetch notifications:', err);
-      setError('Failed to load notifications');
+      setError('Не удалось загрузить уведомления');
     } finally {
       setIsLoading(false);
     }
@@ -77,17 +86,17 @@ export function NotificationDropdown({ isOpen, onClose }: NotificationDropdownPr
       // the left of the viewport (Спец #13). max-h keeps it within the viewport height with internal scroll.
       className="absolute left-full top-0 ml-3 w-80 max-w-[calc(100vw-2rem)] bg-surface-level-1 rounded-lg shadow-lg border border-neutral-weak z-50"
       role="menu"
-      aria-label="Notifications menu"
+      aria-label="Меню уведомлений"
     >
       <div className="p-6 border-b border-neutral-weak">
-        <h3 className="text-xl font-semibold text-white">Notifications</h3>
+        <h3 className="text-xl font-semibold text-white">Уведомления</h3>
       </div>
 
       <div className="max-h-96 overflow-y-auto">
         {isLoading && (
           <div className="p-8 text-center">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-            <p className="mt-2 text-sm text-neutral-strong">Loading notifications...</p>
+            <p className="mt-2 text-sm text-neutral-strong">Загрузка уведомлений…</p>
           </div>
         )}
 
@@ -98,7 +107,7 @@ export function NotificationDropdown({ isOpen, onClose }: NotificationDropdownPr
               onClick={handleRetry}
               className="px-6 py-3 bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
             >
-              Retry
+              Повторить
             </button>
           </div>
         )}
@@ -119,8 +128,8 @@ export function NotificationDropdown({ isOpen, onClose }: NotificationDropdownPr
                 d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <p className="text-sm text-neutral-strong">No new notifications</p>
-            <p className="text-xs text-neutral-weak mt-1">You&apos;re all caught up!</p>
+            <p className="text-sm text-neutral-strong">Нет новых уведомлений</p>
+            <p className="text-xs text-neutral-weak mt-1">Вы всё просмотрели</p>
           </div>
         )}
 
@@ -160,7 +169,7 @@ export function NotificationDropdown({ isOpen, onClose }: NotificationDropdownPr
                             {formatRelativeTime(new Date(notification.timestamp))}
                             {notification.unreadCount > 1 && (
                               <span className="ml-2 text-blue-400 font-medium">
-                                ({notification.unreadCount} updates)
+                                ({notification.unreadCount} {pluralizeUpdates(notification.unreadCount)})
                               </span>
                             )}
                           </p>

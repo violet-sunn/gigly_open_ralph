@@ -164,7 +164,7 @@ describe('Notification Helpers', () => {
         eventType: 'application_submitted',
         eventData: JSON.stringify({ specialistName: 'John Doe' }),
       });
-      expect(text).toContain('New application from John Doe');
+      expect(text).toContain('Новая заявка от John Doe');
     });
 
     it('returns correct text for application_accepted', () => {
@@ -173,7 +173,7 @@ describe('Notification Helpers', () => {
         eventType: 'application_accepted',
         eventData: null,
       });
-      expect(text).toContain('Your application was accepted');
+      expect(text).toContain('Ваша заявка принята');
     });
 
     it('returns correct text for application_rejected', () => {
@@ -182,7 +182,7 @@ describe('Notification Helpers', () => {
         eventType: 'application_rejected',
         eventData: null,
       });
-      expect(text).toContain('Your application was not accepted');
+      expect(text).toContain('Ваша заявка отклонена');
     });
 
     it('returns correct text for application_withdrawn', () => {
@@ -191,7 +191,7 @@ describe('Notification Helpers', () => {
         eventType: 'application_withdrawn',
         eventData: JSON.stringify({ specialistName: 'Jane Smith' }),
       });
-      expect(text).toContain('Jane Smith withdrew their application');
+      expect(text).toContain('Jane Smith отозвал(а) заявку');
     });
 
     it('returns correct text for work_submitted', () => {
@@ -200,7 +200,7 @@ describe('Notification Helpers', () => {
         eventType: 'work_submitted',
         eventData: null,
       });
-      expect(text).toContain('Work submitted for review');
+      expect(text).toContain('Работа отправлена на проверку');
     });
 
     it('returns correct text for work_approved', () => {
@@ -209,7 +209,7 @@ describe('Notification Helpers', () => {
         eventType: 'work_approved',
         eventData: null,
       });
-      expect(text).toContain('Your work was approved');
+      expect(text).toContain('Ваша работа принята');
     });
 
     it('returns correct text for payment_marked', () => {
@@ -218,7 +218,7 @@ describe('Notification Helpers', () => {
         eventType: 'payment_marked',
         eventData: null,
       });
-      expect(text).toContain('Payment has been marked as paid');
+      expect(text).toContain('Оплата отмечена');
     });
 
     it('handles MESSAGE type for backward compatibility', () => {
@@ -227,7 +227,7 @@ describe('Notification Helpers', () => {
         eventType: null,
         eventData: null,
       });
-      expect(text).toContain('New message');
+      expect(text).toContain('Новое сообщение');
     });
 
     it('handles missing type field (backward compatibility)', () => {
@@ -236,7 +236,7 @@ describe('Notification Helpers', () => {
         eventType: null,
         eventData: null,
       });
-      expect(text).toContain('New message');
+      expect(text).toContain('Новое сообщение');
     });
 
     it('handles invalid JSON in eventData gracefully', () => {
@@ -245,7 +245,52 @@ describe('Notification Helpers', () => {
         eventType: 'application_submitted',
         eventData: 'invalid json {',
       });
-      expect(text).toContain('New application from a specialist');
+      expect(text).toContain('Новая заявка от специалиста');
+    });
+
+    it('falls back to «Специалист отозвал(а) заявку» when specialistName is absent', () => {
+      const text = getNotificationDisplayText({
+        type: 'APPLICATION',
+        eventType: 'application_withdrawn',
+        eventData: null,
+      });
+      expect(text).toBe('Специалист отозвал(а) заявку');
+    });
+
+    it('returns «Обновление по заявке» for an unknown APPLICATION eventType', () => {
+      const text = getNotificationDisplayText({
+        type: 'APPLICATION',
+        eventType: 'some_future_event',
+        eventData: null,
+      });
+      expect(text).toBe('Обновление по заявке');
+    });
+
+    it('returns «Статус гига обновлён» for an unknown STATUS_CHANGE eventType', () => {
+      const text = getNotificationDisplayText({
+        type: 'STATUS_CHANGE',
+        eventType: 'some_future_status',
+        eventData: null,
+      });
+      expect(text).toBe('Статус гига обновлён');
+    });
+
+    it('keeps «Условия гига обновлены» for gig_updated (already Russian, unchanged)', () => {
+      const text = getNotificationDisplayText({
+        type: 'STATUS_CHANGE',
+        eventType: 'gig_updated',
+        eventData: null,
+      });
+      expect(text).toBe('Условия гига обновлены');
+    });
+
+    it('returns «Оплата отмечена» for PAYMENT type', () => {
+      const text = getNotificationDisplayText({
+        type: 'PAYMENT',
+        eventType: 'payment_marked',
+        eventData: null,
+      });
+      expect(text).toBe('Оплата отмечена');
     });
   });
 

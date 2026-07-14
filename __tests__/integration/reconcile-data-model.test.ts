@@ -81,7 +81,7 @@ describe('reconcile-data-model — Category.color', () => {
 
 describe('reconcile-data-model — payment notification', () => {
   it('PAYMENT type resolves payment text + icon', () => {
-    expect(getNotificationDisplayText({ type: 'PAYMENT', eventType: 'payment_marked', eventData: null })).toMatch(/paid/i)
+    expect(getNotificationDisplayText({ type: 'PAYMENT', eventType: 'payment_marked', eventData: null })).toBe('Оплата отмечена')
     expect(getNotificationIcon('PAYMENT')).toBe('💰')
   })
 })

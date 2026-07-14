@@ -76,7 +76,7 @@ export async function getUnreadNotifications() {
         }
 
         if (hasUnread) {
-          displayText = 'New message';
+          displayText = 'Новое сообщение';
           icon = getNotificationIcon('MESSAGE');
           notificationType = 'MESSAGE';
         }
