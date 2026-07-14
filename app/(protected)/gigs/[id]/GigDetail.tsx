@@ -83,6 +83,10 @@ export function GigDetail({ data }: { data: GigDetailData }) {
   const showExampleNotice = !closed && data.isExample && data.isSpecialistViewer && !data.isOwner && !data.isAssignedSpecialist;
   // WITHDRAWN_FINAL — gig STAYS VISIBLE with an «Отозвано» marker; re-apply is permanently unavailable.
   const showFinalWithdrawn = !closed && !data.isExample && va?.status === "WITHDRAWN_FINAL";
+  // WITHDRAWN (reversible) — a per-viewer «Вы отозвали отклик» signal shown ABOVE the re-apply form, so the viewer's
+  // own state is unambiguous and never conflated with the gig's derived «На рассмотрении» badge
+  // (withdrawn-status-truthfulness #1). The re-apply form itself still renders via showApply/notApplied below.
+  const showWithdrawn = !closed && !data.isExample && va?.status === "WITHDRAWN";
   const showApply = !closed && !data.isExample && (data.lifecycle.canApply || va?.status === "PENDING");
   const notApplied = data.lifecycle.canApply && va?.status !== "PENDING";
   const applied = va?.status === "PENDING";
@@ -575,6 +579,22 @@ export function GigDetail({ data }: { data: GigDetailData }) {
           </div>
 
           {/* ── role action rail ─────────────────────────────────────────── */}
+          {/* Reversible-withdrawn per-viewer signal (withdrawn-status-truthfulness #1): a blue «Вы отозвали отклик»
+              notice ABOVE the re-apply form. Distinct from the gig's derived «На рассмотрении» stage badge, so the
+              viewer's OWN state is unambiguous. Re-apply availability keyed off lifecycle.canApply (gig still OPEN). */}
+          {showWithdrawn && (
+            <div style={noticeBox("rgba(0,136,255,0.08)", "rgba(0,136,255,0.35)")}>
+              <span style={{ fontFamily: "'Handjet',monospace", fontWeight: 600, fontSize: 13, color: "#4ea3ff" }}>
+                Вы отозвали отклик
+              </span>
+              <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, lineHeight: "16px", color: "var(--text-3)" }}>
+                {data.lifecycle.canApply
+                  ? "Вы можете откликнуться снова — заполните форму ниже."
+                  : "Этот гиг больше не принимает отклики."}
+              </span>
+            </div>
+          )}
+
           {showApply && (
             <ApplyBlock
               gigId={data.gigId}

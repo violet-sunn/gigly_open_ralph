@@ -283,11 +283,19 @@ export async function getSpecialistDashboard(userId: string): Promise<Specialist
       .filter((a) => a.status === 'PENDING')
       .map(async (a) => ({ ...(await toGigCardVM({ ...a.gig, clientCompany: a.gig.client?.clientProfile?.companyName })), status: 'review' as Status, tabKey: 'applications' })),
   )
-  // Rejected/withdrawn — surfaced under Все only (status 'rejected' / Отклонён). Reconciliation: no data lost.
+  // Terminal application states — surfaced under the Archive tab. All share the red `rejected` tone, but each reads
+  // truthfully via an explicit statusLabel: REJECTED → «Отклонён», WITHDRAWN → «Отозвано», WITHDRAWN_FINAL →
+  // «Отозвано (окончательно)» (withdrawn-status-truthfulness — a withdrawn app must NOT read as rejected).
   const archivedCards: SpecialistGigCard[] = await Promise.all(
     applications
       .filter((a) => a.status === 'REJECTED' || a.status === 'WITHDRAWN' || a.status === 'WITHDRAWN_FINAL')
-      .map(async (a) => ({ ...(await toGigCardVM({ ...a.gig, clientCompany: a.gig.client?.clientProfile?.companyName })), status: 'rejected' as Status, tabKey: 'archive' })),
+      .map(async (a) => ({
+        ...(await toGigCardVM({ ...a.gig, clientCompany: a.gig.client?.clientProfile?.companyName })),
+        status: 'rejected' as Status,
+        statusLabel:
+          a.status === 'WITHDRAWN' ? 'Отозвано' : a.status === 'WITHDRAWN_FINAL' ? 'Отозвано (окончательно)' : 'Отклонён',
+        tabKey: 'archive',
+      })),
   )
   // Assigned gigs — В работе / На проверке / Завершённые (standard toGigCardVM status mapping).
   const assignedCards: SpecialistGigCard[] = await Promise.all(

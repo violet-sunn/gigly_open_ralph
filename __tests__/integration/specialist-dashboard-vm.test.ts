@@ -56,13 +56,15 @@ describe('getSpecialistDashboard', () => {
       paidAt: new Date(),
     })
 
-    // Applications: one PENDING (Заявки), one REJECTED + one WITHDRAWN (archive → Все only).
+    // Applications: one PENDING (Заявки); REJECTED + WITHDRAWN + WITHDRAWN_FINAL (archive → Все only).
     const openGig = await createTestGig(prisma, { clientId: client.id, status: 'OPEN' })
     await createTestApplication(prisma, { gigId: openGig.id, specialistId: specialist.id, status: 'PENDING' })
     const rejGig = await createTestGig(prisma, { clientId: client.id, status: 'IN_PROGRESS' })
     await createTestApplication(prisma, { gigId: rejGig.id, specialistId: specialist.id, status: 'REJECTED' })
     const witGig = await createTestGig(prisma, { clientId: client.id, status: 'OPEN' })
     await createTestApplication(prisma, { gigId: witGig.id, specialistId: specialist.id, status: 'WITHDRAWN' })
+    const witFinalGig = await createTestGig(prisma, { clientId: client.id, status: 'IN_PROGRESS' })
+    await createTestApplication(prisma, { gigId: witFinalGig.id, specialistId: specialist.id, status: 'WITHDRAWN_FINAL' })
 
     // A notification → the WELCOME-2 attention strip (one row per [userId, gigId]).
     await prisma.notification.create({
@@ -75,7 +77,7 @@ describe('getSpecialistDashboard', () => {
     expect(data.tabs.map((t) => t.label)).toEqual(['Все', 'Заявки', 'В работе', 'На проверке', 'Завершённые'])
 
     const count = (v: string) => data.tabs.find((t) => t.value === v)?.count
-    expect(count('all')).toBe(7) // 1 pending + 4 assigned + 2 archived
+    expect(count('all')).toBe(8) // 1 pending + 4 assigned + 3 archived
     expect(count('applications')).toBe(1)
     expect(count('in-progress')).toBe(1)
     expect(count('verification')).toBe(1)
@@ -90,9 +92,12 @@ describe('getSpecialistDashboard', () => {
     expect(byTab('in-progress')[0].status).toBe('in-progress')
     expect(byTab('verification')[0].status).toBe('verification')
     expect(byTab('completed').every((c) => c.status === 'completed')).toBe(true)
-    // Rejected/withdrawn surfaced only under Все (status «Отклонён»), not in any work tab.
-    expect(byTab('archive')).toHaveLength(2)
+    // Terminal states surfaced only under Все, not in any work tab. All share the red `rejected` tone, but each
+    // reads truthfully via statusLabel (withdrawn-status-truthfulness): a withdrawn app must NOT read as rejected.
+    expect(byTab('archive')).toHaveLength(3)
     expect(byTab('archive').every((c) => c.status === 'rejected')).toBe(true)
+    const labels = byTab('archive').map((c) => c.statusLabel).sort()
+    expect(labels).toEqual(['Отклонён', 'Отозвано', 'Отозвано (окончательно)'])
 
     // Assignable to GigCardVM (compile-time) + messages present.
     const first: GigCardVM = data.gigCards[0]

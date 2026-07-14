@@ -24,7 +24,7 @@ export function GigCard({ vm, full = false, href }: { vm: GigCardVM; full?: bool
           <div style={{ display: "flex", alignItems: "center", gap: 8, flex: "none" }}>
             <span style={{ width: 8, height: 8, flex: "none", borderRadius: "50%", background: statusDot }} />
             <span style={{ fontFamily: "'Handjet',monospace", fontSize: 15, color: statusDot, whiteSpace: "nowrap" }}>
-              {STATUS_LABEL_RU[vm.status] ?? vm.status}
+              {vm.statusLabel ?? STATUS_LABEL_RU[vm.status] ?? vm.status}
             </span>
           </div>
           {vm.postedAt && (

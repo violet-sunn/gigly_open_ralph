@@ -31,6 +31,9 @@ let freshSpecId: string
 let freshSpecEmail: string
 let exampleGigId: string
 let plainGigId: string
+// Dashboard scenario: a specialist with pre-seeded WITHDRAWN + WITHDRAWN_FINAL applications → «Мои гиги» archive labels.
+let dashSpecId: string
+let dashSpecEmail: string
 
 test.beforeAll(async () => {
   const prisma = new PrismaClient({ adapter: new PrismaLibSql({ url: 'file:./test.db' }) as any })
@@ -85,6 +88,22 @@ test.beforeAll(async () => {
   await prisma.application.create({
     data: { gigId: finalGig.id, specialistId: finalSpec.id, approach: longApproach, questions: longQuestions, estimatedEffort: '2 недели', status: 'PENDING', freeWithdrawalUsed: true },
   })
+
+  // Dashboard scenario — a specialist whose archive holds a WITHDRAWN and a WITHDRAWN_FINAL application, so «Мои гиги»
+  // must label them «Отозвано» / «Отозвано (окончательно)» rather than the blanket «Отклонён» (withdrawn-status-truthfulness #2).
+  const dashSpec = await prisma.user.create({
+    data: { email: `wd-dash-${s}@example.com`, password: 'x', role: 'SPECIALIST', specialistProfile: { create: { displayName: 'Дэш Спец', techStack: 'React', experienceLevel: 'SENIOR', bio: 'x' } } },
+  })
+  dashSpecId = dashSpec.id
+  dashSpecEmail = dashSpec.email
+  const dashWitGig = await prisma.gig.create({ data: gigData('WD Dash Withdrawn Gig') })
+  await prisma.application.create({
+    data: { gigId: dashWitGig.id, specialistId: dashSpec.id, approach: longApproach, questions: longQuestions, status: 'WITHDRAWN', freeWithdrawalUsed: true },
+  })
+  const dashFinalGig = await prisma.gig.create({ data: gigData('WD Dash Final Gig') })
+  await prisma.application.create({
+    data: { gigId: dashFinalGig.id, specialistId: dashSpec.id, approach: longApproach, questions: longQuestions, status: 'WITHDRAWN_FINAL', freeWithdrawalUsed: true },
+  })
   await prisma.$disconnect()
 })
 
@@ -103,6 +122,18 @@ test.describe('Application Withdrawal — rebuilt /gigs/[id]', () => {
     await withdraw.click()
     await expect(page.getByRole('button', { name: 'Отозвать заявку' })).toHaveCount(0)
     await expect(page.getByRole('button', { name: 'Отправить заявку' })).toBeVisible()
+
+    // withdrawn-status-truthfulness #1 — a per-viewer «Вы отозвали отклик» signal is shown (distinct from the gig's
+    // derived «На рассмотрении» badge), so the viewer's own state is unambiguous, and the re-apply form is present.
+    await expect(page.getByText('Вы отозвали отклик')).toBeVisible()
+    await expect(page.getByText(/можете откликнуться снова/)).toBeVisible()
+
+    // Re-apply → the withdrawn signal clears and the applied banner returns («На рассмотрении» state).
+    await page.locator('textarea[name="approach"]').fill(longApproach)
+    await page.locator('textarea[name="questions"]').fill(longQuestions)
+    await page.getByRole('button', { name: 'Отправить заявку' }).click()
+    await expect(page.getByText(/Заявка отправлена/)).toBeVisible()
+    await expect(page.getByText('Вы отозвали отклик')).toHaveCount(0)
   })
 
   test('the second (final) withdrawal is gated by a confirmation dialog and leaves an «Отозвано» marker', async ({ page }) => {
@@ -159,5 +190,17 @@ test.describe('Application Withdrawal — rebuilt /gigs/[id]', () => {
     await expect(submit).toBeEnabled()
     await submit.click()
     await expect(page.getByText(/Заявка отправлена/)).toBeVisible()
+  })
+
+  test('the dashboard «Мои гиги» board labels a withdrawn application «Отозвано», not «Отклонён»', async ({ page }) => {
+    await setE2ESession(page, { id: dashSpecId, email: dashSpecEmail, role: 'SPECIALIST' })
+    // The dashboard's «Мои гиги» board (getSpecialistDashboard) is where withdrawn apps previously mis-read «Отклонён».
+    await page.goto('/dashboard')
+
+    // Default «Все» tab shows the archive cards. The withdrawn app reads «Отозвано» (reversible) and the final one
+    // «Отозвано (окончательно)» — a withdrawn application must NOT read as the red «Отклонён» (rejected).
+    await expect(page.getByText('Отозвано', { exact: true })).toBeVisible()
+    await expect(page.getByText('Отозвано (окончательно)', { exact: true })).toBeVisible()
+    await expect(page.getByText('Отклонён', { exact: true })).toHaveCount(0)
   })
 })

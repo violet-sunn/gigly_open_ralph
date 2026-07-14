@@ -60,6 +60,9 @@ export interface GigCardVM {
   category: Category;
   tags: string[];
   status: Status;
+  /** Optional explicit status label that overrides STATUS_LABEL_RU[status] on the card. Lets terminal application
+   *  states share the red `rejected` tone while reading truthfully («Отозвано» vs «Отклонён») — withdrawn-status-truthfulness. */
+  statusLabel?: string;
   budget: Money;
   /** Numeric budget in roubles (for client-side budget filtering/sorting on the dashboard & my-gigs feeds). */
   budgetValue?: number;
