@@ -8,12 +8,13 @@ import { applicationRateLimiter, getRateLimitError } from '@/lib/ratelimit'
 import { persistMessage } from '@/lib/messaging'
 import { createNotification, createNotificationsBulk } from '@/lib/notifications'
 import { isCategorySlug } from '@/lib/categories'
+import { GIG_DESCRIPTION_MIN } from '@/lib/gig-validation'
 
 /**
  * The normalized, validated set of gig fields shared by `createGig` and `updateGig` — every column a client can set,
  * already sanitized/trimmed with the budget converted to kopecks and the 10% fee/total computed. The two actions apply
- * the SAME validation gates (criteria ≥ 50, budget > 0, deadline 1–365, stages 1–50, valid category) so create/edit
- * can never drift.
+ * the SAME validation gates (description ≥ 20, criteria ≥ 50, goal + deliverables required, budget > 0, deadline
+ * 1–365, stages 1–50, valid category) so create/edit can never drift. Numeric minimums live in `lib/gig-validation`.
  */
 type ParsedGigFields = {
   title: string
@@ -55,8 +56,21 @@ function parseGigForm(formData: FormData): { error: string } | { fields: ParsedG
     return { error: 'Заполните обязательные поля: название, описание и критерии приёмки.' }
   }
 
+  // Server-authoritative minimum for the description (SSOT — mirrors the create form's readiness checklist).
+  if (description.length < GIG_DESCRIPTION_MIN) {
+    return { error: `Описание должно быть не короче ${GIG_DESCRIPTION_MIN} символов. Опишите контекст и текущее состояние: что есть и что болит.` }
+  }
+
   if (acceptanceCriteria.length < 50) {
     return { error: 'Критерии приёмки должны быть не короче 50 символов. Опишите подробнее, что считается результатом.' }
+  }
+
+  // Goal + deliverables are required (SSOT). Constraints stay optional.
+  if (!goal) {
+    return { error: 'Укажите цель гига — зачем это нужно, какой результат для бизнеса.' }
+  }
+  if (!deliverables) {
+    return { error: 'Опишите ожидаемый результат — что заказчик получит на выходе (PR, демо, инструкция).' }
   }
 
   const budgetRoubles = Number(budgetRaw)

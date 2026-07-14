@@ -70,8 +70,10 @@ describe('Comprehensive XSS Protection Tests', () => {
 
         const formData = new FormData()
         formData.append('title', `${payload}Safe Title`)
-        formData.append('description', 'Test description')
+        formData.append('description', 'Test description of the work item')
         formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+        formData.append('goal', 'Достичь конкретного бизнес-результата')
+        formData.append('deliverables', 'Рабочий код, документация и тесты')
         formData.append('budget', '100000')
 
         await withAuthContext(client, async () => {
@@ -117,7 +119,7 @@ describe('Comprehensive XSS Protection Tests', () => {
         const gig = await prisma.gig.create({
           data: {
             title: 'Test Gig',
-            description: 'Test description',
+            description: 'Test description of the work item',
             acceptanceCriteria: 'Test criteria',
             budget: 10000000,
             serviceFee: 1000000,
@@ -194,7 +196,7 @@ describe('Comprehensive XSS Protection Tests', () => {
         const gig = await prisma.gig.create({
           data: {
             title: 'Test Gig',
-            description: 'Test description',
+            description: 'Test description of the work item',
             acceptanceCriteria: 'Test criteria',
             budget: 10000000,
             serviceFee: 1000000,
@@ -338,6 +340,8 @@ describe('Comprehensive XSS Protection Tests', () => {
       formData.append('title', '<script>alert(1)</script><img onerror="alert(2)">Safe Title')
       formData.append('description', '<svg onload="alert(3)">Description with <a href="javascript:alert(4)">link</a>')
       formData.append('acceptanceCriteria', '<iframe src="javascript:alert(5)"></iframe>This is acceptance criteria with more than 50 characters after sanitization')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
 
       await withAuthContext(client, async () => {

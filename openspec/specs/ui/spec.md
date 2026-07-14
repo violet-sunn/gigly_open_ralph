@@ -675,16 +675,19 @@ The system MUST provide a form at `/gigs/new` for CLIENT users to create gigs.
 - AND the fields MUST be visually grouped with "Additional Details (Optional)" heading
 - AND no `required` attribute on optional fields
 
+> **Superseded (gig-validation-ssot, 2026-07-15):** the counter format/color scenarios below describe the
+> pre-reground English kit (`app/gigs/new/page.tsx`, `"X / 50 characters (minimum)"`, `text-red-600`/`text-gray-600`).
+> The live create/edit screens are the re-grounded `CreateGigDesign.tsx` / `EditGigDesign.tsx` (`gigly_full_design`
+> skin, `character-counter.tsx`), and their counter behavior is governed by "Localized Live Character Counters on
+> Gig Create/Edit" below. Where the two conflict, the localized requirement wins. Note also that `goal` and
+> `deliverables` are now **required** (see the gig spec "Create Gig Server Action"), not optional.
+
 #### Scenario: Character count displays for acceptanceCriteria field
 - GIVEN a CLIENT user is on the gig creation form
 - WHEN they type in the acceptanceCriteria textarea
-- THEN the form MUST display a real-time character count below the field
-- AND the count MUST show format "X / 50 characters (minimum)"
-- AND the count MUST be right-aligned
-- AND when character count is below 50, the text MUST be red (text-red-600)
-- AND when character count is 50 or above, the text MUST be gray (text-gray-600)
-- AND when character count is 50-149 and user has interacted, a quality guidance warning MUST appear above the counter
-- AND when character count is 150+, the quality guidance warning MUST NOT appear
+- THEN the form MUST display a real-time, Russian-localized character count below the field showing progress against the 50-character minimum (e.g. «34 / 50 символов»)
+- AND the count MUST visually signal "not yet met" (a token-based warning color, not `text-red-600`) until 50 is reached
+- AND when the count reaches 50, the counter MUST switch to its neutral/met state
 
 #### Scenario: Character count displays for optional goal field
 - GIVEN a CLIENT user is on the gig creation form
@@ -742,25 +745,12 @@ The system MUST provide a form at `/gigs/new` for CLIENT users to create gigs.
 - AND each count MUST use small font size (text-sm)
 - AND the counts MUST NOT push other form elements out of alignment
 
-**Acceptance Criteria:**
-- `app/gigs/new/page.tsx` exists
+**Acceptance Criteria:** *(pre-reground kit — superseded by the localized requirements below; retained for the structural/section contract only)*
+- The live form is the re-grounded `CreateGigDesign.tsx` (not `app/gigs/new/page.tsx`), on the `gigly_full_design` skin
 - Uses `useActionState` with `createGig` action
-- Uses `useFormStatus` for pending state on submit button
-- Acceptance criteria field:
-  - `<textarea name="acceptanceCriteria" required rows={5} />`
-  - Label: "Definition of Done" or "Acceptance Criteria"
-  - Placeholder with example text
-  - Helper text: "Minimum 50 characters. Clear criteria prevent disputes and scope creep."
-  - Real-time character counter showing "X / 50 characters (minimum)"
-  - Red text (text-red-600) when under 50, gray (text-gray-600) when 50+
-- Three optional fields (goal, deliverables, constraints):
-  - Each has label, placeholder with realistic example, helper text
-  - Each has `name` attribute, `rows={3}`
-  - No `required` attribute
-  - Positioned after acceptanceCriteria, before budget
-  - Visual grouping with "Additional Details (Optional)" heading
-  - Real-time character counter showing "X / 1000 characters"
-  - Gray text (text-gray-600) when under 900, orange (text-orange-600) when 900+
+- Acceptance criteria field: `<textarea name="acceptanceCriteria" …>`, minimum 50 characters, with a live **Russian** counter (see "Localized Live Character Counters on Gig Create/Edit")
+- `goal` and `deliverables` are **required** (non-empty); `constraints` remains optional — see the gig spec "Create Gig Server Action"
+- Counters are token-based (`gigly_full_design` skin), not `text-red-600`/`text-gray-600`/`text-orange-600` kit classes
 - Character counters:
   - All four textarea fields display character counts
   - Update in real-time via `onChange` handler
@@ -772,6 +762,82 @@ The system MUST provide a form at `/gigs/new` for CLIENT users to create gigs.
 - Displays `state?.error` when present
 - Server-side validation unchanged (still validates min 50 chars for acceptanceCriteria)
 - Quality guidance warning component integrated (see Acceptance Criteria Quality Guidance Warning requirement)
+
+---
+
+### Requirement: Localized Live Character Counters on Gig Create/Edit
+The re-grounded gig create and edit forms MUST render a live, **Russian-localized** character counter on the description and acceptance-criteria fields (and on any field with a maximum), so the user always sees their progress against the minimum/maximum. The counter component (`app/(protected)/gigs/new/character-counter.tsx`) MUST be rendered (it previously existed but was unused) and its text MUST be Russian.
+
+#### Scenario: Description counter shows progress to the minimum
+- GIVEN a CLIENT user typing in the description field on `/gigs/new` (or the edit form)
+- WHEN the value is shorter than 20 characters (trimmed)
+- THEN a live counter MUST display the current count against the 20-character minimum, in Russian (e.g. «12 / 20 символов»)
+- AND the counter MUST update on every keystroke
+- AND the counter MUST visually signal "not yet met" (a token-based warning color) until the minimum is reached
+
+#### Scenario: Criteria counter shows progress to the minimum
+- GIVEN a CLIENT user editing acceptance criteria
+- WHEN the combined committed criteria text is shorter than 50 characters (trimmed)
+- THEN a live counter MUST display the current count against the 50-character minimum, in Russian (e.g. «34 / 50 символов»)
+- AND it MUST update as criteria are added or removed
+
+#### Scenario: Counter is accessible
+- GIVEN a screen-reader user on the form
+- WHEN a counter updates
+- THEN the counter element MUST have `aria-live="polite"` and a descriptive Russian `aria-label` or visible text
+
+#### Scenario: Counter does not replace server validation
+- GIVEN a submission with a sub-minimum field
+- WHEN the form is submitted
+- THEN the server MUST still reject it (the counter is advisory only, not a substitute for `parseGigForm`)
+
+---
+
+### Requirement: Legible "Why Submit Is Disabled" Guidance
+The re-grounded gig create/edit form MUST tell the user **why** the submit control is unavailable and **what remains**, rather than showing a bare disabled button with a vague hint. The guidance MUST be in Russian and name the specific unmet requirement(s) and the shortfall.
+
+#### Scenario: Short description explains the shortfall
+- GIVEN a CLIENT user whose description is 12 characters (below the 20 minimum) and all else valid
+- WHEN they view the submit area
+- THEN the button MUST be disabled AND a Russian message MUST state the unmet requirement and remaining amount (e.g. «Описание: ещё 8 символов»)
+- AND once the description reaches 20 characters, the message MUST clear and the button MUST enable
+
+#### Scenario: Multiple unmet requirements are surfaced
+- GIVEN a CLIENT user with more than one unmet requirement (e.g. empty goal AND short criteria)
+- WHEN they view the readiness area
+- THEN the guidance MUST make clear which requirements are still unmet (not merely the first), so the user can complete the brief
+
+---
+
+### Requirement: Custom Acceptance Criteria Always Count
+The re-grounded gig create/edit form MUST ensure that acceptance criteria the user **types themselves** count toward readiness and are persisted, not only criteria picked from suggested chips. Pending text in the custom-criteria input MUST NOT be silently dropped.
+
+#### Scenario: Typed-but-not-committed criteria still count on submit
+- GIVEN a CLIENT user who typed a custom criterion into the criteria input but did not press Enter or «Добавить»
+- WHEN they submit the form
+- THEN the pending input text MUST be auto-committed into the criteria set before validation
+- AND if the resulting combined criteria are ≥ 50 characters, the gig MUST be creatable (the readiness check MUST NOT stay unmet solely because the text was uncommitted)
+
+#### Scenario: A hint prompts committing custom criteria
+- GIVEN a CLIENT user with non-empty text in the custom-criteria input that has not been added
+- WHEN they view the criteria field
+- THEN a Russian hint MUST prompt them to add it (e.g. «нажмите Добавить»), so the commit step is discoverable
+
+#### Scenario: Custom-only criteria can satisfy the minimum
+- GIVEN a CLIENT user who adds only their own custom criteria (no suggested chips) totalling ≥ 50 characters
+- WHEN they submit
+- THEN the criteria readiness MUST be satisfied and the gig MUST be creatable
+
+---
+
+### Requirement: Edit Form Readiness Parity
+The gig **edit** form (`EditGigDesign.tsx`) MUST present the same readiness affordances (localized counters, why-disabled guidance, custom-criteria handling) as the create form, so a user cannot edit a gig into a state that creation would reject and always sees the same feedback.
+
+#### Scenario: Edit form mirrors create readiness
+- GIVEN the owning CLIENT editing an `OPEN` gig
+- WHEN a field is below its minimum (e.g. description < 20, criteria < 50, empty goal/deliverables)
+- THEN the edit form MUST show the same localized counter + why-disabled guidance as create
+- AND submitting anyway MUST be rejected by the server (`updateGig` → `parseGigForm`)
 
 ---
 

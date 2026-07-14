@@ -50,6 +50,8 @@ function gigForm(opts?: { title?: string; category?: string }) {
   fd.set('title', opts?.title ?? `Гиг ${Math.random().toString(36).slice(2)}`)
   fd.set('description', 'Подробное описание задачи для теста категорий.')
   fd.set('acceptanceCriteria', 'Критерии приёмки должны быть достаточно длинными, минимум пятьдесят символов точно.')
+  fd.set('goal', 'Достичь конкретного бизнес-результата')
+  fd.set('deliverables', 'Рабочий код, документация и тесты')
   fd.set('budget', '120000')
   fd.set('tags', 'React,TypeScript')
   if (opts?.category !== undefined) fd.set('category', opts.category)

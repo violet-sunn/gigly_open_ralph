@@ -1,35 +1,46 @@
+import { pluralRu } from "@/lib/utils/plural";
+
 interface CharacterCounterProps {
-  current: number
-  min?: number
-  max?: number
-  label: string
+  current: number;
+  min?: number;
+  max?: number;
+  /** Accessible label (Russian), e.g. «Счётчик символов описания». */
+  label: string;
 }
 
+/**
+ * Live, Russian-localized character counter for the gig create/edit forms. Rendered under the description and
+ * acceptance-criteria fields (min) and any max-bounded field. Skinned with gigly_full_design tokens (inline styles,
+ * Manrope, right-aligned) to match CreateGigDesign — NOT the old kit classes. Advisory only; the server
+ * (parseGigForm) remains the source of truth.
+ */
 export function CharacterCounter({ current, min, max, label }: CharacterCounterProps) {
-  // Determine color based on thresholds
-  let colorClass = 'text-neutral-weak'
+  const belowMin = min !== undefined && current < min;
+  const nearMax = max !== undefined && current >= max * 0.9;
+  const color = belowMin || nearMax ? "#f59e0b" : "var(--text-4)";
 
-  if (min !== undefined && current < min) {
-    colorClass = 'text-red-600'
-  } else if (max !== undefined && current >= max * 0.9) {
-    colorClass = 'text-orange-600'
-  }
-
-  // Determine display format
-  let displayText = ''
+  const ref = min ?? max ?? 0;
+  const noun = pluralRu(ref, ["символ", "символа", "символов"]);
+  let text = "";
   if (min !== undefined) {
-    displayText = `${current} / ${min} characters (minimum)`
+    text = `${current} / ${min} ${noun}`;
   } else if (max !== undefined) {
-    displayText = `${current} / ${max} characters`
+    text = `${current} / ${max} ${noun}`;
   }
 
   return (
     <span
-      className={`text-sm text-right ${colorClass}`}
       aria-live="polite"
       aria-label={label}
+      style={{
+        fontFamily: "'Manrope',sans-serif",
+        fontSize: 12,
+        lineHeight: "16px",
+        textAlign: "right",
+        color,
+      }}
     >
-      {displayText}
+      {text}
     </span>
-  )
+  );
 }

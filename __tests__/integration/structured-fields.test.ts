@@ -1,15 +1,12 @@
 /**
  * Structured Fields Tests
  *
- * This test suite validates that optional structured fields (goal, deliverables, constraints) work correctly:
- * - Fields are saved correctly when provided
- * - Fields default to empty strings when not provided
- * - Whitespace trimming behavior
- * - No minimum length validation for optional fields
- * - Backward compatibility with gigs without structured fields
- *
- * Total: 12+ test scenarios covering all requirements from:
- * - requirements-iteration-2/specs/gig/spec.md
+ * This test suite validates the structured fields goal, deliverables, and constraints.
+ * NOTE (gig-validation-ssot): goal + deliverables are now REQUIRED; only `constraints` remains optional.
+ * - Required fields are saved correctly when provided; missing/whitespace-only goal or deliverables is rejected
+ * - Optional `constraints` defaults to an empty string when not provided
+ * - Whitespace trimming behavior; no maximum length on the structured fields
+ * - Backward compatibility: gigs already stored with empty structured fields still read gracefully
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
@@ -111,7 +108,8 @@ describe('Structured Fields Tests', () => {
       await prisma.user.delete({ where: { id: client.id } })
     })
 
-    it('defaults to empty strings when optional fields not provided', async () => {
+    // gig-validation-ssot: goal + deliverables are now REQUIRED; only `constraints` remains optional.
+    it('defaults the optional constraints field to empty string when not provided', async () => {
       const prisma = getTestPrismaClient()
       const bcrypt = await import('bcryptjs')
 
@@ -126,11 +124,13 @@ describe('Structured Fields Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'Acceptance criteria with at least 50 characters for validation')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
       formData.append('tags', 'React')
-      // goal, deliverables, constraints NOT provided
+      // constraints NOT provided (the only optional structured field)
 
       await withAuthContext(client, async () => {
         try {
@@ -144,8 +144,8 @@ describe('Structured Fields Tests', () => {
         where: { clientId: client.id }
       })
       expect(gigs.length).toBe(1)
-      expect(gigs[0].goal).toBe('')
-      expect(gigs[0].deliverables).toBe('')
+      expect(gigs[0].goal).toBe('Достичь конкретного бизнес-результата')
+      expect(gigs[0].deliverables).toBe('Рабочий код, документация и тесты')
       expect(gigs[0].constraints).toBe('')
 
       // Cleanup
@@ -168,7 +168,7 @@ describe('Structured Fields Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'Acceptance criteria with at least 50 characters for validation')
       formData.append('goal', '   Goal with whitespace   ')
       formData.append('deliverables', '\n\nDeliverables with newlines\n\n')
@@ -196,7 +196,7 @@ describe('Structured Fields Tests', () => {
       await prisma.user.delete({ where: { id: client.id } })
     })
 
-    it('stores whitespace-only values as empty strings', async () => {
+    it('rejects a whitespace-only goal (required field treated as empty after trim)', async () => {
       const prisma = getTestPrismaClient()
       const bcrypt = await import('bcryptjs')
 
@@ -211,31 +211,25 @@ describe('Structured Fields Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'Acceptance criteria with at least 50 characters for validation')
-      formData.append('goal', '   ')
-      formData.append('deliverables', '\n\n\n')
+      formData.append('goal', '   ') // whitespace-only → empty after trim → rejected (goal required)
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('constraints', '\t\t\t')
       formData.append('budget', '100000')
       formData.append('tags', 'React')
 
       await withAuthContext(client, async () => {
-        try {
-          await createGig(null, formData)
-        } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
-        }
+        const result = await createGig(null, formData)
+        expect(result).toEqual({ error: 'Укажите цель гига — зачем это нужно, какой результат для бизнеса.' })
       })
 
       const gigs = await prisma.gig.findMany({
         where: { clientId: client.id }
       })
-      expect(gigs[0].goal).toBe('')
-      expect(gigs[0].deliverables).toBe('')
-      expect(gigs[0].constraints).toBe('')
+      expect(gigs.length).toBe(0)
 
       // Cleanup
-      await prisma.gig.deleteMany({ where: { clientId: client.id } })
       await prisma.user.delete({ where: { id: client.id } })
     })
   })
@@ -256,7 +250,7 @@ describe('Structured Fields Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'Acceptance criteria with at least 50 characters for validation')
       formData.append('goal', 'Short') // Only 5 characters
       formData.append('deliverables', 'API') // Only 3 characters
@@ -301,7 +295,7 @@ describe('Structured Fields Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'Acceptance criteria with at least 50 characters for validation')
       formData.append('goal', longText)
       formData.append('deliverables', longText)
@@ -430,7 +424,7 @@ describe('Structured Fields Tests', () => {
   })
 
   describe('Partial structured fields', () => {
-    it('saves only filled fields, others remain empty', async () => {
+    it('rejects a gig when the required deliverables field is missing (goal alone is not enough)', async () => {
       const prisma = getTestPrismaClient()
       const bcrypt = await import('bcryptjs')
 
@@ -445,30 +439,24 @@ describe('Structured Fields Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'Acceptance criteria with at least 50 characters for validation')
       formData.append('goal', 'Only goal is filled')
-      // deliverables and constraints NOT provided
+      // deliverables NOT provided — now required
       formData.append('budget', '100000')
       formData.append('tags', 'React')
 
       await withAuthContext(client, async () => {
-        try {
-          await createGig(null, formData)
-        } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
-        }
+        const result = await createGig(null, formData)
+        expect(result).toEqual({ error: 'Опишите ожидаемый результат — что заказчик получит на выходе (PR, демо, инструкция).' })
       })
 
       const gigs = await prisma.gig.findMany({
         where: { clientId: client.id }
       })
-      expect(gigs[0].goal).toBe('Only goal is filled')
-      expect(gigs[0].deliverables).toBe('')
-      expect(gigs[0].constraints).toBe('')
+      expect(gigs.length).toBe(0)
 
       // Cleanup
-      await prisma.gig.deleteMany({ where: { clientId: client.id } })
       await prisma.user.delete({ where: { id: client.id } })
     })
   })
@@ -532,7 +520,7 @@ describe('Structured Fields Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'Acceptance criteria with at least 50 characters for validation')
       formData.append('goal', 'Goal with special chars: @#$%^&*()')
       formData.append('deliverables', 'Deliverables with punctuation: "quotes", commas, periods.')

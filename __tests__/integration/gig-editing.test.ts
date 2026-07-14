@@ -77,8 +77,9 @@ function editForm(gigId: string, over: Record<string, string> = {}): FormData {
   )
   fd.append('budget', over.budget ?? '200000')
   fd.append('tags', over.tags ?? 'React,Node.js')
-  if (over.goal !== undefined) fd.append('goal', over.goal)
-  if (over.deliverables !== undefined) fd.append('deliverables', over.deliverables)
+  // goal + deliverables are now required (gig-validation-ssot) — default them so edits are valid unless overridden
+  fd.append('goal', over.goal ?? 'Достичь конкретного бизнес-результата')
+  fd.append('deliverables', over.deliverables ?? 'Рабочий код, документация и тесты')
   if (over.constraints !== undefined) fd.append('constraints', over.constraints)
   if (over.deadlineDays !== undefined) fd.append('deadlineDays', over.deadlineDays)
   if (over.stageCount !== undefined) fd.append('stageCount', over.stageCount)
@@ -225,6 +226,28 @@ describe('Gig Editing (updateGig)', () => {
       const gig = await createEditableGig(prisma, client.id)
       const res = await withAuthContext(client, () => updateGig(null, editForm(gig.id, { budget: '0' })))
       expect(res.error).toContain('Бюджет должен быть положительным числом')
+    })
+
+    // gig-validation-ssot: the edit path must NOT be able to bypass the create-time minimums.
+    it('rejects a description shorter than 20 characters (no edit bypass)', async () => {
+      const client = await createTestUser(prisma, { role: 'CLIENT' })
+      const gig = await createEditableGig(prisma, client.id)
+      const res = await withAuthContext(client, () => updateGig(null, editForm(gig.id, { description: 'мало' })))
+      expect(res.error).toContain('Описание должно быть не короче 20 символов')
+    })
+
+    it('rejects an empty goal (required field, no edit bypass)', async () => {
+      const client = await createTestUser(prisma, { role: 'CLIENT' })
+      const gig = await createEditableGig(prisma, client.id)
+      const res = await withAuthContext(client, () => updateGig(null, editForm(gig.id, { goal: '   ' })))
+      expect(res).toEqual({ error: 'Укажите цель гига — зачем это нужно, какой результат для бизнеса.' })
+    })
+
+    it('rejects empty deliverables (required field, no edit bypass)', async () => {
+      const client = await createTestUser(prisma, { role: 'CLIENT' })
+      const gig = await createEditableGig(prisma, client.id)
+      const res = await withAuthContext(client, () => updateGig(null, editForm(gig.id, { deliverables: '   ' })))
+      expect(res).toEqual({ error: 'Опишите ожидаемый результат — что заказчик получит на выходе (PR, демо, инструкция).' })
     })
 
     it('rejects a deadline outside 1–365', async () => {

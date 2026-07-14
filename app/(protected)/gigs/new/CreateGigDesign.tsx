@@ -9,7 +9,16 @@ import { useActionState, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createGig } from "@/app/actions/gig";
 import { CAT_RGB } from "@/app/_design/util";
+import { CharacterCounter } from "./character-counter";
+import { GIG_DESCRIPTION_MIN, GIG_CRITERIA_MIN } from "@/lib/gig-validation";
+import { pluralRu } from "@/lib/utils/plural";
 import "@/app/_design/tokens.css";
+
+/** «ещё N символов» — the remaining-characters shortfall for a min-length gate. */
+const shortfall = (current: number, min: number) => {
+  const left = min - current;
+  return `ещё ${left} ${pluralRu(left, ["символ", "символа", "символов"])}`;
+};
 
 type ActionState = { error?: string } | null;
 
@@ -59,6 +68,15 @@ export function CreateGigDesign({ categoryOptions }: { categoryOptions: { key: s
   const budgetNum = Number(budget) || 0;
   const fee = budgetNum > 0 ? Math.floor(budgetNum * 0.1) : 0;
 
+  // Effective criteria = committed chips PLUS any text still sitting in the input, so a typed-but-uncommitted
+  // criterion always counts toward readiness AND is submitted (no silent drop). Mirrors the server, which reads the
+  // hidden `acceptanceCriteria` value below.
+  const pendingCrit = critInput.trim();
+  const effectiveCriteria = pendingCrit && !criteria.includes(pendingCrit) ? [...criteria, pendingCrit] : criteria;
+  const criteriaText = effectiveCriteria.join("\n");
+  const criteriaLen = criteriaText.trim().length;
+  const descLen = description.trim().length;
+
   const addCrit = (t: string) => {
     const v = t.trim();
     if (v) setCriteria((c) => (c.includes(v) ? c : [...c, v]));
@@ -68,30 +86,36 @@ export function CreateGigDesign({ categoryOptions }: { categoryOptions: { key: s
     if (v) setTags((c) => (c.includes(v) ? c : [...c, v]));
   };
 
-  // 7-point «Готовность брифа» checklist (mirrors the prototype).
-  const checks = [
+  // 7-point «Готовность брифа» checklist. Each gate MIRRORS the server (parseGigForm) so the button never enables on
+  // input the server would reject; `reason` carries the numeric shortfall for the min-length gates.
+  const checks: { label: string; hint: string; done: boolean; reason?: string }[] = [
     { label: "Название", hint: "Коротко и по делу — как заголовок задачи.", done: title.trim() !== "" },
     { label: "Категория", hint: "Помогает гигу попасть к нужным специалистам.", done: category !== "" },
-    { label: "Описание", hint: "Контекст и текущее состояние: что есть и что болит.", done: description.trim().length >= 20 },
+    {
+      label: "Описание",
+      hint: "Контекст и текущее состояние: что есть и что болит.",
+      done: descLen >= GIG_DESCRIPTION_MIN,
+      reason: descLen > 0 && descLen < GIG_DESCRIPTION_MIN ? shortfall(descLen, GIG_DESCRIPTION_MIN) : undefined,
+    },
     { label: "Цель", hint: "Зачем это нужно — результат для бизнеса, а не «как».", done: goal.trim() !== "" },
     { label: "Ожидаемый результат", hint: "Что заказчик получит на выходе: PR, демо, инструкция.", done: deliverables.trim() !== "" },
-    { label: "Критерии приёмки", hint: "Главное: по ним принимается работа. Снижает споры и правки. Минимум 50 символов суммарно.", done: criteria.join("\n").trim().length >= 50 },
+    {
+      label: "Критерии приёмки",
+      hint: "Главное: по ним принимается работа. Снижает споры и правки. Минимум 50 символов суммарно.",
+      done: criteriaLen >= GIG_CRITERIA_MIN,
+      reason: criteriaLen > 0 && criteriaLen < GIG_CRITERIA_MIN ? shortfall(criteriaLen, GIG_CRITERIA_MIN) : undefined,
+    },
     { label: "Бюджет и срок", hint: "Понятные ожидания по деньгам и времени.", done: budgetNum > 0 && deadline.trim() !== "" },
   ];
   const done = checks.filter((c) => c.done).length;
   const pct = Math.round((done / checks.length) * 100);
   const scoreColor = done >= 6 ? "#34c759" : done >= 4 ? "var(--om-accent, #0088ff)" : "#f59e0b";
-  const firstGap = checks.find((c) => !c.done);
+  const gaps = checks.filter((c) => !c.done);
+  const firstGap = gaps[0];
 
-  // Gate «Опубликовать» on exactly what the server (createGig) requires, so a valid-looking brief can't be bounced:
-  // title + description + category + acceptance criteria ≥ 50 chars + positive budget + a deadline (avoids «0 дней»).
-  const canSubmit =
-    title.trim() !== "" &&
-    description.trim() !== "" &&
-    category !== "" &&
-    criteria.join("\n").trim().length >= 50 &&
-    budgetNum > 0 &&
-    deadline.trim() !== "";
+  // Gate «Опубликовать» on EXACTLY the readiness checklist, which mirrors the server, so a valid-looking brief can't be
+  // bounced and the button can't enable on server-invalid input.
+  const canSubmit = gaps.length === 0;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -122,7 +146,7 @@ export function CreateGigDesign({ categoryOptions }: { categoryOptions: { key: s
 
       <form action={action} style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
         <input type="hidden" name="category" value={category} />
-        <input type="hidden" name="acceptanceCriteria" value={criteria.join("\n")} />
+        <input type="hidden" name="acceptanceCriteria" value={criteriaText} />
         <input type="hidden" name="tags" value={tags.join(",")} />
 
         {/* ФОРМА */}
@@ -172,6 +196,9 @@ export function CreateGigDesign({ categoryOptions }: { categoryOptions: { key: s
                 placeholder="Контекст и текущее состояние: какой стек, что сломано или чего не хватает…"
                 style={{ ...areaStyle, height: 96 }}
               />
+              <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <CharacterCounter current={descLen} min={GIG_DESCRIPTION_MIN} label="Счётчик символов описания" />
+              </div>
             </div>
           </div>
 
@@ -220,6 +247,14 @@ export function CreateGigDesign({ categoryOptions }: { categoryOptions: { key: s
                 >
                   Добавить
                 </button>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, lineHeight: "16px", color: "var(--text-4)" }}>
+                  {pendingCrit && !criteria.includes(pendingCrit)
+                    ? "Нажмите «Добавить», чтобы закрепить критерий (иначе он учтётся как есть при публикации)."
+                    : ""}
+                </span>
+                <CharacterCounter current={criteriaLen} min={GIG_CRITERIA_MIN} label="Счётчик символов критериев приёмки" />
               </div>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                 {CRITERIA_SUGGESTIONS.filter((s) => !criteria.includes(s)).slice(0, 3).map((s) => (
@@ -328,7 +363,7 @@ export function CreateGigDesign({ categoryOptions }: { categoryOptions: { key: s
             </div>
             <div style={{ borderRadius: 8, background: "rgba(0,136,255,0.06)", boxShadow: "inset 0 0 0 1px rgba(0,136,255,0.2)", padding: 12, display: "flex", flexDirection: "column", gap: 4 }}>
               <span style={{ fontFamily: "'Handjet',monospace", fontWeight: 600, fontSize: 13, color: "var(--om-accent, #0088ff)" }}>
-                {firstGap ? `Добавьте: ${firstGap.label}` : "Бриф готов ✓"}
+                {firstGap ? `Добавьте: ${firstGap.label}${firstGap.reason ? ` — ${firstGap.reason}` : ""}` : "Бриф готов ✓"}
               </span>
               <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, lineHeight: "16px", color: "var(--text-3)" }}>
                 {firstGap ? firstGap.hint : "Бриф готов — отличные шансы на сильные отклики."}
@@ -356,10 +391,17 @@ export function CreateGigDesign({ categoryOptions }: { categoryOptions: { key: s
             <button type="submit" disabled={!canSubmit} style={{ height: 46, border: "none", borderRadius: 8, background: "var(--om-accent, #0088ff)", color: "#fff", fontSize: 15, fontWeight: 500, cursor: canSubmit ? "pointer" : "not-allowed", opacity: canSubmit ? 1 : 0.5 }}>
               Опубликовать гиг
             </button>
-            {!canSubmit && firstGap && (
-              <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, color: "var(--text-4)", textAlign: "center" }}>
-                Чтобы опубликовать, заполните: {firstGap.label.toLowerCase()}
-              </span>
+            {!canSubmit && gaps.length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, color: "var(--text-3)" }}>
+                  Чтобы опубликовать, дополните:
+                </span>
+                {gaps.map((g) => (
+                  <span key={g.label} style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, lineHeight: "16px", color: "var(--text-4)" }}>
+                    • {g.label}{g.reason ? ` — ${g.reason}` : ""}
+                  </span>
+                ))}
+              </div>
             )}
             {state?.error && <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, color: "#ef4444" }}>{state.error}</span>}
             <span style={{ fontFamily: "'Handjet',monospace", fontSize: 12, textAlign: "center", color: "var(--text-4)" }}>

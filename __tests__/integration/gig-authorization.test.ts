@@ -70,6 +70,8 @@ describe('Gig Authorization Tests', () => {
     formData.append('title', 'Test Gig')
     formData.append('description', 'Test description for the gig')
     formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters to pass validation')
+    formData.append('goal', 'Достичь конкретного бизнес-результата')
+    formData.append('deliverables', 'Рабочий код, документация и тесты')
     formData.append('budget', '100000')
     formData.append('tags', 'React,TypeScript')
 
@@ -108,13 +110,15 @@ describe('Gig Authorization Tests', () => {
 
     const formData = new FormData()
     formData.append('title', 'Test Gig')
-    formData.append('description', 'Test description')
+    formData.append('description', 'Test description of the work item')
     formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+    formData.append('goal', 'Достичь конкретного бизнес-результата')
+    formData.append('deliverables', 'Рабочий код, документация и тесты')
     formData.append('budget', '100000')
 
     await withAuthContext(specialist, async () => {
       const result = await createGig(null, formData)
-      expect(result).toEqual({ error: 'Only clients can post gigs. Switch to a client account or register as a client to continue.' })
+      expect(result).toEqual({ error: 'Публиковать гиги могут только заказчики. Войдите как компания или зарегистрируйтесь в роли заказчика.' })
     })
 
     // Cleanup

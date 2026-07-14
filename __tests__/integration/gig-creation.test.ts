@@ -69,6 +69,8 @@ describe('Gig Creation Tests', () => {
       formData.append('title', 'Test Gig')
       formData.append('description', 'Test description for the gig')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters to pass validation')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
       formData.append('tags', 'React,TypeScript')
 
@@ -107,13 +109,15 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       // No title
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
 
       await withAuthContext(client, async () => {
         const result = await createGig(null, formData)
-        expect(result).toEqual({ error: 'Please fill in all required fields: title, description, and acceptance criteria.' })
+        expect(result).toEqual({ error: 'Заполните обязательные поля: название, описание и критерии приёмки.' })
       })
 
       // Verify no gig created
@@ -140,11 +144,13 @@ describe('Gig Creation Tests', () => {
       formData.append('title', 'Test Gig')
       // No description
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
 
       await withAuthContext(client, async () => {
         const result = await createGig(null, formData)
-        expect(result).toEqual({ error: 'Please fill in all required fields: title, description, and acceptance criteria.' })
+        expect(result).toEqual({ error: 'Заполните обязательные поля: название, описание и критерии приёмки.' })
       })
 
       // Verify no gig created
@@ -169,13 +175,13 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       // No acceptance criteria
       formData.append('budget', '100000')
 
       await withAuthContext(client, async () => {
         const result = await createGig(null, formData)
-        expect(result).toEqual({ error: 'Please fill in all required fields: title, description, and acceptance criteria.' })
+        expect(result).toEqual({ error: 'Заполните обязательные поля: название, описание и критерии приёмки.' })
       })
 
       // Verify no gig created
@@ -200,13 +206,15 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       // No budget
 
       await withAuthContext(client, async () => {
         const result = await createGig(null, formData)
-        expect(result).toEqual({ error: 'Budget must be a positive number in roubles. Enter the amount you\'ll pay the specialist (service fee will be calculated automatically).' })
+        expect(result).toEqual({ error: 'Бюджет должен быть положительным числом в рублях. Укажите сумму для специалиста (сервисный сбор считается автоматически).' })
       })
 
       // Verify no gig created
@@ -231,13 +239,15 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', '   ') // Whitespace only
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
 
       await withAuthContext(client, async () => {
         const result = await createGig(null, formData)
-        expect(result).toEqual({ error: 'Please fill in all required fields: title, description, and acceptance criteria.' })
+        expect(result).toEqual({ error: 'Заполните обязательные поля: название, описание и критерии приёмки.' })
       })
 
       // Cleanup
@@ -260,12 +270,79 @@ describe('Gig Creation Tests', () => {
       formData.append('title', 'Test Gig')
       formData.append('description', '   ') // Whitespace only
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
 
       await withAuthContext(client, async () => {
         const result = await createGig(null, formData)
-        expect(result).toEqual({ error: 'Please fill in all required fields: title, description, and acceptance criteria.' })
+        expect(result).toEqual({ error: 'Заполните обязательные поля: название, описание и критерии приёмки.' })
       })
+
+      // Cleanup
+      await prisma.user.delete({ where: { id: client.id } })
+    })
+
+    // gig-validation-ssot: server-authoritative minimums for the description and the required goal field.
+    it('rejects gig with a description shorter than 20 characters', async () => {
+      const prisma = getTestPrismaClient()
+
+      const hashedPassword = await (await import('bcryptjs')).hash('password123', 10)
+      const client = await prisma.user.create({
+        data: {
+          email: `client-${Date.now()}@example.com`,
+          password: hashedPassword,
+          role: 'CLIENT'
+        }
+      })
+
+      const formData = new FormData()
+      formData.append('title', 'Test Gig')
+      formData.append('description', 'слишком коротко') // < 20 chars
+      formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
+      formData.append('budget', '100000')
+
+      await withAuthContext(client, async () => {
+        const result = await createGig(null, formData)
+        expect(result.error).toContain('Описание должно быть не короче 20 символов')
+      })
+
+      const gigs = await prisma.gig.findMany({ where: { clientId: client.id } })
+      expect(gigs.length).toBe(0)
+
+      // Cleanup
+      await prisma.user.delete({ where: { id: client.id } })
+    })
+
+    it('rejects gig with missing goal', async () => {
+      const prisma = getTestPrismaClient()
+
+      const hashedPassword = await (await import('bcryptjs')).hash('password123', 10)
+      const client = await prisma.user.create({
+        data: {
+          email: `client-${Date.now()}@example.com`,
+          password: hashedPassword,
+          role: 'CLIENT'
+        }
+      })
+
+      const formData = new FormData()
+      formData.append('title', 'Test Gig')
+      formData.append('description', 'Test description of the work item')
+      formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      // No goal — now required
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
+      formData.append('budget', '100000')
+
+      await withAuthContext(client, async () => {
+        const result = await createGig(null, formData)
+        expect(result).toEqual({ error: 'Укажите цель гига — зачем это нужно, какой результат для бизнеса.' })
+      })
+
+      const gigs = await prisma.gig.findMany({ where: { clientId: client.id } })
+      expect(gigs.length).toBe(0)
 
       // Cleanup
       await prisma.user.delete({ where: { id: client.id } })
@@ -285,13 +362,15 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', '   ') // Whitespace only
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
 
       await withAuthContext(client, async () => {
         const result = await createGig(null, formData)
-        expect(result).toEqual({ error: 'Please fill in all required fields: title, description, and acceptance criteria.' })
+        expect(result).toEqual({ error: 'Заполните обязательные поля: название, описание и критерии приёмки.' })
       })
 
       // Cleanup
@@ -314,8 +393,10 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'a'.repeat(50)) // Exactly 50 characters
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
 
       await withAuthContext(client, async () => {
@@ -349,8 +430,10 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'a'.repeat(100)) // 100 characters
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
 
       await withAuthContext(client, async () => {
@@ -384,13 +467,15 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'a'.repeat(49)) // 49 characters
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
 
       await withAuthContext(client, async () => {
         const result = await createGig(null, formData)
-        expect(result).toEqual({ error: 'Acceptance criteria must be at least 50 characters. Add more detail about what defines success for this gig.' })
+        expect(result).toEqual({ error: 'Критерии приёмки должны быть не короче 50 символов. Опишите подробнее, что считается результатом.' })
       })
 
       // Cleanup
@@ -411,13 +496,15 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'Too short') // 9 characters
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
 
       await withAuthContext(client, async () => {
         const result = await createGig(null, formData)
-        expect(result).toEqual({ error: 'Acceptance criteria must be at least 50 characters. Add more detail about what defines success for this gig.' })
+        expect(result).toEqual({ error: 'Критерии приёмки должны быть не короче 50 символов. Опишите подробнее, что считается результатом.' })
       })
 
       // Cleanup
@@ -438,13 +525,15 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', '     ') // Only whitespace
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
 
       await withAuthContext(client, async () => {
         const result = await createGig(null, formData)
-        expect(result).toEqual({ error: 'Please fill in all required fields: title, description, and acceptance criteria.' })
+        expect(result).toEqual({ error: 'Заполните обязательные поля: название, описание и критерии приёмки.' })
       })
 
       // Cleanup
@@ -465,9 +554,11 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       // 50 characters excluding whitespace
       formData.append('acceptanceCriteria', '   ' + 'a'.repeat(50) + '   ')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
 
       await withAuthContext(client, async () => {
@@ -504,8 +595,10 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', longCriteria)
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
 
       await withAuthContext(client, async () => {
@@ -543,8 +636,10 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000') // 100,000 roubles
 
       await withAuthContext(client, async () => {
@@ -579,8 +674,10 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000.50') // 100,000.50 roubles
 
       await withAuthContext(client, async () => {
@@ -615,13 +712,15 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '0')
 
       await withAuthContext(client, async () => {
         const result = await createGig(null, formData)
-        expect(result).toEqual({ error: 'Budget must be a positive number in roubles. Enter the amount you\'ll pay the specialist (service fee will be calculated automatically).' })
+        expect(result).toEqual({ error: 'Бюджет должен быть положительным числом в рублях. Укажите сумму для специалиста (сервисный сбор считается автоматически).' })
       })
 
       // Verify no gig created
@@ -646,13 +745,15 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '-50000')
 
       await withAuthContext(client, async () => {
         const result = await createGig(null, formData)
-        expect(result).toEqual({ error: 'Budget must be a positive number in roubles. Enter the amount you\'ll pay the specialist (service fee will be calculated automatically).' })
+        expect(result).toEqual({ error: 'Бюджет должен быть положительным числом в рублях. Укажите сумму для специалиста (сервисный сбор считается автоматически).' })
       })
 
       // Cleanup
@@ -673,13 +774,15 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', 'not-a-number')
 
       await withAuthContext(client, async () => {
         const result = await createGig(null, formData)
-        expect(result).toEqual({ error: 'Budget must be a positive number in roubles. Enter the amount you\'ll pay the specialist (service fee will be calculated automatically).' })
+        expect(result).toEqual({ error: 'Бюджет должен быть положительным числом в рублях. Укажите сумму для специалиста (сервисный сбор считается автоматически).' })
       })
 
       // Cleanup
@@ -700,13 +803,15 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '')
 
       await withAuthContext(client, async () => {
         const result = await createGig(null, formData)
-        expect(result).toEqual({ error: 'Budget must be a positive number in roubles. Enter the amount you\'ll pay the specialist (service fee will be calculated automatically).' })
+        expect(result).toEqual({ error: 'Бюджет должен быть положительным числом в рублях. Укажите сумму для специалиста (сервисный сбор считается автоматически).' })
       })
 
       // Cleanup
@@ -732,8 +837,10 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000') // 100,000 roubles = 10,000,000 kopecks
 
       await withAuthContext(client, async () => {
@@ -770,8 +877,10 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '333.33') // Creates fractional kopecks
 
       await withAuthContext(client, async () => {
@@ -808,8 +917,10 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '50000') // 50,000 roubles
 
       await withAuthContext(client, async () => {
@@ -851,8 +962,10 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
 
       await withAuthContext(client, async () => {
@@ -887,8 +1000,10 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
       // No tags field
 
@@ -924,8 +1039,10 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
 
       await withAuthContext(client, async () => {
@@ -965,8 +1082,10 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
       formData.append('tags', 'React')
 
@@ -1002,8 +1121,10 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
       formData.append('tags', 'React,TypeScript,Node.js')
 
@@ -1039,8 +1160,10 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
       formData.append('tags', '  React,TypeScript  ')
 
@@ -1076,8 +1199,10 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
       formData.append('tags', 'React,  TypeScript , Node.js')
 
@@ -1115,7 +1240,7 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
       formData.append('budget', '100000')
       formData.append('goal', 'Achieve specific business outcome')
@@ -1142,7 +1267,8 @@ describe('Gig Creation Tests', () => {
       await prisma.user.delete({ where: { id: client.id } })
     })
 
-    it('defaults structured fields to empty string when not provided', async () => {
+    // goal + deliverables are now REQUIRED (gig-validation-ssot); only `constraints` stays optional.
+    it('defaults optional constraints to empty string when not provided', async () => {
       const prisma = getTestPrismaClient()
 
       const hashedPassword = await (await import('bcryptjs')).hash('password123', 10)
@@ -1156,10 +1282,12 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
-      // No goal, deliverables, or constraints
+      // No constraints (the only optional structured field)
 
       await withAuthContext(client, async () => {
         try {
@@ -1169,11 +1297,11 @@ describe('Gig Creation Tests', () => {
         }
       })
 
-      // Verify structured fields default to empty string
+      // Required goal/deliverables are stored; optional constraints defaults to empty string
       const gigs = await prisma.gig.findMany({ where: { clientId: client.id } })
       expect(gigs.length).toBeGreaterThan(0)
-      expect(gigs[0].goal).toBe('')
-      expect(gigs[0].deliverables).toBe('')
+      expect(gigs[0].goal).toBe('Достичь конкретного бизнес-результата')
+      expect(gigs[0].deliverables).toBe('Рабочий код, документация и тесты')
       expect(gigs[0].constraints).toBe('')
 
       // Cleanup
@@ -1181,7 +1309,7 @@ describe('Gig Creation Tests', () => {
       await prisma.user.delete({ where: { id: client.id } })
     })
 
-    it('allows partial structured fields', async () => {
+    it('rejects gig with missing deliverables', async () => {
       const prisma = getTestPrismaClient()
 
       const hashedPassword = await (await import('bcryptjs')).hash('password123', 10)
@@ -1195,29 +1323,21 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
       formData.append('budget', '100000')
-      formData.append('goal', 'Only goal provided')
-      // No deliverables or constraints
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      // No deliverables — now required
 
       await withAuthContext(client, async () => {
-        try {
-          await createGig(null, formData)
-        } catch (error: any) {
-          expect(error.message).toContain('NEXT_REDIRECT:/gigs/new/success')
-        }
+        const result = await createGig(null, formData)
+        expect(result).toEqual({ error: 'Опишите ожидаемый результат — что заказчик получит на выходе (PR, демо, инструкция).' })
       })
 
-      // Verify goal stored, others empty
       const gigs = await prisma.gig.findMany({ where: { clientId: client.id } })
-      expect(gigs.length).toBeGreaterThan(0)
-      expect(gigs[0].goal).toBe('Only goal provided')
-      expect(gigs[0].deliverables).toBe('')
-      expect(gigs[0].constraints).toBe('')
+      expect(gigs.length).toBe(0)
 
       // Cleanup
-      await prisma.gig.deleteMany({ where: { clientId: client.id } })
       await prisma.user.delete({ where: { id: client.id } })
     })
   })
@@ -1237,8 +1357,10 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
 
       await withAuthContext(client, async () => {
@@ -1272,13 +1394,15 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
 
       await withAuthContext(specialist, async () => {
         const result = await createGig(null, formData)
-        expect(result).toEqual({ error: 'Only clients can post gigs. Switch to a client account or register as a client to continue.' })
+        expect(result).toEqual({ error: 'Публиковать гиги могут только заказчики. Войдите как компания или зарегистрируйтесь в роли заказчика.' })
       })
 
       // Verify no gig created
@@ -1293,8 +1417,10 @@ describe('Gig Creation Tests', () => {
     it('redirects unauthenticated user to login', async () => {
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
 
       // No auth context
@@ -1322,8 +1448,10 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
 
       await withAuthContext(client, async () => {
@@ -1366,14 +1494,18 @@ describe('Gig Creation Tests', () => {
 
       const formData1 = new FormData()
       formData1.append('title', 'Client 1 Gig')
-      formData1.append('description', 'Test description')
+      formData1.append('description', 'Test description of the work item')
       formData1.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData1.append('goal', 'Достичь конкретного бизнес-результата')
+      formData1.append('deliverables', 'Рабочий код, документация и тесты')
       formData1.append('budget', '100000')
 
       const formData2 = new FormData()
       formData2.append('title', 'Client 2 Gig')
-      formData2.append('description', 'Test description')
+      formData2.append('description', 'Test description of the work item')
       formData2.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData2.append('goal', 'Достичь конкретного бизнес-результата')
+      formData2.append('deliverables', 'Рабочий код, документация и тесты')
       formData2.append('budget', '50000')
 
       await withAuthContext(client1, async () => {
@@ -1426,8 +1558,10 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', '  Test Gig  ') // Leading and trailing spaces
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
 
       await withAuthContext(client, async () => {
@@ -1462,8 +1596,10 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', '  Test description  ') // Leading and trailing spaces
+      formData.append('description', '  Test description of the work item  ') // Leading and trailing spaces
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
 
       await withAuthContext(client, async () => {
@@ -1477,7 +1613,7 @@ describe('Gig Creation Tests', () => {
       // Verify whitespace trimmed
       const gigs = await prisma.gig.findMany({ where: { clientId: client.id } })
       expect(gigs.length).toBeGreaterThan(0)
-      expect(gigs[0].description).toBe('Test description')
+      expect(gigs[0].description).toBe('Test description of the work item')
 
       // Cleanup
       await prisma.gig.deleteMany({ where: { clientId: client.id } })
@@ -1498,8 +1634,10 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', '  This is a detailed acceptance criteria with more than 50 characters  ')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
 
       await withAuthContext(client, async () => {
@@ -1534,7 +1672,7 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
       formData.append('budget', '100000')
       formData.append('goal', '  Achieve business outcome  ')
@@ -1579,6 +1717,8 @@ describe('Gig Creation Tests', () => {
       formData.append('title', '<script>alert("XSS")</script>Test Gig')
       formData.append('description', 'Test description for XSS test')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
 
       await withAuthContext(client, async () => {
@@ -1617,6 +1757,8 @@ describe('Gig Creation Tests', () => {
       formData.append('title', 'Test Gig')
       formData.append('description', 'Description with <img src=x onerror="alert(\'XSS\')"> malicious content')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
 
       await withAuthContext(client, async () => {
@@ -1653,8 +1795,10 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', '<svg onload="alert(\'XSS\')">This is a detailed acceptance criteria with more than 50 characters</svg>')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
 
       let result
@@ -1698,7 +1842,7 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', 'Test Gig')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
       formData.append('budget', '100000')
       formData.append('goal', '<script>alert("XSS")</script>Achieve business outcome')
@@ -1742,15 +1886,17 @@ describe('Gig Creation Tests', () => {
 
       const formData = new FormData()
       formData.append('title', '<script></script>')
-      formData.append('description', 'Test description')
+      formData.append('description', 'Test description of the work item')
       formData.append('acceptanceCriteria', 'This is a detailed acceptance criteria with more than 50 characters')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
 
       const result = await withAuthContext(client, async () => {
         return await createGig(null, formData)
       })
 
-      expect(result).toEqual({ error: 'Please fill in all required fields: title, description, and acceptance criteria.' })
+      expect(result).toEqual({ error: 'Заполните обязательные поля: название, описание и критерии приёмки.' })
 
       // Verify no gig created
       const gigs = await prisma.gig.findMany({ where: { clientId: client.id } })
@@ -1776,6 +1922,8 @@ describe('Gig Creation Tests', () => {
       formData.append('title', 'Test Gig')
       formData.append('description', 'Line 1\nLine 2\nLine 3')
       formData.append('acceptanceCriteria', 'Criteria line 1\nCriteria line 2\nThis has more than 50 characters total')
+      formData.append('goal', 'Достичь конкретного бизнес-результата')
+      formData.append('deliverables', 'Рабочий код, документация и тесты')
       formData.append('budget', '100000')
 
       await withAuthContext(client, async () => {
