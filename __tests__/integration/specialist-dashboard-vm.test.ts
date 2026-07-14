@@ -27,7 +27,7 @@ vi.mock('next/navigation', () => ({
   }),
 }))
 
-import { getSpecialistDashboard } from '@/lib/view-models'
+import { getSpecialistDashboard, getDashboardAttention } from '@/lib/view-models'
 import type { GigCardVM } from '@/app/components/blocks/view-models'
 
 describe('getSpecialistDashboard', () => {
@@ -130,5 +130,122 @@ describe('getSpecialistDashboard', () => {
     expect(data.completion).toBeLessThanOrEqual(100)
     // No notifications → an empty attention strip (the screen hides the WELCOME-2 section).
     expect(data.attention).toEqual([])
+  })
+})
+
+/**
+ * attention-feed-lifecycle: «Требует внимания» keeps a notification only while it still needs the
+ * user's attention — UNREAD (`lastReadAt` null) AND the linked gig still live (status not
+ * COMPLETED/PAID, `closedByAdmin` false). The filter runs in the query, before the newest-first cap.
+ */
+describe('getDashboardAttention — attention-feed lifecycle filter', () => {
+  it('returns an unread notification whose gig is still live (IN_PROGRESS)', async () => {
+    const prisma = getTestPrismaClient()
+    const client = await createTestUser(prisma, { role: 'CLIENT' })
+    const specialist = await createTestUser(prisma, { role: 'SPECIALIST' })
+    const gig = await createTestGig(prisma, { clientId: client.id, status: 'IN_PROGRESS', assignedSpecialistId: specialist.id })
+    await prisma.notification.create({
+      data: { userId: specialist.id, gigId: gig.id, type: 'STATUS_CHANGE', eventType: 'application_accepted' },
+    })
+
+    const feed = await getDashboardAttention(specialist.id)
+    expect(feed).toHaveLength(1)
+    expect(feed[0].type).toBe('accepted') // application_accepted → accepted
+    expect(feed[0].embed.kind).toBe('gig')
+  })
+
+  it('drops a notification once its gig reaches COMPLETED', async () => {
+    const prisma = getTestPrismaClient()
+    const client = await createTestUser(prisma, { role: 'CLIENT' })
+    const specialist = await createTestUser(prisma, { role: 'SPECIALIST' })
+    const gig = await createTestGig(prisma, { clientId: client.id, status: 'COMPLETED', assignedSpecialistId: specialist.id })
+    await prisma.notification.create({
+      data: { userId: specialist.id, gigId: gig.id, type: 'STATUS_CHANGE', eventType: 'application_accepted' },
+    })
+
+    expect(await getDashboardAttention(specialist.id)).toEqual([])
+  })
+
+  it('drops a notification once its gig reaches PAID', async () => {
+    const prisma = getTestPrismaClient()
+    const client = await createTestUser(prisma, { role: 'CLIENT' })
+    const specialist = await createTestUser(prisma, { role: 'SPECIALIST' })
+    const gig = await createTestGig(prisma, { clientId: client.id, status: 'PAID', assignedSpecialistId: specialist.id, paidAt: new Date() })
+    await prisma.notification.create({
+      data: { userId: specialist.id, gigId: gig.id, type: 'PAYMENT', eventType: 'payment_marked' },
+    })
+
+    expect(await getDashboardAttention(specialist.id)).toEqual([])
+  })
+
+  it('drops a notification whose gig was closed by an admin', async () => {
+    const prisma = getTestPrismaClient()
+    const client = await createTestUser(prisma, { role: 'CLIENT' })
+    const specialist = await createTestUser(prisma, { role: 'SPECIALIST' })
+    // Still IN_PROGRESS (not terminal) but admin-closed — the closedByAdmin clause must exclude it.
+    const gig = await createTestGig(prisma, { clientId: client.id, status: 'IN_PROGRESS', assignedSpecialistId: specialist.id, closedByAdmin: true })
+    await prisma.notification.create({
+      data: { userId: specialist.id, gigId: gig.id, type: 'STATUS_CHANGE', eventType: 'application_accepted' },
+    })
+
+    expect(await getDashboardAttention(specialist.id)).toEqual([])
+  })
+
+  it('drops an already-read notification (lastReadAt non-null) on a live gig', async () => {
+    const prisma = getTestPrismaClient()
+    const client = await createTestUser(prisma, { role: 'CLIENT' })
+    const specialist = await createTestUser(prisma, { role: 'SPECIALIST' })
+    const gig = await createTestGig(prisma, { clientId: client.id, status: 'IN_PROGRESS', assignedSpecialistId: specialist.id })
+    await prisma.notification.create({
+      data: { userId: specialist.id, gigId: gig.id, type: 'STATUS_CHANGE', eventType: 'application_accepted', lastReadAt: new Date() },
+    })
+
+    expect(await getDashboardAttention(specialist.id)).toEqual([])
+  })
+
+  it('caps at the 6 newest live-gig unread notifications, excluding a more-recent COMPLETED-gig one', async () => {
+    const prisma = getTestPrismaClient()
+    const client = await createTestUser(prisma, { role: 'CLIENT' })
+    const specialist = await createTestUser(prisma, { role: 'SPECIALIST' })
+
+    // Eight unread notifications on live gigs, with ascending createdAt (idx 0 oldest … 7 newest).
+    const base = new Date('2026-07-14T10:00:00Z').getTime()
+    const liveGigIds: string[] = []
+    for (let i = 0; i < 8; i++) {
+      const gig = await createTestGig(prisma, { clientId: client.id, status: 'IN_PROGRESS', assignedSpecialistId: specialist.id })
+      liveGigIds.push(gig.id)
+      await prisma.notification.create({
+        data: {
+          userId: specialist.id,
+          gigId: gig.id,
+          type: 'STATUS_CHANGE',
+          eventType: 'application_accepted',
+          createdAt: new Date(base + i * 60_000),
+        },
+      })
+    }
+
+    // A COMPLETED-gig notification that is MORE RECENT than every live one — must still be excluded,
+    // proving the filter runs before the newest-first cap (not a fetch-6-then-drop).
+    const doneGig = await createTestGig(prisma, { clientId: client.id, status: 'COMPLETED', assignedSpecialistId: specialist.id })
+    await prisma.notification.create({
+      data: {
+        userId: specialist.id,
+        gigId: doneGig.id,
+        type: 'STATUS_CHANGE',
+        eventType: 'work_approved',
+        createdAt: new Date(base + 999 * 60_000),
+      },
+    })
+
+    const feed = await getDashboardAttention(specialist.id)
+    // Exactly 6 cards, all from live gigs; the more-recent COMPLETED-gig card is absent.
+    expect(feed).toHaveLength(6)
+    const returnedGigIds = feed.map((c) => (c.embed.kind === 'gig' ? c.embed.gig.id : undefined))
+    expect(returnedGigIds).not.toContain(doneGig.id)
+    // The 6 newest live gigs (idx 2..7) come back; the two oldest (idx 0,1) are trimmed by the cap.
+    expect(returnedGigIds.every((id) => liveGigIds.slice(2).includes(id!))).toBe(true)
+    expect(returnedGigIds).not.toContain(liveGigIds[0])
+    expect(returnedGigIds).not.toContain(liveGigIds[1])
   })
 })

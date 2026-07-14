@@ -158,13 +158,27 @@ const ATTENTION_TYPE: Record<string, AttentionType> = {
 }
 
 /**
- * The dashboard notification strip (Figma «attention card» row): the user's recent Notifications (newest-first, cap
- * 6) mapped to AttentionCardVMs — `type` from the eventType accent map, glyph/title from the notification utils, and
- * the linked gig embedded as a GigCardVM (every notification carries a gig). Empty when the user has no notifications.
+ * The dashboard notification strip (Figma «attention card» row): the user's still-actionable Notifications
+ * (newest-first, cap 6) mapped to AttentionCardVMs — `type` from the eventType accent map, glyph/title from the
+ * notification utils, and the linked gig embedded as a GigCardVM (every notification carries a gig).
+ *
+ * «Требует внимания» keeps a notification only while it still needs the user's attention (attention-feed-lifecycle):
+ * it must be UNREAD (`lastReadAt` null) AND its gig must still be live — not COMPLETED/PAID and not admin-closed.
+ * The filter runs in the query, before the cap, so `take` returns up to 6 *actionable* cards (not fetched-then-cut).
+ * `lastReadAt: null` is the correct unread predicate here: the row's `createdAt` is frozen at creation and
+ * `lastReadAt` is only ever set later by `markNotificationAsRead`, so a read row always has a non-null `lastReadAt`.
+ * Empty when the user has no actionable notifications (the dashboard then hides the WELCOME-2 section).
  */
 export async function getDashboardAttention(userId: string): Promise<AttentionCardVM[]> {
   const notifications = await prisma.notification.findMany({
-    where: { userId },
+    where: {
+      userId,
+      lastReadAt: null, // unread only
+      gig: {
+        status: { notIn: ['COMPLETED', 'PAID'] }, // not in a terminal lifecycle state
+        closedByAdmin: false, // not an admin-closed dead gig
+      },
+    },
     include: { gig: true },
     orderBy: { createdAt: 'desc' },
     take: 6,

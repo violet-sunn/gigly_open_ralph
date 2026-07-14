@@ -43,6 +43,20 @@ store denormalized text; the derived text remains the primary source.
   text, and the dashboard attention strip MUST classify it as `payment`
 - AND existing notification rendering for the other types MUST be unchanged
 
+### Requirement: Attention Feed Excludes Resolved and Read Notifications
+The dashboard «Требует внимания» attention feed (`getDashboardAttention`) MUST show only notifications that still
+require the user's attention. A notification MUST be included **if and only if all** hold: (1) it is **unread** —
+`lastReadAt` is `null`; (2) the linked gig's `status` is **neither** `COMPLETED` **nor** `PAID`; (3) the linked gig's
+`closedByAdmin` is `false`. The filter MUST run in the query **before** the newest-first cap (so the cap returns up to 6
+*still-actionable* rows, not fetched-then-trimmed), and the `createdAt desc` ordering + cap of 6 MUST be preserved. When
+the filtered feed is empty, the block MUST NOT render and the count badge MUST reflect the filtered count.
+
+#### Scenario: A resolved or read notification drops from the feed
+- GIVEN an unread `application_accepted` notification whose gig is IN_PROGRESS (shown in «Требует внимания»)
+- WHEN the gig reaches `COMPLETED`/`PAID`, or is closed by an admin, or the notification is read (`lastReadAt` set)
+- THEN `getDashboardAttention` MUST NOT return it, the count MUST decrease, and the block MUST NOT render if it was the last card
+- AND an unread notification on a still-live (OPEN/IN_PROGRESS, not admin-closed) gig MUST remain, newest-first, within the cap of 6
+
 ### Requirement: Dispute Model Supports the Resolve Flow
 `Dispute` MUST have `openerRole` (`specialist|company`, set at creation), `amount` (the gig budget frozen at open),
 `evidence` (a JSON/CSV of file names, default empty), and a `reason` **normalized** to the six DATA-MODEL reasons
