@@ -108,7 +108,13 @@ export function AuthDesign({ initialView }: { initialView: View }) {
       )}
 
       <PixelWave hidden={view === "onboarding" && step !== 1} />
-      <Footer single={view === "onboarding" && step === 3} />
+      {/* On onboarding steps 2 & 3 the legal text is a single subordinate line at the very bottom,
+          so it no longer sandwiches between «Зарегистрироваться» and «Войти» (Спец #17). Login and
+          the step-1 role picker keep the 3-column footer. */}
+      <Footer
+        single={view === "onboarding" && step !== 1}
+        actionLabel={step === 2 ? "Зарегистрироваться" : "Продолжить"}
+      />
     </div>
   );
 }
@@ -226,6 +232,64 @@ function PrimaryButton({
   );
 }
 
+// Password input with an inline show/hide toggle (Спец #1). Flips only the input `type`; forwards all
+// field props so login (uncontrolled) and the onboarding step-2 create/confirm (controlled) all work.
+function PasswordField({
+  name,
+  placeholder,
+  required,
+  value,
+  onChange,
+  style,
+}: {
+  name: string;
+  placeholder?: string;
+  required?: boolean;
+  value?: string;
+  onChange?: (v: string) => void;
+  style?: React.CSSProperties;
+}) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <div style={{ position: "relative", width: "100%" }}>
+      <input
+        name={name}
+        type={visible ? "text" : "password"}
+        required={required}
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange ? (e) => onChange(e.target.value) : undefined}
+        // reserve room on the right so the value never runs under the toggle icon
+        style={{ ...fieldStyle, paddingRight: 46, ...style }}
+      />
+      <button
+        type="button"
+        onClick={() => setVisible((v) => !v)}
+        aria-label={visible ? "Скрыть пароль" : "Показать пароль"}
+        title={visible ? "Скрыть пароль" : "Показать пароль"}
+        style={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+          height: 48,
+          width: 46,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "none",
+          border: "none",
+          padding: 0,
+          cursor: "pointer",
+          color: "var(--text-3)",
+          pointerEvents: "auto",
+        }}
+      >
+        {visible ? <EyeOffIcon /> : <EyeIcon />}
+      </button>
+    </div>
+  );
+}
+
 function PasswordChecklist({ password }: { password: string }) {
   if (password.length === 0) return null;
   return (
@@ -279,7 +343,7 @@ function PixelWave({ hidden }: { hidden?: boolean }) {
   );
 }
 
-function Footer({ single }: { single?: boolean }) {
+function Footer({ single, actionLabel = "Продолжить" }: { single?: boolean; actionLabel?: string }) {
   const linkStyle: React.CSSProperties = {
     fontFamily: MONO,
     fontSize: 14,
@@ -304,7 +368,7 @@ function Footer({ single }: { single?: boolean }) {
         }}
       >
         <span style={{ fontFamily: MONO, fontSize: 14, color: "var(--text-3)", textAlign: "center" }}>
-          Нажимая «Продолжить», вы соглашаетесь с Политикой конфиденциальности и Условиями пользования платформы
+          Нажимая «{actionLabel}», вы соглашаетесь с Политикой конфиденциальности и Условиями пользования платформы
         </span>
       </div>
     );
@@ -371,7 +435,7 @@ function LoginView({
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <Label>Пароль</Label>
-          <input name="password" type="password" required placeholder="Ваш пароль" style={fieldStyle} />
+          <PasswordField name="password" required placeholder="Ваш пароль" />
           <a
             href="#"
             style={{
@@ -498,25 +562,22 @@ function OnboardingStep2({
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <Label>Пароль</Label>
-          <input
+          <PasswordField
             name="password"
-            type="password"
             required
             placeholder="Придумайте пароль"
             value={pass}
-            onChange={(e) => onPass(e.target.value)}
-            style={fieldStyle}
+            onChange={onPass}
           />
           <PasswordChecklist password={pass} />
           {extraError && <ErrorNote error={extraError} />}
-          <input
+          <PasswordField
             name="confirmPassword"
-            type="password"
             required
             placeholder="Подтвердите пароль"
             value={confirm}
-            onChange={(e) => onConfirm(e.target.value)}
-            style={{ ...fieldStyle, borderColor: mismatch ? "var(--accents-red, #ff383c)" : undefined }}
+            onChange={onConfirm}
+            style={{ borderColor: mismatch ? "var(--accents-red, #ff383c)" : undefined }}
           />
           {mismatch && <ErrorNote error="Пароли не совпадают." />}
         </div>
@@ -694,6 +755,44 @@ function SelectField({
         ))}
       </select>
     </div>
+  );
+}
+
+function EyeIcon() {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function EyeOffIcon() {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+      <line x1="1" y1="1" x2="23" y2="23" />
+    </svg>
   );
 }
 
