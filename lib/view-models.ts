@@ -150,6 +150,7 @@ const ATTENTION_TYPE: Record<string, AttentionType> = {
   application_withdrawn: 'status-change',
   work_submitted: 'status-change',
   work_approved: 'accepted',
+  gig_updated: 'status-change',
   payment_marked: 'payment',
   dispute_opened: 'status-change',
   dispute_resolved: 'status-change',

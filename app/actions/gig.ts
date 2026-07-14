@@ -9,17 +9,34 @@ import { persistMessage } from '@/lib/messaging'
 import { createNotification, createNotificationsBulk } from '@/lib/notifications'
 import { isCategorySlug } from '@/lib/categories'
 
-export async function createGig(
-  prevState: { error?: string } | null,
-  formData: FormData
-) {
-  const session = await getSession()
-  if (!session) redirect('/login')
+/**
+ * The normalized, validated set of gig fields shared by `createGig` and `updateGig` — every column a client can set,
+ * already sanitized/trimmed with the budget converted to kopecks and the 10% fee/total computed. The two actions apply
+ * the SAME validation gates (criteria ≥ 50, budget > 0, deadline 1–365, stages 1–50, valid category) so create/edit
+ * can never drift.
+ */
+type ParsedGigFields = {
+  title: string
+  description: string
+  acceptanceCriteria: string
+  goal: string
+  deliverables: string
+  constraints: string
+  budget: number
+  serviceFee: number
+  totalAmount: number
+  tags: string
+  categorySlug: string | null
+  deadlineDays: number
+  stageCount: number
+}
 
-  if (session.role !== 'CLIENT') {
-    return { error: 'Публиковать гиги могут только заказчики. Войдите как компания или зарегистрируйтесь в роли заказчика.' }
-  }
-
+/**
+ * Parse + validate the gig form (create AND edit). Returns `{ error }` on the first failed gate (messages are the
+ * canonical create-gig strings, so edit inherits them verbatim) or `{ fields }` with the normalized values ready to
+ * persist. Pure: no session/DB access — callers own auth and the write.
+ */
+function parseGigForm(formData: FormData): { error: string } | { fields: ParsedGigFields } {
   // Sanitize all text fields before validation
   const title = sanitizeInput(formData.get('title') as string).trim()
   const description = sanitizeInput(formData.get('description') as string).trim()
@@ -79,6 +96,39 @@ export async function createGig(
     stageCount = n
   }
 
+  return {
+    fields: {
+      title,
+      description,
+      acceptanceCriteria,
+      goal,
+      deliverables,
+      constraints,
+      budget: budgetKopecks,
+      serviceFee,
+      totalAmount,
+      tags,
+      categorySlug: category,
+      deadlineDays,
+      stageCount,
+    },
+  }
+}
+
+export async function createGig(
+  prevState: { error?: string } | null,
+  formData: FormData
+) {
+  const session = await getSession()
+  if (!session) redirect('/login')
+
+  if (session.role !== 'CLIENT') {
+    return { error: 'Публиковать гиги могут только заказчики. Войдите как компания или зарегистрируйтесь в роли заказчика.' }
+  }
+
+  const parsed = parseGigForm(formData)
+  if ('error' in parsed) return parsed
+
   // Check if this is the user's first gig
   const user = await prisma.user.findUnique({
     where: { id: session.userId },
@@ -86,19 +136,7 @@ export async function createGig(
   })
 
   const gigData = {
-    title,
-    description,
-    acceptanceCriteria,
-    goal,
-    deliverables,
-    constraints,
-    budget: budgetKopecks,
-    serviceFee,
-    totalAmount,
-    tags,
-    categorySlug: category,
-    deadlineDays,
-    stageCount,
+    ...parsed.fields,
     clientId: session.userId,
   }
 
@@ -117,6 +155,116 @@ export async function createGig(
 
   // reconcile-create-gig: land on the dedicated «Гиг опубликован» success screen (Post/Redirect/Get).
   redirect('/gigs/new/success')
+}
+
+/**
+ * Edit an already-published gig (gig-editing-with-notification). Owner-only, and ONLY while the gig is OPEN — once a
+ * specialist is assigned (IN_PROGRESS) or later, terms are locked (the platform is fixed-price; renegotiation is
+ * withdraw → re-apply, not a silent edit to active work). Reuses `parseGigForm` so validation matches `createGig`
+ * exactly and recomputes the 10% fee. On a MATERIAL change (any persisted field's stored value actually moved), every
+ * specialist with an active (PENDING) application is notified their terms were updated — a whitespace-only no-op save
+ * changes nothing and notifies no one. The fan-out is fire-and-forget (a notification failure never fails the edit).
+ */
+export async function updateGig(
+  prevState: { error?: string } | null,
+  formData: FormData
+) {
+  const session = await getSession()
+  if (!session) redirect('/login')
+
+  if (session.role !== 'CLIENT') {
+    return { error: 'Редактировать гиги могут только заказчики.' }
+  }
+
+  const gigId = formData.get('gigId') as string
+
+  const gig = await prisma.gig.findUnique({ where: { id: gigId } })
+  if (!gig) {
+    return { error: 'Этот гиг больше не существует или был удалён.' }
+  }
+  if (gig.clientId !== session.userId) {
+    return { error: 'Редактировать гиг может только заказчик, опубликовавший его.' }
+  }
+  if (gig.closedByAdmin) {
+    return { error: 'Этот гиг закрыт администрацией и больше недоступен.' }
+  }
+  if (gig.isExample) {
+    return { error: 'Демонстрационный гиг нельзя редактировать.' }
+  }
+  if (gig.status !== 'OPEN') {
+    return { error: 'Редактировать гиг можно только пока он открыт и специалист не назначен.' }
+  }
+
+  const parsed = parseGigForm(formData)
+  if ('error' in parsed) return parsed
+  const f = parsed.fields
+
+  // Material change = any persisted editable field's stored value actually moved (compared after the same
+  // trim/normalization used for storage). A no-op / whitespace-only re-save leaves every value equal → no fan-out.
+  const material =
+    f.title !== gig.title ||
+    f.description !== gig.description ||
+    f.acceptanceCriteria !== (gig.acceptanceCriteria ?? '') ||
+    f.goal !== gig.goal ||
+    f.deliverables !== gig.deliverables ||
+    f.constraints !== gig.constraints ||
+    f.budget !== gig.budget ||
+    f.deadlineDays !== gig.deadlineDays ||
+    f.stageCount !== gig.stageCount ||
+    (f.categorySlug ?? null) !== (gig.categorySlug ?? null) ||
+    f.tags !== gig.tags
+
+  // Whitelist the writable columns — status, ownership, assignment, isExample/closedByAdmin, and timestamps are NOT
+  // editable through this action.
+  await prisma.gig.update({
+    where: { id: gigId },
+    data: {
+      title: f.title,
+      description: f.description,
+      acceptanceCriteria: f.acceptanceCriteria,
+      goal: f.goal,
+      deliverables: f.deliverables,
+      constraints: f.constraints,
+      budget: f.budget,
+      serviceFee: f.serviceFee,
+      totalAmount: f.totalAmount,
+      tags: f.tags,
+      categorySlug: f.categorySlug,
+      deadlineDays: f.deadlineDays,
+      stageCount: f.stageCount,
+    },
+  })
+
+  // Fan-out to every active (PENDING) applicant on a material change (fire-and-forget). WITHDRAWN/WITHDRAWN_FINAL and
+  // REJECTED applicants are out of the running (the PENDING filter excludes them); the owner is never a recipient.
+  // The whole block is defensively wrapped so a notification/query failure can NEVER fail the (already-committed) edit
+  // or block the redirect — the fan-out is best-effort, self-contained here rather than relying on the helper's catch.
+  if (material) {
+    try {
+      const pending = await prisma.application.findMany({
+        where: { gigId, status: 'PENDING' },
+        select: { specialistId: true },
+      })
+      if (pending.length > 0) {
+        createNotificationsBulk(
+          pending.map((a) => ({
+            userId: a.specialistId,
+            gigId,
+            type: 'STATUS_CHANGE' as const,
+            eventType: 'gig_updated',
+            eventData: JSON.stringify({ gigId }),
+          }))
+        )
+      }
+    } catch (error) {
+      console.error('[updateGig] applicant notification fan-out failed:', {
+        gigId,
+        error: error instanceof Error ? error.message : String(error),
+      })
+    }
+  }
+
+  redirect(`/gigs/${gigId}`)
 }
 
 export async function applyToGig(

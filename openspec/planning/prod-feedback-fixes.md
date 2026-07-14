@@ -55,6 +55,7 @@ Each is a separate `/ralphy-plan` → `/ralphy-implement` cycle. Ordered by prio
 ```
 
 ### 3. Gig editing with applicant notification (new feature)
+> Change proposal written: `openspec/changes/gig-editing-with-notification/`. **Decision (with user):** edit is allowed **only while the gig is `OPEN`** — once a specialist is assigned (`IN_PROGRESS`) or later, editing is blocked (keeps the fixed-price state machine clean; renegotiation stays withdraw → re-apply). Adds `updateGig` (owner-only, same validation as `createGig`, recomputes 10% fee), a `createNotificationsBulk` fan-out to every `PENDING` applicant on a **material** change (`STATUS_CHANGE`/`gig_updated`; withdrawn/rejected/owner excluded; no-op save sends nothing), and an owner-only `/gigs/[id]/edit` page reusing the `CreateGigDesign` structure pre-filled from current values, reached via an obvious «Редактировать» button on the owner gig detail. **No schema change.** Next: `/ralphy-implement gig-editing-with-notification`.
 ```bash
 /ralphy-plan gig-editing-with-notification "Add the ability for a client to EDIT an already-published gig, and notify every applied specialist when terms change. Reported: Заказчик #3 — a client made a typo in a gig field («Результаты») and had no way to fix it. Requirements: (1) Add an edit action + form for a published gig covering the editable fields (title, description, goal/цель, deliverables/результаты, constraints/ограничения, acceptance criteria, budget, deadline, category, stages) with the SAME validation gates as create-gig (criteria ≥ 50, budget > 0, etc.); (2) entry point: an obvious «Редактировать» control on the client's own gig detail (reuse the existing edit-affordance pattern, but make it clearly a button — see the profile-edit friction in Change 6); (3) on save, if terms materially changed (budget, deadline, scope fields), create a Notification for EVERY specialist with a non-withdrawn application to that gig, stating the gig's terms were updated; (4) guard: only the owning client can edit; decide with the user whether editing is allowed after a specialist is assigned / gig left OPEN status (default: allow while OPEN, restrict once IN_PROGRESS). Files: app/actions/gig.ts (new updateGig), a gig-edit form (reuse CreateGigDesign structure), Notification fan-out, GigDetail owner controls. Test plan: E2E — client edits an OPEN gig with prior applicants → save succeeds, validation enforced → each applicant receives a notification about the update; non-owners cannot edit; verify the corrected field renders. Verify live."
 ```
@@ -87,11 +88,11 @@ Each is a separate `/ralphy-plan` → `/ralphy-implement` cycle. Ordered by prio
 ## Status
 - [x] fix-application-lifecycle — IMPLEMENTED & verified (integration + live E2E) 2026-07-14
 - [x] fix-terms-negotiation — IMPLEMENTED & verified (integration + live E2E) 2026-07-14
-- [ ] gig-editing-with-notification
+- [x] gig-editing-with-notification — IMPLEMENTED & verified (integration 18/18 + live E2E 3/3 + build green) 2026-07-14
 - [ ] remove-role-switcher-panel
 - [ ] shell-nav-support-fixes
 - [ ] profile-experience-fixes
 - [ ] auth-surface-polish
 - [ ] content-cosmetic-fixes
 
-**Progress:** 2/8 changes completed
+**Progress:** 3/8 changes completed

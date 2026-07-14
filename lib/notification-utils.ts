@@ -54,6 +54,10 @@ export function getNotificationDisplayText(notification: {
         return 'Your work was approved';
       case 'payment_marked':
         return 'Payment has been marked as paid';
+      case 'gig_updated':
+        // gig-editing-with-notification: the owner edited an OPEN gig's terms; applicants who applied under the old
+        // terms are told so they can re-evaluate. Russian to match the shipped app surface.
+        return 'Условия гига обновлены';
       default:
         return 'Gig status updated';
     }

@@ -87,6 +87,9 @@ export function GigDetail({ data }: { data: GigDetailData }) {
   const notApplied = data.lifecycle.canApply && va?.status !== "PENDING";
   const applied = va?.status === "PENDING";
   const showApplicants = !closed && data.isOwner && data.status === "OPEN";
+  // gig-editing-with-notification: the owner can edit an OPEN gig (fix a typo / adjust terms). Once a specialist is
+  // assigned (IN_PROGRESS) or the gig is closed/example, terms lock → no edit control.
+  const canEdit = !closed && data.isOwner && data.status === "OPEN" && !data.isExample;
   const showCompanyWaiting = !closed && data.isOwner && data.status === "IN_PROGRESS";
   const showApprove = !closed && data.lifecycle.canApprove;
   const showSubmit = !closed && data.lifecycle.canSubmit;
@@ -125,6 +128,34 @@ export function GigDetail({ data }: { data: GigDetailData }) {
         >
           ← Назад к гигам
         </div>
+
+        {/* gig-editing-with-notification: obvious owner «Редактировать» control (a clear button, not a subtle pencil) —
+            only while the gig is OPEN. Routes to the owner-guarded edit screen. */}
+        {canEdit && (
+          <button
+            type="button"
+            onClick={() => router.push(`/gigs/${data.gigId}/edit`)}
+            style={{
+              alignSelf: "flex-start",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              height: 40,
+              padding: "0 18px",
+              border: "none",
+              borderRadius: 8,
+              background: "rgba(0,136,255,0.12)",
+              boxShadow: "inset 0 0 0 1px rgba(0,136,255,0.35)",
+              color: "var(--om-accent, #0088ff)",
+              fontFamily: "'Handjet',monospace",
+              fontSize: 15,
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            ✎ Редактировать
+          </button>
+        )}
 
         {/* main */}
         <div
