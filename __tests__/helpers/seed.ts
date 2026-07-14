@@ -409,6 +409,7 @@ export async function createTestApplication(
     questions?: string
     estimatedEffort?: string
     status?: string
+    freeWithdrawalUsed?: boolean
   }
 ) {
   // Create gig if not provided
@@ -433,7 +434,8 @@ export async function createTestApplication(
       approach: overrides?.approach || generateRussianApproach(),
       questions: overrides?.questions || generateRussianQuestions(),
       estimatedEffort: overrides?.estimatedEffort || generateRussianEffort(),
-      status: overrides?.status || 'PENDING'
+      status: overrides?.status || 'PENDING',
+      freeWithdrawalUsed: overrides?.freeWithdrawalUsed ?? false
     },
     include: {
       gig: {

@@ -450,6 +450,9 @@ export interface ApplicantCardVM {
   approach?: string;
   questions?: string;
   estimate?: string;
+  /** The applicant's proposed counter-terms (formatted), when they countered — surfaced so the client sees them before accepting. */
+  proposedBudget?: string;
+  proposedDeadline?: string;
   status: { label: string; tone: Status };
   /** Whether the applicant is still PENDING (drives the accept/reject affordance in the screen). */
   pending: boolean;

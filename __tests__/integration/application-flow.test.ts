@@ -181,7 +181,7 @@ describe('Application Flow Tests', () => {
         return await applyToGig(null, formData)
       })
 
-      expect(result).toEqual({ error: 'Technical approach is required.' })
+      expect(result).toEqual({ error: 'Опишите ваш подход к задаче.' })
 
       // Verify no application was created
       const application = await prisma.application.findUnique({
@@ -238,7 +238,7 @@ describe('Application Flow Tests', () => {
         return await applyToGig(null, formData)
       })
 
-      expect(result).toEqual({ error: 'Clarifying questions are required.' })
+      expect(result).toEqual({ error: 'Задайте уточняющие вопросы.' })
 
       // Verify no application was created
       const application = await prisma.application.findUnique({
@@ -276,7 +276,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(specialist, async () => {
         return await applyToGig(null, formData)
       })
-      expect(result?.error).toContain('Technical approach must be at least 100 characters')
+      expect(result?.error).toContain('Описание подхода должно быть не короче 100 символов')
       const application = await prisma.application.findUnique({
         where: { gigId_specialistId: { gigId: gig.id, specialistId: specialist.id } }
       })
@@ -307,7 +307,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(specialist, async () => {
         return await applyToGig(null, formData)
       })
-      expect(result?.error).toContain('Clarifying questions must be at least 50 characters')
+      expect(result?.error).toContain('Уточняющие вопросы должны быть не короче 50 символов')
       const application = await prisma.application.findUnique({
         where: { gigId_specialistId: { gigId: gig.id, specialistId: specialist.id } }
       })
@@ -338,7 +338,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(specialist, async () => {
         return await applyToGig(null, formData)
       })
-      expect(result).toEqual({ error: 'Technical approach is too long. Maximum 2000 characters allowed.' })
+      expect(result).toEqual({ error: 'Описание подхода слишком длинное. Максимум 2000 символов.' })
       const application = await prisma.application.findUnique({
         where: { gigId_specialistId: { gigId: gig.id, specialistId: specialist.id } }
       })
@@ -369,7 +369,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(specialist, async () => {
         return await applyToGig(null, formData)
       })
-      expect(result).toEqual({ error: 'Clarifying questions are too long. Maximum 1000 characters allowed.' })
+      expect(result).toEqual({ error: 'Уточняющие вопросы слишком длинные. Максимум 1000 символов.' })
       const application = await prisma.application.findUnique({
         where: { gigId_specialistId: { gigId: gig.id, specialistId: specialist.id } }
       })
@@ -401,7 +401,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(specialist, async () => {
         return await applyToGig(null, formData)
       })
-      expect(result).toEqual({ error: 'Estimated effort is too long. Maximum 200 characters allowed.' })
+      expect(result).toEqual({ error: 'Оценка трудозатрат слишком длинная. Максимум 200 символов.' })
       const application = await prisma.application.findUnique({
         where: { gigId_specialistId: { gigId: gig.id, specialistId: specialist.id } }
       })
@@ -446,7 +446,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(specialist, async () => {
         return await applyToGig(null, formData2)
       })
-      expect(result).toEqual({ error: 'You\'ve already applied to this gig. Check your dashboard to see your application status.' })
+      expect(result).toEqual({ error: 'Вы уже откликнулись на этот гиг. Статус отклика виден в вашем дашборде.' })
       const applications = await prisma.application.findMany({
         where: { gigId: gig.id, specialistId: specialist.id }
       })
@@ -467,7 +467,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(specialist, async () => {
         return await applyToGig(null, formData)
       })
-      expect(result).toEqual({ error: 'This gig no longer exists or has been removed.' })
+      expect(result).toEqual({ error: 'Этот гиг больше не существует или был удалён.' })
     })
 
     it('rejects application to example gig', async () => {
@@ -495,7 +495,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(specialist, async () => {
         return await applyToGig(null, formData)
       })
-      expect(result?.error).toContain('example gig')
+      expect(result?.error).toContain('демонстрационный')
     })
 
     it('rejects application to closed gig', async () => {
@@ -523,7 +523,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(specialist, async () => {
         return await applyToGig(null, formData)
       })
-      expect(result).toEqual({ error: 'This gig has been closed by administrators and is no longer available.' })
+      expect(result).toEqual({ error: 'Этот гиг закрыт администрацией и больше недоступен.' })
     })
   })
 
@@ -552,7 +552,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(specialist, async () => {
         return await applyToGig(null, formData)
       })
-      expect(result).toEqual({ error: 'This gig is no longer accepting applications. It may already have an assigned specialist.' })
+      expect(result).toEqual({ error: 'Этот гиг больше не принимает отклики — возможно, специалист уже назначен.' })
     })
 
     it('rejects application to REVIEW gig', async () => {
@@ -579,7 +579,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(specialist, async () => {
         return await applyToGig(null, formData)
       })
-      expect(result).toEqual({ error: 'This gig is no longer accepting applications. It may already have an assigned specialist.' })
+      expect(result).toEqual({ error: 'Этот гиг больше не принимает отклики — возможно, специалист уже назначен.' })
     })
 
     it('rejects application to COMPLETED gig', async () => {
@@ -606,7 +606,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(specialist, async () => {
         return await applyToGig(null, formData)
       })
-      expect(result).toEqual({ error: 'This gig is no longer accepting applications. It may already have an assigned specialist.' })
+      expect(result).toEqual({ error: 'Этот гиг больше не принимает отклики — возможно, специалист уже назначен.' })
     })
 
     it('rejects application to PAID gig', async () => {
@@ -633,7 +633,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(specialist, async () => {
         return await applyToGig(null, formData)
       })
-      expect(result).toEqual({ error: 'This gig is no longer accepting applications. It may already have an assigned specialist.' })
+      expect(result).toEqual({ error: 'Этот гиг больше не принимает отклики — возможно, специалист уже назначен.' })
     })
   })
 
@@ -659,7 +659,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(client, async () => {
         return await applyToGig(null, formData)
       })
-      expect(result).toEqual({ error: 'Only specialists can apply to gigs. Switch to a specialist account or register as a specialist to continue.' })
+      expect(result).toEqual({ error: 'Откликаться на гиги могут только специалисты. Войдите как специалист или зарегистрируйтесь в этой роли.' })
     })
 
     it('redirects unauthenticated user to login', async () => {
@@ -833,7 +833,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(otherClient, async () => {
         return await acceptApplication(null, formData)
       })
-      expect(result).toEqual({ error: 'Only the client who posted this gig can accept applications.' })
+      expect(result).toEqual({ error: 'Принимать отклики может только заказчик, опубликовавший гиг.' })
     })
 
     it('rejects acceptance by SPECIALIST', async () => {
@@ -864,7 +864,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(specialist, async () => {
         return await acceptApplication(null, formData)
       })
-      expect(result).toEqual({ error: 'Only clients can manage applications. If you\'re the specialist, wait for the client\'s decision.' })
+      expect(result).toEqual({ error: 'Управлять откликами могут только заказчики. Если вы специалист — дождитесь решения заказчика.' })
     })
 
     it('rejects acceptance on non-OPEN gig', async () => {
@@ -895,7 +895,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(client, async () => {
         return await acceptApplication(null, formData)
       })
-      expect(result).toEqual({ error: 'This gig is no longer accepting applications. It may already have an assigned specialist.' })
+      expect(result).toEqual({ error: 'Этот гиг больше не принимает отклики — возможно, специалист уже назначен.' })
     })
 
     it('prevents accepting second application after first is accepted', async () => {
@@ -944,7 +944,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(client, async () => {
         return await acceptApplication(null, formData2)
       })
-      expect(result).toEqual({ error: 'This gig is no longer accepting applications. It may already have an assigned specialist.' })
+      expect(result).toEqual({ error: 'Этот гиг больше не принимает отклики — возможно, специалист уже назначен.' })
       const updatedApp2 = await prisma.application.findUnique({ where: { id: app2.id } })
       expect(updatedApp2?.status).toBe('REJECTED')
       const updatedGig = await prisma.gig.findUnique({ where: { id: gig.id } })
@@ -980,7 +980,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(client, async () => {
         return await acceptApplication(null, formData)
       })
-      expect(result).toEqual({ error: 'This application has already been accepted or rejected.' })
+      expect(result).toEqual({ error: 'Этот отклик уже принят или отклонён.' })
     })
 
     it('rejects acceptance of non-existent application', async () => {
@@ -995,7 +995,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(client, async () => {
         return await acceptApplication(null, formData)
       })
-      expect(result).toEqual({ error: 'This application no longer exists or has been removed.' })
+      expect(result).toEqual({ error: 'Этот отклик больше не существует или был удалён.' })
     })
   })
 
@@ -1119,7 +1119,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(otherClient, async () => {
         return await rejectApplication(null, formData)
       })
-      expect(result).toEqual({ error: 'Only the client who posted this gig can reject applications.' })
+      expect(result).toEqual({ error: 'Отклонять отклики может только заказчик, опубликовавший гиг.' })
     })
 
     it('rejects rejection by SPECIALIST', async () => {
@@ -1150,7 +1150,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(specialist, async () => {
         return await rejectApplication(null, formData)
       })
-      expect(result).toEqual({ error: 'Only clients can manage applications. If you\'re the specialist, wait for the client\'s decision.' })
+      expect(result).toEqual({ error: 'Управлять откликами могут только заказчики. Если вы специалист — дождитесь решения заказчика.' })
     })
 
     it('rejects rejection of non-PENDING application', async () => {
@@ -1181,7 +1181,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(client, async () => {
         return await rejectApplication(null, formData)
       })
-      expect(result).toEqual({ error: 'This application has already been accepted or rejected.' })
+      expect(result).toEqual({ error: 'Этот отклик уже принят или отклонён.' })
     })
 
     it('rejects rejection of non-existent application', async () => {
@@ -1196,7 +1196,7 @@ describe('Application Flow Tests', () => {
       const result = await withAuthContext(client, async () => {
         return await rejectApplication(null, formData)
       })
-      expect(result).toEqual({ error: 'This application no longer exists or has been removed.' })
+      expect(result).toEqual({ error: 'Этот отклик больше не существует или был удалён.' })
     })
   })
 })

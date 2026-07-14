@@ -97,7 +97,7 @@ describe('Closed Gig Application Prevention', () => {
 
     await withAuthContext(specialist, async () => {
       const result = await applyToGig(null, formData)
-      expect(result).toEqual({ error: 'This gig has been closed by administrators and is no longer available.' })
+      expect(result).toEqual({ error: 'Этот гиг закрыт администрацией и больше недоступен.' })
     })
 
     // Verify no application was created
@@ -159,7 +159,7 @@ describe('Closed Gig Application Prevention', () => {
     await withAuthContext(specialist, async () => {
       const result = await applyToGig(null, formData)
       // closedByAdmin check happens before status check, so we get the closed error
-      expect(result).toEqual({ error: 'This gig has been closed by administrators and is no longer available.' })
+      expect(result).toEqual({ error: 'Этот гиг закрыт администрацией и больше недоступен.' })
     })
 
     // Verify no application was created
@@ -286,7 +286,7 @@ describe('Closed Gig Application Prevention', () => {
     await withAuthContext(specialist, async () => {
       const result = await applyToGig(null, formData)
       // Verify exact error message
-      expect(result.error).toBe('This gig has been closed by administrators and is no longer available.')
+      expect(result.error).toBe('Этот гиг закрыт администрацией и больше недоступен.')
     })
 
     // Cleanup

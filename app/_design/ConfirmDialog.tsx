@@ -13,6 +13,7 @@ export function ConfirmDialog({
   title,
   body,
   confirmLabel,
+  cancelLabel = "Отмена",
   danger = true,
   onConfirm,
   onCancel,
@@ -20,6 +21,7 @@ export function ConfirmDialog({
   title: string;
   body: string;
   confirmLabel: string;
+  cancelLabel?: string;
   danger?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
@@ -43,7 +45,7 @@ export function ConfirmDialog({
             onClick={onCancel}
             style={{ flex: 1, height: 44, border: "none", borderRadius: 9, background: "var(--surface-secondary)", color: "var(--text-2)", fontSize: 14, cursor: "pointer" }}
           >
-            Отмена
+            {cancelLabel}
           </button>
           <button
             type="button"

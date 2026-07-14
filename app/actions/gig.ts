@@ -211,7 +211,46 @@ export async function applyToGig(
     where: { gigId_specialistId: { gigId, specialistId: session.userId } },
   })
   if (existing) {
-    return { error: 'Вы уже откликнулись на этот гиг. Статус отклика виден в вашем дашборде.' }
+    // Re-application is gated purely by status (fix-application-lifecycle).
+    if (existing.status === 'PENDING' || existing.status === 'ACCEPTED') {
+      return { error: 'Вы уже откликнулись на этот гиг. Статус отклика виден в вашем дашборде.' }
+    }
+    if (existing.status === 'REJECTED') {
+      return { error: 'Ваш отклик на этот гиг был отклонён заказчиком. Повторный отклик недоступен.' }
+    }
+    if (existing.status === 'WITHDRAWN_FINAL') {
+      return { error: 'Вы окончательно отозвали отклик на этот гиг и больше не можете откликнуться.' }
+    }
+    // status === 'WITHDRAWN' (reversible) → reactivate the SAME row to PENDING, keeping
+    // freeWithdrawalUsed. Guarded on the current WITHDRAWN status so a concurrent
+    // apply/withdraw cannot double-fire (atomic conditional update, no new row).
+    const reactivated = await prisma.application.updateMany({
+      where: { id: existing.id, status: 'WITHDRAWN' },
+      data: {
+        status: 'PENDING',
+        approach,
+        questions,
+        estimatedEffort,
+        proposedBudget,
+        proposedDeadlineDays,
+        coverLetter: '',
+      },
+    })
+    if (reactivated.count === 0) {
+      return { error: 'Не удалось обновить отклик. Обновите страницу и попробуйте снова.' }
+    }
+    const reapplicant = await prisma.user.findUnique({
+      where: { id: session.userId },
+      select: { id: true, email: true, specialistProfile: { select: { displayName: true } } },
+    })
+    const reapplicantName =
+      reapplicant?.specialistProfile?.displayName || reapplicant?.email || 'A specialist'
+    createNotification(gig.clientId, gigId, 'APPLICATION', 'application_submitted', {
+      specialistId: session.userId,
+      specialistName: reapplicantName,
+      applicationId: existing.id,
+    })
+    redirect(`/gigs/${gigId}`)
   }
 
   // Get specialist profile for notification
@@ -683,10 +722,24 @@ export async function withdrawApplication(
     include: { specialistProfile: true },
   })
 
-  await prisma.application.update({
-    where: { id: applicationId },
-    data: { status: 'WITHDRAWN' },
+  // One-free-withdrawal rule (fix-application-lifecycle), enforced atomically and race-safe:
+  // the two conditional updates are mutually exclusive on freeWithdrawalUsed and both require the
+  // row to still be PENDING, so exactly one can win even under concurrent apply/withdraw calls.
+  //   1st withdrawal (freeWithdrawalUsed=false) → WITHDRAWN + set flag (reversible).
+  //   2nd withdrawal (freeWithdrawalUsed=true)  → WITHDRAWN_FINAL (permanent, re-apply blocked).
+  const first = await prisma.application.updateMany({
+    where: { id: applicationId, status: 'PENDING', freeWithdrawalUsed: false },
+    data: { status: 'WITHDRAWN', freeWithdrawalUsed: true },
   })
+  if (first.count === 0) {
+    const second = await prisma.application.updateMany({
+      where: { id: applicationId, status: 'PENDING', freeWithdrawalUsed: true },
+      data: { status: 'WITHDRAWN_FINAL' },
+    })
+    if (second.count === 0) {
+      return { error: 'Не удалось отозвать отклик — возможно, его статус изменился. Обновите страницу.' }
+    }
+  }
 
   // Create notification for gig owner (fire-and-forget)
   const specialistName = specialist?.specialistProfile?.displayName || specialist?.email || 'A specialist'

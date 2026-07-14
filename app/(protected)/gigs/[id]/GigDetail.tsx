@@ -7,8 +7,9 @@
 // (unchanged) server actions. NOT a @composed-screen — this is the design's concrete code brought to life, not a kit
 // re-derivation; the F2/F5 purity gates do not apply to it (they are being retired as the rebuild rolls out).
 
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { ConfirmDialog } from "@/app/_design/ConfirmDialog";
 import {
   applyToGig,
   withdrawApplication,
@@ -62,7 +63,12 @@ export function GigDetail({ data }: { data: GigDetailData }) {
 
   const isCompany = !!data.conditions.fee; // owner view → fee breakdown
   const company = data.bio.name;
-  const term = tab === "client" ? data.conditions.client : data.conditions.proposed;
+  // Terms tabs (fix-terms-negotiation): owners don't counter their own gig → hide «Мои условия» and show a single
+  // (gig) terms panel. A specialist keeps both tabs; «Мои условия» reflects their counter (or a no-counter note).
+  const showTermsTabs = !data.isOwner;
+  const effectiveTab = showTermsTabs ? tab : "client";
+  const viewerHasCounter = !!data.viewerApplication?.hasCounter;
+  const term = effectiveTab === "client" ? data.conditions.client : data.conditions.proposed;
 
   // Статус row colour/label (PAID shown as the prototype's teal «Оплачен»).
   const paid = data.status === "PAID";
@@ -72,7 +78,12 @@ export function GigDetail({ data }: { data: GigDetailData }) {
   // ── role / lifecycle state (maps the prototype's show* flags) ─────────────
   const va = data.viewerApplication;
   const closed = data.closedByAdmin;
-  const showApply = !closed && (data.lifecycle.canApply || va?.status === "PENDING");
+  // Example gigs are a non-apply-able showcase — a viewing specialist gets a clear demo notice instead of a
+  // phantom form (Спец #6). Owner/assigned specialists keep their normal rails.
+  const showExampleNotice = !closed && data.isExample && data.isSpecialistViewer && !data.isOwner && !data.isAssignedSpecialist;
+  // WITHDRAWN_FINAL — gig STAYS VISIBLE with an «Отозвано» marker; re-apply is permanently unavailable.
+  const showFinalWithdrawn = !closed && !data.isExample && va?.status === "WITHDRAWN_FINAL";
+  const showApply = !closed && !data.isExample && (data.lifecycle.canApply || va?.status === "PENDING");
   const notApplied = data.lifecycle.canApply && va?.status !== "PENDING";
   const applied = va?.status === "PENDING";
   const showApplicants = !closed && data.isOwner && data.status === "OPEN";
@@ -387,42 +398,52 @@ export function GigDetail({ data }: { data: GigDetailData }) {
             gap: 18,
           }}
         >
-          <div style={{ display: "flex", gap: 6, padding: 3, borderRadius: 6, background: "var(--surface-app)" }}>
-            <div
-              onClick={() => setTab("client")}
-              style={{
-                flex: 1,
-                textAlign: "center",
-                padding: "6px 0",
-                borderRadius: 4,
-                background: tab === "client" ? "rgba(255,255,255,0.18)" : "transparent",
-                fontFamily: "'Handjet',monospace",
-                fontWeight: 600,
-                fontSize: 13,
-                color: tab === "client" ? "var(--text-1)" : "var(--text-3)",
-                cursor: "pointer",
-              }}
-            >
-              Условия {company}
+          {showTermsTabs && (
+            <div style={{ display: "flex", gap: 6, padding: 3, borderRadius: 6, background: "var(--surface-app)" }}>
+              <div
+                onClick={() => setTab("client")}
+                style={{
+                  flex: 1,
+                  textAlign: "center",
+                  padding: "6px 0",
+                  borderRadius: 4,
+                  background: tab === "client" ? "rgba(255,255,255,0.18)" : "transparent",
+                  fontFamily: "'Handjet',monospace",
+                  fontWeight: 600,
+                  fontSize: 13,
+                  color: tab === "client" ? "var(--text-1)" : "var(--text-3)",
+                  cursor: "pointer",
+                }}
+              >
+                Условия {company}
+              </div>
+              <div
+                onClick={() => setTab("proposed")}
+                style={{
+                  flex: 1,
+                  textAlign: "center",
+                  padding: "6px 0",
+                  borderRadius: 4,
+                  background: tab === "proposed" ? "rgba(255,255,255,0.18)" : "transparent",
+                  fontFamily: "'Handjet',monospace",
+                  fontWeight: 600,
+                  fontSize: 13,
+                  color: tab === "proposed" ? "var(--text-1)" : "var(--text-3)",
+                  cursor: "pointer",
+                }}
+              >
+                Мои условия
+              </div>
             </div>
-            <div
-              onClick={() => setTab("proposed")}
-              style={{
-                flex: 1,
-                textAlign: "center",
-                padding: "6px 0",
-                borderRadius: 4,
-                background: tab === "proposed" ? "rgba(255,255,255,0.18)" : "transparent",
-                fontFamily: "'Handjet',monospace",
-                fontWeight: 600,
-                fontSize: 13,
-                color: tab === "proposed" ? "var(--text-1)" : "var(--text-3)",
-                cursor: "pointer",
-              }}
-            >
-              Мои условия
-            </div>
-          </div>
+          )}
+
+          {showTermsTabs && effectiveTab === "proposed" && !viewerHasCounter && (
+            <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, lineHeight: "16px", color: "var(--text-4)" }}>
+              {data.viewerApplication
+                ? "Вы не предложили свои условия — действуют условия заказчика."
+                : "Предложите свои условия в форме отклика ниже — иначе действуют условия заказчика."}
+            </span>
+          )}
 
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span style={{ fontFamily: "'Handjet',monospace", fontSize: 13, color: "var(--text-4)" }}>Статус</span>
@@ -508,7 +529,43 @@ export function GigDetail({ data }: { data: GigDetailData }) {
 
           {/* ── role action rail ─────────────────────────────────────────── */}
           {showApply && (
-            <ApplyBlock gigId={data.gigId} notApplied={notApplied} applied={applied} applicationId={va?.id} />
+            <ApplyBlock
+              gigId={data.gigId}
+              notApplied={notApplied}
+              applied={applied}
+              applicationId={va?.id}
+              withdrawalIsFinal={!!va?.freeWithdrawalUsed}
+              initialBudget={va?.proposedBudgetRub != null ? String(va.proposedBudgetRub) : ""}
+              initialDeadline={va?.proposedDeadlineDays != null ? String(va.proposedDeadlineDays) : ""}
+            />
+          )}
+
+          {showExampleNotice && (
+            <div style={noticeBox("rgba(0,136,255,0.08)", "rgba(0,136,255,0.35)")}>
+              <span style={{ fontFamily: "'Handjet',monospace", fontWeight: 600, fontSize: 13, color: "#4ea3ff" }}>
+                Демонстрационный гиг
+              </span>
+              <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, lineHeight: "16px", color: "var(--text-3)" }}>
+                Это пример для витрины — отклик недоступен. Реальные гиги ищите в поиске.
+              </span>
+              <button
+                onClick={() => router.push("/gigs")}
+                style={{ ...primaryBtn("var(--om-accent, #0088ff)"), height: 40, marginTop: 6 }}
+              >
+                Перейти к поиску гигов
+              </button>
+            </div>
+          )}
+
+          {showFinalWithdrawn && (
+            <div style={noticeBox("rgba(239,68,68,0.10)", "rgba(239,68,68,0.4)")}>
+              <span style={{ fontFamily: "'Handjet',monospace", fontWeight: 600, fontSize: 13, color: "#ef4444" }}>
+                Отозвано
+              </span>
+              <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, lineHeight: "16px", color: "var(--text-3)" }}>
+                Вы окончательно отозвали отклик на этот гиг — повторный отклик недоступен.
+              </span>
+            </div>
           )}
 
           {showApplicants && (
@@ -679,18 +736,33 @@ function ApplyBlock({
   notApplied,
   applied,
   applicationId,
+  withdrawalIsFinal,
+  initialBudget = "",
+  initialDeadline = "",
 }: {
   gigId: string;
   notApplied: boolean;
   applied: boolean;
   applicationId?: string;
+  withdrawalIsFinal: boolean;
+  initialBudget?: string;
+  initialDeadline?: string;
 }) {
   const [approach, setApproach] = useState("");
   const [questions, setQuestions] = useState("");
   const [estimate, setEstimate] = useState("");
+  // Optional counter-terms (fix-terms-negotiation) — wired to applyToGig's proposedBudget (roubles)/proposedDeadlineDays.
+  // Pre-filled from the preserved counter when re-applying after a withdrawal, so «Мои условия» and the form agree
+  // (avoids silently dropping the counter on a blank re-submit).
+  const [propBudget, setPropBudget] = useState(initialBudget);
+  const [propDeadline, setPropDeadline] = useState(initialDeadline);
   const [applyState, applyAction] = useAction(applyToGig);
   const [withdrawStateRaw, withdrawAction] = useAction(withdrawApplication);
   const withdrawState = withdrawStateRaw;
+  // The 2nd withdrawal is final (freeWithdrawalUsed already true) → gate it behind ConfirmDialog; the 1st is
+  // reversible → submit immediately. Server enforces finality regardless (dialog is UX only).
+  const withdrawFormRef = useRef<HTMLFormElement>(null);
+  const [confirmFinal, setConfirmFinal] = useState(false);
 
   // Mirror the server thresholds in applyToGig (approach ≥ 100, questions ≥ 50) so the button gates before submit
   // instead of the server bouncing the user after a click.
@@ -698,11 +770,23 @@ function ApplyBlock({
   const QUESTIONS_MIN = 50;
   const aLen = approach.trim().length;
   const qLen = questions.trim().length;
-  const valid = aLen >= APPROACH_MIN && qLen >= QUESTIONS_MIN;
+  const baseValid = aLen >= APPROACH_MIN && qLen >= QUESTIONS_MIN;
+  // Proposed terms are OPTIONAL — empty is valid. When present, mirror the server rules (budget > 0; срок integer 1–365)
+  // so an invalid counter is caught before submit instead of the server bouncing the user.
+  const budgetOk = propBudget.trim() === "" || Number(propBudget) > 0;
+  const deadlineNum = Number(propDeadline);
+  const deadlineOk =
+    propDeadline.trim() === "" || (Number.isInteger(deadlineNum) && deadlineNum >= 1 && deadlineNum <= 365);
+  const proposedOk = budgetOk && deadlineOk;
+  const valid = baseValid && proposedOk;
   const applyBtnBg = valid ? "var(--om-accent, #0088ff)" : "var(--surface-secondary)";
   const applyHint = valid
     ? "Нажимая кнопку, вы соглашаетесь с правилами платформы"
-    : `Подход — минимум ${APPROACH_MIN} симв. (${aLen}/${APPROACH_MIN}), вопросы — минимум ${QUESTIONS_MIN} (${qLen}/${QUESTIONS_MIN})`;
+    : !baseValid
+      ? `Подход — минимум ${APPROACH_MIN} симв. (${aLen}/${APPROACH_MIN}), вопросы — минимум ${QUESTIONS_MIN} (${qLen}/${QUESTIONS_MIN})`
+      : !budgetOk
+        ? "Бюджет должен быть положительным числом в рублях (или оставьте поле пустым)"
+        : "Срок должен быть целым числом дней от 1 до 365 (или оставьте поле пустым)";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -750,11 +834,73 @@ function ApplyBlock({
               style={{ ...fieldStyle, height: 42, padding: "0 12px", lineHeight: "normal" }}
             />
           </div>
-          <button type="submit" disabled={!valid} style={{ ...primaryBtn(applyBtnBg), cursor: valid ? "pointer" : "not-allowed" }}>
+
+          {/* Мои условия — optional counter-terms; empty = accept the client's terms. */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <label style={labelStyle}>
+              Мои условия <span style={{ color: "var(--text-4)" }}>(необязательно)</span>
+            </label>
+            <div style={{ display: "flex", gap: 8 }}>
+              <input
+                name="proposedBudget"
+                value={propBudget}
+                onChange={(e) => setPropBudget(e.target.value)}
+                inputMode="numeric"
+                placeholder="Ваш бюджет, ₽"
+                style={{
+                  ...fieldStyle,
+                  flex: 1,
+                  minWidth: 0,
+                  height: 42,
+                  padding: "0 12px",
+                  lineHeight: "normal",
+                  boxShadow: budgetOk ? fieldStyle.boxShadow : "inset 0 0 0 1px rgba(245,158,11,0.6)",
+                }}
+              />
+              <input
+                name="proposedDeadlineDays"
+                value={propDeadline}
+                onChange={(e) => setPropDeadline(e.target.value)}
+                inputMode="numeric"
+                placeholder="Срок, дней"
+                style={{
+                  ...fieldStyle,
+                  width: 120,
+                  flex: "none",
+                  height: 42,
+                  padding: "0 12px",
+                  lineHeight: "normal",
+                  boxShadow: deadlineOk ? fieldStyle.boxShadow : "inset 0 0 0 1px rgba(245,158,11,0.6)",
+                }}
+              />
+            </div>
+            <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 11, color: "var(--text-4)" }}>
+              Оставьте пустым, чтобы принять условия заказчика.
+            </span>
+          </div>
+          <button
+            type="submit"
+            disabled={!valid}
+            style={{
+              ...primaryBtn(applyBtnBg),
+              cursor: valid ? "pointer" : "not-allowed",
+              color: valid ? "#fff" : "var(--text-4)",
+              opacity: valid ? 1 : 0.85,
+              boxShadow: valid ? "none" : "inset 0 0 0 1px var(--hairline-10)",
+            }}
+          >
             Отправить заявку
           </button>
           {errLine(applyState?.error)}
-          <span style={{ fontFamily: "'Handjet',monospace", fontSize: 12, textAlign: "center", color: "#9fa0a4" }}>
+          <span
+            style={{
+              fontFamily: "'Handjet',monospace",
+              fontSize: 12,
+              textAlign: "center",
+              fontWeight: valid ? 400 : 600,
+              color: valid ? "#9fa0a4" : "#f59e0b",
+            }}
+          >
             {applyHint}
           </span>
         </form>
@@ -779,10 +925,11 @@ function ApplyBlock({
           >
             Заявка отправлена ✓
           </div>
-          <form action={withdrawAction}>
+          <form ref={withdrawFormRef} action={withdrawAction}>
             <input type="hidden" name="applicationId" value={applicationId} />
             <button
-              type="submit"
+              type={withdrawalIsFinal ? "button" : "submit"}
+              onClick={withdrawalIsFinal ? () => setConfirmFinal(true) : undefined}
               style={{
                 width: "100%",
                 height: 40,
@@ -798,7 +945,26 @@ function ApplyBlock({
               Отозвать заявку
             </button>
           </form>
+          {withdrawalIsFinal && (
+            <span style={{ fontFamily: "'Handjet',monospace", fontSize: 12, textAlign: "center", color: "#f59e0b" }}>
+              Это ваш второй отзыв — он будет окончательным.
+            </span>
+          )}
           {errLine(withdrawState?.error)}
+          {confirmFinal && (
+            <ConfirmDialog
+              title="Отозвать окончательно?"
+              body="Если отменить отклик сейчас, повторно откликнуться на этот гиг будет нельзя. Гиг останется виден с пометкой «Отозвано»."
+              confirmLabel="Отозвать окончательно"
+              cancelLabel="Не отменять"
+              danger
+              onCancel={() => setConfirmFinal(false)}
+              onConfirm={() => {
+                setConfirmFinal(false);
+                withdrawFormRef.current?.requestSubmit();
+              }}
+            />
+          )}
         </div>
       )}
     </div>

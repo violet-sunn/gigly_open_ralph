@@ -1,0 +1,97 @@
+# Prod Feedback Fixes — Stress-Test Round 1
+
+**Created:** 2026-07-13
+**Status:** PLANNED
+
+## Problem
+
+The app was deployed to Amvera and stress-tested by an external user across both the **Специалист** and **Заказчик** roles (report: `Гигли_правки.pdf`). The pass surfaced ~20 defects spanning three severities: **functional bugs** (application lifecycle broken on cancel, terms-negotiation dead everywhere, no way to edit a published gig, support widget inert, sidebar/notifications/online-status broken, a demo role-switcher leaking into prod UI), **UX friction** (unintuitive profile-edit affordances, unclear where to set the experience level, non-clickable logo), and **cosmetic/text** issues (Russian pluralization «1 дней», mis-styled category chips that read as errors, truncated placeholder, oversized/undersized controls). None are captured anywhere as tracked work; they were found by touch, not by tests.
+
+## Why This Matters
+
+This is the first real outside-user pass before the diploma defense (~2026-07-19) and before wider stress-testing by the user's peers. The reviewers will «пощупать» the product as users and may register themselves, so a broken apply/cancel flow, a dead terms-negotiation tab, or a visible internal role-switcher directly undercut the «high-end B2B marketplace» positioning and can derail a live demo. Fixing these as one coordinated round — bugs first, then the one missing feature (gig editing), then polish — turns the feedback into a shippable, demo-solid build instead of a scatter of ad-hoc patches.
+
+## Scope
+
+This initiative fixes defects across the running app; it does **not** re-ground design or change the deploy pipeline. Affected systems:
+
+- **Application lifecycle** — `app/actions/application.ts` (or equivalent apply/withdraw actions), the `Application` model/status machine, and `app/(protected)/gigs/[id]/GigDetail.tsx` (apply form + gate). Root of the cancel-then-reapply bug and the disabled-button confusion.
+- **Terms negotiation** — the «Мои условия» counter-proposal UI on the gig detail + its server action/VM (seed already creates `terms-negotiation` proposals, so a data path exists but is unwired end-to-end).
+- **Gig editing (new)** — a new edit action + form for a published gig, plus a `Notification` fan-out to every applied specialist on terms change.
+- **Shell / navigation** — `app/_design/AppShellDesign.tsx`: sidebar collapse control, GIGLY logo link, notifications-dropdown positioning, the support widget, and removal of the Специалист/Компания/Админ role-switcher.
+- **Profile** — `app/(protected)/profile/ProfileDesign.tsx` + edit modals + `lib/view-models.ts` (`getProfile` hardcodes `online: false`); experience-level field; client-profile edit affordance.
+- **Auth surface** — `app/_design/AuthDesign.tsx`: password show/hide, register-screen link placement.
+- **Content/format** — a Russian pluralization helper (день/дня/дней), category-chip styling, create-gig criteria placeholder, «Назад к гигам» control.
+
+**Dependencies:** Change 1 (application lifecycle) and Change 2 (terms negotiation) both touch the gig-detail apply area — land 1 before 2 to avoid conflicts. Change 3 (gig editing) reuses the notification fan-out pattern and should follow 1–2. Changes 4–8 are independent and may run in any order.
+
+**Process:** Run on a dedicated branch, one commit per change, so a bad fix is easy to revert. After each functional change, verify live in the running app (the harness/Playwright flow that already exists), not just via tests. Re-deploy to Amvera (`./deploy-to-amvera.sh`) at the end of the round, or per-change if the user wants to re-test incrementally.
+
+**Risks / unknowns:**
+- The «нет возможности откликнуться» report (Спец #6) was seen on an **example gig** (owner «Gigly · Демонстрация»). It may be example-specific or a general apply-availability bug — Change 1 must first reproduce and locate the true cause before fixing.
+- Real online-status has no `lastActiveAt` today; Change 6 may need a lightweight heartbeat/`lastSeenAt` column — scope that as part of the change, not an afterthought.
+- Editing a gig after specialists have applied has product implications (stale applications against changed terms) — Change 3's notification is the mitigation; do not allow silent edits.
+
+## Non-goals / Deferred
+
+- **Custom categories** (user write-in instead of preset pick — Спец #4b): explicitly **deferred** this round per the user. Only the *styling* of the existing category modal (Спец #4a) is in scope.
+- No design re-grounding, no new UI kit, no deploy/infra changes.
+- Mobile/responsive is not a target beyond fixing the reported off-screen/oversized controls; the app remains desktop-first.
+
+## Changes
+
+Each is a separate `/ralphy-plan` → `/ralphy-implement` cycle. Ordered by priority: functional bugs (1–2), the missing feature (3), then shell/UX/cosmetic (4–8). Changes 1→2→3 are sequenced (shared surfaces); 4–8 are independent.
+
+### 1. Fix the application lifecycle (cancel → re-apply, stuck status, missing apply) — **IMPLEMENTED ✓ (2026-07-14)**
+> Change proposal written: `openspec/changes/fix-application-lifecycle/`. Business rule revised with the user: **one free (reversible) withdrawal per gig; the 2nd withdrawal is final**, gated by a confirmation dialog. Modeled with an explicit status (`WITHDRAWN` reversible / `WITHDRAWN_FINAL` permanent) plus a server-authoritative per-row flag `Application.freeWithdrawalUsed` (exploit-safe, atomic transitions, survives sessions, scoped per gig+specialist, no reset path). Final-withdrawn gigs stay visible with an «Отозвано» marker (do NOT disappear). Example gigs stay non-apply-able with a clear demo notice. Next: `/ralphy-implement fix-application-lifecycle`.
+```bash
+/ralphy-plan fix-application-lifecycle "Fix the specialist application state machine so apply/cancel/re-apply works and the apply control is available and legible. Bugs (from stress-test report): (a) NEW — after a specialist applies and then cancels/withdraws, they can no longer re-apply and the status stays stuck at «На рассмотрении»; (b) Спец #6 — no way to apply on example gigs (intentional isExample block, but the UI shows nothing → reads as broken); (c) Заказчик #5 — the «Отправить заявку» button is disabled by the validation gate but reads as broken. Business rule (revised with user): ONE free reversible withdrawal per gig (re-apply allowed); the SECOND withdrawal is FINAL, gated by a confirmation dialog with a «Не отменять» dismiss, and blocks re-apply permanently; the gig stays visible with an «Отозвано» marker. Enforce via a server-authoritative Application.withdrawalCount (per unique (gigId,specialistId) row; never client/session state) so it survives sessions and cannot be exploited or bleed across gigs/users. Example gigs stay non-apply-able with a clear demo notice. Make the disabled submit visibly disabled with the unmet rule highlighted. Files: app/actions/gig.ts (applyToGig/withdrawApplication), Application model, lib/view-models.ts getGig, app/(protected)/gigs/[id]/GigDetail.tsx, app/_design/ConfirmDialog.tsx. Verify live."
+```
+
+### 2. Make terms negotiation («Мои условия») actually work everywhere — **IMPLEMENTED ✓ (2026-07-14)**
+> Change proposal written: `openspec/changes/fix-terms-negotiation/`. Investigation found the backend is **already wired** (counter-terms live on `Application.proposedBudget`/`proposedDeadlineDays`; `applyToGig` persists them; `acceptApplication` adopts them onto the gig) — the failure is UI/VM only: the apply form has no budget/срок inputs, the client's applicants screen never shows the counter, and a CLIENT owner sees a redundant 2nd tab. **Decision (with user):** keep the existing **one-way** flow (specialist proposes once → client accepts → adopts), **no new model / no schema change** (project.md: «Not a bidding platform»); re-proposing only via withdraw → re-apply, with explicit lifecycle verification; hide the owner's 2nd tab. Next: `/ralphy-implement fix-terms-negotiation`.
+```bash
+/ralphy-plan fix-terms-negotiation "The «Мои условия» counter-terms tab on the gig detail does nothing — clicking it changes nothing, and the feature is dead across ALL gigs (not just examples), for both viewing and proposing. The seed already creates terms-negotiation proposals, so the data model exists but the UI/action path is unwired. Requirements: (1) Define the intended flow with the user if unclear, but the baseline: a specialist (or client) can view the gig's current terms («Условия <заказчик>») and switch to «Мои условия» to propose their own (e.g. adjusted срок/бюджет/этапы or a text counter-offer), submit it, and the other party can see/accept it; (2) wire the tab toggle to actually swap the panel content and load the current user's proposal (or an empty editable form) instead of a no-op; (3) persist proposals via the existing proposals action/model and surface them to the counterparty; (4) reflect an accepted proposal in the gig's effective terms. Files: gig-detail terms panel in GigDetail.tsx, the proposals server action/VM, the Proposal/ApplicationProposal model. Test plan: E2E — open a gig, switch «Условия ↔ Мои условия», the panel content changes; submit a counter-proposal; it persists and is visible to the counterparty; accept it and the terms update. Verify live across a normal gig and an example gig; confirm nothing is a no-op."
+```
+
+### 3. Gig editing with applicant notification (new feature)
+```bash
+/ralphy-plan gig-editing-with-notification "Add the ability for a client to EDIT an already-published gig, and notify every applied specialist when terms change. Reported: Заказчик #3 — a client made a typo in a gig field («Результаты») and had no way to fix it. Requirements: (1) Add an edit action + form for a published gig covering the editable fields (title, description, goal/цель, deliverables/результаты, constraints/ограничения, acceptance criteria, budget, deadline, category, stages) with the SAME validation gates as create-gig (criteria ≥ 50, budget > 0, etc.); (2) entry point: an obvious «Редактировать» control on the client's own gig detail (reuse the existing edit-affordance pattern, but make it clearly a button — see the profile-edit friction in Change 6); (3) on save, if terms materially changed (budget, deadline, scope fields), create a Notification for EVERY specialist with a non-withdrawn application to that gig, stating the gig's terms were updated; (4) guard: only the owning client can edit; decide with the user whether editing is allowed after a specialist is assigned / gig left OPEN status (default: allow while OPEN, restrict once IN_PROGRESS). Files: app/actions/gig.ts (new updateGig), a gig-edit form (reuse CreateGigDesign structure), Notification fan-out, GigDetail owner controls. Test plan: E2E — client edits an OPEN gig with prior applicants → save succeeds, validation enforced → each applicant receives a notification about the update; non-owners cannot edit; verify the corrected field renders. Verify live."
+```
+
+### 4. Remove the Специалист/Компания/Админ role-switcher from the shell
+```bash
+/ralphy-plan remove-role-switcher-panel "Remove the «Специалист / Компания / Админ» tab switcher that appears in the sidebar profile card (Спец #3). It is a demo/dev role-preview control that leaked into the production UI; a real user's role is fixed by their account and they must not see or use a role switcher. Requirements: (1) Locate the switcher in app/_design/AppShellDesign.tsx (or the sidebar profile-card component) and remove it and any dead role-preview state it drives; (2) ensure nothing else depended on that state (nav, titles); (3) leave the profile card (avatar, name, role label, bell, gear) intact. Test plan: the sidebar renders for each role with NO role-switcher; navigation and page titles still work; no console errors; grep confirms the switcher component/state is gone. Verify live in all three roles."
+```
+
+### 5. Shell & navigation & support fixes
+```bash
+/ralphy-plan shell-nav-support-fixes "Fix four shell/navigation defects in app/_design/AppShellDesign.tsx and the support widget. (a) Спец #7 — the sidebar collapse chevron «« does nothing; wire it to actually collapse/expand the sidebar (persist the state if trivial). (b) Спец #14 — the GIGLY wordmark is not clickable; make it a link to /dashboard (role-appropriate home). (c) Спец #13 — the notifications dropdown opens at bottom-left and runs off-screen; fix its anchoring so it opens attached to the bell, within the viewport, on desktop widths. (d) Спец #2 — the «Поддержка / Что случилось?» widget is inert; wire it to work — at minimum submit to a real destination (e.g. mailto a.pisotskiy@gmail.com or the /help route), or a working contact form; no dead control. Requirements: keep the existing visual design; only fix behavior/positioning. Test plan: collapse button toggles the sidebar; clicking GIGLY navigates home; notifications panel opens anchored to the bell fully on-screen; submitting the support widget performs a real action (navigates/opens mail/persists). Verify live on desktop."
+```
+
+### 6. Profile experience fixes (edit affordance, level, online status)
+```bash
+/ralphy-plan profile-experience-fixes "Fix four profile issues across ProfileDesign, its edit modals, and getProfile. (a) Спец #9 — the pencil (edit) icon SAVES and the field is edited by clicking the field itself, which is backwards; rework so the pencil toggles/opens edit mode and a separate explicit Save confirms — the pencil must mean «edit», not «save». (b) Заказчик #1 — on the CLIENT profile it's unclear how to fill/edit data (only a small pencil), unlike the specialist where it's visible; add a clear, obvious «Редактировать»/«Заполнить» button as the edit entry point (align both roles' affordances). (c) Спец #15 — it's unclear WHERE to set the experience level (Middle+/Senior) that onboarding asks for; expose an explicit level field/selector in the profile (and its edit modal) alongside Стек and Опыт. (d) Спец #16 — the profile always shows «● offline» because lib/view-models.ts getProfile hardcodes online:false; implement a real online indicator (e.g. a lightweight lastSeenAt updated on activity; online if within N minutes) that respects the showOnlineStatus setting — at minimum stop showing an active user as offline. Test plan: pencil opens edit mode (does not save); an explicit Save persists; client profile has an obvious edit button; the experience level is settable and displays; the current active user shows online (and offline honored when showOnlineStatus is off). Verify live in both roles."
+```
+
+### 7. Auth surface polish (password eye, register link placement)
+```bash
+/ralphy-plan auth-surface-polish "Two auth-screen fixes in app/_design/AuthDesign.tsx. (a) Спец #1 — password fields have no visibility toggle; add a show/hide eye icon to every password input (login + all onboarding password fields) so users can see what they typed; toggle type between password/text, accessible label. (b) Спец #17 — on the register screen the «Условия пользования» link is wedged BETWEEN the «Зарегистрироваться» button and the «Войти» link, which looks broken; re-layout so the primary button, the secondary «Войти», and the legal link are cleanly ordered (legal link visually subordinate, not sandwiched between the two actions). Requirements: keep the existing design language (Handjet/Manrope, token colors); purely additive/layout. Test plan: eye toggle reveals/hides the password on login and each onboarding step; register screen layout reads cleanly with the legal link no longer between the two buttons. Verify live."
+```
+
+### 8. Content & cosmetic fixes (pluralization, category chips, placeholder, back-link)
+```bash
+/ralphy-plan content-cosmetic-fixes "Four small content/styling fixes. (a) Заказчик #4 — Russian pluralization is wrong («1 дней» instead of «1 день»); add a shared plural helper (день/дня/дней; and any other counted nouns like этап/этапа/этапов) and apply it wherever a count+noun is rendered (gig deadline «срок выполнения», stages «[N этап]», etc.). (b) Спец #4a — in the «Избранные категории» modal the category chips have colored borders (e.g. Дизайн red/rose, Программирование green) that READ AS validation errors; restyle the selected/hue states so they clearly signal «selected category», not «error» (do NOT add custom-category write-in — that is deferred). (c) Заказчик #2 — the create-gig «Критерии приёмки» input placeholder («…например: память не растёт при 500…») is truncated/hidden behind the «Добавить» button; fix the layout so the example placeholder is fully visible (input width / button placement). (d) Спец #8 — the «← Назад к гигам» control is too small/hard to hit; enlarge it to a comfortable, legible target. Test plan: «1 день / 2 дня / 5 дней» render correctly across counts; category chips no longer look like errors; the criteria placeholder is fully readable; «Назад к гигам» is a comfortable size. Verify live."
+```
+
+## Status
+- [x] fix-application-lifecycle — IMPLEMENTED & verified (integration + live E2E) 2026-07-14
+- [x] fix-terms-negotiation — IMPLEMENTED & verified (integration + live E2E) 2026-07-14
+- [ ] gig-editing-with-notification
+- [ ] remove-role-switcher-panel
+- [ ] shell-nav-support-fixes
+- [ ] profile-experience-fixes
+- [ ] auth-surface-polish
+- [ ] content-cosmetic-fixes
+
+**Progress:** 2/8 changes completed

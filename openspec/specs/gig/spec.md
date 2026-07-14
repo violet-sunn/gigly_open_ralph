@@ -99,7 +99,7 @@ The system MUST calculate service fee as 10% of the budget.
 ---
 
 ### Requirement: Apply to Gig Server Action
-The system MUST provide an `applyToGig` server action that creates an application with structured fields for technical approach, clarifying questions, and optional estimated effort.
+The system MUST provide an `applyToGig` server action that creates an application with structured fields for technical approach, clarifying questions, and optional estimated effort. A specialist has at most one application row per gig (`@@unique([gigId, specialistId])`). Re-application is gated by **status**: a `WITHDRAWN` (reversible) application MUST be reactivated on re-apply; a `WITHDRAWN_FINAL` application MUST block re-application. Example gigs (`isExample`) MUST NOT accept applications. The reactivation MUST be performed atomically against the current status.
 
 #### Scenario: Successful application with structured fields
 - GIVEN an authenticated user with role "SPECIALIST"
@@ -173,10 +173,31 @@ The system MUST provide an `applyToGig` server action that creates an applicatio
 - WHEN `applyToGig` is called
 - THEN it MUST redirect to `/login`
 
-#### Scenario: Duplicate application
-- GIVEN a SPECIALIST has already applied to a gig
+#### Scenario: Duplicate active application is rejected
+- GIVEN a SPECIALIST has an application to a gig with status `PENDING` or `ACCEPTED`
 - WHEN `applyToGig` is called for the same gig
-- THEN it MUST return `{ error: 'You have already applied to this gig.' }`
+- THEN it MUST return an error stating the specialist has already applied
+- AND no additional Application record MUST be created
+
+#### Scenario: Re-applying after a reversible withdrawal reactivates the application
+- GIVEN a SPECIALIST has an application to an OPEN gig with status `WITHDRAWN` and `freeWithdrawalUsed = true`
+- WHEN `applyToGig` is called with valid approach and questions
+- THEN the existing row MUST be updated in place (no new row) to `status: 'PENDING'` with the newly submitted fields
+- AND `freeWithdrawalUsed` MUST be preserved (stays `true`)
+- AND an owner `APPLICATION` notification MUST be created
+
+#### Scenario: Re-applying after a final withdrawal is rejected
+- GIVEN a SPECIALIST has an application to a gig with status `WITHDRAWN_FINAL`
+- WHEN `applyToGig` is called for that gig
+- THEN it MUST return an error stating the specialist has finally withdrawn and can no longer apply to this gig
+- AND no record MUST be created or modified
+- AND this MUST hold even when the call bypasses any client-side dialog (server-authoritative)
+
+#### Scenario: Applying to an example gig is rejected
+- GIVEN a gig with `isExample = true`
+- WHEN `applyToGig` is called
+- THEN it MUST return an error indicating the gig is a demonstration gig and applications are not accepted
+- AND no Application record MUST be created or modified
 
 #### Scenario: Applying to non-existent gig
 - GIVEN a gigId that does not exist
@@ -670,37 +691,97 @@ The Reject Application button MUST trigger a confirmation dialog before executin
 
 ---
 
-### Requirement: Withdraw Application UI with Confirmation
-The Withdraw Application button MUST trigger a confirmation dialog before executing the withdrawApplication server action.
+<!-- Merged on archive from change: fix-application-lifecycle (2026-07-14). Source delta retained in openspec/archive/fix-application-lifecycle/specs/gig/spec.md.
+     The three requirements below SUPERSEDE the former "Withdraw Application UI with Confirmation" requirement, whose
+     "you will not be able to reapply" wording was wrong under the one-free-withdrawal rule (the 1st withdrawal is reversible). -->
 
-#### Scenario: Clicking Withdraw Application opens confirmation dialog
-- GIVEN a SPECIALIST viewing their PENDING application
-- WHEN they click the "Withdraw Application" button
-- THEN a confirmation dialog MUST appear
-- AND the dialog title MUST be "Withdraw Application"
-- AND the dialog message MUST explain: "This will withdraw your application. You will not be able to reapply to this gig."
-- AND the withdrawApplication action MUST NOT execute yet
+### Requirement: Withdraw Application Server Action
+The system MUST provide a `withdrawApplication` server action that lets a specialist withdraw their own `PENDING` application, preserving the row. The first withdrawal per gig is reversible (`WITHDRAWN`); the second is final (`WITHDRAWN_FINAL`). The transition MUST be atomic.
 
-#### Scenario: Confirming withdrawal executes action
-- GIVEN a SPECIALIST with open withdrawal confirmation dialog
-- WHEN they click "Confirm" in the dialog
-- THEN the withdrawApplication server action MUST be called
-- AND the dialog MUST close
-- AND the application status MUST update to WITHDRAWN
+#### Scenario: First withdrawal is reversible
+- GIVEN an authenticated SPECIALIST who owns a `PENDING` application with `freeWithdrawalUsed = false`
+- WHEN `withdrawApplication` is called for that application
+- THEN the status MUST be set to `WITHDRAWN` and `freeWithdrawalUsed` MUST be set to `true`
+- AND the row MUST be preserved (not deleted)
+- AND the specialist MUST be able to re-apply (reactivation per Apply to Gig)
 
-#### Scenario: Canceling withdrawal closes dialog without action
-- GIVEN a SPECIALIST with open withdrawal confirmation dialog
-- WHEN they click "Cancel" in the dialog
-- THEN the withdrawApplication server action MUST NOT be called
-- AND the dialog MUST close
-- AND the application status MUST remain PENDING
+#### Scenario: Second withdrawal is final
+- GIVEN a SPECIALIST who re-applied after a first withdrawal (status `PENDING`, `freeWithdrawalUsed = true`)
+- WHEN `withdrawApplication` is called again
+- THEN the status MUST be set to `WITHDRAWN_FINAL`
+- AND the application MUST be permanently withdrawn (re-apply rejected per Apply to Gig)
 
-**Acceptance Criteria:**
-- Withdraw Application button opens ConfirmDialog before calling withdrawApplication
-- Dialog message clearly explains consequences (cannot reapply)
-- Confirmation required before server action executes
-- Cancel button prevents action execution
-- Existing withdrawApplication server action logic unchanged
+#### Scenario: Transition is atomic and guarded by current status
+- GIVEN concurrent or repeated `withdrawApplication` calls for the same application
+- WHEN they execute
+- THEN the check-and-update MUST be atomic (transaction or a conditional update guarded by the current `PENDING` status)
+- AND the application MUST NOT double-transition or land in an inconsistent state
+
+#### Scenario: Cannot withdraw a non-pending or example application
+- GIVEN an application that is not `PENDING`, or belongs to an `isExample` gig, or is not owned by the caller
+- WHEN `withdrawApplication` is called
+- THEN it MUST return a clear error and MUST NOT change any record
+
+### Requirement: Withdrawal State Integrity
+The one-free-withdrawal rule MUST be enforced with server-authoritative row state that cannot be reset or spoofed by the client and never bleeds across gigs or users.
+
+#### Scenario: State is persisted per application row, server-side only
+- GIVEN the withdrawal state for a `(gig, specialist)` pair
+- WHEN it is read or updated
+- THEN `status` and `freeWithdrawalUsed` MUST be stored on the `Application` row that is unique per `(gigId, specialistId)`
+- AND they MUST NOT be derived from session, cookie, or any client-supplied value
+
+#### Scenario: State survives session changes and is scoped
+- GIVEN a specialist has withdrawn once from gig A (`WITHDRAWN`, `freeWithdrawalUsed = true`)
+- WHEN the specialist logs out and back in, or refreshes the session
+- THEN gig A's state MUST be unchanged
+- AND the state for a different gig B, or for a different specialist on gig A, MUST be independent
+
+#### Scenario: No client-accessible reset path
+- GIVEN a specialist wants to reset their withdrawal state on a gig
+- WHEN they use any specialist-facing action
+- THEN there MUST be no action that deletes or resets a single application row (only the delete-account flow removes applications)
+
+### Requirement: Gig Detail Application UI States
+The gig detail screen MUST render an unambiguous application affordance for a viewing SPECIALIST across the apply, reversible-withdrawn, final-withdrawn, example, and disabled-submit states, and MUST gate the final withdrawal behind a confirmation dialog.
+
+#### Scenario: Reversible-withdrawn shows the apply form again
+- GIVEN the specialist's application status is `WITHDRAWN`
+- WHEN the gig detail renders
+- THEN it MUST present the apply form (re-apply allowed), not the «На рассмотрении» state
+
+#### Scenario: Final-withdrawn keeps the gig visible with a marker
+- GIVEN the specialist's application status is `WITHDRAWN_FINAL`
+- WHEN the gig detail renders
+- THEN the gig MUST remain visible (not removed from the feed)
+- AND it MUST show a «Отозвано» marker with text that re-application is unavailable
+- AND the apply control MUST be disabled/absent
+
+#### Scenario: Final withdrawal requires confirmation
+- GIVEN the specialist has an active `PENDING` application with `freeWithdrawalUsed = true` (the next withdrawal would be final)
+- WHEN the specialist activates the withdraw control
+- THEN a confirmation dialog MUST appear warning that re-application will no longer be possible
+- AND it MUST offer a confirm action and a dismiss action («Не отменять»)
+- AND `withdrawApplication` MUST run ONLY if confirm is chosen; dismiss MUST leave the application `PENDING`
+
+#### Scenario: First withdrawal does not require the final-warning dialog
+- GIVEN the specialist has an active `PENDING` application with `freeWithdrawalUsed = false`
+- WHEN the specialist activates the withdraw control
+- THEN the final-warning dialog MUST NOT be required (a light confirm or immediate withdrawal is acceptable, since it is reversible)
+
+#### Scenario: Example gig shows a demonstration notice
+- GIVEN a SPECIALIST opens a gig with `isExample = true`
+- WHEN the gig detail renders
+- THEN it MUST show a notice that the gig is a demonstration and does not accept applications, with a link to `/gigs`
+- AND it MUST NOT render an apply form or a phantom apply button
+
+#### Scenario: Disabled submit surfaces the unmet minimum
+- GIVEN a SPECIALIST is filling the apply form on an OPEN, non-example gig
+- AND the approach is shorter than 100 characters OR the questions are shorter than 50 characters
+- WHEN the form renders
+- THEN «Отправить заявку» MUST be visibly disabled
+- AND the live requirement hint MUST emphasize the unmet rule(s) with current counts
+- AND once both minimums are met, the emphasis MUST clear and the button MUST enable and submit
 
 ---
 
@@ -890,3 +971,109 @@ Sample proposals MUST be seeded idempotently, and the change MUST be additive wi
 **Acceptance Criteria:**
 - Seed sets sample proposals idempotently; no `resetTestDatabase` change needed (no new table)
 - `npm run build` + `npm run test:unit` green; additive; no UI changes
+
+<!-- Merged on archive from change: fix-terms-negotiation (2026-07-14). Source delta retained in openspec/archive/fix-terms-negotiation/specs/gig/spec.md.
+     Additive requirements wiring the already-persisted specialist counter-terms into the UI/VM (apply-form inputs,
+     client visibility, per-viewer tabs, lifecycle integrity + re-apply pre-fill). No model/schema change. -->
+
+### Requirement: Apply Form Proposed-Terms Inputs
+The gig-detail apply form MUST let a SPECIALIST optionally propose their own budget and deadline, wired to the existing `applyToGig` `proposedBudget`/`proposedDeadlineDays` fields. Both inputs are optional; leaving them empty MUST submit no counter (the gig's terms stand). Client-side validation MUST mirror the server rules so a valid form is not rejected after submit.
+
+#### Scenario: Apply form renders optional budget and deadline inputs
+- GIVEN a SPECIALIST viewing an OPEN, non-example gig they can apply to
+- WHEN the apply form renders
+- THEN it MUST include an optional budget input (roubles) and an optional deadline input (days), labelled as the specialist's own proposed terms
+- AND both MUST be clearly marked optional (empty = accept the gig's terms)
+
+#### Scenario: Submitting a counter persists proposed terms
+- GIVEN a SPECIALIST fills a valid approach and questions AND enters a budget of `120000` ₽ and a deadline of `21` days
+- WHEN they submit the apply form
+- THEN the created application MUST persist `proposedBudget = 12000000` (kopecks) and `proposedDeadlineDays = 21`
+- AND the action MUST redirect to the gig detail
+
+#### Scenario: Empty proposed terms submit no counter
+- GIVEN a SPECIALIST submits a valid application leaving both proposed-terms inputs empty
+- WHEN the application is created
+- THEN `proposedBudget` and `proposedDeadlineDays` MUST be `null` (no counter) and the gig's terms MUST be unchanged
+
+#### Scenario: Invalid proposed terms are surfaced before/at submit
+- GIVEN a SPECIALIST enters a non-positive budget OR a deadline outside 1–365
+- WHEN they attempt to submit
+- THEN the form MUST NOT create an application with those values
+- AND the unmet rule MUST be communicated (client-side hint and/or the server error `Предложенный бюджет должен быть положительным числом в рублях.` / `Предложенный срок должен быть целым числом дней от 1 до 365.`)
+
+### Requirement: Counter-Terms Visible to the Client
+The client-facing applicants view MUST surface each applicant's proposed budget/deadline (when present) alongside the gig's own terms, so the client can see a counter before accepting. The applicant VM MUST expose the proposed values (or a null/absent marker) — it MUST NOT hide a counter the client is about to adopt.
+
+#### Scenario: Applicant VM exposes proposed terms
+- GIVEN an application with `proposedBudget` and/or `proposedDeadlineDays` set
+- WHEN the applicants view-model (`ApplicantCardVM` via `getGigApplications`) is built
+- THEN each applicant entry MUST carry the proposed budget (formatted ₽) and proposed deadline when present, and a clear "no counter" state when both are `null`
+
+#### Scenario: The applicants screen shows the counter and the gig's terms
+- GIVEN a CLIENT owner opens the applicants screen for a gig that has an applicant with a counter
+- WHEN the applicant card renders
+- THEN it MUST show the applicant's proposed budget/срок marked as their proposal, distinguishable from the gig's own budget/срок
+- AND an applicant with no counter MUST NOT show a phantom or misleading proposed value
+
+#### Scenario: Accepting an applicant with a counter adopts their terms
+- GIVEN a CLIENT owner accepts an applicant whose `proposedBudget`/`proposedDeadlineDays` differ from the gig's
+- WHEN `acceptApplication` runs
+- THEN the gig's effective terms MUST update to the proposed values (budget + recomputed 10% `serviceFee`/`totalAmount`, and `deadlineDays`), consistent with the existing "Accept Application Reconciles Proposed Terms" requirement
+- AND the gig detail MUST then display those adopted terms as the current terms
+
+### Requirement: Gig-Detail Terms Tabs Reflect the Counter
+The gig-detail terms panel MUST present the two-tab layout meaningfully per viewer. For a SPECIALIST, «Мои условия» MUST reflect their own submitted counter distinctly from «Условия {компания}», with an explicit state when they proposed nothing. For a CLIENT owner, the second («Мои условия») tab MUST be hidden — owners do not counter their own gig.
+
+#### Scenario: Specialist with a counter sees differing tabs
+- GIVEN a SPECIALIST whose application has a counter (proposed budget/срок differ from the gig's)
+- WHEN the gig detail renders
+- THEN «Условия {компания}» MUST show the gig's budget/срок and «Мои условия» MUST show the proposed budget/срок
+- AND switching tabs MUST visibly change the displayed values (not a no-op)
+
+#### Scenario: Specialist without a counter sees a clear no-counter state
+- GIVEN a SPECIALIST who applied without proposing terms (or has not applied)
+- WHEN they open «Мои условия»
+- THEN it MUST make clear no counter was proposed (e.g. a note that their terms match the client's / that they can propose terms when applying), rather than silently showing identical numbers with no explanation
+
+#### Scenario: Client owner does not see a redundant second tab
+- GIVEN a CLIENT who owns the gig views the gig detail
+- WHEN the terms panel renders
+- THEN the «Мои условия» tab MUST NOT be shown; a single terms panel (the gig's current terms) MUST be presented
+- AND no tab control that toggles between two identical panels MUST be rendered for the owner
+
+### Requirement: Proposed Terms Across the Application Lifecycle
+Proposed terms MUST persist and overwrite correctly across the full application lifecycle and MUST NOT bleed between gigs or specialists. This complements `fix-application-lifecycle`: reactivation on re-apply overwrites the proposed terms with the new submission (or clears them when omitted).
+
+#### Scenario: Withdrawal preserves the proposed terms on the row
+- GIVEN a PENDING application with a counter that is withdrawn (reversible `WITHDRAWN`)
+- WHEN the withdrawal completes
+- THEN the row MUST retain its `proposedBudget`/`proposedDeadlineDays` (the row is preserved, not deleted)
+
+#### Scenario: Re-apply overwrites the counter with the new submission
+- GIVEN a `WITHDRAWN` application (with an old counter) that is re-applied via `applyToGig`
+- WHEN the new submission includes different proposed terms
+- THEN the reactivated (`PENDING`) row MUST reflect the NEW proposed terms
+- AND WHEN the new submission omits proposed terms, the reactivated row's `proposedBudget`/`proposedDeadlineDays` MUST be `null` (the counter is cleared, not stale-retained)
+
+#### Scenario: Proposed terms are scoped per application row
+- GIVEN specialist A has a counter on gig X and specialist B applies to gig X, and specialist A also applies to gig Y
+- WHEN their applications are read
+- THEN each `(gig, specialist)` application's proposed terms MUST be independent — a counter on one MUST NOT appear on another gig or another specialist's application
+
+#### Scenario: Reject/withdraw leave the gig's terms unchanged
+- GIVEN a gig whose applicant has a counter
+- WHEN that application is rejected, or withdrawn, or auto-rejected because another applicant was accepted
+- THEN the gig's own terms MUST change ONLY as a result of the accepted application (per reconciliation) — a non-accepted counter MUST NOT alter the gig's terms
+
+#### Scenario: The re-apply form is pre-filled with the preserved counter
+- GIVEN a specialist reversibly withdrew (`WITHDRAWN`) an application that carried a counter, and the gig detail shows the re-apply form again
+- WHEN the form renders
+- THEN the budget/срок inputs MUST be pre-filled with the preserved counter (roubles/days) so the «Мои условия» tab and the form agree
+- AND re-submitting without changing them MUST re-send the same counter (it MUST NOT be silently dropped to the client's terms)
+- AND clearing an input and re-submitting MUST clear that side of the counter (an explicit, not accidental, action)
+
+#### Scenario: Both sides reflect a withdrawal made on a specialist's own terms
+- GIVEN a specialist applied with a counter and then withdrew (first, reversible)
+- WHEN the client opens the applicants screen and the specialist opens the gig detail / their dashboard
+- THEN the client MUST see the application as «Отозвано» with no accept/reject affordance (the counter may still be shown), the specialist's gig detail MUST offer the apply form again (re-apply allowed), and the withdrawn application MUST appear in the specialist's dashboard archive — with the one-free-withdrawal flag consumed so the next withdrawal is final

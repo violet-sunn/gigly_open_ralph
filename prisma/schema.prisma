@@ -114,7 +114,11 @@ model Application {
   estimatedEffort String   @default("")
   proposedBudget       Int? // kopecks; null = no counter (gig.budget stands) — TermsTabs "Предложено"
   proposedDeadlineDays Int? // null = no counter (gig.deadlineDays stands)
-  status          String   @default("PENDING")
+  status          String   @default("PENDING") // PENDING | ACCEPTED | REJECTED | WITHDRAWN (reversible) | WITHDRAWN_FINAL (permanent)
+  // One-free-withdrawal rule (fix-application-lifecycle): true once the specialist has used their single
+  // reversible withdrawal on this gig. Server-authoritative, per-row (unique gigId+specialistId) — the next
+  // withdrawal after this is set becomes WITHDRAWN_FINAL and blocks re-application.
+  freeWithdrawalUsed Boolean @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

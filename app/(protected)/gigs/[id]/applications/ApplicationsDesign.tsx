@@ -144,6 +144,25 @@ export function ApplicationsDesign({ data }: { data: GigApplicationsData }) {
                 {a.questions && <Field label="Уточняющие вопросы" value={a.questions} />}
                 {a.estimate && <Field label="Оценка трудозатрат" value={a.estimate} />}
 
+                {(a.proposedBudget || a.proposedDeadline) && (
+                  <div style={{ borderRadius: 8, background: "rgba(0,136,255,0.08)", boxShadow: "inset 0 0 0 1px rgba(0,136,255,0.3)", padding: "12px 14px", display: "flex", flexDirection: "column", gap: 8 }}>
+                    <span style={{ fontFamily: "'Handjet',monospace", fontWeight: 600, fontSize: 13, color: "#4ea3ff" }}>Предложил свои условия</span>
+                    <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                        <span style={{ fontFamily: "'Handjet',monospace", fontSize: 11, color: "var(--text-4)" }}>Бюджет</span>
+                        <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 14, color: "var(--text-1)" }}>{a.proposedBudget ?? data.gigBudget}</span>
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                        <span style={{ fontFamily: "'Handjet',monospace", fontSize: 11, color: "var(--text-4)" }}>Срок</span>
+                        <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 14, color: "var(--text-1)" }}>{a.proposedDeadline ?? data.gigDeadline}</span>
+                      </div>
+                    </div>
+                    <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, lineHeight: "16px", color: "var(--text-4)" }}>
+                      Условия проекта: {data.gigBudget} · {data.gigDeadline}.{a.pending ? " При принятии предложенные условия станут условиями проекта." : ""}
+                    </span>
+                  </div>
+                )}
+
                 {a.pending && !data.assignedName && <AcceptReject applicationId={a.id} />}
               </div>
             );

@@ -114,7 +114,7 @@ describe('Example Gig Tests', () => {
 
         // Verify exact error message
         expect(result).toEqual({
-          error: 'This is an example gig for demonstration. Browse real gigs to find work opportunities.'
+          error: 'Это демонстрационный гиг. Откликайтесь на реальные гиги в поиске.'
         })
       })
 
@@ -246,7 +246,7 @@ describe('Example Gig Tests', () => {
 
         // Should return example gig error even with valid data
         expect(result).toEqual({
-          error: 'This is an example gig for demonstration. Browse real gigs to find work opportunities.'
+          error: 'Это демонстрационный гиг. Откликайтесь на реальные гиги в поиске.'
         })
       })
 
@@ -461,12 +461,12 @@ describe('Example Gig Tests', () => {
       // Both specialists try to apply
       await withAuthContext(specialist1, async () => {
         const result = await applyToGig(null, formData1)
-        expect(result.error).toContain('example gig')
+        expect(result.error).toContain('демонстрационный')
       })
 
       await withAuthContext(specialist2, async () => {
         const result = await applyToGig(null, formData2)
-        expect(result.error).toContain('example gig')
+        expect(result.error).toContain('демонстрационный')
       })
 
       // Verify no applications were created

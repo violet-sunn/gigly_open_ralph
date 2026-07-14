@@ -284,7 +284,7 @@ export async function getSpecialistDashboard(userId: string): Promise<Specialist
   // Rejected/withdrawn — surfaced under Все only (status 'rejected' / Отклонён). Reconciliation: no data lost.
   const archivedCards: SpecialistGigCard[] = await Promise.all(
     applications
-      .filter((a) => a.status === 'REJECTED' || a.status === 'WITHDRAWN')
+      .filter((a) => a.status === 'REJECTED' || a.status === 'WITHDRAWN' || a.status === 'WITHDRAWN_FINAL')
       .map(async (a) => ({ ...(await toGigCardVM({ ...a.gig, clientCompany: a.gig.client?.clientProfile?.companyName })), status: 'rejected' as Status, tabKey: 'archive' })),
   )
   // Assigned gigs — В работе / На проверке / Завершённые (standard toGigCardVM status mapping).
@@ -503,7 +503,8 @@ const APPLICATION_STATUS: Record<string, { label: string; tone: Status }> = {
   PENDING: { label: 'На рассмотрении', tone: 'review' },
   ACCEPTED: { label: 'Принят', tone: 'completed' },
   REJECTED: { label: 'Отклонён', tone: 'rejected' },
-  WITHDRAWN: { label: 'Отозван', tone: 'rejected' },
+  WITHDRAWN: { label: 'Отозвано', tone: 'rejected' },
+  WITHDRAWN_FINAL: { label: 'Отозвано', tone: 'rejected' },
 }
 
 export interface GigApplicationsData {
@@ -512,6 +513,9 @@ export interface GigApplicationsData {
   count: number
   /** The accepted applicant's name when the gig is assigned (drives the «Назначен …» success notice). */
   assignedName?: string
+  /** The gig's own terms (formatted) — shown alongside an applicant's counter so the client can compare. */
+  gigBudget: string
+  gigDeadline: string
   applicants: ApplicantCardVM[]
 }
 
@@ -550,6 +554,9 @@ export async function getGigApplications(
       approach: a.approach || undefined,
       questions: a.questions || undefined,
       estimate: a.estimatedEffort || undefined,
+      // Counter-terms (fix-terms-negotiation): surface the applicant's proposal so the client sees it before accepting.
+      proposedBudget: a.proposedBudget != null ? money(a.proposedBudget) : undefined,
+      proposedDeadline: a.proposedDeadlineDays != null ? `${a.proposedDeadlineDays} дней` : undefined,
       status: APPLICATION_STATUS[a.status] ?? { label: a.status, tone: 'open' as Status },
       pending: a.status === 'PENDING',
     })),
@@ -559,7 +566,15 @@ export async function getGigApplications(
     ? gig.assignedSpecialist?.specialistProfile?.displayName || gig.assignedSpecialist?.email || undefined
     : undefined
 
-  return { gigId: gig.id, title: gig.title, count: gig.applications.length, assignedName, applicants }
+  return {
+    gigId: gig.id,
+    title: gig.title,
+    count: gig.applications.length,
+    assignedName,
+    gigBudget: money(gig.budget),
+    gigDeadline: `${gig.deadlineDays} дней`,
+    applicants,
+  }
 }
 
 export interface GigDetailData {
@@ -576,12 +591,22 @@ export interface GigDetailData {
   apply: ApplyPanelVM
   isOwner: boolean
   isAssignedSpecialist: boolean
+  isSpecialistViewer: boolean
   isExample: boolean
   closedByAdmin: boolean
   closedAt: string | null
   paidAt: string | null
   status: string
-  viewerApplication: { id: string; status: string } | null
+  viewerApplication: {
+    id: string
+    status: string
+    freeWithdrawalUsed: boolean
+    hasCounter: boolean
+    /** The viewer's preserved counter (proposedBudget in ROUBLES, deadline in days) — pre-fills the re-apply form so
+     *  «Мои условия» and the form agree; null when they proposed nothing. */
+    proposedBudgetRub: number | null
+    proposedDeadlineDays: number | null
+  } | null
   applications: GigDetailApplication[]
   lifecycle: { canApply: boolean; canSubmit: boolean; canApprove: boolean; canPay: boolean }
   messaging: { assigned: boolean; canView: boolean; canSend: boolean }
@@ -620,7 +645,9 @@ export async function getGigDetail(
   const isOwner = viewer.role === 'CLIENT' && gig.clientId === viewer.userId
   const isAssignedSpecialist = viewer.role === 'SPECIALIST' && gig.assignedSpecialistId === viewer.userId
   const myApp = viewer.role === 'SPECIALIST' ? gig.applications.find((a) => a.specialistId === viewer.userId) : undefined
-  const hasActiveApp = !!myApp && myApp.status !== 'WITHDRAWN' && myApp.status !== 'REJECTED'
+  // Re-application eligibility (fix-application-lifecycle): only a reversible WITHDRAWN row (or no row)
+  // lets a specialist (re-)apply. PENDING/ACCEPTED = active; WITHDRAWN_FINAL/REJECTED = blocked.
+  const canReapply = !myApp || myApp.status === 'WITHDRAWN'
 
   const fmt = (d: Date) => new Date(d).toLocaleDateString('ru-RU')
   const tagsArr = gig.tags ? gig.tags.split(',').map((t) => t.trim()).filter(Boolean) : []
@@ -754,12 +781,23 @@ export async function getGigDetail(
     apply,
     isOwner,
     isAssignedSpecialist,
+    isSpecialistViewer: viewer.role === 'SPECIALIST',
     isExample: gig.isExample,
     closedByAdmin: gig.closedByAdmin,
     closedAt: gig.closedAt ? new Date(gig.closedAt).toLocaleString('ru-RU') : null,
     paidAt: gig.paidAt ? fmt(gig.paidAt) : null,
     status: gig.status,
-    viewerApplication: myApp ? { id: myApp.id, status: myApp.status } : null,
+    viewerApplication: myApp
+      ? {
+          id: myApp.id,
+          status: myApp.status,
+          freeWithdrawalUsed: myApp.freeWithdrawalUsed,
+          // hasCounter: the specialist proposed at least one differing term (drives the «Мои условия» no-counter note).
+          hasCounter: myApp.proposedBudget != null || myApp.proposedDeadlineDays != null,
+          proposedBudgetRub: myApp.proposedBudget != null ? myApp.proposedBudget / 100 : null,
+          proposedDeadlineDays: myApp.proposedDeadlineDays ?? null,
+        }
+      : null,
     applications,
     lifecycle: {
       canApply:
@@ -767,7 +805,7 @@ export async function getGigDetail(
         gig.status === 'OPEN' &&
         !gig.isExample &&
         !gig.closedByAdmin &&
-        !hasActiveApp &&
+        canReapply &&
         !isAssignedSpecialist,
       canSubmit: isAssignedSpecialist && gig.status === 'IN_PROGRESS',
       canApprove: isOwner && gig.status === 'REVIEW',
