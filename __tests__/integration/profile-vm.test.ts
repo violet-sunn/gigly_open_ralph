@@ -136,6 +136,17 @@ describe('getProfile', () => {
     const data = await getProfile(specialist.id, { userId: specialist.id, role: 'SPECIALIST' })
     expect(data!.experienceLevel).toBe('MIDDLE')
   })
+
+  it('surfaces an empty experienceLevel gracefully (no crash; UI guard hides the badge)', async () => {
+    const prisma = getTestPrismaClient()
+    const specialist = await createTestUser(prisma, { role: 'SPECIALIST' })
+    // The seed helper coerces falsy levels to SENIOR; force the empty case directly.
+    await prisma.specialistProfile.update({ where: { userId: specialist.id }, data: { experienceLevel: '' } })
+
+    const data = await getProfile(specialist.id, { userId: specialist.id, role: 'SPECIALIST' })
+    expect(data).not.toBeNull()
+    expect(data!.experienceLevel).toBe('')
+  })
 })
 
 describe('getProfile — real online indicator (Спец #16)', () => {
