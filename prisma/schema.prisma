@@ -30,6 +30,10 @@ model User {
   currency                        String             @default("rub")
   notifyPlatformNews              Boolean            @default(true)
   notifyNewGigs                   Boolean            @default(true)
+  // profile-experience-fixes — real online indicator. Touched by the lightweight `heartbeat` action
+  // (~1/min from the shell); getProfile reads it (online = showOnlineStatus && within ONLINE_WINDOW).
+  // Nullable/no default → additive & backward-compatible (existing rows read null ⇒ offline).
+  lastSeenAt                      DateTime?
   createdAt                       DateTime           @default(now())
   updatedAt                       DateTime           @updatedAt
   gigs                            Gig[]              @relation("ClientGigs")

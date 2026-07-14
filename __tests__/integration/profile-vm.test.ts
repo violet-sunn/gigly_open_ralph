@@ -128,4 +128,72 @@ describe('getProfile', () => {
     expect(data!.header.stats.find((s) => s.label === 'Опубликовано')?.value).toBe(2)
     expect(data!.header.stats.find((s) => s.label === 'Завершено')?.value).toBe(1)
   })
+
+  it('surfaces experienceLevel on the SPECIALIST ProfileData (for explicit display)', async () => {
+    const prisma = getTestPrismaClient()
+    const specialist = await createTestUser(prisma, { role: 'SPECIALIST', experienceLevel: 'MIDDLE' })
+
+    const data = await getProfile(specialist.id, { userId: specialist.id, role: 'SPECIALIST' })
+    expect(data!.experienceLevel).toBe('MIDDLE')
+  })
+})
+
+describe('getProfile — real online indicator (Спец #16)', () => {
+  it('online=true when showOnlineStatus is on and lastSeenAt is fresh', async () => {
+    const prisma = getTestPrismaClient()
+    const specialist = await createTestUser(prisma, { role: 'SPECIALIST' })
+    await prisma.user.update({
+      where: { id: specialist.id },
+      data: { showOnlineStatus: true, lastSeenAt: new Date() },
+    })
+
+    const data = await getProfile(specialist.id, { userId: specialist.id, role: 'SPECIALIST' })
+    expect(data!.header.online).toBe(true)
+  })
+
+  it('online=false when lastSeenAt is stale (older than the 5-min window)', async () => {
+    const prisma = getTestPrismaClient()
+    const specialist = await createTestUser(prisma, { role: 'SPECIALIST' })
+    await prisma.user.update({
+      where: { id: specialist.id },
+      data: { showOnlineStatus: true, lastSeenAt: new Date(Date.now() - 6 * 60_000) },
+    })
+
+    const data = await getProfile(specialist.id, { userId: specialist.id, role: 'SPECIALIST' })
+    expect(data!.header.online).toBe(false)
+  })
+
+  it('online=false when lastSeenAt is null (never seen)', async () => {
+    const prisma = getTestPrismaClient()
+    const specialist = await createTestUser(prisma, { role: 'SPECIALIST' })
+    // lastSeenAt defaults to null; showOnlineStatus defaults to true.
+
+    const data = await getProfile(specialist.id, { userId: specialist.id, role: 'SPECIALIST' })
+    expect(data!.header.online).toBe(false)
+  })
+
+  it('online=false when showOnlineStatus is off, even with a fresh lastSeenAt', async () => {
+    const prisma = getTestPrismaClient()
+    const specialist = await createTestUser(prisma, { role: 'SPECIALIST' })
+    await prisma.user.update({
+      where: { id: specialist.id },
+      data: { showOnlineStatus: false, lastSeenAt: new Date() },
+    })
+
+    const data = await getProfile(specialist.id, { userId: specialist.id, role: 'SPECIALIST' })
+    expect(data!.header.online).toBe(false)
+  })
+
+  it('applies the same gate to CLIENT profiles', async () => {
+    const prisma = getTestPrismaClient()
+    const client = await createTestUser(prisma, { role: 'CLIENT' })
+    await prisma.user.update({
+      where: { id: client.id },
+      data: { showOnlineStatus: true, lastSeenAt: new Date() },
+    })
+
+    const data = await getProfile(client.id, { userId: client.id, role: 'CLIENT' })
+    expect(data!.role).toBe('CLIENT')
+    expect(data!.header.online).toBe(true)
+  })
 })

@@ -838,6 +838,8 @@ export interface ProfileData {
   stack?: TagListVM // SPECIALIST only
   categories?: CategoryTagsVM // SPECIALIST only
   experience?: ExperienceListVM // SPECIALIST only
+  /** SPECIALIST only — the onboarding grade, displayed explicitly beside Стек/Опыт. '' = not set (renders nothing). */
+  experienceLevel?: string
   realized: GigCardVM[] // SPECIALIST: COMPLETED/PAID assigned gigs (empty for CLIENT)
   /** CLIENT only — the company «Реквизиты» (design company profile). Carries the full editable set so the owner's
    * requisites modal can submit non-edited fields back to updateProfile's upsert without clobbering them. */
@@ -852,6 +854,15 @@ export interface ProfileData {
 
 const longDate = (d: Date): string =>
   new Date(d).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
+
+/** profile-experience-fixes — a user counts as "online" if the shell heartbeat touched `lastSeenAt`
+ *  within this window (and they haven't hidden their status). Window > heartbeat interval (60s) so a
+ *  live tab never flickers offline between pings. */
+const ONLINE_WINDOW_MS = 5 * 60_000
+
+/** Real presence: gated by the target's `showOnlineStatus`, true only when `lastSeenAt` is fresh. */
+const isOnline = (u: { showOnlineStatus: boolean; lastSeenAt: Date | null }): boolean =>
+  u.showOnlineStatus && u.lastSeenAt != null && Date.now() - new Date(u.lastSeenAt).getTime() < ONLINE_WINDOW_MS
 
 /** A WorkExperience period: «2021 — Наст. время» (null endYear = current), «2018 — 2021», or a single year. */
 const period = (start: number | null, end: number | null): string => {
@@ -891,6 +902,7 @@ export async function getProfile(
   const isOwner = viewer.userId === targetUserId
   const rating = await getRatingForUser(targetUserId)
   const ratingValue = rating.value ? rating.value.toFixed(1) : '—'
+  const online = isOnline(user) // real presence — gated by showOnlineStatus + fresh lastSeenAt
 
   // SPECIALIST profile (the specialist-progile mock).
   if (user.specialistProfile) {
@@ -916,7 +928,7 @@ export async function getProfile(
       memberSince: longDate(user.createdAt),
       location: sp.location || undefined,
       timezone: sp.timezone ? timezoneLabel(sp.timezone) : undefined,
-      online: false,
+      online,
       stats: [
         { label: 'Рейтинг', value: ratingValue },
         { label: 'Завершено задач', value: completedCount },
@@ -964,7 +976,7 @@ export async function getProfile(
         }
       : undefined
 
-    return { role: 'SPECIALIST', header, stats: statsPlaceholder(), stack, categories, experience, realized, rating, isOwner, editFields }
+    return { role: 'SPECIALIST', header, stats: statsPlaceholder(), stack, categories, experience, experienceLevel: sp.experienceLevel, realized, rating, isOwner, editFields }
   }
 
   // CLIENT profile (no mock — composed from the same blocks).
@@ -981,7 +993,7 @@ export async function getProfile(
       verified: cp.phoneVerified,
       memberSince: longDate(user.createdAt),
       timezone: cp.timezone ? timezoneLabel(cp.timezone) : undefined,
-      online: false,
+      online,
       stats: [
         { label: 'Рейтинг', value: ratingValue },
         { label: 'Опубликовано', value: published },

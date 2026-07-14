@@ -31,16 +31,52 @@ const saveBtn: React.CSSProperties = { height: 44, border: "none", borderRadius:
 const fieldLabel: React.CSSProperties = { fontFamily: "'Handjet',monospace", fontSize: 13, color: "var(--text-4)" };
 const errStyle: React.CSSProperties = { fontFamily: "'Manrope',sans-serif", fontSize: 12, color: "#ef4444" };
 
-function Pencil({ onClick }: { onClick?: () => void }) {
-  if (!onClick) return null;
+function PencilGlyph({ size = 14 }: { size?: number }) {
   return (
-    <span onClick={onClick} style={{ color: "var(--text-3)", display: "flex", cursor: "pointer" }}>
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-        <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325" />
-      </svg>
-    </span>
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325" />
+    </svg>
   );
 }
+
+// Owner-only edit affordance. A LABELED button (pencil + «Редактировать») — never a bare icon — so it
+// unmistakably means «edit», not «save» (Спец #9), and reads consistently on both roles (Заказчик #1).
+// Persisting happens only via the modal's explicit «Сохранить». `onClick` is undefined for non-owners
+// (open() returns undefined) → the button is omitted entirely.
+function EditButton({ onClick, label = "Редактировать" }: { onClick?: () => void; label?: string }) {
+  if (!onClick) return null;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={label}
+      aria-label={label}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 6,
+        height: 30,
+        padding: "0 12px",
+        border: "none",
+        borderRadius: 8,
+        background: "var(--hairline-08)",
+        boxShadow: "inset 0 0 0 1px var(--hairline-10)",
+        color: "var(--text-2)",
+        fontFamily: "'Handjet',monospace",
+        fontSize: 15,
+        lineHeight: 1,
+        cursor: "pointer",
+        whiteSpace: "nowrap",
+        flex: "none",
+      }}
+    >
+      <PencilGlyph size={13} />
+      {label}
+    </button>
+  );
+}
+
+const LEVEL_LABEL: Record<string, string> = { MIDDLE: "Middle+", SENIOR: "Senior" };
 
 function GlobeIcon({ size = 16 }: { size?: number }) {
   return (
@@ -77,6 +113,8 @@ function HiddenFields({ fields, omit }: { fields: Record<string, string>; omit: 
 function BioModal({ fields, onClose }: { fields: Record<string, string>; onClose: () => void }) {
   const router = useRouter();
   const [state, action, pending] = useActionState(updateProfile, null);
+  // Спец #15 — the onboarding grade (Middle+/Senior) is settable here, alongside the «Опыт» description.
+  const [level, setLevel] = useState<string>(fields.experienceLevel ?? "");
   useEffect(() => {
     if (state?.success) {
       onClose();
@@ -86,9 +124,47 @@ function BioModal({ fields, onClose }: { fields: Record<string, string>; onClose
   return (
     <div style={overlay} onClick={onClose}>
       <form action={action} onClick={(e) => e.stopPropagation()} style={cardOf(520)}>
-        <ModalHeader title="Редактировать описание" onClose={onClose} />
-        <HiddenFields fields={fields} omit={["bio"]} />
-        <textarea name="bio" defaultValue={fields.bio ?? ""} placeholder="Расскажите о специализации и опыте…" style={textareaStyle} />
+        <ModalHeader title="Опыт и уровень" onClose={onClose} />
+        <HiddenFields fields={fields} omit={["bio", "experienceLevel"]} />
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <span style={fieldLabel}>Уровень</span>
+          <input type="hidden" name="experienceLevel" value={level} />
+          <div style={{ display: "flex", gap: 8 }}>
+            {[
+              { value: "", label: "Не указан" },
+              { value: "MIDDLE", label: "Middle+" },
+              { value: "SENIOR", label: "Senior" },
+            ].map((opt) => {
+              const on = level === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setLevel(opt.value)}
+                  aria-pressed={on}
+                  style={{
+                    flex: 1,
+                    height: 40,
+                    borderRadius: 8,
+                    border: "none",
+                    cursor: "pointer",
+                    fontFamily: "'Manrope',sans-serif",
+                    fontSize: 14,
+                    color: on ? "#fff" : "var(--text-2)",
+                    background: on ? "var(--om-accent, #0088ff)" : "var(--surface-sunken)",
+                    boxShadow: on ? "none" : "inset 0 0 0 1px var(--hairline-08)",
+                  }}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <span style={fieldLabel}>Описание</span>
+          <textarea name="bio" defaultValue={fields.bio ?? ""} placeholder="Расскажите о специализации и опыте…" style={textareaStyle} />
+        </div>
         {state?.error && <span style={errStyle}>{state.error}</span>}
         <button type="submit" disabled={pending} style={saveBtn}>Сохранить</button>
       </form>
@@ -267,9 +343,10 @@ export function ProfileDesign({ data }: { data: ProfileData }) {
           >
             {!h.avatar && initials}
           </div>
+          {/* Real presence (Спец #16): getProfile sets header.online = showOnlineStatus && lastSeenAt fresh. */}
           <div style={{ display: "inline-flex", alignSelf: "flex-start", alignItems: "center", gap: 6, padding: "3px 12px", borderRadius: 666, background: "var(--hairline-05)" }}>
-            <span style={{ width: 6, height: 6, flex: "none", borderRadius: "50%", background: "#9fa0a4" }} />
-            <span style={{ fontFamily: "'Inter',sans-serif", fontSize: 12, color: "#9fa0a4" }}>offline</span>
+            <span style={{ width: 6, height: 6, flex: "none", borderRadius: "50%", background: h.online ? "#22c55e" : "#9fa0a4" }} />
+            <span style={{ fontFamily: "'Inter',sans-serif", fontSize: 12, color: h.online ? "#22c55e" : "#9fa0a4" }}>{h.online ? "онлайн" : "offline"}</span>
           </div>
         </div>
 
@@ -303,13 +380,13 @@ export function ProfileDesign({ data }: { data: ProfileData }) {
               </div>
             </div>
           ) : (
-            // Company: name (with requisites pencil) + role tag + the «О компании» about paragraph.
+            // Company: name + role tag + an obvious «Редактировать» button (Заказчик #1) + the «О компании» paragraph.
             <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 12, padding: 12 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <span style={nameStyle}>{h.name}</span>
-                <Pencil onClick={open("company")} />
+              <span style={nameStyle}>{h.name}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                <span style={roleTagStyle}>{h.roleTag}</span>
+                <EditButton onClick={open("company")} />
               </div>
-              <span style={roleTagStyle}>{h.roleTag}</span>
               {h.timezone && (
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span style={{ color: "var(--text-3)", display: "flex", flex: "none" }}>
@@ -353,7 +430,7 @@ export function ProfileDesign({ data }: { data: ProfileData }) {
             <div style={card}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <span style={blockH2}>Стек</span>
-                <Pencil onClick={open("stack")} />
+                <EditButton onClick={open("stack")} />
               </div>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 {data.stack.tags.length > 0 ? (
@@ -370,9 +447,17 @@ export function ProfileDesign({ data }: { data: ProfileData }) {
             </div>
 
             <div style={card}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <span style={blockH2}>Опыт</span>
-                <Pencil onClick={open("bio")} />
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+                  <span style={blockH2}>Опыт</span>
+                  {/* Спец #15 — the onboarding level, displayed explicitly (not just as the roleTag fallback). */}
+                  {data.experienceLevel && LEVEL_LABEL[data.experienceLevel] && (
+                    <span style={{ flex: "none", fontFamily: "'Handjet',monospace", fontSize: 14, color: "var(--om-accent, #0088ff)", background: "rgba(0,136,255,0.12)", borderRadius: 6, padding: "3px 10px" }}>
+                      {LEVEL_LABEL[data.experienceLevel]}
+                    </span>
+                  )}
+                </div>
+                <EditButton onClick={open("bio")} />
               </div>
               {data.experience.bio && (
                 <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 14, lineHeight: "18px", color: "var(--text-3)", whiteSpace: "pre-line" }}>{data.experience.bio}</span>
@@ -398,7 +483,7 @@ export function ProfileDesign({ data }: { data: ProfileData }) {
             <div style={card}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <span style={blockH2}>Избранные категории</span>
-                <Pencil onClick={open("cats")} />
+                <EditButton onClick={open("cats")} />
               </div>
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                 {data.categories.categories.filter((c) => c.favorite).length > 0 ? (

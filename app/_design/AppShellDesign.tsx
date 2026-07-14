@@ -17,6 +17,7 @@ import { buildSidebarNav, buildAdminNav, markActive, type NavRole, type NavCount
 import { getStoredTheme, applyTheme, type Theme } from "@/lib/theme";
 import { CATEGORIES } from "@/lib/categories";
 import { SettingsModal } from "@/app/(protected)/settings/SettingsModal";
+import { Heartbeat } from "./Heartbeat";
 import "./tokens.css";
 
 // The prototype's header filter cluster (data-dc-tpl="51", beside the search field) on every list screen. Option sets
@@ -157,6 +158,7 @@ export function AppShellDesign({
         fontFamily: "'SF Compact',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif",
       }}
     >
+      <Heartbeat />
       <a
         href="#main-content"
         style={{ position: "absolute", left: -9999, top: 0 }}
