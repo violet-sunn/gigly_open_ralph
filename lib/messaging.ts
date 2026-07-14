@@ -14,7 +14,9 @@ import { messageRateLimiter, getRateLimitError } from '@/lib/ratelimit'
 export type PersistedMessage = {
   id: string
   gigId: string
-  senderId: string
+  // Nullable to match the Message schema (system/platform messages have no sender); persistMessage itself always
+  // writes a real user sender, so in practice this is non-null on the send path.
+  senderId: string | null
   content: string
   createdAt: Date
 }

@@ -729,12 +729,23 @@ export async function getGigDetail(
       ? 'Гиг завершён — переписка доступна только для просмотра.'
       : undefined
   const chat: ChatPanelVM = {
-    thread: gig.messages.map((m) => ({
-      direction: (m.senderId === viewer.userId ? 'out' : 'in') as 'in' | 'out',
-      author: m.sender.clientProfile?.companyName || m.sender.specialistProfile?.displayName || m.sender.email,
-      timestamp: new Date(m.createdAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-      body: m.content,
-    })),
+    thread: gig.messages.map((m) => {
+      // System/platform message (no sender) — centered, unattributed notice (chat-on-acceptance opener).
+      if (m.sender == null) {
+        return {
+          direction: 'system' as const,
+          author: 'Gigly',
+          timestamp: new Date(m.createdAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+          body: m.content,
+        }
+      }
+      return {
+        direction: (m.senderId === viewer.userId ? 'out' : 'in') as 'in' | 'out',
+        author: m.sender.clientProfile?.companyName || m.sender.specialistProfile?.displayName || m.sender.email,
+        timestamp: new Date(m.createdAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+        body: m.content,
+      }
+    }),
     composer: { canAttach: false, canSend: !chatClosedReason, closedReason: chatClosedReason },
   }
 
@@ -1072,8 +1083,10 @@ export async function getConversations(viewer: { userId: string; role: string })
     .map((g) => {
       const last = g.messages[0]
       const lastReadAt = g.notifications[0]?.lastReadAt ?? null
+      // System messages (senderId === null) are not counterparty messages — exclude them from unread so the
+      // acceptance opener doesn't read as «your counterparty wrote you».
       const unread = g.messages.filter(
-        (m) => m.senderId !== viewer.userId && (!lastReadAt || m.createdAt > lastReadAt),
+        (m) => m.senderId !== null && m.senderId !== viewer.userId && (!lastReadAt || m.createdAt > lastReadAt),
       ).length
       // Counterparty = the other party in this gig.
       const counterparty =
@@ -1108,9 +1121,21 @@ export async function getConversations(viewer: { userId: string; role: string })
  * (delta poll) so the bubble shape is identical. Carries `id` + `createdAt` (ISO) for the client's dedupe + poll cursor.
  */
 export function toMessageBubble(
-  m: { id: string; senderId: string; content: string; createdAt: Date; sender?: { email: string } | null },
+  m: { id: string; senderId: string | null; content: string; createdAt: Date; sender?: { email: string } | null },
   viewerId: string,
 ): MessageBubbleVM {
+  // A null sender = a platform/system message (e.g. the opener seeded on acceptance) — centered, unattributed.
+  if (m.senderId == null) {
+    return {
+      id: m.id,
+      direction: 'system',
+      author: 'Gigly',
+      timestamp: timeOfDay(m.createdAt),
+      date: longDate(m.createdAt),
+      body: m.content,
+      createdAt: new Date(m.createdAt).toISOString(),
+    }
+  }
   const out = m.senderId === viewerId
   return {
     id: m.id,

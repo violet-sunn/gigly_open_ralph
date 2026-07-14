@@ -108,6 +108,16 @@ export function GigDetail({ data }: { data: GigDetailData }) {
     !data.isExample &&
     (data.status === "IN_PROGRESS" || data.status === "REVIEW");
 
+  // Chat entry point (chat-on-acceptance) — same window as the dispute link: the two participants can open the
+  // gig's thread while the engagement is live (в работе / на проверке). Label by role.
+  const showChatEntry =
+    !closed &&
+    (data.isOwner || data.isAssignedSpecialist) &&
+    data.messaging.assigned &&
+    !data.isExample &&
+    (data.status === "IN_PROGRESS" || data.status === "REVIEW");
+  const chatEntryLabel = data.isAssignedSpecialist ? "Написать заказчику" : "Написать исполнителю";
+
   return (
     <div style={{ display: "flex", gap: 6, alignItems: "flex-start" }}>
       {/* ЛЕВАЯ КОЛОНКА */}
@@ -693,6 +703,16 @@ export function GigDetail({ data }: { data: GigDetailData }) {
                 </span>
               </div>
             </div>
+          )}
+
+          {showChatEntry && (
+            <button
+              type="button"
+              onClick={() => router.push(`/chats?gig=${data.gigId}`)}
+              style={{ ...primaryBtn("#0088FF"), alignSelf: "flex-start", padding: "0 20px", display: "inline-flex", alignItems: "center", gap: 8 }}
+            >
+              <span aria-hidden>💬</span> {chatEntryLabel}
+            </button>
           )}
 
           {showDisputeLink && (

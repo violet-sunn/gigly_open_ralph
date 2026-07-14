@@ -241,9 +241,9 @@ model DisputeEntry {
 model Message {
   id        String   @id @default(cuid())
   gigId     String
-  gig       Gig      @relation(fields: [gigId], references: [id])
-  senderId  String
-  sender    User     @relation("SentMessages", fields: [senderId], references: [id])
+  gig       Gig      @relation(fields: [gigId], references: [id], onDelete: Cascade)
+  senderId  String?
+  sender    User?    @relation("SentMessages", fields: [senderId], references: [id])
   content   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

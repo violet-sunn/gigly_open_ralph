@@ -68,6 +68,29 @@ describe('getConversations', () => {
     expect(convos[0].name).toBe('ООО Ромашка') // counterparty (client) for a SPECIALIST viewer
     expect(convos[0].unread).toBe(0)
   })
+
+  it('lists a gig whose only message is the system opener, and does NOT count it as unread (chat-on-acceptance)', async () => {
+    const prisma = getTestPrismaClient()
+    const client = await createTestUser(prisma, { role: 'CLIENT', companyName: 'ООО Ромашка' })
+    const specialist = await createTestUser(prisma, { role: 'SPECIALIST', displayName: 'Иван Спец' })
+    const gig = await createTestGig(prisma, {
+      clientId: client.id,
+      status: 'IN_PROGRESS',
+      assignedSpecialistId: specialist.id,
+      title: 'Новый гиг',
+    })
+    // Only a system opener (senderId = null) exists — mirrors acceptApplication's seed.
+    await createTestMessage(prisma, { gigId: gig.id, senderId: null, content: 'Заявка принята. Обсудите детали.' })
+
+    // Both parties see the conversation, with the opener as preview but 0 unread.
+    for (const viewer of [{ userId: client.id, role: 'CLIENT' }, { userId: specialist.id, role: 'SPECIALIST' }]) {
+      const convos = await getConversations(viewer)
+      expect(convos).toHaveLength(1)
+      expect(convos[0].id).toBe(gig.id)
+      expect(convos[0].preview).toBe('Заявка принята. Обсудите детали.')
+      expect(convos[0].unread).toBe(0) // system opener is not a counterparty message
+    }
+  })
 })
 
 describe('getChatThread', () => {
@@ -120,6 +143,17 @@ describe('getChatThread', () => {
     const thread = await getChatThread(gig.id, { userId: client.id, role: 'CLIENT' })
     expect(thread!.chat.composer.canSend).toBe(false)
     expect(thread!.chat.composer.closedReason).toMatch(/администратором/)
+  })
+
+  it('renders a null-sender message as a centered system bubble labeled Gigly (chat-on-acceptance)', async () => {
+    const { client, gig } = await seedConversation()
+    await createTestMessage(getTestPrismaClient(), { gigId: gig.id, senderId: null, content: 'Заявка принята. Обсудите детали.' })
+
+    const thread = await getChatThread(gig.id, { userId: client.id, role: 'CLIENT' })
+    const system = thread!.chat.thread.find((m) => m.body === 'Заявка принята. Обсудите детали.')
+    expect(system).toBeTruthy()
+    expect(system!.direction).toBe('system')
+    expect(system!.author).toBe('Gigly')
   })
 
   it('returns null for a non-participant viewer', async () => {

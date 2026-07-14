@@ -108,7 +108,14 @@ describe('Gig Lifecycle Tests', () => {
       })
       expect(updatedApp2!.status).toBe('REJECTED')
 
+      // chat-on-acceptance: exactly one system opener (senderId=null) is seeded so a thread exists for both parties.
+      const messages = await prisma.message.findMany({ where: { gigId: gig.id } })
+      expect(messages).toHaveLength(1)
+      expect(messages[0].senderId).toBeNull()
+      expect(messages[0].content.length).toBeGreaterThan(0)
+
       // Cleanup
+      await prisma.message.deleteMany({ where: { gigId: gig.id } })
       await prisma.application.deleteMany({ where: { gigId: gig.id } })
       await prisma.gig.delete({ where: { id: gig.id } })
       await prisma.user.delete({ where: { id: client.id } })
@@ -893,7 +900,7 @@ describe('Gig Lifecycle Tests', () => {
       await withAuthContext(otherClient, async () => {
         const result = await acceptApplication(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toContain('Only the client who posted this gig can accept applications')
+        expect(result.error).toContain('Принимать отклики может только заказчик, опубликовавший гиг')
       })
 
       // Verify gig status unchanged

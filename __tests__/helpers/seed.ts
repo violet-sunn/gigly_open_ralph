@@ -485,7 +485,8 @@ export async function createTestMessage(
   tx: PrismaClient,
   overrides?: {
     gigId?: string
-    senderId?: string
+    // `null` = a system/platform message (no sender); `undefined` = auto-create a sender.
+    senderId?: string | null
     content?: string
   }
 ) {
@@ -496,9 +497,9 @@ export async function createTestMessage(
     gigId = gig.id
   }
 
-  // Create sender if not provided
+  // Create sender if not provided (undefined). An explicit `null` denotes a system message and is kept as-is.
   let senderId = overrides?.senderId
-  if (!senderId) {
+  if (senderId === undefined) {
     const sender = await createTestUser(tx, { role: 'CLIENT' })
     senderId = sender.id
   }

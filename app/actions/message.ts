@@ -48,11 +48,13 @@ export async function getRecentMessages(): Promise<RecentMessage[]> {
       const message = gig.messages[0]
       const sender = message.sender
 
-      // Determine sender name: use display name or company name, fallback to email
-      const senderName =
-        sender.specialistProfile?.displayName ||
-        sender.clientProfile?.companyName ||
-        sender.email
+      // Determine sender name: platform label for system messages (null sender), otherwise
+      // display name or company name, fallback to email.
+      const senderName = !sender
+        ? 'Gigly'
+        : sender.specialistProfile?.displayName ||
+          sender.clientProfile?.companyName ||
+          sender.email
 
       // Create content preview: first 50 chars with ellipsis if truncated
       const contentPreview = message.content.length > 50

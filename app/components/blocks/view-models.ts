@@ -230,7 +230,7 @@ export interface FilterBarVM {
 export interface MessageBubbleVM {
   /** Message id — delta-poll dedupe + optimistic reconcile (absent on legacy fixtures). */
   id?: string;
-  direction: "in" | "out";
+  direction: "in" | "out" | "system";
   author: string;
   timestamp: DateISO;
   body: string;

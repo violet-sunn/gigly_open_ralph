@@ -572,6 +572,22 @@ export async function acceptApplication(
     createNotificationsBulk(rejectedNotifications)
   }
 
+  // Seed a system/platform opener so a chat thread materializes for BOTH parties immediately (chat-on-acceptance).
+  // Written AFTER the transaction (gig is now IN_PROGRESS + assigned) and best-effort — a messaging failure must never
+  // roll back or fail the acceptance. senderId=null marks it as a system message (not routed through persistMessage,
+  // which gates on a participant sender).
+  try {
+    await prisma.message.create({
+      data: {
+        gigId: application.gigId,
+        senderId: null,
+        content: 'Заявка принята. Обсудите здесь детали, первые шаги и сроки.',
+      },
+    })
+  } catch (error) {
+    console.error('Failed to seed acceptance opener message:', error)
+  }
+
   redirect(`/gigs/${application.gigId}`)
 }
 
