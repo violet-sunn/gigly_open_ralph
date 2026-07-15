@@ -19,6 +19,7 @@ import {
   markAsPaid,
 } from "@/app/actions/gig";
 import type { GigDetailData } from "@/lib/view-models";
+import { NOT_PROPOSED, typedProposedTerm } from "@/lib/terms-display";
 import "../../../_design/tokens.css";
 
 // ── prototype helpers (ported verbatim from Gigly App.dc.html) ──────────────
@@ -39,6 +40,20 @@ const STAGE_COLOR: Record<string, string> = {
   completed: "rgb(16,185,129)",
   rejected: "rgb(239,68,68)",
 };
+
+// A not-proposed term is prose, not a figure, so it deliberately drops out of the 30px grotesk numeral treatment —
+// a muted line reads as «nothing here», whereas a big number reads as a value (which is the whole defect: the tab
+// used to render the CLIENT's figure and look like a real proposal).
+const FIGURE_STYLE: React.CSSProperties = {
+  fontFamily: "'Manrope',sans-serif",
+  fontWeight: 600,
+  fontSize: 30,
+  color: "var(--text-1)",
+};
+const notProposedStyle = (value: string | null): React.CSSProperties =>
+  value != null
+    ? FIGURE_STYLE
+    : { fontFamily: "'Manrope',sans-serif", fontWeight: 500, fontSize: 15, color: "var(--text-4)" };
 
 // The prototype's verify seal (IconBootstrapOutlineLogosPatch → Bootstrap patch-check-fill), tinted by parent colour.
 function PatchIcon() {
@@ -61,6 +76,17 @@ export function GigDetail({ data }: { data: GigDetailData }) {
   const router = useRouter();
   const [tab, setTab] = useState<"client" | "proposed">("client");
 
+  // Proposed-terms inputs live HERE rather than inside ApplyBlock so «Мои условия» can answer «what am I actually
+  // proposing?» as it is typed — the tab used to sit on server VM state and ignore the form entirely. Seeded from the
+  // preserved counter: that pre-fill is required by the gig spec ("Proposed Terms Across the Application Lifecycle")
+  // so a blank re-submit cannot silently drop the counter — and it is exactly what makes the tab and form agree.
+  const [propBudget, setPropBudget] = useState(
+    data.viewerApplication?.proposedBudgetRub != null ? String(data.viewerApplication.proposedBudgetRub) : "",
+  );
+  const [propDeadline, setPropDeadline] = useState(
+    data.viewerApplication?.proposedDeadlineDays != null ? String(data.viewerApplication.proposedDeadlineDays) : "",
+  );
+
   const isCompany = !!data.conditions.fee; // owner view → fee breakdown
   const company = data.bio.name;
   // Terms tabs (fix-terms-negotiation): owners don't counter their own gig → hide «Мои условия» and show a single
@@ -68,7 +94,6 @@ export function GigDetail({ data }: { data: GigDetailData }) {
   const showTermsTabs = !data.isOwner;
   const effectiveTab = showTermsTabs ? tab : "client";
   const viewerHasCounter = !!data.viewerApplication?.hasCounter;
-  const term = effectiveTab === "client" ? data.conditions.client : data.conditions.proposed;
 
   // Статус row colour/label (PAID shown as the prototype's teal «Оплачен»).
   const paid = data.status === "PAID";
@@ -90,6 +115,15 @@ export function GigDetail({ data }: { data: GigDetailData }) {
   const showApply = !closed && !data.isExample && (data.lifecycle.canApply || va?.status === "PENDING");
   const notApplied = data.lifecycle.canApply && va?.status !== "PENDING";
   const applied = va?.status === "PENDING";
+
+  // «Мои условия» figures. While the apply form is on screen the tab tracks what is being TYPED (so clearing a field
+  // returns it to «не предложено» — an intent the persisted counter would otherwise mask); once submitted there is no
+  // form, so it shows the persisted counter from the VM. Either way a field the specialist did not propose renders
+  // «— не предложено» and NEVER the gig's own figure — that substitution is what made this tab a copy of
+  // «Условия {company}» (Round-3 #3).
+  const formVisible = showApply && notApplied;
+  const proposedTerm = formVisible ? typedProposedTerm(propBudget, propDeadline) : data.conditions.proposed;
+  const term = effectiveTab === "client" ? data.conditions.client : proposedTerm;
   const showApplicants = !closed && data.isOwner && data.status === "OPEN";
   // gig-editing-with-notification: the owner can edit an OPEN gig (fix a typo / adjust terms). Once a specialist is
   // assigned (IN_PROGRESS) or the gig is closed/example, terms lock → no edit control.
@@ -518,9 +552,7 @@ export function GigDetail({ data }: { data: GigDetailData }) {
               Срок выполнения
             </span>
             <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
-              <span style={{ fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 30, color: "var(--text-1)" }}>
-                {term.deadline}
-              </span>
+              <span style={notProposedStyle(term.deadline)}>{term.deadline ?? NOT_PROPOSED}</span>
               <span style={{ fontFamily: "'Handjet',monospace", fontSize: 14, color: "#9fa0a4" }}>
                 [{data.conditions.deadlineNote}]
               </span>
@@ -532,9 +564,7 @@ export function GigDetail({ data }: { data: GigDetailData }) {
               Бюджет проекта
             </span>
             <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
-              <span style={{ fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 30, color: "var(--text-1)" }}>
-                {term.budget}
-              </span>
+              <span style={notProposedStyle(term.budget)}>{term.budget ?? NOT_PROPOSED}</span>
               <span style={{ fontFamily: "'Handjet',monospace", fontSize: 14, color: "#9fa0a4" }}>
                 {data.conditions.budgetNote}
               </span>
@@ -602,8 +632,10 @@ export function GigDetail({ data }: { data: GigDetailData }) {
               applied={applied}
               applicationId={va?.id}
               withdrawalIsFinal={!!va?.freeWithdrawalUsed}
-              initialBudget={va?.proposedBudgetRub != null ? String(va.proposedBudgetRub) : ""}
-              initialDeadline={va?.proposedDeadlineDays != null ? String(va.proposedDeadlineDays) : ""}
+              propBudget={propBudget}
+              setPropBudget={setPropBudget}
+              propDeadline={propDeadline}
+              setPropDeadline={setPropDeadline}
             />
           )}
 
@@ -823,25 +855,28 @@ function ApplyBlock({
   applied,
   applicationId,
   withdrawalIsFinal,
-  initialBudget = "",
-  initialDeadline = "",
+  propBudget,
+  setPropBudget,
+  propDeadline,
+  setPropDeadline,
 }: {
   gigId: string;
   notApplied: boolean;
   applied: boolean;
   applicationId?: string;
   withdrawalIsFinal: boolean;
-  initialBudget?: string;
-  initialDeadline?: string;
+  /** Owned by GigDetail so the «Мои условия» tab reflects these as they are typed (seeded from the preserved counter). */
+  propBudget: string;
+  setPropBudget: (v: string) => void;
+  propDeadline: string;
+  setPropDeadline: (v: string) => void;
 }) {
   const [approach, setApproach] = useState("");
   const [questions, setQuestions] = useState("");
   const [estimate, setEstimate] = useState("");
   // Optional counter-terms (fix-terms-negotiation) — wired to applyToGig's proposedBudget (roubles)/proposedDeadlineDays.
-  // Pre-filled from the preserved counter when re-applying after a withdrawal, so «Мои условия» and the form agree
-  // (avoids silently dropping the counter on a blank re-submit).
-  const [propBudget, setPropBudget] = useState(initialBudget);
-  const [propDeadline, setPropDeadline] = useState(initialDeadline);
+  // The state itself is lifted to GigDetail so the «Мои условия» tab tracks it live; it is still seeded from the
+  // preserved counter on re-apply, so a blank re-submit cannot silently drop it.
   const [applyState, applyAction] = useAction(applyToGig);
   const [withdrawStateRaw, withdrawAction] = useAction(withdrawApplication);
   const withdrawState = withdrawStateRaw;

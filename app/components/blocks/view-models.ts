@@ -269,8 +269,10 @@ export interface BioVM {
  * Итого к оплате breakdown (`fee`). Schema-independent; figures arrive pre-formatted.
  */
 export interface ConditionsTermsVM {
-  deadline: string; // e.g. «14 дней»
-  budget: Money;
+  /** e.g. «14 дней» · `null` ⇒ not proposed — the renderer MUST show an explicit not-proposed state, never a substitute figure. */
+  deadline: string | null;
+  /** `null` ⇒ not proposed (see `deadline`). */
+  budget: Money | null;
 }
 export interface ConditionsPanelVM {
   /** Company name for the «Условия {company}» tab label. */

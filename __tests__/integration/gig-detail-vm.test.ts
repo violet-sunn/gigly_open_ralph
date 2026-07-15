@@ -57,8 +57,10 @@ describe('getGigDetail', () => {
     expect(data!.lifecycle.canApply).toBe(true)
     expect(data!.isOwner).toBe(false)
     expect(data!.viewerApplication).toBeNull()
-    // No application counter → proposed terms fall back to the gig's
-    expect(data!.terms.proposed).toEqual(data!.terms.client)
+    // No application counter → «Мои условия» shows an explicit not-proposed state, NOT the gig's figures (which
+    // would make the tab indistinguishable from «Условия {company}» — see the gig spec's terms-tabs requirement).
+    expect(data!.terms.proposed.map((r) => r.value)).toEqual(['— не предложено', '— не предложено'])
+    expect(data!.terms.proposed).not.toEqual(data!.terms.client)
     expect(data!.apply.fields.map((f) => f.name)).toEqual(['approach', 'questions', 'estimatedEffort'])
   })
 

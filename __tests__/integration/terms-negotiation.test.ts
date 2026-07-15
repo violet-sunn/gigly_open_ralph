@@ -476,7 +476,10 @@ describe('terms-negotiation — gig VM hasCounter (getGigDetail)', () => {
     expect(data!.conditions.proposed.deadline).not.toBe(data!.conditions.client.deadline)
   })
 
-  it('reports hasCounter false + proposed == client when the viewer did not counter', async () => {
+  // Was: «proposed == client when the viewer did not counter» — that asserted the fallback that made «Мои условия»
+  // a character-for-character copy of «Условия {company}», which the gig spec ("Gig-Detail Terms Tabs Reflect the
+  // Counter") forbids: the tab must show an explicit not-proposed state, never the gig's own figures.
+  it('reports hasCounter false + an explicit not-proposed state (NOT the client figures) when the viewer did not counter', async () => {
     const prisma = getTestPrismaClient()
     const client = await createTestUser(prisma, { role: 'CLIENT' })
     const gig = await makeGig(prisma, client.id, { budget: 28000000, deadlineDays: 10 })
@@ -485,7 +488,23 @@ describe('terms-negotiation — gig VM hasCounter (getGigDetail)', () => {
 
     const data = await getGigDetail(gig.id, { userId: specialist.id, role: 'SPECIALIST' })
     expect(data!.viewerApplication?.hasCounter).toBe(false)
-    expect(data!.conditions.proposed.budget).toBe(data!.conditions.client.budget)
-    expect(data!.conditions.proposed.deadline).toBe(data!.conditions.client.deadline)
+    expect(data!.conditions.proposed.budget).toBeNull()
+    expect(data!.conditions.proposed.deadline).toBeNull()
+    // The client tab remains the fixed reference. (noSpace: Intl groups with U+00A0, not a plain space.)
+    expect(noSpace(data!.conditions.client.budget!)).toBe('280000₽')
+    expect(data!.conditions.client.deadline).toBe('10 дней')
+  })
+
+  it('does not complete a half-counter with the gig figures (budget proposed, срок not)', async () => {
+    const prisma = getTestPrismaClient()
+    const client = await createTestUser(prisma, { role: 'CLIENT' })
+    const gig = await makeGig(prisma, client.id, { budget: 28000000, deadlineDays: 10 })
+    const specialist = await createTestUser(prisma, { role: 'SPECIALIST' })
+    await makeApplication(prisma, gig.id, specialist.id, { proposedBudget: 20000000 }) // budget only
+
+    const data = await getGigDetail(gig.id, { userId: specialist.id, role: 'SPECIALIST' })
+    expect(noSpace(data!.conditions.proposed.budget!)).toBe('200000₽')
+    // The срок was never proposed — it must stay absent rather than borrowing the gig's «10 дней».
+    expect(data!.conditions.proposed.deadline).toBeNull()
   })
 })

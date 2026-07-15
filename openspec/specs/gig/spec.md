@@ -1197,7 +1197,13 @@ The client-facing applicants view MUST surface each applicant's proposed budget/
 - AND the gig detail MUST then display those adopted terms as the current terms
 
 ### Requirement: Gig-Detail Terms Tabs Reflect the Counter
-The gig-detail terms panel MUST present the two-tab layout meaningfully per viewer. For a SPECIALIST, «Мои условия» MUST reflect their own submitted counter distinctly from «Условия {компания}», with an explicit state when they proposed nothing. For a CLIENT owner, the second («Мои условия») tab MUST be hidden — owners do not counter their own gig.
+The gig-detail terms panel MUST present the two-tab layout meaningfully per viewer. For a SPECIALIST, «Мои условия» MUST reflect **their own** terms — a submitted counter, or the counter they are currently composing in the apply form — distinctly from «Условия {компания}», and MUST show an explicit "not proposed" state rather than the gig's own figures when no counter exists. The «Условия {компания}» tab MUST remain the fixed, read-only reference (the gig's own budget/срок). For a CLIENT owner, the second («Мои условия») tab MUST be hidden — owners do not counter their own gig.
+
+> History (apply-terms-lock, 2026-07-15): this requirement was previously satisfiable while the tab was useless. The
+> old no-counter scenario only forbade showing identical numbers *"with no explanation"* — so the implementation
+> rendered a note *and* filled «Мои условия» with the gig's own figures via a `?? gig.budget` view-model fallback,
+> making the tab a character-for-character copy of «Условия {компания}» («убивает смысл вкладки», Round-3 #3). The
+> escape hatch is closed below: an explanation does not license substituted figures.
 
 #### Scenario: Specialist with a counter sees differing tabs
 - GIVEN a SPECIALIST whose application has a counter (proposed budget/срок differ from the gig's)
@@ -1205,16 +1211,43 @@ The gig-detail terms panel MUST present the two-tab layout meaningfully per view
 - THEN «Условия {компания}» MUST show the gig's budget/срок and «Мои условия» MUST show the proposed budget/срок
 - AND switching tabs MUST visibly change the displayed values (not a no-op)
 
-#### Scenario: Specialist without a counter sees a clear no-counter state
-- GIVEN a SPECIALIST who applied without proposing terms (or has not applied)
+#### Scenario: Without a counter, «Мои условия» MUST NOT display the client's figures
+- GIVEN a SPECIALIST who has not proposed terms (has not applied, or applied without a counter)
 - WHEN they open «Мои условия»
-- THEN it MUST make clear no counter was proposed (e.g. a note that their terms match the client's / that they can propose terms when applying), rather than silently showing identical numbers with no explanation
+- THEN the budget/срок rows MUST render an explicit not-proposed state (e.g. «— не предложено»)
+- AND they MUST NOT render the gig's own budget/срок values, which would make the tab indistinguishable from «Условия {компания}»
+- AND an accompanying note MUST explain that the client's terms apply («действуют условия заказчика»)
+- AND this MUST hold per field: proposing only a budget MUST show the proposed budget AND a not-proposed срок — a half-counter MUST NOT be completed with the gig's value
+
+#### Scenario: The tab reflects terms being typed in the apply form
+- GIVEN a SPECIALIST on an OPEN gig with the apply form visible
+- WHEN they type a budget and/or срок into the «Мои условия» inputs of the apply form
+- THEN the «Мои условия» tab MUST reflect those values immediately, before submission
+- AND clearing an input MUST return that field to the not-proposed state
+- AND an invalid value (budget ≤ 0, срок outside 1–365 or non-integer) MUST read as not-proposed rather than display a figure that could never be submitted
+- AND this MUST NOT alter what is submitted: the values still reach `applyToGig` as the optional `proposedBudget`/`proposedDeadlineDays`, and empty still means "apply on the client's terms"
+- AND once submitted (no apply form on screen) the tab MUST show the persisted counter
+
+#### Scenario: The client tab stays a fixed reference
+- GIVEN any SPECIALIST viewer, with or without a counter, typing or not
+- WHEN «Условия {компания}» is selected
+- THEN it MUST always show the gig's own budget/срок unchanged
+- AND it MUST contain no inputs — it is a reference, not an editable copy
 
 #### Scenario: Client owner does not see a redundant second tab
 - GIVEN a CLIENT who owns the gig views the gig detail
 - WHEN the terms panel renders
 - THEN the «Мои условия» tab MUST NOT be shown; a single terms panel (the gig's current terms) MUST be presented
 - AND no tab control that toggles between two identical panels MUST be rendered for the owner
+- AND the owner path MUST never render the not-proposed state — it shows the gig's own terms
+
+**Acceptance Criteria:**
+- The gig-detail VM (`lib/view-models.ts`) builds the proposed-terms figures from the viewer's application **only** — no `?? gig.budget` / `?? gig.deadlineDays` fallback
+- `ConditionsTermsVM.budget` / `.deadline` admit an absent state (`null`) so "not proposed" is representable rather than approximated
+- The not-proposed string and the typed-counter derivation live in ONE client-safe module (`lib/terms-display.ts` — `NOT_PROPOSED`, `typedProposedTerm`), imported by the VM, the `ConditionsPanel` block, and the gig-detail screen. They MUST NOT be copied per call site: the gig-detail screen is a client component and cannot import the Prisma-bearing view-model module, which is exactly how three drifting copies appeared
+- The apply form's proposed budget/срок state is owned by `GigDetail` (not `ApplyBlock`) so the terms panel can reflect in-progress input
+- `applyToGig` is unchanged; the counter remains optional and empty still submits no counter
+- The re-apply pre-fill specified in "Proposed Terms Across the Application Lifecycle" is **unchanged** — this requirement MUST NOT be read as licence to clear it
 
 ### Requirement: Proposed Terms Across the Application Lifecycle
 Proposed terms MUST persist and overwrite correctly across the full application lifecycle and MUST NOT bleed between gigs or specialists. This complements `fix-application-lifecycle`: reactivation on re-apply overwrites the proposed terms with the new submission (or clears them when omitted).

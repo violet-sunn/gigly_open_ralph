@@ -1,6 +1,7 @@
 import { Tabs, StatusBadge } from "@/app/components/primitives";
 import { Stack } from "@/app/components/layout/Stack";
 import type { ConditionsPanelVM, ConditionsTermsVM } from "./view-models";
+import { NOT_PROPOSED } from "@/lib/terms-display";
 
 interface ConditionsPanelProps {
   vm: ConditionsPanelVM;
@@ -18,6 +19,8 @@ interface ConditionsPanelProps {
  */
 export function ConditionsPanel({ vm, active = "client", onSelect }: ConditionsPanelProps) {
   const terms: ConditionsTermsVM = active === "proposed" ? vm.proposed : vm.client;
+  const deadline = terms.deadline ?? NOT_PROPOSED;
+  const budget = terms.budget ?? NOT_PROPOSED;
   return (
     <Stack gap={4}>
       <Tabs
@@ -39,7 +42,7 @@ export function ConditionsPanel({ vm, active = "client", onSelect }: ConditionsP
       <Stack gap={1}>
         <span className="text-mono font-mono text-strong">Срок выполнения</span>
         <Stack axis="row" gap={2} align="end" justify="between">
-          <span className="text-display font-grotesk text-strong">{terms.deadline}</span>
+          <span className="text-display font-grotesk text-strong">{deadline}</span>
           {vm.deadlineNote && <span className="text-caption font-mono text-muted">{vm.deadlineNote}</span>}
         </Stack>
       </Stack>
@@ -47,7 +50,7 @@ export function ConditionsPanel({ vm, active = "client", onSelect }: ConditionsP
       <Stack gap={1}>
         <span className="text-mono font-mono text-strong">Бюджет проекта</span>
         <Stack axis="row" gap={2} align="end" justify="between">
-          <span className="text-display font-grotesk text-strong">{terms.budget}</span>
+          <span className="text-display font-grotesk text-strong">{budget}</span>
           {vm.budgetNote && <span className="text-caption font-mono text-muted">{vm.budgetNote}</span>}
         </Stack>
         {vm.fee && (

@@ -9,6 +9,7 @@ import { formatUserAgent } from '@/lib/user-agent'
 import { getRecentMessages } from '@/app/actions/message'
 import { getNotificationDisplayText, getNotificationIcon } from '@/lib/notification-utils'
 import { days, stages } from '@/lib/utils/plural'
+import { NOT_PROPOSED } from '@/lib/terms-display'
 import type {
   GigCardVM,
   GigHeaderVM,
@@ -717,13 +718,19 @@ export async function getGigDetail(
     sizeFor: 'acc-bio',
   }
 
-  // Terms: proposed = the viewer's application counter (fallback to the gig's when no counter); client = the gig's.
-  const proposedBudget = myApp?.proposedBudget ?? gig.budget
-  const proposedDeadline = myApp?.proposedDeadlineDays ?? gig.deadlineDays
+  // Terms: proposed = the viewer's OWN counter, and nothing else; client = the gig's.
+  //
+  // There is deliberately NO fallback to the gig's figures. Filling «Мои условия» with the client's numbers renders
+  // it character-for-character identical to «Условия {company}» until a counter exists — the tab reads as a duplicate
+  // and «убивает смысл вкладки» (Round-3 #3). It also violates "Gig-Detail Terms Tabs Reflect the Counter", which
+  // requires the tab to reflect the viewer's counter *distinctly*, with an explicit state when nothing was proposed.
+  // Absence is tracked per field, so a budget-only counter is never completed with the gig's срок.
+  const proposedBudget = myApp?.proposedBudget ?? null
+  const proposedDeadline = myApp?.proposedDeadlineDays ?? null
   const terms: TermsTabsVM = {
     proposed: [
-      { label: 'Бюджет', value: money(proposedBudget) },
-      { label: 'Срок', value: days(proposedDeadline) },
+      { label: 'Бюджет', value: proposedBudget != null ? money(proposedBudget) : NOT_PROPOSED },
+      { label: 'Срок', value: proposedDeadline != null ? days(proposedDeadline) : NOT_PROPOSED },
     ],
     client: [
       { label: 'Бюджет', value: money(gig.budget) },
@@ -738,7 +745,11 @@ export async function getGigDetail(
     company: client.name,
     status: { label: STATUS_LABEL_RU[displayStatus], tone: displayStatus },
     client: { deadline: days(gig.deadlineDays), budget: money(gig.budget) },
-    proposed: { deadline: days(proposedDeadline), budget: money(proposedBudget) },
+    // null ⇒ «не предложено» (see the note above) — the renderer MUST NOT substitute the gig's value.
+    proposed: {
+      deadline: proposedDeadline != null ? days(proposedDeadline) : null,
+      budget: proposedBudget != null ? money(proposedBudget) : null,
+    },
     deadlineNote: stages(gig.stageCount),
     budgetNote: 'фикс. цена',
     fee: isOwner ? { service: money(gig.serviceFee), total: money(gig.totalAmount) } : undefined,
