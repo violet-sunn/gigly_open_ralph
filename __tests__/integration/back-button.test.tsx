@@ -60,6 +60,8 @@ describe('BackButton Component', () => {
       expect(link).toHaveTextContent('← Back to Admin Dashboard')
     })
 
+    // Flipped 2026-07-15 (examples-for-clients): this asserted '/dashboard/gigs/examples', which is not a route —
+    // the test was locking in a 404. The examples page lives at /gigs/examples.
     it('renders back to examples link for from=examples', () => {
       const mockSearchParams = new URLSearchParams({ from: 'examples' })
       vi.mocked(useSearchParams).mockReturnValue(mockSearchParams as unknown as ReadonlyURLSearchParams)
@@ -67,8 +69,19 @@ describe('BackButton Component', () => {
       render(<BackButton />)
 
       const link = screen.getByRole('link')
-      expect(link).toHaveAttribute('href', '/dashboard/gigs/examples')
+      expect(link).toHaveAttribute('href', '/gigs/examples')
       expect(link).toHaveTextContent('← Back to Examples')
+    })
+
+    it('renders back to gig creation link for from=new', () => {
+      const mockSearchParams = new URLSearchParams({ from: 'new' })
+      vi.mocked(useSearchParams).mockReturnValue(mockSearchParams as unknown as ReadonlyURLSearchParams)
+
+      render(<BackButton />)
+
+      const link = screen.getByRole('link')
+      expect(link).toHaveAttribute('href', '/gigs/new')
+      expect(link).toHaveTextContent('← Назад к созданию гига')
     })
 
     it('renders back to browse gigs link for from=browse', () => {

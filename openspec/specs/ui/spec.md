@@ -844,6 +844,18 @@ The gig **edit** form (`EditGigDesign.tsx`) MUST present the same readiness affo
 ### Requirement: Gig Creation Form Visual Sections
 The gig creation form MUST organize fields into three visually distinct sections with clear headings and boundaries to improve form comprehension and reduce cognitive load.
 
+> ⚠️ **This requirement describes the pre-reground kit form and is substantially stale.** `/gigs/new` was rebuilt on the
+> prototype (`CreateGigDesign.tsx`): the English section headings, `bg-gray-50` / `border-gray-200` backgrounds and
+> `text-indigo-600` link styling below no longer exist. Two specific conflicts, recorded rather than silently edited:
+>
+> 1. **The examples link** (`"💡 View example gigs for inspiration"`, right-aligned in the "Requirements & Success
+>    Criteria" header, *"opens /gigs in new tab"*) is **superseded by «Examples Page Entry Point and Back Navigation»**,
+>    which is authoritative: the link reads «💡 Посмотреть примеры», targets `/gigs/examples?from=new` (not `/gigs` —
+>    that was wrong here), opens in a new tab, and is token-pure. (`examples-for-clients`.)
+> 2. **`goal` and `deliverables` are described as optional** below. They are **required** as of `gig-validation-ssot`
+>    (C1) — `parseGigForm` rejects them empty, server-side. This block was not reconciled when C1 landed and should be
+>    rewritten or removed wholesale against the re-grounded screen; that is a larger cleanup than either change owns.
+
 #### Scenario: Form renders with three visual sections
 - GIVEN an authenticated CLIENT user navigates to `/gigs/new`
 - WHEN the page loads
@@ -2429,7 +2441,14 @@ The BackButton component MUST support multiple navigation contexts via the `from
 - GIVEN a user navigates to a page with `?from=examples` query parameter
 - WHEN the BackButton component renders
 - THEN it MUST display "← Back to Examples" text
-- AND it MUST link to `/dashboard/gigs/examples`
+- AND it MUST link to `/gigs/examples`
+- AND it MUST NOT link to `/dashboard/gigs/examples`, which is not a route and yields a 404
+
+#### Scenario: BackButton renders for gig-creation context
+- GIVEN a user navigates to a page with `?from=new` query parameter (the examples page, opened from the gig-creation screen)
+- WHEN the BackButton component renders
+- THEN it MUST display «← Назад к созданию гига» text
+- AND it MUST link to `/gigs/new`
 
 #### Scenario: BackButton preserves browse filters and pagination
 - GIVEN a user navigates to a gig detail page with `?from=browse&search=react&tags=React&page=2` query parameters
@@ -2526,9 +2545,25 @@ The public profile page MUST include a BackButton component to allow users to na
 
 ---
 
-### Requirement: Examples Page Back Navigation
+### Requirement: Examples Page Entry Point and Back Navigation
 
-The examples page MUST include a BackButton component to allow users to navigate back to the dashboard.
+The gig-creation screen MUST offer a visible, discoverable link to the example gigs, and the examples page MUST include a BackButton so the viewer can return to where they came from. The link MUST open in a **new tab**: the creation screen holds the entire in-progress brief in client state, so an in-tab navigation would silently destroy a half-written gig.
+
+> History (`examples-for-clients` — Round-3 #10). The entry point below was already required, and was **missing**: the re-ground to `CreateGigDesign.tsx` dropped it, and `gig-browse-access.spec.ts` was rewritten to `page.goto` the examples URL rather than click the link — so the suite stayed green while the feature was gone and the examples were unreachable in the product. The E2E now clicks the real link. The `from` value changed from `dashboard` to `new` so the return lands on the creation screen the viewer actually came from, rather than the dashboard.
+
+#### Scenario: The gig-creation screen links to the examples
+- GIVEN a CLIENT is on the gig-creation screen (`/gigs/new`, `CreateGigDesign`)
+- WHEN the screen renders
+- THEN it MUST display a visible link to the example gigs, in Russian («💡 Посмотреть примеры»), positioned as inspiration for writing the brief
+- AND the link MUST target `/gigs/examples?from=new`
+- AND it MUST open in a new tab (`target="_blank"` + `rel="noopener"`), so the in-progress brief is not lost
+- AND it MUST be token-pure (`gigly_full_design` skin), not kit classes
+
+#### Scenario: The in-progress brief survives opening the examples
+- GIVEN a CLIENT has partially filled the creation form (title, description, criteria chips)
+- WHEN they open the examples link and return to the creation tab
+- THEN every entered value MUST still be present
+- AND the readiness checklist/counters (per «Legible «Why Submit Is Disabled» Guidance») MUST be unchanged
 
 #### Scenario: BackButton appears on examples page
 - GIVEN a user navigates to `/gigs/examples?from=dashboard`
@@ -2536,10 +2571,24 @@ The examples page MUST include a BackButton component to allow users to navigate
 - THEN a BackButton component MUST be visible at the top of the page content
 - AND clicking the BackButton MUST navigate to `/dashboard`
 
-#### Scenario: Examples page links include from parameter
-- GIVEN a user is viewing the gig creation form
-- WHEN they click the "💡 View example gigs for inspiration" link
-- THEN they MUST be navigated to `/gigs/examples?from=dashboard` (note: link already opens in new tab, so from parameter is for consistency)
+#### Scenario: BackButton returns to the creation screen
+- GIVEN a user is on `/gigs/examples?from=new`
+- WHEN the page renders
+- THEN the BackButton MUST display «← Назад к созданию гига»
+- AND it MUST link to `/gigs/new`
+
+#### Scenario: An example gig's detail returns to the examples
+- GIVEN a viewer opens an example gig from the examples list (`/gigs/{id}?from=examples`)
+- WHEN the gig-detail screen renders its own back control
+- THEN it MUST read «← Назад к примерам» and return to `/gigs/examples`
+- AND it MUST NOT return to `/gigs` — that is the SPECIALIST-only search, which redirects a CLIENT on to `/dashboard`, stranding them away from both the examples and their draft
+
+#### Scenario: The gig-detail back control is unchanged without a from parameter
+- GIVEN a gig detail opened without `?from` (the ordinary case)
+- WHEN the back control renders
+- THEN it MUST read «← Назад к гигам» and target `/gigs`, exactly as before
+
+**Note on where the return path lives.** The re-grounded `GigDetail` deliberately ships its **own** «Назад» control and never renders `BackButton` (see `[id]/page.tsx`), so `?from=examples` was inert from the re-ground until the control was made context-aware. `from` is threaded from the server page's `searchParams` rather than read with `useSearchParams`, keeping the data at the page layer. The examples page is the only live consumer of `BackButton`.
 
 ---
 
@@ -2626,15 +2675,49 @@ The admin users management page MUST use the EmptyState component when no users 
   - description: "No users have registered yet. Once users sign up, they will appear here for moderation."
 
 ### Requirement: Example Gigs Page Empty State Enhancement
-The example gigs page MUST use the EmptyState component when no example gigs are available.
+The example gigs page MUST show a dedicated empty state when no example gigs are available, in **Russian**.
+
+> Reconciled by `examples-for-clients`. This previously mandated *the `EmptyState` component* with verbatim English
+> copy. That is no longer satisfiable alongside «Example Gigs Page Is Localized and Re-grounded» below: the shared
+> `EmptyState` is a pre-reground kit component (`bg-surface-level-1`, `border-neutral-weak`, `text-white`), so
+> rendering it would reintroduce exactly the classes that requirement removes. The intent — never show a bare empty
+> list — is preserved; the mechanism is now the re-grounded screen's own empty state, matching how the other
+> re-grounded screens (e.g. `DisputesDesign`) render theirs.
 
 #### Scenario: No example gigs available
 - GIVEN a user (CLIENT or SPECIALIST) is on `/gigs/examples`
 - WHEN no example gigs exist in the database
-- THEN the page MUST display an EmptyState component with:
-  - icon: "✨"
-  - heading: "No Example Gigs Available"
-  - description: "Example gigs haven't been set up yet. Check back later for inspiration on creating great gig descriptions."
+- THEN the page MUST display an empty state with the «✨» icon and a Russian heading/description explaining that examples are not set up yet
+- AND it MUST NOT display the superseded English strings «No Example Gigs Available» / «Example gigs haven't been set up yet…»
+- AND it MUST NOT render the kit `EmptyState` component, whose classes the token-purity requirement forbids
+
+### Requirement: Example Gigs Page Is Localized and Re-grounded
+The `/gigs/examples` page MUST be in Russian and rendered on the `gigly_full_design` skin, consistent with every other re-grounded screen. It is a client-facing inspiration surface reached while writing a brief; English kit copy makes it read as an unfinished internal page. (Source change: `examples-for-clients` — Round-3 #10.)
+
+#### Scenario: The page is Russian
+- GIVEN any viewer on `/gigs/examples`
+- WHEN the page renders
+- THEN the heading («Примеры гигов»), the explanatory copy, and the per-card badge («✨ пример») MUST be in Russian
+- AND the English strings «Example Gigs» / «✨ Example» MUST NOT appear
+
+#### Scenario: The page is token-pure
+- GIVEN the page renders
+- THEN it MUST use the `gigly_full_design` tokens/skin (`app/_design/tokens.css`), not the pre-reground kit classes (`bg-surface-level-*`, `text-neutral-strong`, …)
+
+#### Scenario: Example cards remain navigable with a return path
+- GIVEN example gigs exist
+- WHEN the list renders
+- THEN each card MUST link to that gig's detail with `?from=examples`, so the detail's back control returns to `/gigs/examples`
+
+#### Scenario: The page queries only what it renders
+- GIVEN the page's Prisma query
+- WHEN it fetches example gigs
+- THEN it MUST NOT `include` the client's `email` / `clientProfile` while rendering neither — an unused personal-data include on a page with no role check
+- AND it MUST still filter to `isExample: true` AND `status: 'OPEN'`, newest first
+
+**Acceptance Criteria:**
+- Access is unchanged: no role gate is added (both CLIENT and SPECIALIST may reach the route, per the Empty State requirement above and the existing `SPECIALIST access` integration tests)
+- The specialist empty-browse entry to examples («Gig Browse Page Empty State Enhancement» → "View Example Gigs") is untouched and remains legitimate
 
 ### Requirement: Dashboard Messages Empty State Enhancement
 The dashboard messages card MUST use the EmptyState component when no recent messages exist.
@@ -8449,12 +8532,16 @@ The «Критерии приёмки» input on the create-gig and edit-gig for
 - WHEN the «Критерии приёмки» input is empty
 - THEN it MUST present the same non-truncated placeholder layout as the create-gig form
 
-### Requirement: Comfortable «Назад к гигам» Back Control
-The «← Назад к гигам» back control on the gig-detail screen MUST be a comfortably sized, legible target.
+### Requirement: Comfortable «Назад» Back Control
+The back control on the gig-detail screen MUST be a comfortably sized, legible target, whichever destination it points at.
+
+> Generalized by `examples-for-clients`: the label is no longer the fixed string «← Назад к гигам». It reads
+> «← Назад к примерам» when the gig was opened from the examples (`?from=examples`) — reachable by either role, since
+> the examples page is not role-gated. The sizing/affordance guarantee below is unchanged and applies to both labels.
 
 #### Scenario: Back control is a comfortable hit target
-- GIVEN a specialist views a gig-detail screen
-- WHEN the «← Назад к гигам» control renders
+- GIVEN any viewer on a gig-detail screen
+- WHEN the back control renders (whether «← Назад к гигам» or «← Назад к примерам»)
 - THEN it MUST have an enlarged, legible label and a hit area with a minimum height of at least 32px
 - AND it MUST provide a clear interactive (hover) affordance
 

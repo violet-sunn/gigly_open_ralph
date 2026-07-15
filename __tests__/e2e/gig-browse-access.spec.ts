@@ -71,18 +71,73 @@ test.describe('Gig Browse Access Control E2E', () => {
       }
     ])
 
-    // The rebuilt CreateGigDesign dropped the «View example gigs» link; the /gigs/examples route survives and is
-    // CLIENT-accessible (no role check), so a CLIENT reaches it directly.
-    await page.goto('http://localhost:3000/gigs/examples')
+    // Reach the examples the way a CLIENT actually does: by clicking the link on the gig-creation screen. Asserting
+    // the click (not a page.goto) is the point — this test exists to fail if the entry point is ever dropped again.
+    await page.goto('http://localhost:3000/gigs/new')
     await page.waitForLoadState('networkidle')
-    await expect(page).toHaveURL(/\/gigs\/examples/)
 
-    // Verify the examples page displays correctly
-    await expect(page.locator('h2:has-text("Example Gigs")')).toBeVisible()
-    await expect(page.locator('text=These are example gigs to help you understand')).toBeVisible()
+    const examplesLink = page.getByRole('link', { name: /Посмотреть примеры/ })
+    await expect(examplesLink).toBeVisible()
+
+    // The link opens a new tab on purpose (the in-progress brief lives in client state), so follow the popup.
+    const [examplesPage] = await Promise.all([
+      context.waitForEvent('page'),
+      examplesLink.click(),
+    ])
+    await examplesPage.waitForLoadState('networkidle')
+    await expect(examplesPage).toHaveURL(/\/gigs\/examples/)
+
+    // Verify the examples page displays correctly (Russian, re-grounded)
+    await expect(examplesPage.getByRole('heading', { name: 'Примеры гигов' })).toBeVisible()
 
     // Verify the seeded example gig is displayed
-    await expect(page.locator(`text=${exampleGig.title}`)).toBeVisible()
+    await expect(examplesPage.locator(`text=${exampleGig.title}`)).toBeVisible()
+  })
+
+  test('CLIENT returns from an example gig back to the examples, not to the specialist browse', async ({ page, context }) => {
+    // Guards the gig-detail back control: it used to push /gigs unconditionally, which is SPECIALIST-only — a CLIENT
+    // was redirected on to /dashboard, stranded away from both the examples and their in-progress brief.
+    const client = await createTestUser(prisma, {
+      role: 'CLIENT',
+      email: `client-${Date.now()}-${Math.random().toString(36).substring(7)}@test.com`,
+      password: 'TestPassword123!',
+      companyName: 'ООО "ТехноСтарт"',
+      inn: '7743013902'
+    })
+    const exampleGig = await createTestGig(prisma, {
+      clientId: client.id,
+      status: 'OPEN',
+      isExample: true,
+      title: 'Пример: Разработка REST API'
+    })
+
+    const token = await createTestSession(client)
+    await context.addCookies([
+      {
+        name: 'session',
+        value: token,
+        domain: 'localhost',
+        path: '/',
+        httpOnly: true,
+        sameSite: 'Lax',
+        expires: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7
+      }
+    ])
+
+    await page.goto('http://localhost:3000/gigs/examples')
+    await page.waitForLoadState('networkidle')
+
+    // Open the example from the list, so the ?from=examples return path is the one under test.
+    await page.locator(`a[href*="${exampleGig.id}"]`).click()
+    await page.waitForURL(/\/gigs\/.*from=examples/)
+    await page.waitForLoadState('networkidle')
+
+    const back = page.getByText('← Назад к примерам', { exact: true })
+    await expect(back).toBeVisible()
+    await back.click()
+
+    await expect(page).toHaveURL(/\/gigs\/examples/)
+    await expect(page.getByRole('heading', { name: 'Примеры гигов' })).toBeVisible()
   })
 
   test('CLIENT cannot access main browse page', async ({ page, context }) => {
@@ -188,7 +243,7 @@ test.describe('Gig Browse Access Control E2E', () => {
 
     // Verify examples page loads successfully
     await expect(page).toHaveURL(/\/gigs\/examples/)
-    await expect(page.locator('h2:has-text("Example Gigs")')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Примеры гигов' })).toBeVisible()
 
     // Verify only the example gig is displayed there
     await expect(page.locator(`text=${exampleGig.title}`)).toBeVisible()

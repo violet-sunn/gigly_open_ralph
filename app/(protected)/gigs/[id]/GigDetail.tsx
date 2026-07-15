@@ -72,7 +72,14 @@ function useAction(fn: unknown) {
 const COMPANY_DESC =
   "Проверенный заказчик на платформе Gigly. Чёткие требования и быстрая обратная связь.";
 
-export function GigDetail({ data }: { data: GigDetailData }) {
+export function GigDetail({ data, from }: { data: GigDetailData; from?: string }) {
+  // Where «Назад» goes depends on where the viewer came from. Reached from «Примеры гигов» (examples-for-clients),
+  // the default `/gigs` is wrong twice over: it is not where they were, and it is SPECIALIST-only — a CLIENT gets
+  // redirected on to /dashboard, stranding them.
+  const back =
+    from === "examples"
+      ? { href: "/gigs/examples", label: "← Назад к примерам" }
+      : { href: "/gigs", label: "← Назад к гигам" };
   const router = useRouter();
   const [tab, setTab] = useState<"client" | "proposed">("client");
 
@@ -161,7 +168,7 @@ export function GigDetail({ data }: { data: GigDetailData }) {
       {/* ЛЕВАЯ КОЛОНКА */}
       <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 6 }}>
         <div
-          onClick={() => router.push("/gigs")}
+          onClick={() => router.push(back.href)}
           onMouseEnter={(e) => { e.currentTarget.style.color = "var(--text-1)"; e.currentTarget.style.background = "var(--hairline-05)"; }}
           onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-3)"; e.currentTarget.style.background = "transparent"; }}
           style={{
@@ -180,7 +187,7 @@ export function GigDetail({ data }: { data: GigDetailData }) {
             transition: "color 0.12s, background 0.12s",
           }}
         >
-          ← Назад к гигам
+          {back.label}
         </div>
 
         {/* gig-editing-with-notification: obvious owner «Редактировать» control (a clear button, not a subtle pencil) —

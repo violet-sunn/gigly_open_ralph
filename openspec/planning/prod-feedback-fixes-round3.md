@@ -83,6 +83,23 @@ Each is a separate `/ralphy-plan` → `/ralphy-implement` cycle. Ordered by prio
 ```
 
 ### C3 — Lock «От заказчика» terms + reset stale apply form (terms tab is pointless; previous terms persist) — P1
+
+> **✅ SHIPPED & ARCHIVED 2026-07-15** → `openspec/archive/apply-terms-lock/`. **The PRD's premise was wrong and the
+> scope changed — read the proposal's correction table before citing this item.** Verified live: the terms panel has
+> **no inputs** (identical 11 on both tabs), so there was nothing to "lock"; «От заказчика» was already read-only; the
+> tabs are «Условия {company}» / «Мои условия». And clearing the re-apply pre-fill **contradicts a shipped MUST**
+> (`gig/spec.md` "Proposed Terms Across the Application Lifecycle") that exists to stop a blank re-submit silently
+> dropping the counter — **decided: keep the pre-fill, out of scope.**
+>
+> **The real defect** (a violation of the existing "Gig-Detail Terms Tabs Reflect the Counter"): `lib/view-models.ts`
+> filled «Мои условия» with the gig's own figures via `?? gig.budget`, so it rendered the client's `140 000 ₽ / 25 дней`
+> identically to «Условия СофтПро» — «убивает смысл вкладки». Fixed at the VM (no fallback, absence per field), plus an
+> explicit «— не предложено» state and a live link so the tab reflects what is being typed in the apply form.
+> New `lib/terms-display.ts` is the single source for the string + derivation.
+>
+> Live-verified on a real prod build: 8/8 terms + 5/5 re-apply/counter + 3/3 owner. Tests: 10 new `terms-display` unit
+> tests (mutation-verified) + two suites **flipped because they encoded the bug** (`terms-negotiation` literally
+> asserted «proposed == client»). Zero regressions (full integration 72/652/724, identical to baseline).
 ```bash
 /ralphy-plan apply-terms-lock "Fix the application terms flow so 'apply on the client's terms' actually means fixed terms, and the form does not carry stale values (Round-3, Арсений). Verified: applyToGig (app/actions/gig.ts:270) treats proposed budget/deadline as OPTIONAL — absent → null → the specialist accepts the client's terms; the backend already supports both. But the apply UI in app/(protected)/gigs/[id]/GigDetail.tsx (form at L837+) leaves the price/deadline fields editable on BOTH the «Предложено» and «От заказчика» tabs, with a note «оставьте пустым — откликнетесь на условиях заказчика», which defeats the «свои условия» tab entirely (there's no fixed reference to compare against); and the fields pre-fill previous values (defaultValue / reused application row on re-apply), so an old proposal reappears. Requirements: (1) render the «От заказчика» tab as READ-ONLY, showing the gig's fixed budget/deadline (no inputs) — it is the reference, not an editable copy; keep editing ONLY on «Предложено»; (2) keep the semantics that leaving «Предложено» empty = apply on the client's terms, but make that unambiguous now that the client tab is fixed; (3) reset the apply form to a clean state on open (no stale prefilled proposed terms) unless the user is explicitly editing an existing proposal; on a reversible re-apply, start clean rather than resurrecting the old proposal. Files: app/(protected)/gigs/[id]/GigDetail.tsx (apply form + TermsTabs usage), app/components/blocks/TermsTabs.tsx if the tab needs a read-only mode, app/actions/gig.ts (applyToGig re-apply data — confirm it does not force old proposed terms). Test plan: E2E — open apply: «От заказчика» shows fixed budget/deadline with no inputs; «Предложено» is editable and starts empty; submitting empty applies on the client's terms; withdraw then re-apply starts clean (no old proposal). Verify live."
 ```
@@ -91,6 +108,23 @@ Each is a separate `/ralphy-plan` → `/ralphy-implement` cycle. Ordered by prio
 **Claim retracted by the tester (2026-07-15).** Disputes are intentionally available only *before* payment (while IN_PROGRESS/REVIEW), which is correct. The residual concern — does the **executor (assigned specialist)** also see the «Открыть спор» button? — was **verified live**: yes, it renders for the assigned specialist on IN_PROGRESS gigs with a ≥44px target (`showDisputeLink` gates on `(data.isOwner || data.isAssignedSpecialist)`; screenshot-confirmed on `workflow-gig-mobile-ui` and `seed-inprogress-gig-4`). Do **not** run a `/ralphy-plan` for this — the round now covers **C1, C2, C3, C5**.
 
 ### C5 — Surface example gigs to clients from the create-gig flow + reground the page — P2
+
+> **✅ SHIPPED & ARCHIVED 2026-07-16** → `openspec/archive/examples-for-clients/`.
+>
+> **It was a regression, not a missing feature.** `ui/spec.md` already mandated a «💡 View example gigs for inspiration» link on the creation form (added by the archived `link-examples-from-gig-form`); the re-ground to `CreateGigDesign.tsx` dropped it, and `gig-browse-access.spec.ts:74` was rewritten to `page.goto('/gigs/examples')` **with a comment admitting the link was gone** — the suite stayed green while the feature was unreachable, until the tester found it.
+>
+> **Two PRD premises below were wrong** (as in C3 — don't reuse this prompt): (a) *role-gate examples to CLIENT* was **rejected on evidence** — specialist access is deliberate (`describe('SPECIALIST access')`, E2E, and the spec scenario scoped to "CLIENT or SPECIALIST"); the complaint was «заказчик не видит», not «специалист видит лишнее». (b) The «использовать как шаблон» prefill was **deferred** (P2, defense ~19.07, and it would have risked C1's freshly-reworked validation SSOT).
+>
+> **A third defect surfaced only under live verification:** the re-grounded `GigDetail` ships its **own** back control and never renders `BackButton` (`[id]/page.tsx` documents this), so `?from=examples` had been **inert since the re-ground** — and the control always pushed `/gigs`, which is **SPECIALIST-only**, so a CLIENT opening an example and clicking back was redirected to `/dashboard`, stranded away from both the examples and their draft. Fixed by threading `from` from the server page into that control.
+>
+> **Shipped:** «💡 Посмотреть примеры» in the create-gig hint banner → `/gigs/examples?from=new`, **new tab** (the brief lives in `useState`; an in-tab nav would destroy a half-written gig — the old spec even conceded "link already opens in new tab"); new `ExamplesDesign.tsx` (Russian + `gigly_full_design` skin + Russian empty state); dropped the unused `client.email`/`clientProfile` include; `BackButton` `from=examples` → `/gigs/examples` (was the **non-existent** `/dashboard/gigs/examples`) + new `from=new`.
+>
+> **Verified:** live 21/21 on a prod build · E2E 5/5 (now **clicks** the link; + a new detail→back round-trip guard) · 9 new `ExamplesDesign` component tests (the **empty branch is unreachable live** — the seed always has examples) · full suite **72 failed / 1010 passed**, failures identical to the stashed baseline = zero regressions. **A third test found defending a defect** (`back-button.test.tsx:70` asserted the 404 route) — flipped, mutation-checked.
+>
+> **Spec reconciliation also caught two stale canonical blocks:** «Comfortable «Назад к гигам» Back Control» named the label as a fixed string (generalized — a specialist *can* reach `?from=examples`), and **«Gig Creation Form Visual Sections» still says `goal`/`deliverables` are *optional*, which C1 made required server-side** — flagged in-place for a follow-up, not silently rewritten (it describes the whole pre-reground kit form).
+>
+> **NOT yet committed** (C3 + C5 both pending).
+
 ```bash
 /ralphy-plan examples-for-clients "Make example gigs discoverable to the client who is creating a gig (Round-3, Арсений: примеры существуют, но заказчик при создании гига их не видит; видеть должны только при создании). Verified: app/(protected)/gigs/examples/page.tsx works (lists isExample+OPEN gigs, 'No role check') but is ORPHANED — the only link anywhere is a fallback href in app/components/BackButton.tsx (to a stale /dashboard/gigs/examples path); CreateGigDesign.tsx has no reference to examples (grep empty); and the page itself is English + pre-reground kit («Example Gigs», «✨ Example»), not gigly_full_design. Requirements: (1) add a visible, discoverable entry point to examples FROM the gig-creation screen (app/(protected)/gigs/new/CreateGigDesign.tsx) — «Посмотреть примеры»/«Образцы гигов» — positioned as inspiration while writing the brief; (2) scope visibility to CLIENT and the creation context (per the tester: only when creating a gig) — role-gate the examples route to CLIENT and reach it from the create flow, not from specialist browse; (3) localize and re-ground app/(protected)/gigs/examples/page.tsx to Russian + gigly_full_design tokens/skin; (4) optional strong UX: «использовать как шаблон» that prefills the create-gig form from a chosen example. Files: app/(protected)/gigs/new/CreateGigDesign.tsx (entry point + optional prefill), app/(protected)/gigs/examples/page.tsx (localize/reground + CLIENT role gate), app/components/BackButton.tsx (fix/verify the return path). Test plan: E2E — a CLIENT on the create-gig screen finds and opens «Примеры», sees localized example gigs, and returns to creation; a SPECIALIST does not get the create-scoped examples entry. Verify live. Depends on C1 (both edit CreateGigDesign.tsx) — land after C1."
 ```

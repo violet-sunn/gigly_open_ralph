@@ -45,8 +45,11 @@ export function BackButton() {
     href = '/admin'
     text = '← Back to Admin Dashboard'
   } else if (from === 'examples') {
-    href = '/dashboard/gigs/examples'
+    href = '/gigs/examples'
     text = '← Back to Examples'
+  } else if (from === 'new') {
+    href = '/gigs/new'
+    text = '← Назад к созданию гига'
   } else {
     // Unknown context - don't render
     return null

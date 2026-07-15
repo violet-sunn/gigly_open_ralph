@@ -1,13 +1,12 @@
 import { getSession } from '@/lib/session'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import { BackButton } from '@/app/components/BackButton'
 import { Suspense } from 'react'
-import EmptyState from '@/app/components/onboarding/EmptyState'
+import { ExamplesDesign, type ExampleGigVM } from './ExamplesDesign'
 
 function formatRoubles(kopecks: number): string {
-  return new Intl.NumberFormat('ru-RU').format(kopecks / 100)
+  return `${new Intl.NumberFormat('ru-RU').format(kopecks / 100)} ₽`
 }
 
 export default async function ExampleGigsPage() {
@@ -22,72 +21,23 @@ export default async function ExampleGigsPage() {
       status: 'OPEN'
     },
     orderBy: { createdAt: 'desc' },
-    include: {
-      client: {
-        select: {
-          email: true,
-          clientProfile: true
-        }
-      }
-    },
   })
 
-  return (
-    <div className="min-h-screen bg-surface-level-0 py-8">
-      <div className="max-w-2xl mx-auto px-4">
-        <div className="mb-4">
-          <Suspense fallback={null}>
-            <BackButton />
-          </Suspense>
-        </div>
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-white leading-tight">Example Gigs</h2>
-          <p className="mt-2 text-sm text-neutral-strong leading-relaxed">
-            These are example gigs to help you understand what makes a good gig description.
-            Use them as inspiration when creating your own gigs.
-          </p>
-        </div>
+  const gigs: ExampleGigVM[] = exampleGigs.map((gig) => ({
+    id: gig.id,
+    title: gig.title,
+    description: gig.description,
+    budget: formatRoubles(gig.budget),
+    tags: gig.tags ? gig.tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
+    created: gig.createdAt.toLocaleDateString('ru-RU'),
+  }))
 
-        {exampleGigs.length === 0 ? (
-          <EmptyState
-            icon="✨"
-            heading="No Example Gigs Available"
-            description="Example gigs haven't been set up yet. Check back later for inspiration on creating great gig descriptions."
-          />
-        ) : (
-          <ul className="space-y-6">
-            {exampleGigs.map((gig) => (
-              <li key={gig.id}>
-                <Link
-                  href={`/gigs/${gig.id}?from=examples`}
-                  className="block bg-surface-level-1 border border-neutral-weak rounded-lg p-8 hover:bg-surface-level-2 hover:border-neutral-strong transition-colors duration-200 shadow-md"
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-xl font-medium text-white">{gig.title}</h3>
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-500/10 text-blue-500">
-                        ✨ Example
-                      </span>
-                    </div>
-                    <span className="text-sm font-medium text-success-400">{formatRoubles(gig.budget)} ₽</span>
-                  </div>
-                  <p className="mt-2 text-sm text-neutral-strong line-clamp-2 leading-relaxed">{gig.description}</p>
-                  <div className="mt-3 flex items-center justify-between">
-                    <div className="flex gap-2">
-                      {gig.tags && gig.tags.split(',').map((tag) => tag.trim()).filter(Boolean).map((tag) => (
-                        <span key={tag} className="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                    <span className="text-xs text-neutral-weak">{gig.createdAt.toLocaleDateString('ru-RU')}</span>
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <Suspense fallback={null}>
+        <BackButton />
+      </Suspense>
+      <ExamplesDesign gigs={gigs} />
     </div>
   )
 }

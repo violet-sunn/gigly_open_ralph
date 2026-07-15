@@ -4,11 +4,18 @@ import { GigDetail } from './GigDetail'
 import { markNotificationAsRead } from '@/app/actions/notification'
 import { getGigDetail } from '@/lib/view-models'
 
-export default async function GigDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function GigDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ from?: string }>
+}) {
   const session = await getSession()
   if (!session) redirect('/login')
 
   const { id } = await params
+  const { from } = await searchParams
   const data = await getGigDetail(id, { userId: session.userId, role: session.role })
 
   if (!data) {
@@ -29,6 +36,7 @@ export default async function GigDetailPage({ params }: { params: Promise<{ id: 
   }
 
   // The gig-detail screen is rebuilt directly on the gigly_full_design prototype's own markup (GigDetail.tsx) — it
-  // ships its own «← Назад к гигам» link, so no breadcrumb / back-button chrome is layered on here.
-  return <GigDetail data={data} />
+  // ships its own «Назад» link, so no breadcrumb / back-button chrome is layered on here. `from` only steers where
+  // that link points (e.g. back to «Примеры гигов» rather than the SPECIALIST-only search).
+  return <GigDetail data={data} from={from} />
 }

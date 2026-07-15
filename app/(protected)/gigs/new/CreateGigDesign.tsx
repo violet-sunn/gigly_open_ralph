@@ -139,9 +139,19 @@ export function CreateGigDesign({ categoryOptions }: { categoryOptions: { key: s
           gap: 12,
         }}
       >
-        <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 13, lineHeight: "18px", color: "var(--text-2)" }}>
+        <span style={{ flex: 1, fontFamily: "'Manrope',sans-serif", fontSize: 13, lineHeight: "18px", color: "var(--text-2)" }}>
           Чем понятнее бриф — тем точнее отклики и меньше споров. Отвечайте простыми словами, без жаргона: панель «Готовность брифа» справа подскажет, чего не хватает.
         </span>
+        {/* Opens in a NEW TAB on purpose: the whole brief lives in this component's state, so an in-tab
+            navigation would silently discard a half-written gig. */}
+        <a
+          href="/gigs/examples?from=new"
+          target="_blank"
+          rel="noopener"
+          style={{ flex: "none", display: "inline-flex", alignItems: "center", gap: 6, whiteSpace: "nowrap", padding: "8px 12px", minHeight: 36, borderRadius: 8, background: "rgba(0,136,255,0.12)", boxShadow: "inset 0 0 0 1px rgba(0,136,255,0.35)", color: "var(--om-accent, #0088ff)", fontFamily: "'Handjet',monospace", fontSize: 15, textDecoration: "none" }}
+        >
+          💡 Посмотреть примеры
+        </a>
       </div>
 
       <form action={action} style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
