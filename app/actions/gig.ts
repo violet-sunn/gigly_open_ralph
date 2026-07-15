@@ -249,7 +249,7 @@ export async function updateGig(
     },
   })
 
-  // Fan-out to every active (PENDING) applicant on a material change (fire-and-forget). WITHDRAWN/WITHDRAWN_FINAL and
+  // Fan-out to every active (PENDING) applicant on a material change. WITHDRAWN/WITHDRAWN_FINAL and
   // REJECTED applicants are out of the running (the PENDING filter excludes them); the owner is never a recipient.
   // The whole block is defensively wrapped so a notification/query failure can NEVER fail the (already-committed) edit
   // or block the redirect — the fan-out is best-effort, self-contained here rather than relying on the helper's catch.
@@ -260,7 +260,7 @@ export async function updateGig(
         select: { specialistId: true },
       })
       if (pending.length > 0) {
-        createNotificationsBulk(
+        await createNotificationsBulk(
           pending.map((a) => ({
             userId: a.specialistId,
             gigId,
@@ -407,7 +407,7 @@ export async function applyToGig(
     })
     const reapplicantName =
       reapplicant?.specialistProfile?.displayName || reapplicant?.email || 'A specialist'
-    createNotification(gig.clientId, gigId, 'APPLICATION', 'application_submitted', {
+    await createNotification(gig.clientId, gigId, 'APPLICATION', 'application_submitted', {
       specialistId: session.userId,
       specialistName: reapplicantName,
       applicationId: existing.id,
@@ -452,9 +452,9 @@ export async function applyToGig(
       return app
     })
 
-    // Create notification for gig owner (fire-and-forget)
+    // Create notification for gig owner
     const specialistName = specialist?.specialistProfile?.displayName || specialist?.email || 'A specialist'
-    createNotification(
+    await createNotification(
       gig.clientId,
       gigId,
       'APPLICATION',
@@ -468,9 +468,9 @@ export async function applyToGig(
   } else {
     const application = await prisma.application.create({ data: applicationData })
 
-    // Create notification for gig owner (fire-and-forget)
+    // Create notification for gig owner
     const specialistName = specialist?.specialistProfile?.displayName || specialist?.email || 'A specialist'
-    createNotification(
+    await createNotification(
       gig.clientId,
       gigId,
       'APPLICATION',
@@ -565,8 +565,8 @@ export async function acceptApplication(
     }),
   ])
 
-  // Create notification for accepted specialist (fire-and-forget)
-  createNotification(
+  // Create notification for accepted specialist
+  await createNotification(
     application.specialistId,
     application.gigId,
     'APPLICATION',
@@ -583,7 +583,7 @@ export async function acceptApplication(
       eventType: 'application_rejected',
       eventData: JSON.stringify({ applicationId: app.id }),
     }))
-    createNotificationsBulk(rejectedNotifications)
+    await createNotificationsBulk(rejectedNotifications)
   }
 
   // Seed a system/platform opener so a chat thread materializes for BOTH parties immediately (chat-on-acceptance).
@@ -640,8 +640,8 @@ export async function rejectApplication(
     data: { status: 'REJECTED' },
   })
 
-  // Create notification for rejected specialist (fire-and-forget)
-  createNotification(
+  // Create notification for rejected specialist
+  await createNotification(
     application.specialistId,
     application.gigId,
     'APPLICATION',
@@ -684,8 +684,8 @@ export async function submitWork(
     data: { status: 'REVIEW' },
   })
 
-  // Create notification for gig owner (fire-and-forget)
-  createNotification(
+  // Create notification for gig owner
+  await createNotification(
     gig.clientId,
     gigId,
     'STATUS_CHANGE',
@@ -728,9 +728,9 @@ export async function approveWork(
     data: { status: 'COMPLETED' },
   })
 
-  // Create notification for assigned specialist (fire-and-forget)
+  // Create notification for assigned specialist
   if (gig.assignedSpecialistId) {
-    createNotification(
+    await createNotification(
       gig.assignedSpecialistId,
       gigId,
       'STATUS_CHANGE',
@@ -779,9 +779,9 @@ export async function requestRevision(
     data: { status: 'IN_PROGRESS' },
   })
 
-  // Notify the assigned specialist that the work needs changes (fire-and-forget).
+  // Notify the assigned specialist that the work needs changes.
   if (gig.assignedSpecialistId) {
-    createNotification(
+    await createNotification(
       gig.assignedSpecialistId,
       gigId,
       'STATUS_CHANGE',
@@ -834,9 +834,9 @@ export async function markAsPaid(
     },
   })
 
-  // Create notification for assigned specialist (fire-and-forget)
+  // Create notification for assigned specialist
   if (gig.assignedSpecialistId) {
-    createNotification(
+    await createNotification(
       gig.assignedSpecialistId,
       gigId,
       'PAYMENT',
@@ -919,9 +919,9 @@ export async function withdrawApplication(
     }
   }
 
-  // Create notification for gig owner (fire-and-forget)
+  // Create notification for gig owner
   const specialistName = specialist?.specialistProfile?.displayName || specialist?.email || 'A specialist'
-  createNotification(
+  await createNotification(
     application.gig.clientId,
     application.gigId,
     'APPLICATION',

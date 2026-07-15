@@ -3,13 +3,22 @@ import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/session'
 import { prisma } from '@/lib/prisma'
 import { AppShellDesign } from '@/app/_design/AppShellDesign'
-import { getUnreadChatCount } from '@/lib/view-models'
+import { computeNavCounts } from '@/lib/counts'
 
 /**
  * Protected app shell — rebuilt on the gigly_full_design prototype's own shell markup (AppShellDesign: sidebar with the
  * profile/role/nav + the «ПРОЕКТ»-style header zone). Preserves the session guard (getSession → /login), logout, the
  * NotificationBell, and the #main-content focus target (provided by AppShellDesign). Desktop-only.
+ *
+ * The counts computed here are the SSR *seed* only — AppShellDesign keeps them live from there (useLiveCounts), since
+ * this shell does not re-mount on client-side navigation.
  */
+
+// This shell is per-session (profile, role, counts) and must never be statically optimized or served from a shared
+// cache — a proxy keying on URL alone would hand one user's shell to another, and is the suspected cause of the
+// deployed «F5 не помогает, только перезаход» symptom.
+export const dynamic = 'force-dynamic'
+
 export default async function ProtectedLayout({ children }: { children: ReactNode }) {
   const session = await getSession()
   if (!session) redirect('/login')
@@ -25,11 +34,8 @@ export default async function ProtectedLayout({ children }: { children: ReactNod
   }
 
   const role = session.role === 'SPECIALIST' ? 'SPECIALIST' : 'CLIENT'
-  const [gigs, unreadChats, user] = await Promise.all([
-    prisma.gig.count({
-      where: role === 'CLIENT' ? { clientId: session.userId } : { assignedSpecialistId: session.userId },
-    }),
-    getUnreadChatCount({ userId: session.userId, role: session.role }),
+  const [{ gigs, chats: unreadChats }, user] = await Promise.all([
+    computeNavCounts({ userId: session.userId, role: session.role }),
     prisma.user.findUnique({
       where: { id: session.userId },
       include: { specialistProfile: true, clientProfile: true },

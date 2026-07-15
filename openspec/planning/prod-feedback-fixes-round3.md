@@ -64,6 +64,20 @@ Each is a separate `/ralphy-plan` → `/ralphy-implement` cycle. Ordered by prio
 ```
 
 ### C2 — Live counters (notification bell + sidebar badges) + anti-cache hardening (UI does not refresh) — P0
+
+> **✅ SHIPPED & ARCHIVED 2026-07-15** → `openspec/archive/live-counters/`. Canonical specs reconciled (`ui`: 3 ADDED
+> requirements + the bell requirement amended to carry a freshness contract; `gig`: awaited notification writes).
+> Live-verified **7/7 in dev AND a real prod build**: bell 3→4 on in-app navigation, 4→5 via the idle poll (URL
+> asserted unchanged), «Чаты» 1→2, `no-store` on authenticated `/dashboard`, static assets still `immutable`.
+> New tests: `__tests__/integration/live-counts.test.ts` (5) + `__tests__/unit/components/NotificationBell.test.tsx`
+> (9, mutation-verified — reverting to the mount-only fetch fails 4 of them). Zero regressions (full integration
+> suite identical with the change stashed: 72 failed / 651 passed both ways).
+>
+> **⚠️ OPEN — post-deploy only:** the Amvera proxy-cache theory is **still unconfirmed**. «F5 не помогает, только
+> перезаход» never reproduced locally, so the `no-store` fix can only be confirmed against the real deployment.
+> After the next `./deploy-to-amvera.sh`, re-run the tester's scenario on `gigly-m0jo.amvera.io`; if it still
+> reproduces, the suspect is Amvera-side cache config (not app code) — capture `/dashboard` response headers as
+> evidence before touching anything else.
 ```bash
 /ralphy-plan live-counters "Make in-app counters update live so the app stops looking broken (Round-3 «серверные действия не обновляются»/«счётчики не работают»). Diagnosed live in dev AND a real prod build (next build && next start, seed client ivan.petrov@techcorp.ru / specialist andrey.sokolova@mail.ru / TestPass123 / gig seed-open-gig-12): the notification write PERSISTS immediately (7→8) — no write race; the bell stays STALE with no reload and after client-side navigation, and only a hard reload/re-login moves it; F5 updates locally in both dev and prod (so the tester's «F5 не помогает, только перезаход» on gigly-m0jo.amvera.io is an Amvera proxy/CDN cache layer, not app logic). Roots: app/components/NotificationBell.tsx fetches getUnreadCount() in useEffect(…, []) ONCE and lives in the persistent app/(protected)/layout.tsx shell that does not re-mount on client navigation; the sidebar gigs/chats badges are computed once in that layout (prisma.gig.count / getUnreadChatCount) and never re-render on navigation; the read path (app/actions/notification.ts) is itself correct and uncached. Requirements: (1) NotificationBell — refetch the count on every route change (add usePathname() to the effect deps) and after mutations; call router.refresh() (or re-fetch) so it updates without a manual reload; optionally a light interval poll (30–60s) as a backstop; (2) sidebar badges — make the gigs/chats counts live (a small client component that refetches on navigation, or trigger revalidation of the layout surface after the relevant mutations) instead of a once-per-mount server render; (3) anti-cache hardening for the deployment layer — set export const dynamic = 'force-dynamic' (or Cache-Control: no-store) on the counter-bearing surfaces so an Amvera proxy cannot serve a stale /dashboard by URL; (4) optional cheap insurance: await createNotification(...) before redirect() in the gig actions (write already works, but removes any future serverless-timing risk). Files: app/components/NotificationBell.tsx, app/components/NotificationDropdown.tsx, app/(protected)/layout.tsx, app/_design/AppShellDesign.tsx (counts wiring), relevant route segments for the dynamic directive, app/actions/gig.ts (optional await). Test plan: E2E — with a client on /dashboard, a specialist applies; the client's bell increments WITHOUT a reload (within the poll/refresh window) and after in-app navigation; application-status and «Мои гиги»/«Чаты» badges likewise update without a full reload. Verify live in BOTH dev and a prod build; optionally re-run against gigly-m0jo.amvera.io to confirm the proxy-cache fix."
 ```

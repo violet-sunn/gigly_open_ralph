@@ -1529,7 +1529,7 @@ The gig detail page MUST provide a form for authorized users to send messages.
 ---
 
 ### Requirement: Notification Bell in Navigation
-The system MUST display a notification bell icon in the navigation header that shows unread message count and opens a dropdown.
+The system MUST display a notification bell icon in the navigation header that shows unread message count and opens a dropdown. This requirement governs the bell's *display and dropdown behavior*; **when** the count is re-read is governed by "Notification Bell Refreshes Without a Manual Reload" below — a mount-only fetch does NOT satisfy it.
 
 #### Scenario: Bell icon renders in navigation
 - GIVEN an authenticated user (CLIENT or SPECIALIST)
@@ -1570,6 +1570,117 @@ The system MUST display a notification bell icon in the navigation header that s
 - Dropdown opens/closes on bell click
 - Dropdown closes on outside click (useEffect with click listener)
 - Bell icon is accessible (keyboard navigation, ARIA labels)
+- The badge is not rendered until the first real read lands (no flash of a stale zero)
+
+---
+
+### Requirement: Notification Bell Refreshes Without a Manual Reload
+The notification bell MUST keep its unread count fresh during a session without the user reloading the page. The bell lives in the persistent `app/(protected)/layout.tsx` shell, which does not re-mount on client-side navigation, so a mount-only fetch (`useEffect(…, [])`) is NOT sufficient and MUST NOT be the only refresh trigger.
+
+#### Scenario: Count refreshes on client-side navigation
+- GIVEN an authenticated CLIENT sitting on `/dashboard` with a bell count of N
+- AND a specialist applies to one of their gigs (raising the true count to N+1)
+- WHEN the client navigates in-app to another protected route (e.g. `/my-gigs`) without a full page reload
+- THEN the bell MUST refetch the unread count and display N+1
+- AND the refetch MUST be driven by the current pathname changing (e.g. `usePathname()` in the effect dependencies)
+
+#### Scenario: Count refreshes on a poll backstop while the user is idle
+- GIVEN an authenticated user who stays on a single route without navigating
+- AND their true unread count changes
+- WHEN the poll interval elapses (~30s, and no longer than 60s)
+- THEN the bell MUST refetch and display the new count without any user action
+
+#### Scenario: Count refreshes when the tab is re-focused
+- GIVEN an authenticated user who switches away to another tab and returns
+- WHEN the tab becomes visible again
+- THEN the bell MUST refetch the unread count
+- AND a tab becoming *hidden* MUST NOT trigger a refetch
+
+#### Scenario: Polling stands down for unauthenticated users
+- GIVEN a tab whose session has ended (logged out, or expired in another tab)
+- WHEN the next poll observes an unauthenticated response
+- THEN the hook MUST stop polling permanently — no further count requests for the life of that mount
+- AND the counters MUST keep their last known value rather than flashing to zero
+- AND the failed/unauthenticated read MUST NOT throw an unhandled error or spam the console
+- NOTE: the client cannot know the session ended without asking once, so exactly one request per mount may observe
+  the unauthenticated state; what MUST NOT happen is continued polling after that.
+
+#### Scenario: Refresh does not disturb an open dropdown
+- GIVEN the user has the notification dropdown open
+- WHEN a background refresh completes
+- THEN the dropdown MUST remain open and usable (the refresh MUST NOT close it or steal focus)
+
+**Acceptance Criteria:**
+- Refetch triggers: pathname change, an interval of ~30s (≤60s), and tab re-focus (`visibilitychange`)
+- The interval is cleared on unmount (no leaked timers)
+- Notification semantics are unchanged: unread still derives from `Notification.lastReadAt` via the existing `getUnreadNotifications` path, and preference gating is untouched
+- Implemented by `app/_design/useLiveCounts.ts`; when the shell drives the bell (passing `count`), the bell MUST NOT open a second poll
+
+---
+
+### Requirement: Sidebar Nav Counts Are Live
+The sidebar «Мои гиги» / «Чаты» badges MUST reflect current state during a session. They MUST NOT be computed once per shell mount in the server layout and left frozen; they MUST refresh on the same triggers as the bell.
+
+#### Scenario: Chats badge updates after a new message arrives
+- GIVEN an authenticated user whose sidebar shows a «Чаты» count of N
+- AND the counterparty sends a message on a gig (raising the true unread-conversation count to N+1)
+- WHEN the user navigates in-app or the poll interval elapses
+- THEN the «Чаты» badge MUST display N+1 without a full page reload
+
+#### Scenario: Gigs badge updates after a gig-set change
+- GIVEN an authenticated user whose sidebar shows a «Мои гиги» count
+- WHEN the underlying set of their gigs changes and they navigate in-app or the poll elapses
+- THEN the badge MUST reflect the new count without a full page reload
+
+#### Scenario: Server-rendered counts are the initial value (no flash)
+- GIVEN a fresh page load of a protected route
+- WHEN the shell first paints
+- THEN the badges MUST render the server-computed counts immediately as their initial value
+- AND MUST NOT flash empty/zero before the first client refetch
+
+#### Scenario: Counts remain correctly derived
+- GIVEN the live refresh
+- WHEN the chats count is recomputed
+- THEN it MUST still use `getUnreadChatCount` (gigs with unread messages), matching the inbox badges, per "Unread, Mark-Read, and the Sidebar «Чаты» Count"
+- AND the gigs count MUST still be scoped by role (CLIENT → `clientId`, SPECIALIST → `assignedSpecialistId`)
+
+**Acceptance Criteria:**
+- `getLiveCounts()` (`app/actions/counts.ts`) returns `{ notifications, gigs, chats }` in one round trip — a single poll feeds the whole shell
+- Both the SSR seed (`app/(protected)/layout.tsx`) and the live action derive counts from the SAME helper (`lib/counts.ts`) — the count logic MUST NOT be forked
+- `AppShellDesign` seeds from the server-rendered `counts` prop and refetches on pathname change / poll / focus
+- The ADMIN shell path (`counts={{}}`) MUST NOT issue count fetches
+
+---
+
+### Requirement: Authenticated Counter Surfaces Are Not Cacheable by an Intermediary
+Authenticated, counter-bearing responses MUST be marked uncacheable so a proxy/CDN in front of the app cannot serve another user's or a stale session's HTML by URL.
+
+#### Scenario: Authenticated responses are marked no-store
+- GIVEN an authenticated request to a protected route (e.g. `/dashboard`)
+- WHEN the response is returned
+- THEN it MUST carry a `Cache-Control` header of `no-store` (or equivalently `private, no-store, max-age=0, must-revalidate`)
+- AND an intermediary caching by URL MUST NOT be able to serve that response to a later request
+
+#### Scenario: Counter-bearing segments are dynamically rendered
+- GIVEN the protected shell and the routes that render counters
+- WHEN the app is built
+- THEN those segments MUST be dynamically rendered (ƒ via `export const dynamic = 'force-dynamic'`), not statically optimized or full-route cached
+
+#### Scenario: Static and public assets stay cacheable
+- GIVEN a static asset or an unauthenticated public route
+- WHEN it is served
+- THEN it MUST NOT be made uncacheable by this hardening (e.g. `_next/static` keeps `public, max-age=31536000, immutable`)
+
+#### Scenario: A hard reload always reflects current state
+- GIVEN a user whose true counts have changed
+- WHEN they hard-reload a protected route in the deployed environment
+- THEN the response MUST reflect the current counts (never a cached earlier body)
+- AND the «F5 не помогает, только перезаход» symptom MUST NOT reproduce
+
+**Acceptance Criteria:**
+- `middleware.ts` sets `Cache-Control: private, no-store, max-age=0, must-revalidate` on authenticated responses — it is the single choke point, since it already runs the session/role gate
+- The middleware `matcher` MUST cover every counter-bearing surface (`/dashboard`, `/gigs`, `/profile`, `/admin`, `/my-gigs`, `/chats`, `/finances`, `/disputes`, `/settings`); entries beyond the role-gated prefixes are matched for the header only and do not change auth behavior (the `(protected)` layout remains their guard)
+- `export const dynamic = 'force-dynamic'` on the protected shell
 
 ---
 

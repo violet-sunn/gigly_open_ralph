@@ -1,29 +1,37 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { getUnreadCount } from '@/app/actions/notification';
 import { NotificationDropdown } from './NotificationDropdown';
+import { useLiveCounts } from '@/app/_design/useLiveCounts';
 
-export function NotificationBell() {
-  const [unreadCount, setUnreadCount] = useState(0);
+/**
+ * The bell previously fetched its count in `useEffect(…, [])` — once, on mount — while living in the persistent
+ * protected shell, which never re-mounts on client-side navigation. The count was therefore frozen for the life of
+ * the tab: the Round-3 «счётчики не работают» report.
+ *
+ * It now refreshes on navigation / tab focus / a ~30s poll. When the shell drives it (`count` passed), the shell's
+ * single `getLiveCounts()` poll feeds every counter; when mounted standalone (MainNav, TopbarLive) it drives itself
+ * off the same hook, so those surfaces get the same freshness.
+ */
+export function NotificationBell({
+  count,
+  loaded,
+  onRefresh,
+}: {
+  count?: number;
+  loaded?: boolean;
+  onRefresh?: () => void;
+} = {}) {
+  const controlled = count !== undefined;
+  // `enabled` is false when controlled, so a shell-driven bell does not open a second poll.
+  const live = useLiveCounts({}, !controlled);
+
+  const unreadCount = controlled ? count : live.notifications;
+  const isLoading = controlled ? loaded === false : !live.loaded;
+  const refresh = controlled ? onRefresh : live.refresh;
+
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const bellRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    async function fetchUnreadCount() {
-      try {
-        const result = await getUnreadCount();
-        setUnreadCount(result.count);
-      } catch (error) {
-        console.error('Failed to fetch unread count:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchUnreadCount();
-  }, []);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -58,8 +66,8 @@ export function NotificationBell() {
 
   const handleClose = () => {
     setIsOpen(false);
-    // Refresh unread count after closing
-    getUnreadCount().then((result) => setUnreadCount(result.count));
+    // Opening a notification marks it read, so re-read the count once the dropdown closes.
+    refresh?.();
   };
 
   return (

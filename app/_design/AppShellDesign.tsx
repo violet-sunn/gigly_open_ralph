@@ -19,6 +19,7 @@ import { CATEGORIES } from "@/lib/categories";
 import { SettingsModal } from "@/app/(protected)/settings/SettingsModal";
 import { Heartbeat } from "./Heartbeat";
 import { useIsNarrow } from "./useIsNarrow";
+import { useLiveCounts } from "./useLiveCounts";
 import "./tokens.css";
 
 // The prototype's header filter cluster (data-dc-tpl="51", beside the search field) on every list screen. Option sets
@@ -84,7 +85,15 @@ export function AppShellDesign({
   const pathname = usePathname() ?? "";
   const router = useRouter();
   const params = useSearchParams();
-  const items = markActive(admin ? buildAdminNav() : buildSidebarNav(role, counts), pathname);
+
+  // The shell is persistent — it does not re-mount on client-side navigation — so the server-rendered `counts` would
+  // otherwise stay frozen for the life of the tab (Round-3 «счётчики не работают»). Seed from the SSR values (no
+  // flash to zero on first paint), then keep them live. One poll here feeds the sidebar badges AND the bell; the
+  // admin shell renders no counts, so it does not poll.
+  const live = useLiveCounts(counts, !admin);
+  const liveCounts: NavCounts = admin ? counts : { gigs: live.gigs, chats: live.chats };
+
+  const items = markActive(admin ? buildAdminNav() : buildSidebarNav(role, liveCounts), pathname);
   const title = pageTitle(pathname);
 
   // Header filters refine the CURRENT route's query in place (no redirect): preserve existing params, set/clear the one
@@ -297,7 +306,8 @@ export function AppShellDesign({
             )}
           </Link>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, color: "var(--text-3)" }}>
-            <NotificationBell />
+            {/* Driven by the shell's single poll — the bell does not open its own. */}
+            <NotificationBell count={live.notifications} loaded={live.loaded} onRefresh={live.refresh} />
             <button
               type="button"
               onClick={openSettings}

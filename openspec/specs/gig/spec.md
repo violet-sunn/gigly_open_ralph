@@ -770,6 +770,32 @@ The system MUST provide a `getUnreadCount` server action that returns the total 
 
 ---
 
+### Requirement: Notification Writes Are Awaited Before Redirect
+Server actions that create notifications and then `redirect()` MUST await the notification write before redirecting, so the write cannot be dropped by a runtime that ends the invocation at the redirect boundary.
+
+> Context: this is defence-in-depth, not a bug fix. The fire-and-forget pattern was verified on Node to persist immediately (an unread count moved 7→8), so it was never the cause of the stale-counter reports — that was read-freshness (see the UI spec's "Notification Bell Refreshes Without a Manual Reload"). Awaiting removes a latent serverless/edge teardown risk at negligible cost.
+
+#### Scenario: An action that notifies-then-redirects persists the notification
+- GIVEN a gig server action that creates a notification and then redirects (e.g. a specialist applying to a gig)
+- WHEN the action runs to completion
+- THEN the notification row MUST be persisted before the redirect is issued
+- AND the recipient's unread count MUST include it on the next read
+
+#### Scenario: A notification failure does not fail the user's action
+- GIVEN a notification write that throws (e.g. the notification backend is unavailable)
+- WHEN the surrounding action runs
+- THEN the user's primary action (apply / status change / message) MUST still succeed and redirect
+- AND the failure MUST be logged, not surfaced as a user-facing error
+- AND this MUST match the fan-out behavior specified for `updateGig` ("a notification fan-out failure does not fail the edit")
+
+**Acceptance Criteria:**
+- The `createNotification(...)` / `createNotificationsBulk(...)` calls in `app/actions/gig.ts` that precede a `redirect()` are awaited
+- Failure isolation is inherent: both helpers in `lib/notifications.ts` catch internally and never reject, so `await` cannot fail the caller
+- No change to notification content, type, recipients, or the unread derivation
+- `redirect()` is still called outside any `try` that would swallow Next.js's control-flow redirect error
+
+---
+
 ### Requirement: Reject Application UI with Confirmation
 The Reject Application button MUST trigger a confirmation dialog before executing the rejectApplication server action.
 
