@@ -107,7 +107,7 @@ test.describe('compose-gig-detail-apply — rebuilt gig detail', () => {
     await setE2ESession(page, { id: ownerId, email: ownerEmail, role: 'CLIENT' })
     await page.goto(`/gigs/${gigAcceptId}`)
 
-    await expect(page.getByText('Сервисный сбор (10%)')).toBeVisible() // owner-only fee breakdown
+    await expect(page.getByText('Сервисный сбор (17,5%)')).toBeVisible() // owner-only fee breakdown
     // The owner applicant list now lives on the dedicated «Отклики» screen (build-applications-screen).
     await page.getByRole('button', { name: /Смотреть отклики/ }).click()
     await expect(page).toHaveURL(new RegExp(`/gigs/${gigAcceptId}/applications`))

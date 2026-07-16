@@ -13,6 +13,7 @@ import { updateGig } from "@/app/actions/gig";
 import { CAT_RGB } from "@/app/_design/util";
 import { CharacterCounter } from "../../new/character-counter";
 import { GIG_DESCRIPTION_MIN, GIG_CRITERIA_MIN } from "@/lib/gig-validation";
+import { serviceFeeRoubles, SERVICE_FEE_PCT_LABEL } from "@/lib/pricing";
 import { pluralRu } from "@/lib/utils/plural";
 import "@/app/_design/tokens.css";
 
@@ -83,7 +84,7 @@ export function EditGigDesign({ categoryOptions, gig }: { categoryOptions: { key
   const [critInput, setCritInput] = useState("");
 
   const budgetNum = Number(budget) || 0;
-  const fee = budgetNum > 0 ? Math.floor(budgetNum * 0.1) : 0;
+  const fee = budgetNum > 0 ? serviceFeeRoubles(budgetNum) : 0;
 
   // Effective criteria = committed chips PLUS any text still in the input, so a typed-but-uncommitted criterion always
   // counts toward readiness AND is submitted. Mirrors the server (reads the hidden `acceptanceCriteria` value).
@@ -396,7 +397,7 @@ export function EditGigDesign({ categoryOptions, gig }: { categoryOptions: { key
                 <span style={{ color: "var(--text-1)" }}>{budgetNum > 0 ? rub(budgetNum) : "—"}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontFamily: "'Handjet',monospace", fontSize: 14, color: "var(--text-3)" }}>
-                <span>Сервисный сбор (10%)</span>
+                <span>Сервисный сбор ({SERVICE_FEE_PCT_LABEL})</span>
                 <span style={{ color: "var(--text-1)" }}>{rub(fee)}</span>
               </div>
               <div style={{ height: 1, background: "var(--hairline-08)" }} />

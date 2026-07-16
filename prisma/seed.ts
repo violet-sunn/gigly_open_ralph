@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { PrismaLibSql } from '@prisma/adapter-libsql';
+import { serviceFeeKopecks } from '../lib/pricing';
 
 // Pre-computed bcrypt hash for "TestPass123" (rounds: 10)
 // Generated with: await bcrypt.hash('TestPass123', 10)
@@ -760,7 +761,7 @@ async function main() {
 
   // Example Gig 1: Backend API Development (Client 1)
   const gig1Budget = 18000000; // 180,000 RUB
-  const gig1ServiceFee = Math.floor(gig1Budget * 0.10);
+  const gig1ServiceFee = serviceFeeKopecks(gig1Budget);
   const gig1Total = gig1Budget + gig1ServiceFee;
 
   await prisma.gig.upsert({
@@ -791,7 +792,7 @@ async function main() {
 
   // Example Gig 2: Frontend Component (Client 1)
   const gig2Budget = 15000000; // 150,000 RUB
-  const gig2ServiceFee = Math.floor(gig2Budget * 0.10);
+  const gig2ServiceFee = serviceFeeKopecks(gig2Budget);
   const gig2Total = gig2Budget + gig2ServiceFee;
 
   await prisma.gig.upsert({
@@ -822,7 +823,7 @@ async function main() {
 
   // Example Gig 3: DevOps Automation (Client 1)
   const gig3Budget = 17000000; // 170,000 RUB
-  const gig3ServiceFee = Math.floor(gig3Budget * 0.10);
+  const gig3ServiceFee = serviceFeeKopecks(gig3Budget);
   const gig3Total = gig3Budget + gig3ServiceFee;
 
   await prisma.gig.upsert({
@@ -853,7 +854,7 @@ async function main() {
 
   // Example Gig 4: Database Optimization (Client 2)
   const gig4Budget = 16000000; // 160,000 RUB
-  const gig4ServiceFee = Math.floor(gig4Budget * 0.10);
+  const gig4ServiceFee = serviceFeeKopecks(gig4Budget);
   const gig4Total = gig4Budget + gig4ServiceFee;
 
   await prisma.gig.upsert({
@@ -884,7 +885,7 @@ async function main() {
 
   // Example Gig 5: Testing Infrastructure (Client 2)
   const gig5Budget = 19000000; // 190,000 RUB
-  const gig5ServiceFee = Math.floor(gig5Budget * 0.10);
+  const gig5ServiceFee = serviceFeeKopecks(gig5Budget);
   const gig5Total = gig5Budget + gig5ServiceFee;
 
   await prisma.gig.upsert({
@@ -1227,7 +1228,7 @@ async function main() {
 
   // Workflow Gig 1: Mobile App UI/UX Design (IN_PROGRESS)
   const mobileUiBudget = 12000000; // 120,000 RUB
-  const mobileUiServiceFee = Math.floor(mobileUiBudget * 0.10);
+  const mobileUiServiceFee = serviceFeeKopecks(mobileUiBudget);
   const mobileUiTotal = mobileUiBudget + mobileUiServiceFee;
 
   const mobileUiGig = await prisma.gig.upsert({
@@ -1358,7 +1359,7 @@ async function main() {
 
   // Workflow Gig 2: Microservices Migration (IN_PROGRESS)
   const microservicesBudget = 25000000; // 250,000 RUB
-  const microservicesServiceFee = Math.floor(microservicesBudget * 0.10);
+  const microservicesServiceFee = serviceFeeKopecks(microservicesBudget);
   const microservicesTotal = microservicesBudget + microservicesServiceFee;
 
   const microservicesGig = await prisma.gig.upsert({
@@ -1489,7 +1490,7 @@ async function main() {
 
   // Workflow Gig 3: Kubernetes Cluster Setup (REVIEW)
   const k8sBudget = 20000000; // 200,000 RUB
-  const k8sServiceFee = Math.floor(k8sBudget * 0.10);
+  const k8sServiceFee = serviceFeeKopecks(k8sBudget);
   const k8sTotal = k8sBudget + k8sServiceFee;
 
   const k8sGig = await prisma.gig.upsert({
@@ -1578,7 +1579,7 @@ async function main() {
 
   // Workflow Gig 4: API Documentation with Swagger (COMPLETED)
   const apiDocsBudget = 8000000; // 80,000 RUB
-  const apiDocsServiceFee = Math.floor(apiDocsBudget * 0.10);
+  const apiDocsServiceFee = serviceFeeKopecks(apiDocsBudget);
   const apiDocsTotal = apiDocsBudget + apiDocsServiceFee;
 
   const apiDocsGig = await prisma.gig.upsert({
@@ -1667,7 +1668,7 @@ async function main() {
 
   // Workflow Gig 5: Redis Caching Implementation (PAID)
   const redisBudget = 11000000; // 110,000 RUB
-  const redisServiceFee = Math.floor(redisBudget * 0.10);
+  const redisServiceFee = serviceFeeKopecks(redisBudget);
   const redisTotal = redisBudget + redisServiceFee;
 
   const redisGig = await prisma.gig.upsert({
@@ -1795,7 +1796,7 @@ async function main() {
     const techStack = generateTechStack();
     const description = generateGigDescription();
     const budget = randomBudget();
-    const serviceFee = Math.floor(budget * 0.10);
+    const serviceFee = serviceFeeKopecks(budget);
     const totalAmount = budget + serviceFee;
     const tags = techStack.split(',').slice(0, 3).map(t => t.trim()).join(',');
     const createdAt = randomDaysAgo(1, 7);
@@ -1857,7 +1858,7 @@ async function main() {
     const techStack = generateTechStack();
     const description = generateGigDescription();
     const budget = randomBudget();
-    const serviceFee = Math.floor(budget * 0.10);
+    const serviceFee = serviceFeeKopecks(budget);
     const totalAmount = budget + serviceFee;
     const tags = techStack.split(',').slice(0, 3).map(t => t.trim()).join(',');
     const createdAt = randomDaysAgo(3, 10);
@@ -1910,7 +1911,7 @@ async function main() {
     const techStack = generateTechStack();
     const description = generateGigDescription();
     const budget = randomBudget();
-    const serviceFee = Math.floor(budget * 0.10);
+    const serviceFee = serviceFeeKopecks(budget);
     const totalAmount = budget + serviceFee;
     const tags = techStack.split(',').slice(0, 3).map(t => t.trim()).join(',');
     const createdAt = randomDaysAgo(5, 12);
@@ -1963,7 +1964,7 @@ async function main() {
     const techStack = generateTechStack();
     const description = generateGigDescription();
     const budget = randomBudget();
-    const serviceFee = Math.floor(budget * 0.10);
+    const serviceFee = serviceFeeKopecks(budget);
     const totalAmount = budget + serviceFee;
     const tags = techStack.split(',').slice(0, 3).map(t => t.trim()).join(',');
     const createdAt = randomDaysAgo(7, 15);
@@ -2016,7 +2017,7 @@ async function main() {
     const techStack = generateTechStack();
     const description = generateGigDescription();
     const budget = randomBudget();
-    const serviceFee = Math.floor(budget * 0.10);
+    const serviceFee = serviceFeeKopecks(budget);
     const totalAmount = budget + serviceFee;
     const tags = techStack.split(',').slice(0, 3).map(t => t.trim()).join(',');
     const createdAt = randomDaysAgo(10, 20);

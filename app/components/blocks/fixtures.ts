@@ -299,8 +299,8 @@ export const readinessMeterFixture: ReadinessMeterVM = {
 
 export const feePanelFixture: FeePanelVM = {
   budget: "100 000 ₽",
-  fee: "10 000 ₽",
-  total: "110 000 ₽",
+  fee: "17 500 ₽",
+  total: "117 500 ₽",
 };
 
 export const criteriaEditorFixture: CriteriaEditorVM = {

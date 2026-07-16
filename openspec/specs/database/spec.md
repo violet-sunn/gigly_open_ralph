@@ -80,7 +80,7 @@ The system MUST define a Gig model linked to the User model with a relation to A
   - `deliverables` field as String with @default("") (optional structured requirement field)
   - `constraints` field as String with @default("") (optional structured requirement field)
   - `budget` field as Int (amount in kopecks)
-  - `serviceFee` field as Int (calculated as 20% of budget, in kopecks)
+  - `serviceFee` field as Int (calculated as 17.5% of budget, in kopecks — `Math.floor(budget × SERVICE_FEE_RATE)`, see the gig spec "Service Fee Rate Is a Single Source of Truth")
   - `totalAmount` field as Int (budget + serviceFee, in kopecks)
   - `status` field as String with @default("OPEN")
   - `tags` field as String with @default("") (comma-separated)

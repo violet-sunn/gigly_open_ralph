@@ -121,10 +121,68 @@ Each is a separate `/ralphy-plan` → `/ralphy-implement` cycle. Ordered by prio
 >
 > **Verified:** live 21/21 on a prod build · E2E 5/5 (now **clicks** the link; + a new detail→back round-trip guard) · 9 new `ExamplesDesign` component tests (the **empty branch is unreachable live** — the seed always has examples) · full suite **72 failed / 1010 passed**, failures identical to the stashed baseline = zero regressions. **A third test found defending a defect** (`back-button.test.tsx:70` asserted the 404 route) — flipped, mutation-checked.
 >
-> **Spec reconciliation also caught two stale canonical blocks:** «Comfortable «Назад к гигам» Back Control» named the label as a fixed string (generalized — a specialist *can* reach `?from=examples`), and **«Gig Creation Form Visual Sections» still says `goal`/`deliverables` are *optional*, which C1 made required server-side** — flagged in-place for a follow-up, not silently rewritten (it describes the whole pre-reground kit form).
+> **Spec reconciliation also caught two stale canonical blocks:** «Comfortable «Назад к гигам» Back Control» named the label as a fixed string (generalized — a specialist *can* reach `?from=examples`), and **«Gig Creation Form Visual Sections» still says `goal`/`deliverables` are *optional*, which C1 made required server-side** — flagged in-place for a follow-up, not silently rewritten (it describes the whole pre-reground kit form). ➡️ **That follow-up shipped as `raise-service-fee-and-reconcile-create-gig` — see the section below.**
 >
 > **NOT yet committed** (C3 + C5 both pending).
 
 ```bash
 /ralphy-plan examples-for-clients "Make example gigs discoverable to the client who is creating a gig (Round-3, Арсений: примеры существуют, но заказчик при создании гига их не видит; видеть должны только при создании). Verified: app/(protected)/gigs/examples/page.tsx works (lists isExample+OPEN gigs, 'No role check') but is ORPHANED — the only link anywhere is a fallback href in app/components/BackButton.tsx (to a stale /dashboard/gigs/examples path); CreateGigDesign.tsx has no reference to examples (grep empty); and the page itself is English + pre-reground kit («Example Gigs», «✨ Example»), not gigly_full_design. Requirements: (1) add a visible, discoverable entry point to examples FROM the gig-creation screen (app/(protected)/gigs/new/CreateGigDesign.tsx) — «Посмотреть примеры»/«Образцы гигов» — positioned as inspiration while writing the brief; (2) scope visibility to CLIENT and the creation context (per the tester: only when creating a gig) — role-gate the examples route to CLIENT and reach it from the create flow, not from specialist browse; (3) localize and re-ground app/(protected)/gigs/examples/page.tsx to Russian + gigly_full_design tokens/skin; (4) optional strong UX: «использовать как шаблон» that prefills the create-gig form from a chosen example. Files: app/(protected)/gigs/new/CreateGigDesign.tsx (entry point + optional prefill), app/(protected)/gigs/examples/page.tsx (localize/reground + CLIENT role gate), app/components/BackButton.tsx (fix/verify the return path). Test plan: E2E — a CLIENT on the create-gig screen finds and opens «Примеры», sees localized example gigs, and returns to creation; a SPECIALIST does not get the create-scoped examples entry. Verify live. Depends on C1 (both edit CreateGigDesign.tsx) — land after C1."
 ```
+
+---
+
+### Follow-up — Service fee 10% → 17.5% + create-gig spec reconciliation — `raise-service-fee-and-reconcile-create-gig`
+
+> **✅ SHIPPED & ARCHIVED 2026-07-16** → `openspec/archive/raise-service-fee-and-reconcile-create-gig/`. **Code + tests committed & pushed? — NO, uncommitted (next step).**
+
+**Two things in one change.** (A) a real behaviour change — a general business decision to raise the platform commission from **10% → 17.5%**, folded in per the user's directive; and (B) the create-gig spec reconciliation that C5 flagged (goal/deliverables now required server-side; the duplicate/stale «Gig Creation Form Visual Sections» blocks; the 20% fee in the old form spec).
+
+**(A) The fee, behind a new SSOT.** New `lib/pricing.ts` owns the rate **once** — `SERVICE_FEE_RATE = 0.175`, `SERVICE_FEE_PCT_LABEL = '17,5%'`, `serviceFeeKopecks()` / `serviceFeeRoubles()`; it's client-safe (zero imports) so the `'use server'` actions and the client design components (`CreateGigDesign`, `EditGigDesign`, `GigDetail`, `FeePanel`, `ConditionsPanel`) share the same value and the live preview can never drift from what the server persists. Every computation (createGig, updateGig/accept-recompute) and **all 8 user-facing labels** (grounding found 2 the plan missed: the CreateGigDesign footer «Сбор 10%» and GuideDesign «Комиссия — 10%») now derive from the SSOT; both seed scripts + the test fixture helper route through it. Money stays in kopecks; the fee floors. **Existing gigs are NOT re-priced** (Non-goal — a separate data migration).
+
+**(B) Spec reconciliation** applied at archive to the four canonical specs (`gig`, `database`, `testing`, `ui`): the fee moved off 10%/20% everywhere, worked examples recomputed (100 000 ₽ → сбор 17 500 ₽ / итого 117 500 ₽; floor cases 5827/5833); the stale «Gig Creation Form» requirement was rewritten to the shipped guided brief (goal/deliverables **required**, Russian, server-authoritative validation, no dead "X / 1000 characters" kit counters); **both** duplicate «Gig Creation Form Visual Sections» blocks (gray-kit + navy-token `/dashboard/gigs/new`) removed.
+
+**Verified:** live prod build — preview «17,5%» / «17 500 ₽» / «117 500 ₽» == persisted `serviceFee 1750000, totalAmount 11750000`. New `__tests__/unit/pricing.test.ts` (5 tests, mutation-checked: rate=0.10 fails 4/5). The 10 fee-affected suites 209/209; full `npm run test:clean` **72 failed / 1015 passed** = the documented English-drift/test-db baseline, **zero net regression**. Grep gates at archive all pass (no stale fee ref; `0.175`/«17,5%» in all four specs; zero «Gig Creation Form Visual Sections»; no `/dashboard/gigs/new`).
+
+**Next step:** commit the code+tests (the specs are already in the working tree) and push. Then optionally deploy to Amvera (`./deploy-to-amvera.sh`) so the 17.5% rate goes live.
+
+---
+
+### Follow-up — Draft survives the examples trip — `persist-create-gig-draft`
+
+> **✅ IMPLEMENTED & VERIFIED 2026-07-17** (spec updated in place; not wrapped in a change folder — small refinement of the already-archived `examples-for-clients`). **Uncommitted.**
+
+**The gap (Арсений, follow-up to #10):** clicking «💡 Посмотреть примеры» opened the examples **in a new tab** to protect the brief (which lived only in `CreateGigDesign`'s React state). That was fragile: on mobile / in-app (webview) browsers a background tab is hard to return to, and the examples page's own «← Назад к созданию гига» control (from=new) loaded `/gigs/new` **in that new tab → an empty second form**, not the draft. So a client genuinely felt they'd lost their work.
+
+**Fix (option chosen by the user): persist the draft.** New client-safe `lib/create-gig-draft.ts` owns the key + `loadDraft`/`saveDraft`/`clearDraft` (all storage access guarded + try/catch). `CreateGigDesign` restores once post-mount (no hydration mismatch) and mirrors every field change into **`sessionStorage`**; `CreateGigSuccess` clears it on publish so «Создать ещё» starts blank. With the brief now durable, the examples link drops `target="_blank"` and navigates **same-tab** (`next/link`), and «← Назад к созданию гига» genuinely restores the draft. Protects against accidental reload too.
+
+**Spec:** `ui/spec.md` «Examples Page Entry Point and Back Navigation» reworded (new-tab → same-tab + persistence), plus a new requirement «Create-Gig Draft Survives Navigation» (restore / clear-on-publish / non-fatal-when-storage-unavailable).
+
+**Verified:** new `__tests__/unit/create-gig-draft.test.ts` **8/8** (round-trip, single key, clear, corrupt-JSON→null, field/array filtering, storage-unavailable + setItem-throws no-ops). `npm run build` clean (`/gigs/new` 6.84→7.39 kB). E2E `gig-browse-access.spec.ts` **6/6** — the new-tab popup expectation replaced with same-tab, plus a new **draft round-trip** test (type title → open examples same-tab → «Назад к созданию гига» → title restored). `tsc` clean on all three source files; F5 composition lint unaffected (only the pre-existing `GigDetail` violation remains).
+
+---
+
+### Follow-up — Client gig-detail «Назад» dead-end — `fix-client-gig-detail-back`
+
+> **✅ IMPLEMENTED & VERIFIED 2026-07-17** (spec updated in place). **Uncommitted.**
+
+**The gap (pre-existing, predates C5).** On the gig-detail «← Назад к гигам» control, the default target was `/gigs` for everyone. `/gigs` is the SPECIALIST-only search (`gigs/page.tsx:23` redirects a CLIENT to `/dashboard?error=browse-gigs-specialists-only`), so a CLIENT opening **any ordinary gig** (no `?from`) and clicking «Назад» was bounced to the dashboard — a dead-end. C5 only fixed the `?from=examples` branch (the scenario it was building); the general case was deliberately **not** widened without a decision.
+
+**Fix (role-aware default, destination chosen by the user = `/my-gigs`).** The `from`-threading mechanism from C5 already existed; the page now also threads `viewerRole` from the session. `GigDetail`'s `back` map: `?from=examples` → examples; else **CLIENT → `/my-gigs`** (their own posted gigs — role-aware page, verified not a second dead-end; consistent with «← Назад к гигам» in the create form and «К моим гигам» on success); else (SPECIALIST/ADMIN) → `/gigs`. Role decided on the server page, keeping the choice at the data layer. The `/gigs` push in the example-notice CTA (`GigDetail.tsx:659`) is gated on `data.isSpecialistViewer` — a CLIENT never sees it, so it is **not** a second client dead-end and was left as-is.
+
+**Spec:** `ui/spec.md` «Examples Page Entry Point and Back Navigation» — the "unchanged without a from" scenario replaced with a **role-default** scenario (SPECIALIST → `/gigs`, CLIENT → `/my-gigs`, role threaded via `viewerRole`); history note extended.
+
+**Verified:** `npm run build` clean (`/gigs/[id]` 8.19→8.21 kB). E2E `gig-browse-access.spec.ts` **7/7** — added «CLIENT «Назад» on an ordinary gig goes to /my-gigs, not the specialist browse dead-end» (open own non-example gig with no `?from` → click «Назад» → lands on `/my-gigs`, not `/dashboard`). `tsc` clean on both touched source files.
+
+---
+
+### Item #6 — English-string test drift GREENED (was 72 failures → 0)
+
+> **✅ DONE & VERIFIED 2026-07-17.** **Uncommitted.** Tests-only — zero `app/`/`lib/`/`prisma/` behaviour changed (guarded).
+
+**The item.** The long-standing "72 pre-existing failures" the round used as a fixed baseline. Investigated first (see the analysis above / memory `test-suite-english-string-drift`): all **72 were `AssertionError` on Russian(received)-vs-English(expected)** — the app returns Russian error messages (correct), the integration specs still asserted the old English. Zero real bugs hiding; the `Unique constraint (userId,gigId)` log lines were `console.error` noise from fire-and-forget `createNotification` (a separate latent bug, filed in memory `notification-unique-per-gig-drops-events`). Tracker note: `e2e-greenup-residual` is the **Playwright** suite (13), NOT these **vitest** 72.
+
+**Method.** Extracted the exact ENG→RUS map (14 files) from a clean-db run's failure diffs, then fanned out **5 edit-only subagents** (one file-group each, no test runs → no test-db collisions), each replacing the expected English literal with the exact shipped Russian, matcher/structure preserved. Guarded with `git diff -- app lib prisma` (only the prior-turn fee files present → no agent touched an app-side error source). Two `toMatch` regexes localized (`/^Only/`→`/^[А-ЯЁ]/`; `/specialist is assigned/`→`/назначения специалиста/`). One re-run surfaced **3 previously-masked `toBe` duplicates** in `authorization-errors.test.ts` (a failing `toContain` had thrown before them) — fixed those too.
+
+**Result.** `npm run test:clean` = **1095/1095 passed, 0 failed** (was 72 failed). **New baseline is green** — a future integration failure now means a real regression, not drift.
+
+**Follow-ups still open (separate, flagged not fixed):** (a) the `createNotification` `@@unique([userId,gigId])` drop-events bug; (b) the Playwright E2E `e2e-greenup-residual` 13 (auth-wizard/csrf/browse) — a different suite, untouched here.

@@ -55,16 +55,16 @@ test.describe('e2e-create-gig — guided brief', () => {
     await expect(page.getByText('Заполнено')).toBeVisible()
 
     // The fee summary rows (there is NO «Сводка (комиссия)» heading in the rebuilt component).
-    await expect(page.getByText('Сервисный сбор (10%)')).toBeVisible()
+    await expect(page.getByText('Сервисный сбор (17,5%)')).toBeVisible()
     await expect(page.getByText('Итого к оплате')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Опубликовать гиг' })).toBeVisible()
 
-    // Live fee: budget 100000 → fee 10% → итого 110000. ru-RU emits a non-breaking thousands separator;
+    // Live fee: budget 100000 → fee 17.5% → итого 117500. ru-RU emits a non-breaking thousands separator;
     // \s matches it, so assert whitespace-tolerant.
     await page.locator('input[name="budget"]').fill('100000')
-    await expect(page.getByText(/Сервисный сбор \(10%\)/)).toBeVisible()
-    await expect(page.getByText(/10\s?000\s*₽/).first()).toBeVisible() // fee row
-    await expect(page.getByText(/110\s?000\s*₽/)).toBeVisible() // Итого к оплате (budget + 10%)
+    await expect(page.getByText(/Сервисный сбор \(17,5%\)/)).toBeVisible()
+    await expect(page.getByText(/17\s?500\s*₽/).first()).toBeVisible() // fee row
+    await expect(page.getByText(/117\s?500\s*₽/)).toBeVisible() // Итого к оплате (budget + 17.5%)
   })
 
   test('a category chip sets the hidden slug; the criteria editor and tag chips write their hidden mirrors', async ({ page }) => {

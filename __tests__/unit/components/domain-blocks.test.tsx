@@ -385,7 +385,7 @@ describe("domain-blocks / GigHeader + ConditionsPanel (gig-detail prototype)", (
     expect(screen.getByText("10 дней")).toBeInTheDocument(); // client deadline
     expect(screen.getByText("фикс. цена")).toBeInTheDocument();
     // company-only fee breakdown
-    expect(screen.getByText("Сервисный сбор (10%)")).toBeInTheDocument();
+    expect(screen.getByText("Сервисный сбор (17,5%)")).toBeInTheDocument();
     expect(screen.getByText("Итого к оплате")).toBeInTheDocument();
     // срок/бюджет numerics use the grotesk (Manrope) face
     const grotesk = Array.from(container.querySelectorAll("span")).filter((s) => s.className.includes("font-grotesk"));
@@ -424,11 +424,11 @@ describe("domain-blocks / create-gig — ReadinessMeter, FeePanel, CriteriaEdito
     expect(screen.getByText("Добавьте: Ожидаемый результат")).toBeInTheDocument(); // nudge
   });
 
-  it("FeePanel shows Бюджет, the 10% fee, and the total", () => {
+  it("FeePanel shows Бюджет, the 17.5% fee, and the total", () => {
     render(<FeePanel vm={feePanelFixture} />);
-    expect(screen.getByText("Сервисный сбор (10%)")).toBeInTheDocument();
+    expect(screen.getByText("Сервисный сбор (17,5%)")).toBeInTheDocument();
     expect(screen.getByText("Итого к оплате")).toBeInTheDocument();
-    expect(screen.getByText("110 000 ₽")).toBeInTheDocument(); // total
+    expect(screen.getByText("117 500 ₽")).toBeInTheDocument(); // total
   });
 
   it("CriteriaEditor renders the input + «Добавить» + the criterion rows; remove fires", () => {

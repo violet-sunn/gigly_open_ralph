@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
+import { serviceFeeKopecks } from '@/lib/pricing'
 
 // ============================================================================
 // Russian Test Data Arrays
@@ -358,9 +359,11 @@ export async function createTestGig(
     clientId = client.id
   }
 
-  const budget = overrides?.budget || 150000
-  const serviceFee = overrides?.serviceFee || 15000
-  const totalAmount = overrides?.totalAmount || 165000
+  // Fee derives from the SSOT (lib/pricing.ts) so fixtures and production share one rate — a caller may still
+  // override serviceFee/totalAmount explicitly (0 respected via ??).
+  const budget = overrides?.budget ?? 150000
+  const serviceFee = overrides?.serviceFee ?? serviceFeeKopecks(budget)
+  const totalAmount = overrides?.totalAmount ?? budget + serviceFee
 
   const gig = await tx.gig.create({
     data: {

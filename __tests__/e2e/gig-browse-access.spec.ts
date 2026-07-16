@@ -79,19 +79,66 @@ test.describe('Gig Browse Access Control E2E', () => {
     const examplesLink = page.getByRole('link', { name: /Посмотреть примеры/ })
     await expect(examplesLink).toBeVisible()
 
-    // The link opens a new tab on purpose (the in-progress brief lives in client state), so follow the popup.
-    const [examplesPage] = await Promise.all([
-      context.waitForEvent('page'),
-      examplesLink.click(),
-    ])
-    await examplesPage.waitForLoadState('networkidle')
-    await expect(examplesPage).toHaveURL(/\/gigs\/examples/)
+    // Same-tab navigation now (the brief is persisted to sessionStorage, so leaving is safe) — follow it in place.
+    await examplesLink.click()
+    await page.waitForURL(/\/gigs\/examples/)
+    await page.waitForLoadState('networkidle')
 
     // Verify the examples page displays correctly (Russian, re-grounded)
-    await expect(examplesPage.getByRole('heading', { name: 'Примеры гигов' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Примеры гигов' })).toBeVisible()
 
     // Verify the seeded example gig is displayed
-    await expect(examplesPage.locator(`text=${exampleGig.title}`)).toBeVisible()
+    await expect(page.locator(`text=${exampleGig.title}`)).toBeVisible()
+  })
+
+  test('CLIENT draft survives the round-trip to the examples and back', async ({ page, context }) => {
+    // The examples link navigates in the same tab now; the guarantee is that the half-written brief is restored on
+    // return, so a client never loses work by seeking inspiration. Guards «Create-Gig Draft Survives Navigation».
+    const client = await createTestUser(prisma, {
+      role: 'CLIENT',
+      email: `client-${Date.now()}-${Math.random().toString(36).substring(7)}@test.com`,
+      password: 'TestPassword123!',
+      companyName: 'ООО "Черновик"',
+      inn: '7743013902'
+    })
+    await createTestGig(prisma, {
+      clientId: client.id,
+      status: 'OPEN',
+      isExample: true,
+      title: 'Пример: черновик'
+    })
+
+    const token = await createTestSession(client)
+    await context.addCookies([
+      {
+        name: 'session',
+        value: token,
+        domain: 'localhost',
+        path: '/',
+        httpOnly: true,
+        sameSite: 'Lax',
+        expires: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7
+      }
+    ])
+
+    await page.goto('http://localhost:3000/gigs/new')
+    await page.waitForLoadState('networkidle')
+
+    // Type into the brief, then leave to the examples and come back via the in-app «Назад к созданию гига» control.
+    const titleField = page.getByPlaceholder(/Исправить утечку памяти/)
+    const draftTitle = 'Мой черновик — не потеряй меня'
+    await titleField.fill(draftTitle)
+
+    await page.getByRole('link', { name: /Посмотреть примеры/ }).click()
+    await page.waitForURL(/\/gigs\/examples/)
+    await page.waitForLoadState('networkidle')
+
+    await page.getByRole('link', { name: /Назад к созданию гига/ }).click()
+    await page.waitForURL(/\/gigs\/new(\?|$)/)
+    await page.waitForLoadState('networkidle')
+
+    // The title is restored from the persisted draft.
+    await expect(page.getByPlaceholder(/Исправить утечку памяти/)).toHaveValue(draftTitle)
   })
 
   test('CLIENT returns from an example gig back to the examples, not to the specialist browse', async ({ page, context }) => {
@@ -138,6 +185,49 @@ test.describe('Gig Browse Access Control E2E', () => {
 
     await expect(page).toHaveURL(/\/gigs\/examples/)
     await expect(page.getByRole('heading', { name: 'Примеры гигов' })).toBeVisible()
+  })
+
+  test('CLIENT «Назад» on an ordinary gig goes to /my-gigs, not the specialist browse dead-end', async ({ page, context }) => {
+    // The role-aware default (fix-client-gig-detail-back): a CLIENT opening an ORDINARY gig (no ?from) used to hit
+    // `/gigs`, which is SPECIALIST-only and redirects a CLIENT on to /dashboard. The default now sends them to their
+    // own gigs at /my-gigs. C5 only fixed the ?from=examples path; this guards the general case.
+    const client = await createTestUser(prisma, {
+      role: 'CLIENT',
+      email: `client-${Date.now()}-${Math.random().toString(36).substring(7)}@test.com`,
+      password: 'TestPassword123!',
+      companyName: 'ООО "Прямой заход"',
+      inn: '7743013902'
+    })
+    const gig = await createTestGig(prisma, {
+      clientId: client.id,
+      status: 'OPEN',
+      isExample: false,
+      title: 'Обычный гиг: интеграция платежей'
+    })
+
+    const token = await createTestSession(client)
+    await context.addCookies([
+      {
+        name: 'session',
+        value: token,
+        domain: 'localhost',
+        path: '/',
+        httpOnly: true,
+        sameSite: 'Lax',
+        expires: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7
+      }
+    ])
+
+    // Open the gig detail directly, with NO ?from — the ordinary case the fix is about.
+    await page.goto(`http://localhost:3000/gigs/${gig.id}`)
+    await page.waitForLoadState('networkidle')
+
+    const back = page.getByText('← Назад к гигам', { exact: true })
+    await expect(back).toBeVisible()
+    await back.click()
+
+    // Lands on the client's own gigs, NOT bounced to /dashboard.
+    await expect(page).toHaveURL(/\/my-gigs/)
   })
 
   test('CLIENT cannot access main browse page', async ({ page, context }) => {

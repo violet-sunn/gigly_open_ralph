@@ -10,7 +10,7 @@ The system MUST provide a `createGig` server action that creates a gig for the a
 - WHEN `createGig` is called with a valid title, description (≥20 chars), acceptanceCriteria (≥50 chars), goal (non-empty), deliverables (non-empty), budget (in roubles), tags, AND optional constraints
 - THEN a Gig record MUST be created with:
   - `budget` = input budget converted to kopecks (× 100)
-  - `serviceFee` = budget × 0.10
+  - `serviceFee` = budget × 0.175 (SSOT: `SERVICE_FEE_RATE`, `lib/pricing.ts`)
   - `totalAmount` = budget + serviceFee
   - `status` = "OPEN"
   - `clientId` = session userId
@@ -82,7 +82,7 @@ The system MUST provide a `createGig` server action that creates a gig for the a
 - description minimum length: 20 characters (after trimming); acceptanceCriteria minimum length: 50 characters (after trimming)
 - `goal` and `deliverables` are required (non-empty after trimming); `constraints` is optional and defaults to ""
 - All validation error messages are in Russian
-- Budget input is in roubles (user-facing), stored in kopecks (DB); service fee is 10% of budget
+- Budget input is in roubles (user-facing), stored in kopecks (DB); service fee is 17.5% of budget
 - On success: redirects to `/gigs/new/success`
 - On failure: returns `{ error: string }`
 
@@ -110,25 +110,41 @@ The system MUST enforce all gig field minimums inside a single shared validator,
 
 ---
 
+### Requirement: Service Fee Rate Is a Single Source of Truth
+The service-fee rate MUST be defined exactly once, in `lib/pricing.ts` as `SERVICE_FEE_RATE = 0.175`, and every fee computation and every user-facing fee label MUST derive from it. No literal fee rate (`0.10`, `0.1`, `0.175`, «10%», «20%») may appear anywhere else in code. `lib/pricing.ts` MUST be client-safe (pure, no Prisma import) so both the `'use server'` actions and the client design components can import it. (Source change: `raise-service-fee-and-reconcile-create-gig`.)
+
+#### Scenario: One rate, one place
+- GIVEN the codebase
+- WHEN one searches for a fee rate literal
+- THEN `0.175` (and the derived percent label «17,5%») MUST appear only in `lib/pricing.ts`
+- AND `CreateGigDesign`, `EditGigDesign`, `GigDetail`, `ConditionsPanel`, `FeePanel`, `createGig`, `updateGig`, `prisma/seed.ts`, and the test fixture helper MUST all compute the fee via `serviceFeeKopecks()` (or the roubles helper), not a local literal
+
+#### Scenario: The displayed percent cannot drift from the rate
+- GIVEN a fee label rendered on any screen (create, edit, gig-detail, fee panel, finances)
+- WHEN it shows the percent
+- THEN it MUST read «17,5%» sourced from `SERVICE_FEE_PCT_LABEL` in `lib/pricing.ts`
+- AND no screen may hardcode «10%» or «17,5%» as a literal string
+
 ### Requirement: Fee Calculation
-The system MUST calculate service fee as 10% of the budget.
+The system MUST calculate the service fee as **17.5%** of the budget, via the `SERVICE_FEE_RATE` SSOT.
 
 #### Scenario: Fee calculation for 100,000 ₽ budget
 - GIVEN a budget of 100000 (roubles)
 - WHEN fee is calculated
-- THEN serviceFee MUST be 1000000 kopecks (10,000 ₽ × 100)
-- AND totalAmount MUST be 11000000 kopecks (110,000 ₽ × 100)
+- THEN serviceFee MUST be 1750000 kopecks (17,500 ₽ × 100)
+- AND totalAmount MUST be 11750000 kopecks (117,500 ₽ × 100)
 
 #### Scenario: Fee calculation rounds down for fractional kopecks
 - GIVEN a budget of 333 roubles
 - WHEN fee is calculated
-- THEN serviceFee MUST be Math.floor(33300 × 0.10) = 3330 kopecks
-- AND totalAmount MUST be 33300 + 3330 = 36630 kopecks
+- THEN serviceFee MUST be Math.floor(33300 × 0.175) = 5827 kopecks (floor of 5827.5)
+- AND totalAmount MUST be 33300 + 5827 = 39127 kopecks
 
 **Acceptance Criteria:**
-- `serviceFee = Math.floor(budgetKopecks * 0.10)`
+- `serviceFee = Math.floor(budgetKopecks * SERVICE_FEE_RATE)` where `SERVICE_FEE_RATE = 0.175`
 - `totalAmount = budgetKopecks + serviceFee`
 - All monetary values stored as integers (kopecks)
+- The same helper computes the fee in `createGig`, in the `updateGig` / accept-proposed-terms recompute, and in the live create/edit previews — so the preview always equals the persisted value
 
 ---
 
@@ -1107,8 +1123,8 @@ transaction, while preserving every existing behaviour.
 #### Scenario: Accepting an application with proposed terms updates the gig
 - GIVEN a client accepting a PENDING application that has `proposedBudget` and/or `proposedDeadlineDays`
 - WHEN `acceptApplication` runs
-- THEN the gig MUST be updated with `budget = proposedBudget` (and `serviceFee`/`totalAmount` recalculated at 10% via
-  `Math.floor(budget * 0.10)`) and/or `deadlineDays = proposedDeadlineDays`
+- THEN the gig MUST be updated with `budget = proposedBudget` (and `serviceFee`/`totalAmount` recalculated at 17.5% via
+  `serviceFeeKopecks(budget)`) and/or `deadlineDays = proposedDeadlineDays`
 - AND the gig MUST still transition `OPEN → IN_PROGRESS`, assign the specialist, auto-reject other PENDING
   applications, and send notifications (unchanged)
 
@@ -1193,7 +1209,7 @@ The client-facing applicants view MUST surface each applicant's proposed budget/
 #### Scenario: Accepting an applicant with a counter adopts their terms
 - GIVEN a CLIENT owner accepts an applicant whose `proposedBudget`/`proposedDeadlineDays` differ from the gig's
 - WHEN `acceptApplication` runs
-- THEN the gig's effective terms MUST update to the proposed values (budget + recomputed 10% `serviceFee`/`totalAmount`, and `deadlineDays`), consistent with the existing "Accept Application Reconciles Proposed Terms" requirement
+- THEN the gig's effective terms MUST update to the proposed values (budget + recomputed 17.5% `serviceFee`/`totalAmount`, and `deadlineDays`), consistent with the existing "Accept Application Reconciles Proposed Terms" requirement
 - AND the gig detail MUST then display those adopted terms as the current terms
 
 ### Requirement: Gig-Detail Terms Tabs Reflect the Counter
@@ -1286,7 +1302,7 @@ Proposed terms MUST persist and overwrite correctly across the full application 
 - THEN the client MUST see the application as «Отозвано» with no accept/reject affordance (the counter may still be shown), the specialist's gig detail MUST offer the apply form again (re-apply allowed), and the withdrawn application MUST appear in the specialist's dashboard archive — with the one-free-withdrawal flag consumed so the next withdrawal is final
 
 <!-- Merged on archive from change: gig-editing-with-notification (2026-07-14). Source delta retained in openspec/archive/gig-editing-with-notification/specs/gig/spec.md.
-     Additive: a new owner-only `updateGig` action (edit an OPEN gig with create-parity validation + 10% fee recompute),
+     Additive: a new owner-only `updateGig` action (edit an OPEN gig with create-parity validation + 17.5% fee recompute),
      a `gig_updated` notification fan-out to PENDING applicants on a material change, and the owner-only edit
      entry point/route. No schema change (all fields already exist on `Gig`); no lifecycle transition changed. -->
 
@@ -1297,7 +1313,7 @@ The system MUST provide an `updateGig` server action that lets the **owning CLIE
 - GIVEN an authenticated CLIENT who owns an `OPEN`, non-example, non-closed gig
 - WHEN `updateGig` is called with a valid `gigId` and valid `title`, `description`, `acceptanceCriteria`, `budget` (roubles), and optional `goal`, `deliverables`, `constraints`, `deadlineDays`, `stageCount`, `category`, `tags`
 - THEN the Gig record MUST be updated with those values, all text fields trimmed
-- AND `budget` MUST be stored as kopecks (× 100), `serviceFee` recomputed as `Math.floor(budget × 0.10)`, and `totalAmount` = `budget + serviceFee`
+- AND `budget` MUST be stored as kopecks (× 100), `serviceFee` recomputed as `serviceFeeKopecks(budget)` (17.5%), and `totalAmount` = `budget + serviceFee`
 - AND the gig's `status`, `clientId`, `assignedSpecialistId`, and application set MUST be unchanged
 - AND the action MUST `redirect('/gigs/{gigId}')`
 
@@ -1386,7 +1402,7 @@ The system MUST provide an `updateGig` server action that lets the **owning CLIE
 - `updateGig` is exported from `app/actions/gig.ts` with `'use server'`
 - Signature is `(prevState: { error?: string } | null, formData: FormData)` (useActionState-compatible)
 - `formData` includes `gigId` (hidden) plus the editable fields matching the `createGig` form names
-- Same validation as `createGig`: criteria ≥ 50 chars (trimmed), budget > 0, deadline 1–365, stages 1–50, valid category; all text trimmed; budget roubles → kopecks; fee = `Math.floor(budget * 0.10)`
+- Same validation as `createGig`: criteria ≥ 50 chars (trimmed), budget > 0, deadline 1–365, stages 1–50, valid category; all text trimmed; budget roubles → kopecks; fee = `serviceFeeKopecks(budget)` (17.5%)
 - Owner + `OPEN` + non-closed + non-example guards enforced server-side (server-authoritative, not UI-only)
 - On success: `redirect('/gigs/{gigId}')`; on failure: returns `{ error: string }`
 - Shares a `parseGigForm` helper with `createGig` so create/edit validation cannot drift

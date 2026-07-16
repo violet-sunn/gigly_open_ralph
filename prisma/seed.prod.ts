@@ -16,6 +16,7 @@
 import { PrismaClient } from '@prisma/client';
 import { PrismaLibSql } from '@prisma/adapter-libsql';
 import bcrypt from 'bcryptjs';
+import { serviceFeeKopecks } from '../lib/pricing';
 
 // Same precomputed bcrypt hash for "TestPass123" used by the dev seed — the demo owner is loginable
 // for showcasing, but owns nothing sensitive (a CLIENT can only manage its own gigs).
@@ -143,7 +144,7 @@ async function main() {
 
   // --- Example gigs (owned by the demo account) ---
   for (const g of EXAMPLE_GIGS) {
-    const serviceFee = Math.floor(g.budget * 0.1);
+    const serviceFee = serviceFeeKopecks(g.budget);
     const totalAmount = g.budget + serviceFee;
     await prisma.gig.upsert({
       where: { id: g.id },

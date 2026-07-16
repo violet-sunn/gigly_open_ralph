@@ -36,7 +36,8 @@ export default async function GigDetailPage({
   }
 
   // The gig-detail screen is rebuilt directly on the gigly_full_design prototype's own markup (GigDetail.tsx) — it
-  // ships its own «Назад» link, so no breadcrumb / back-button chrome is layered on here. `from` only steers where
-  // that link points (e.g. back to «Примеры гигов» rather than the SPECIALIST-only search).
-  return <GigDetail data={data} from={from} />
+  // ships its own «Назад» link, so no breadcrumb / back-button chrome is layered on here. `from` steers where that
+  // link points (e.g. back to «Примеры гигов»); `viewerRole` sets the default when there is no `from`, so a CLIENT
+  // never lands on the SPECIALIST-only `/gigs` search (which redirects them on to /dashboard — a dead-end).
+  return <GigDetail data={data} from={from} viewerRole={session.role} />
 }

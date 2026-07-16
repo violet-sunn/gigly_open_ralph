@@ -20,6 +20,7 @@ import {
 } from "@/app/actions/gig";
 import type { GigDetailData } from "@/lib/view-models";
 import { NOT_PROPOSED, typedProposedTerm } from "@/lib/terms-display";
+import { SERVICE_FEE_PCT_LABEL } from "@/lib/pricing";
 import "../../../_design/tokens.css";
 
 // ── prototype helpers (ported verbatim from Gigly App.dc.html) ──────────────
@@ -72,14 +73,18 @@ function useAction(fn: unknown) {
 const COMPANY_DESC =
   "Проверенный заказчик на платформе Gigly. Чёткие требования и быстрая обратная связь.";
 
-export function GigDetail({ data, from }: { data: GigDetailData; from?: string }) {
-  // Where «Назад» goes depends on where the viewer came from. Reached from «Примеры гигов» (examples-for-clients),
-  // the default `/gigs` is wrong twice over: it is not where they were, and it is SPECIALIST-only — a CLIENT gets
-  // redirected on to /dashboard, stranding them.
+export function GigDetail({ data, from, viewerRole }: { data: GigDetailData; from?: string; viewerRole?: string }) {
+  // Where «Назад» goes depends first on where the viewer came from (`?from`), then on their ROLE. `/gigs` is the
+  // SPECIALIST-only search — sending a CLIENT there redirects them on to /dashboard, stranding them away from their
+  // gigs. So without an explicit `from`, a CLIENT returns to their own gigs at `/my-gigs` (matching «← Назад к гигам»
+  // in the create form and «К моим гигам» on the success screen); a SPECIALIST returns to the search. Reached from
+  // «Примеры гигов» (examples-for-clients), the link goes back there instead.
   const back =
     from === "examples"
       ? { href: "/gigs/examples", label: "← Назад к примерам" }
-      : { href: "/gigs", label: "← Назад к гигам" };
+      : viewerRole === "CLIENT"
+        ? { href: "/my-gigs", label: "← Назад к гигам" }
+        : { href: "/gigs", label: "← Назад к гигам" };
   const router = useRouter();
   const [tab, setTab] = useState<"client" | "proposed">("client");
 
@@ -596,7 +601,7 @@ export function GigDetail({ data, from }: { data: GigDetailData; from?: string }
                     color: "var(--text-3)",
                   }}
                 >
-                  <span>Сервисный сбор (10%)</span>
+                  <span>Сервисный сбор ({SERVICE_FEE_PCT_LABEL})</span>
                   <span>{data.conditions.fee.service}</span>
                 </div>
                 <div

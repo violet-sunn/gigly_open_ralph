@@ -1,11 +1,13 @@
 /* @composed-screen */
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Section } from "@/app/components/layout/Section";
 import { Stack } from "@/app/components/layout/Stack";
 import { Button } from "@/app/components/primitives";
 import { SectionHeader, Notice } from "@/app/components/blocks";
+import { clearDraft } from "@/lib/create-gig-draft";
 
 /**
  * CreateGigSuccess — the «Гиг опубликован» success screen (reconcile-create-gig). Shown after `createGig` redirects
@@ -14,6 +16,11 @@ import { SectionHeader, Notice } from "@/app/components/blocks";
  */
 export function CreateGigSuccess() {
   const router = useRouter();
+  // The gig published successfully, so the persisted brief has served its purpose — discard it, otherwise «Создать
+  // ещё» (and the next visit to /gigs/new) would restore the just-published draft.
+  useEffect(() => {
+    clearDraft();
+  }, []);
   return (
     <Section gap={6}>
       <SectionHeader vm={{ title: "Гиг опубликован" }} />

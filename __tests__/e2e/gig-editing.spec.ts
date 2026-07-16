@@ -136,7 +136,7 @@ test.describe('Gig editing with applicant notification', () => {
     const prisma = db()
     const gig = await prisma.gig.findUnique({ where: { id: editGigId } })
     expect(gig!.budget).toBe(25000000)
-    expect(gig!.serviceFee).toBe(2500000)
+    expect(gig!.serviceFee).toBe(4375000) // 17.5% of budget (SSOT: lib/pricing.ts)
     expect(gig!.deliverables).toBe('Исправленные результаты — PR в репозиторий')
 
     const notif = await prisma.notification.findFirst({

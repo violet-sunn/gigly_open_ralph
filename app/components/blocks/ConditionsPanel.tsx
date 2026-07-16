@@ -2,6 +2,7 @@ import { Tabs, StatusBadge } from "@/app/components/primitives";
 import { Stack } from "@/app/components/layout/Stack";
 import type { ConditionsPanelVM, ConditionsTermsVM } from "./view-models";
 import { NOT_PROPOSED } from "@/lib/terms-display";
+import { SERVICE_FEE_PCT_LABEL } from "@/lib/pricing";
 
 interface ConditionsPanelProps {
   vm: ConditionsPanelVM;
@@ -14,7 +15,7 @@ interface ConditionsPanelProps {
  * ConditionsPanel block (DESIGN_SYSTEM_SPEC §3.2) — the prototype gig-detail «УСЛОВИЯ» sunken panel
  * (Gigly App.dc.html gigDetail col2): the two-tab toggle («Условия {company}» / «Мои условия») over a Статус row and
  * the Срок выполнения / Бюджет проекта figures as large `grotesk` (Manrope) numerics with the «[N этап]» / «фикс.
- * цена» sublabels; the company viewer additionally sees the Сервисный сбор (10%) / Итого к оплате breakdown (`fee`).
+ * цена» sublabels; the company viewer additionally sees the Сервисный сбор ({SERVICE_FEE_PCT_LABEL}) / Итого к оплате breakdown (`fee`).
  * Controlled (active/onSelect) like TermsTabs. Composed from primitives + layout + tokens. Token-pure.
  */
 export function ConditionsPanel({ vm, active = "client", onSelect }: ConditionsPanelProps) {
@@ -56,7 +57,7 @@ export function ConditionsPanel({ vm, active = "client", onSelect }: ConditionsP
         {vm.fee && (
           <Stack gap={1}>
             <Stack axis="row" gap={2} justify="between">
-              <span className="text-caption font-mono text-muted">Сервисный сбор (10%)</span>
+              <span className="text-caption font-mono text-muted">Сервисный сбор ({SERVICE_FEE_PCT_LABEL})</span>
               <span className="text-caption font-mono text-muted">{vm.fee.service}</span>
             </Stack>
             <Stack axis="row" gap={2} justify="between">

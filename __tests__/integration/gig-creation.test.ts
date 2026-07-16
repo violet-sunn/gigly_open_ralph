@@ -41,6 +41,7 @@ vi.mock('next/navigation', () => ({
 
 // Import after mocks
 import { createGig } from '@/app/actions/gig'
+import { serviceFeeKopecks } from '@/lib/pricing'
 
 describe('Gig Creation Tests', () => {
   beforeEach(() => {
@@ -820,10 +821,10 @@ describe('Gig Creation Tests', () => {
   })
 
   describe('Service fee calculation', () => {
-    // Service fee is 10% of budget as documented in project.md
-    // Implementation in app/actions/gig.ts uses 0.10 multiplier
+    // Service fee is 17.5% of budget (SSOT: lib/pricing.ts SERVICE_FEE_RATE).
+    // The worked-example literals below pin the business number; a wrong rate must fail here.
 
-    it('calculates 10% service fee correctly', async () => {
+    it('calculates the service fee correctly', async () => {
       const prisma = getTestPrismaClient()
 
       const hashedPassword = await (await import('bcryptjs')).hash('password123', 10)
@@ -855,8 +856,8 @@ describe('Gig Creation Tests', () => {
       const gigs = await prisma.gig.findMany({ where: { clientId: client.id } })
       expect(gigs.length).toBeGreaterThan(0)
       expect(gigs[0].budget).toBe(10000000) // 100,000 * 100
-      expect(gigs[0].serviceFee).toBe(1000000) // 10% of 10,000,000 = 1,000,000
-      expect(gigs[0].totalAmount).toBe(11000000) // 10,000,000 + 1,000,000
+      expect(gigs[0].serviceFee).toBe(1750000) // 17.5% of 10,000,000 = 1,750,000
+      expect(gigs[0].totalAmount).toBe(11750000) // 10,000,000 + 1,750,000
 
       // Cleanup
       await prisma.gig.deleteMany({ where: { clientId: client.id } })
@@ -895,8 +896,9 @@ describe('Gig Creation Tests', () => {
       const gigs = await prisma.gig.findMany({ where: { clientId: client.id } })
       expect(gigs.length).toBeGreaterThan(0)
       const budget = Math.round(333.33 * 100) // 33333 kopecks
-      const expectedServiceFee = Math.floor(budget * 0.10) // Floor of 3333.3 = 3333
+      const expectedServiceFee = serviceFeeKopecks(budget) // floor(33333 × 0.175) = 5833 (floors 5833.275)
       expect(gigs[0].serviceFee).toBe(expectedServiceFee)
+      expect(gigs[0].serviceFee).toBe(5833) // pin the floored value
 
       // Cleanup
       await prisma.gig.deleteMany({ where: { clientId: client.id } })
@@ -937,8 +939,8 @@ describe('Gig Creation Tests', () => {
 
       const gig = gigs[0]
       expect(gig.budget).toBe(5000000) // 50,000 * 100
-      expect(gig.serviceFee).toBe(500000) // 10% of 5,000,000
-      expect(gig.totalAmount).toBe(5500000) // 5,000,000 + 500,000
+      expect(gig.serviceFee).toBe(875000) // 17.5% of 5,000,000
+      expect(gig.totalAmount).toBe(5875000) // 5,000,000 + 875,000
       expect(gig.totalAmount).toBe(gig.budget + gig.serviceFee) // Verify relationship
 
       // Cleanup

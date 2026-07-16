@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { getTestPrismaClient } from '../helpers/db'
 import { createTestUser, createTestGig, createTestApplication } from '../helpers/seed'
+import { serviceFeeKopecks } from '@/lib/pricing'
 import { withAuthContext, setTestSessionToken, getTestSessionToken } from '../helpers/auth'
 import { getNotificationDisplayText } from '@/lib/notification-utils'
 import { seedCategories } from '@/lib/categories'
@@ -51,8 +52,9 @@ async function createEditableGig(prisma: Prisma, clientId: string, over: Record<
       deliverables: over.deliverables ?? 'Результат',
       constraints: over.constraints ?? 'Ограничение',
       budget: over.budget ?? 15000000, // 150 000 ₽
-      serviceFee: over.serviceFee ?? 1500000,
-      totalAmount: over.totalAmount ?? 16500000,
+      // seed the fee at the CURRENT rate (SSOT) so a no-op save recomputes to the same value
+      serviceFee: over.serviceFee ?? serviceFeeKopecks(over.budget ?? 15000000),
+      totalAmount: over.totalAmount ?? (over.budget ?? 15000000) + serviceFeeKopecks(over.budget ?? 15000000),
       status: over.status ?? 'OPEN',
       tags: over.tags ?? 'React,TypeScript',
       deadlineDays: over.deadlineDays ?? 14,
@@ -129,10 +131,10 @@ describe('Gig Editing (updateGig)', () => {
       const updated = await prisma.gig.findUnique({ where: { id: gig.id } })
       expect(updated!.title).toBe('Точно исправленный заголовок')
       expect(updated!.deliverables).toBe('Исправленные результаты — PR в репозиторий')
-      // Budget 200 000 ₽ → kopecks, 10% fee, total
+      // Budget 200 000 ₽ → kopecks, 17.5% fee, total (SSOT: lib/pricing.ts)
       expect(updated!.budget).toBe(20000000)
-      expect(updated!.serviceFee).toBe(2000000)
-      expect(updated!.totalAmount).toBe(22000000)
+      expect(updated!.serviceFee).toBe(3500000)
+      expect(updated!.totalAmount).toBe(23500000)
       expect(updated!.deadlineDays).toBe(30)
       expect(updated!.categorySlug).toBe('programming')
       // Lifecycle / ownership untouched

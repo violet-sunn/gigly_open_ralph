@@ -604,55 +604,58 @@ The dashboard sidebar MUST display recent messages from gigs where the user is i
 ---
 
 ### Requirement: Gig Creation Form
-The system MUST provide a form at `/gigs/new` for CLIENT users to create gigs.
+The system MUST provide a form at `/gigs/new` for CLIENT users to create gigs. The live screen is the re-grounded `CreateGigDesign.tsx` on the `gigly_full_design` skin, governed in detail by «Gig Creation Screen Is the Guided Brief» and its companion requirements; this requirement fixes the field, validation, fee, and access contract. All on-screen text MUST be Russian.
+
+> Reconciled (raise-service-fee-and-reconcile-create-gig, 2026-07-16). The previous version described the pre-reground
+> English kit form and was wrong on three shipped facts: it listed `goal`/`deliverables` as optional (they are
+> **required** — C1), quoted the service fee as **20%** (now **17.5%**), and specced "X / 1000 characters" kit counters
+> that do not exist. Those scenarios are corrected or removed below; the counter behaviour is owned by «Localized Live
+> Character Counters on Gig Create/Edit», the fee rate by the gig spec «Service Fee Rate Is a Single Source of Truth»,
+> and the validation by «Create Gig Server Action» / «Shared Server-Authoritative Gig Validator (parseGigForm SSOT)».
 
 #### Scenario: Form renders for CLIENT user
 - GIVEN an authenticated user with role "CLIENT"
 - WHEN they navigate to `/gigs/new`
-- THEN the page MUST display a form with:
-  - Title input (text, required)
-  - Description textarea (required)
-  - Acceptance Criteria textarea (required, labeled "Definition of Done" or "Acceptance Criteria")
-  - Goal/Outcome textarea (optional, with helpful placeholder and helper text)
-  - Deliverables textarea (optional, with helpful placeholder and helper text)
-  - Constraints/Preferences textarea (optional, with helpful placeholder and helper text)
-  - Budget input (number, required, in roubles)
-  - Tags input (text, optional, comma-separated)
-  - A live fee preview showing: budget, service fee (20%), and total amount
-  - A "Post Gig" submit button
+- THEN the page MUST display the guided-brief form containing, at minimum:
+  - Title input (required)
+  - Category selector (required)
+  - Description textarea (required, ≥20 characters)
+  - Acceptance-criteria editor (required, ≥50 characters combined)
+  - Goal textarea (**required**)
+  - Deliverables textarea (**required**)
+  - Constraints textarea (optional)
+  - Budget input (required, in roubles)
+  - Deadline input (required)
+  - Tags input (optional)
+  - A live fee preview showing budget, service fee (**17,5%**), and total
+  - A publish action
 
-#### Scenario: Acceptance criteria field has helpful guidance
-- GIVEN a CLIENT user is on the gig creation form
-- WHEN they view the acceptance criteria field
-- THEN the field MUST have:
-  - Label: "Definition of Done" or "Acceptance Criteria"
-  - Placeholder text with example (e.g., "What does 'done' look like? Be specific: deliverables, quality standards, success metrics...")
-  - Helper text below field: "Minimum 50 characters. Clear criteria prevent disputes and scope creep."
+#### Scenario: Goal and deliverables are required
+- GIVEN a CLIENT on the gig creation form
+- WHEN the page renders
+- THEN `goal` and `deliverables` MUST be required — the server's `parseGigForm` rejects them empty (see the gig spec «Create Gig Server Action» / «Shared Server-Authoritative Gig Validator»)
+- AND `constraints` MUST remain optional
+- AND the readiness checklist MUST reflect goal and deliverables as required checks
+- AND the form MUST NOT present them under an "optional" grouping
 
-#### Scenario: Form validates acceptance criteria length
-- GIVEN a CLIENT user enters acceptance criteria shorter than 50 characters
-- WHEN they submit the form
-- THEN the server action MUST return an error
-- AND the error MUST be displayed inline on the form
+#### Scenario: Live fee calculation preview is 17.5%
+- GIVEN a CLIENT on the gig creation form
+- WHEN they enter a budget (e.g. 100000)
+- THEN the form MUST display live: Бюджет «100 000 ₽», Сервисный сбор (17,5%) «17 500 ₽», Итого «117 500 ₽»
+- AND the fee MUST equal `floor(budget × SERVICE_FEE_RATE)` (0.175), matching the value the server persists
+- AND the preview MUST NOT quote a 10% or 20% fee
 
-#### Scenario: Live fee calculation preview
-- GIVEN a CLIENT user is on the gig creation form
-- WHEN they enter a budget value (e.g., 100000)
-- THEN the form MUST display in real-time:
-  - "Budget: 100,000 ₽"
-  - "Service fee (20%): 20,000 ₽"
-  - "Total: 120,000 ₽"
+#### Scenario: Character counters are Russian and token-based
+- GIVEN a CLIENT typing in the description or acceptance-criteria fields
+- WHEN a counter renders
+- THEN it MUST show progress to the minimum in Russian (per «Localized Live Character Counters on Gig Create/Edit»)
+- AND the form MUST NOT render the pre-reground kit counters («X / 1000 characters», `text-gray-600` / `text-orange-600`) on goal / deliverables / constraints — that behaviour does not exist on the live screen
 
-#### Scenario: Form shows loading state
-- GIVEN a CLIENT user submits the gig form
-- WHEN the server action is processing
-- THEN the submit button MUST show "Posting..." text
-- AND the button MUST be disabled
-
-#### Scenario: Form shows error
-- GIVEN a CLIENT user submits invalid data
-- WHEN the server action returns an error
-- THEN the error message MUST be displayed inline on the form
+#### Scenario: Validation is server-authoritative
+- GIVEN a submission that fails a rule (short description, empty goal or deliverables, short criteria, non-positive budget, or out-of-range deadline)
+- WHEN it is submitted
+- THEN the server action MUST reject it and the error MUST be displayed inline
+- AND the client readiness checklist MUST mirror — never replace — `parseGigForm`
 
 #### Scenario: Non-CLIENT user visits gig creation page
 - GIVEN an authenticated user with role "SPECIALIST"
@@ -664,104 +667,12 @@ The system MUST provide a form at `/gigs/new` for CLIENT users to create gigs.
 - WHEN a user navigates to `/gigs/new`
 - THEN they MUST be redirected to `/login` (handled by existing middleware)
 
-#### Scenario: Optional structured fields render correctly
-- GIVEN an authenticated CLIENT user on the gig creation form
-- WHEN the page renders
-- THEN three optional textarea fields MUST be displayed:
-  - Goal/Outcome field with label, placeholder example, and helper text
-  - Deliverables field with label, placeholder example, and helper text
-  - Constraints/Preferences field with label, placeholder example, and helper text
-- AND the fields MUST be positioned after "Definition of Done", before budget
-- AND the fields MUST be visually grouped with "Additional Details (Optional)" heading
-- AND no `required` attribute on optional fields
-
-> **Superseded (gig-validation-ssot, 2026-07-15):** the counter format/color scenarios below describe the
-> pre-reground English kit (`app/gigs/new/page.tsx`, `"X / 50 characters (minimum)"`, `text-red-600`/`text-gray-600`).
-> The live create/edit screens are the re-grounded `CreateGigDesign.tsx` / `EditGigDesign.tsx` (`gigly_full_design`
-> skin, `character-counter.tsx`), and their counter behavior is governed by "Localized Live Character Counters on
-> Gig Create/Edit" below. Where the two conflict, the localized requirement wins. Note also that `goal` and
-> `deliverables` are now **required** (see the gig spec "Create Gig Server Action"), not optional.
-
-#### Scenario: Character count displays for acceptanceCriteria field
-- GIVEN a CLIENT user is on the gig creation form
-- WHEN they type in the acceptanceCriteria textarea
-- THEN the form MUST display a real-time, Russian-localized character count below the field showing progress against the 50-character minimum (e.g. «34 / 50 символов»)
-- AND the count MUST visually signal "not yet met" (a token-based warning color, not `text-red-600`) until 50 is reached
-- AND when the count reaches 50, the counter MUST switch to its neutral/met state
-
-#### Scenario: Character count displays for optional goal field
-- GIVEN a CLIENT user is on the gig creation form
-- WHEN they type in the goal textarea
-- THEN the form MUST display a real-time character count
-- AND the count MUST show format "X / 1000 characters"
-- AND the count MUST be right-aligned
-- AND the text MUST be gray (text-gray-600) when under 900 characters
-- AND the text MUST be orange (text-orange-600) when 900 or more characters
-
-#### Scenario: Character count displays for optional deliverables field
-- GIVEN a CLIENT user is on the gig creation form
-- WHEN they type in the deliverables textarea
-- THEN the form MUST display a real-time character count
-- AND the count MUST show format "X / 1000 characters"
-- AND the count MUST be right-aligned
-- AND the text MUST be gray (text-gray-600) when under 900 characters
-- AND the text MUST be orange (text-orange-600) when 900 or more characters
-
-#### Scenario: Character count displays for optional constraints field
-- GIVEN a CLIENT user is on the gig creation form
-- WHEN they type in the constraints textarea
-- THEN the form MUST display a real-time character count
-- AND the count MUST show format "X / 1000 characters"
-- AND the count MUST be right-aligned
-- AND the text MUST be gray (text-gray-600) when under 900 characters
-- AND the text MUST be orange (text-orange-600) when 900 or more characters
-
-#### Scenario: Character count updates in real-time
-- GIVEN a CLIENT user is typing in any textarea field
-- WHEN they add or delete characters
-- THEN the character count MUST update immediately without delay
-- AND the count MUST reflect the current `.length` of the textarea value
-- AND the color coding MUST update based on current count
-
-#### Scenario: Character count is accessible
-- GIVEN a CLIENT user with a screen reader is on the gig creation form
-- WHEN they interact with a textarea field
-- THEN the character count MUST be announced by the screen reader
-- AND the count element MUST have `aria-live="polite"` attribute
-- AND the count element MUST have descriptive `aria-label` or visible text
-
-#### Scenario: Character count does not interfere with validation
-- GIVEN a CLIENT user submits the form with acceptanceCriteria under 50 characters
-- WHEN the form is submitted
-- THEN the server-side validation MUST still reject the submission
-- AND the character count display MUST NOT bypass or replace server validation
-- AND the error message from server MUST still be displayed
-
-#### Scenario: Character count layout is non-intrusive
-- GIVEN a CLIENT user is viewing the gig creation form
-- WHEN they see the character counts
-- THEN each count MUST be positioned on the same line as the helper text
-- AND each count MUST be right-aligned (text-right or ml-auto)
-- AND each count MUST use small font size (text-sm)
-- AND the counts MUST NOT push other form elements out of alignment
-
-**Acceptance Criteria:** *(pre-reground kit — superseded by the localized requirements below; retained for the structural/section contract only)*
-- The live form is the re-grounded `CreateGigDesign.tsx` (not `app/gigs/new/page.tsx`), on the `gigly_full_design` skin
-- Uses `useActionState` with `createGig` action
-- Acceptance criteria field: `<textarea name="acceptanceCriteria" …>`, minimum 50 characters, with a live **Russian** counter (see "Localized Live Character Counters on Gig Create/Edit")
-- `goal` and `deliverables` are **required** (non-empty); `constraints` remains optional — see the gig spec "Create Gig Server Action"
-- Counters are token-based (`gigly_full_design` skin), not `text-red-600`/`text-gray-600`/`text-orange-600` kit classes
-- Character counters:
-  - All four textarea fields display character counts
-  - Update in real-time via `onChange` handler
-  - Right-aligned with text-sm class
-  - Each has `aria-live="polite"` for accessibility
-  - Positioned on same line as helper text using flex layout
-  - No performance degradation or input lag
-- Budget input accepts roubles, displays fee breakdown in real-time
-- Displays `state?.error` when present
-- Server-side validation unchanged (still validates min 50 chars for acceptanceCriteria)
-- Quality guidance warning component integrated (see Acceptance Criteria Quality Guidance Warning requirement)
+**Acceptance Criteria:**
+- The live form is the re-grounded `CreateGigDesign.tsx` on the `gigly_full_design` skin, wired to `createGig` via `useActionState`
+- `goal` and `deliverables` are required; `constraints` optional — consistent with the gig spec
+- Service fee is 17.5% everywhere it appears; no "10%" or "20%" remains in this requirement
+- Counter behaviour defers to «Localized Live Character Counters on Gig Create/Edit»; no "X / 1000 characters" kit counters
+- Access-control and server-authoritative-validation scenarios are preserved
 
 ---
 
@@ -838,130 +749,6 @@ The gig **edit** form (`EditGigDesign.tsx`) MUST present the same readiness affo
 - WHEN a field is below its minimum (e.g. description < 20, criteria < 50, empty goal/deliverables)
 - THEN the edit form MUST show the same localized counter + why-disabled guidance as create
 - AND submitting anyway MUST be rejected by the server (`updateGig` → `parseGigForm`)
-
----
-
-### Requirement: Gig Creation Form Visual Sections
-The gig creation form MUST organize fields into three visually distinct sections with clear headings and boundaries to improve form comprehension and reduce cognitive load.
-
-> ⚠️ **This requirement describes the pre-reground kit form and is substantially stale.** `/gigs/new` was rebuilt on the
-> prototype (`CreateGigDesign.tsx`): the English section headings, `bg-gray-50` / `border-gray-200` backgrounds and
-> `text-indigo-600` link styling below no longer exist. Two specific conflicts, recorded rather than silently edited:
->
-> 1. **The examples link** (`"💡 View example gigs for inspiration"`, right-aligned in the "Requirements & Success
->    Criteria" header, *"opens /gigs in new tab"*) is **superseded by «Examples Page Entry Point and Back Navigation»**,
->    which is authoritative: the link reads «💡 Посмотреть примеры», targets `/gigs/examples?from=new` (not `/gigs` —
->    that was wrong here), opens in a new tab, and is token-pure. (`examples-for-clients`.)
-> 2. **`goal` and `deliverables` are described as optional** below. They are **required** as of `gig-validation-ssot`
->    (C1) — `parseGigForm` rejects them empty, server-side. This block was not reconciled when C1 landed and should be
->    rewritten or removed wholesale against the re-grounded screen; that is a larger cleanup than either change owns.
-
-#### Scenario: Form renders with three visual sections
-- GIVEN an authenticated CLIENT user navigates to `/gigs/new`
-- WHEN the page loads
-- THEN the form MUST display three visually distinct sections:
-  1. "Basic Information" section
-  2. "Requirements & Success Criteria" section
-  3. "Budget & Details" section
-- AND each section MUST have a visible boundary (border or background color)
-- AND each section MUST have adequate padding and spacing
-
-#### Scenario: Basic Information section structure
-- GIVEN a CLIENT user views the gig creation form
-- WHEN they see the "Basic Information" section
-- THEN the section MUST contain:
-  - Heading: "Basic Information" (h3 or equivalent)
-  - Description: "Provide a clear title and overview of the work"
-  - Fields: title (text input), description (textarea)
-- AND the section MUST be the first section in the form
-- AND the section MUST have a light background color (e.g., bg-gray-50)
-- AND the section MUST have a border (e.g., border-gray-200)
-
-#### Scenario: Requirements & Success Criteria section structure
-- GIVEN a CLIENT user views the gig creation form
-- WHEN they see the "Requirements & Success Criteria" section
-- THEN the section MUST contain:
-  - Heading: "Requirements & Success Criteria" (h3 or equivalent)
-  - Link to example gigs: "💡 View example gigs for inspiration" (right-aligned in section header, opens /gigs in new tab)
-  - Description: "Define what success looks like and help specialists understand your needs"
-  - Fields: acceptanceCriteria (textarea with character counter and quality warning), goal (optional textarea), deliverables (optional textarea), constraints (optional textarea)
-- AND the section header MUST use flex layout (flex items-center justify-between) with heading on left and example link on right
-- AND the example link MUST open in new tab (target="_blank") with security attributes (rel="noopener noreferrer")
-- AND the example link MUST use secondary styling (text-sm text-indigo-600 hover:text-indigo-800 underline)
-- AND the section MUST be the second section in the form (after Basic Information)
-- AND the section MUST have a light background color (e.g., bg-gray-50)
-- AND the section MUST have a border (e.g., border-gray-200)
-- AND all existing character counters and quality warnings MUST remain functional
-
-#### Scenario: Budget & Details section structure
-- GIVEN a CLIENT user views the gig creation form
-- WHEN they see the "Budget & Details" section
-- THEN the section MUST contain:
-  - Heading: "Budget & Details" (h3 or equivalent)
-  - Description: "Set your budget and add tags to help specialists find your gig"
-  - Fields: budget (number input), service fee preview (read-only display), tags (text input)
-- AND the section MUST be the third section in the form (after Requirements & Success Criteria)
-- AND the section MUST have a light background color (e.g., bg-gray-50)
-- AND the section MUST have a border (e.g., border-gray-200)
-- AND the live fee calculation preview MUST remain functional
-
-#### Scenario: Section headings are semantically correct
-- GIVEN a CLIENT user with a screen reader views the gig creation form
-- WHEN they navigate through the form
-- THEN each section heading MUST use proper heading tags (h3)
-- AND headings MUST be in logical order (no skipped heading levels)
-- AND headings MUST be announced by screen readers
-
-#### Scenario: Sections are visually distinct but not overwhelming
-- GIVEN a CLIENT user views the gig creation form
-- WHEN they scan the form visually
-- THEN section boundaries MUST be clear and easy to identify
-- AND the visual styling MUST use subtle colors (gray-50 backgrounds, gray-200 borders)
-- AND sections MUST have adequate spacing between them (e.g., mb-6 or space-y-6)
-- AND the overall form MUST NOT feel cluttered or over-designed
-
-#### Scenario: Form remains mobile responsive
-- GIVEN a CLIENT user views the gig creation form on a mobile device (320px width)
-- WHEN the page renders
-- THEN all three sections MUST stack vertically
-- AND section containers MUST NOT cause horizontal scrolling
-- AND all fields MUST remain fully functional and accessible
-- AND padding and spacing MUST scale appropriately for small screens
-
-#### Scenario: Section descriptions provide helpful context
-- GIVEN a CLIENT user is filling out the gig creation form
-- WHEN they read the section descriptions
-- THEN each description MUST clearly explain the purpose of that section
-- AND descriptions MUST be concise (one sentence)
-- AND descriptions MUST use plain language (no jargon)
-
-#### Scenario: Field order within sections remains unchanged
-- GIVEN a CLIENT user views the gig creation form
-- WHEN they see the fields within each section
-- THEN the field order MUST match the current implementation:
-  - Basic Information: title, description
-  - Requirements & Success Criteria: acceptanceCriteria, goal, deliverables, constraints
-  - Budget & Details: budget, tags
-- AND no fields MUST be reordered or moved to different sections
-
-#### Scenario: All existing form functionality remains intact
-- GIVEN a CLIENT user interacts with the gig creation form
-- WHEN they use any form feature (character counters, quality warnings, fee preview, validation)
-- THEN all features MUST work exactly as before
-- AND no functionality MUST be broken or degraded
-- AND form submission behavior MUST remain unchanged
-
-**Acceptance Criteria:**
-- Form organized into three visual sections with clear boundaries
-- Each section has heading (h3) and descriptive subtext
-- Section styling uses Tailwind classes: bg-gray-50, border, border-gray-200, rounded-lg, p-6
-- Sections separated with space-y-6 or mb-6 for vertical spacing
-- All existing character counters, quality warnings, and fee preview remain functional
-- Form remains fully responsive on mobile devices (320px and up)
-- No changes to field validation, server actions, or form submission logic
-- Semantic HTML structure maintained (proper heading hierarchy)
-- Accessible to screen readers (headings announced, logical tab order)
-- Submit button remains at the bottom of the form (outside sections)
 
 ---
 
@@ -1941,46 +1728,6 @@ Action forms on the gig detail page MUST use token-based styling with prominent 
 
 ---
 
-### Requirement: Gig Creation Form Visual Sections
-The gig creation form MUST use token-based styling for visual sections while maintaining existing structure.
-
-#### Scenario: Form sections use token-based styling
-- GIVEN a CLIENT user views the gig creation form at `/dashboard/gigs/new`
-- WHEN the form renders
-- THEN the "Basic Information" section MUST use `bg-surface-level-1 border border-neutral-weak`
-- AND the "Requirements & Success Criteria" section MUST use `bg-surface-level-1 border border-neutral-weak`
-- AND the "Budget & Details" section MUST use `bg-surface-level-1 border border-neutral-weak`
-- AND all sections MUST use `rounded-lg p-8` styling
-- AND sections MUST be separated with `space-y-8` (32px gaps)
-
-#### Scenario: Form fields maintain consistent styling
-- GIVEN a CLIENT user interacts with form fields
-- WHEN fields render and receive focus
-- THEN input fields MUST use `border-gray-600 focus:border-blue-500 focus:ring-blue-500`
-- AND textarea fields MUST use same border and focus styling
-- AND all fields MUST use `bg-navy-800 text-white` for dark theme consistency
-- AND placeholder text MUST use `placeholder:text-gray-400`
-
-#### Scenario: Submit button uses prominent styling
-- GIVEN a CLIENT user views the gig creation form
-- WHEN the submit button renders
-- THEN the button MUST use `bg-blue-500 hover:bg-blue-600 text-white`
-- AND the button MUST include focus states: `focus:ring-2 focus:ring-blue-500`
-- AND the button MUST be full-width: `w-full`
-- AND loading state MUST show "Posting..." text
-
-**Acceptance Criteria:**
-- All three form sections use `bg-surface-level-1 border border-neutral-weak`
-- Section spacing uses `space-y-8` (32px)
-- Form fields maintain dark theme styling with token-based borders
-- Submit button uses solid blue with proper focus states
-- All character counters remain functional
-- All validation warnings remain functional
-- Form submission logic unchanged
-- All existing tests pass
-
----
-
 ### Requirement: Gig Browse Page Status Badges
 Status badges on the gig browse page MUST use semantic colors consistently with Dashboard patterns.
 
@@ -2547,22 +2294,22 @@ The public profile page MUST include a BackButton component to allow users to na
 
 ### Requirement: Examples Page Entry Point and Back Navigation
 
-The gig-creation screen MUST offer a visible, discoverable link to the example gigs, and the examples page MUST include a BackButton so the viewer can return to where they came from. The link MUST open in a **new tab**: the creation screen holds the entire in-progress brief in client state, so an in-tab navigation would silently destroy a half-written gig.
+The gig-creation screen MUST offer a visible, discoverable link to the example gigs, and the examples page MUST include a BackButton so the viewer can return to where they came from. The link navigates in the **same tab**; the in-progress brief is protected by persisting it to `sessionStorage` (see «Create-Gig Draft Survives Navigation»), NOT by opening a new tab. Same-tab navigation is deliberate — a new tab is hard to return from on mobile / in-app (webview) browsers, and the old new-tab «← Назад к созданию гига» control actively misled, loading an empty second form in the new tab rather than the draft.
 
-> History (`examples-for-clients` — Round-3 #10). The entry point below was already required, and was **missing**: the re-ground to `CreateGigDesign.tsx` dropped it, and `gig-browse-access.spec.ts` was rewritten to `page.goto` the examples URL rather than click the link — so the suite stayed green while the feature was gone and the examples were unreachable in the product. The E2E now clicks the real link. The `from` value changed from `dashboard` to `new` so the return lands on the creation screen the viewer actually came from, rather than the dashboard.
+> History (`examples-for-clients` — Round-3 #10, then `persist-create-gig-draft` — Round-3 follow-up). The entry point was already required, and was **missing**: the re-ground to `CreateGigDesign.tsx` dropped it, and `gig-browse-access.spec.ts` was rewritten to `page.goto` the examples URL rather than click the link — so the suite stayed green while the feature was gone. The E2E now clicks the real link. The `from` value changed from `dashboard` to `new` so the return lands on the creation screen the viewer came from. The link **originally opened a new tab** to protect the client-state brief; that was replaced by sessionStorage persistence + same-tab navigation, because the new tab was fragile on mobile and its back control led to an empty form, not the draft. A later fix (`fix-client-gig-detail-back`) made the gig-detail «Назад» default **role-aware**: C5 only fixed the `?from=examples` path, so a CLIENT opening any ordinary gig still hit `/gigs` → `/dashboard`; the default now sends a CLIENT to `/my-gigs` (see the role-default scenario below).
 
 #### Scenario: The gig-creation screen links to the examples
 - GIVEN a CLIENT is on the gig-creation screen (`/gigs/new`, `CreateGigDesign`)
 - WHEN the screen renders
 - THEN it MUST display a visible link to the example gigs, in Russian («💡 Посмотреть примеры»), positioned as inspiration for writing the brief
 - AND the link MUST target `/gigs/examples?from=new`
-- AND it MUST open in a new tab (`target="_blank"` + `rel="noopener"`), so the in-progress brief is not lost
+- AND it MUST navigate in the same tab (a `next/link` anchor, no `target="_blank"`), the brief being protected by draft persistence rather than a new tab
 - AND it MUST be token-pure (`gigly_full_design` skin), not kit classes
 
 #### Scenario: The in-progress brief survives opening the examples
 - GIVEN a CLIENT has partially filled the creation form (title, description, criteria chips)
-- WHEN they open the examples link and return to the creation tab
-- THEN every entered value MUST still be present
+- WHEN they open the examples link and return via «← Назад к созданию гига»
+- THEN every entered value MUST still be present (restored from the persisted draft)
 - AND the readiness checklist/counters (per «Legible «Why Submit Is Disabled» Guidance») MUST be unchanged
 
 #### Scenario: BackButton appears on examples page
@@ -2583,12 +2330,46 @@ The gig-creation screen MUST offer a visible, discoverable link to the example g
 - THEN it MUST read «← Назад к примерам» and return to `/gigs/examples`
 - AND it MUST NOT return to `/gigs` — that is the SPECIALIST-only search, which redirects a CLIENT on to `/dashboard`, stranding them away from both the examples and their draft
 
-#### Scenario: The gig-detail back control is unchanged without a from parameter
+#### Scenario: The gig-detail back control defaults by role without a from parameter
 - GIVEN a gig detail opened without `?from` (the ordinary case)
 - WHEN the back control renders
-- THEN it MUST read «← Назад к гигам» and target `/gigs`, exactly as before
+- THEN it MUST read «← Назад к гигам»
+- AND for a SPECIALIST viewer it MUST target `/gigs` (the search they browse from)
+- AND for a CLIENT viewer it MUST target `/my-gigs` — NOT `/gigs`, which is SPECIALIST-only and redirects a CLIENT on to `/dashboard`, stranding them away from their own gigs
+- AND the viewer's role MUST be threaded from the server page (`viewerRole` from the session), keeping the decision at the page/data layer
 
 **Note on where the return path lives.** The re-grounded `GigDetail` deliberately ships its **own** «Назад» control and never renders `BackButton` (see `[id]/page.tsx`), so `?from=examples` was inert from the re-ground until the control was made context-aware. `from` is threaded from the server page's `searchParams` rather than read with `useSearchParams`, keeping the data at the page layer. The examples page is the only live consumer of `BackButton`.
+
+---
+
+### Requirement: Create-Gig Draft Survives Navigation
+
+The in-progress «Создать гиг» brief MUST be persisted client-side so that navigating away from `/gigs/new` and back — most importantly to view «Примеры», but also an accidental reload or a mobile tab-switch — restores every entered value. Persistence uses `sessionStorage` (scoped to the tab/session, not `localStorage`), keyed by a single constant owned by `lib/create-gig-draft.ts` (`CREATE_GIG_DRAFT_KEY`). Every storage access MUST be guarded so the form still functions when storage is unavailable (SSR, privacy mode, sandboxed iframe) or full.
+
+> Introduced by `persist-create-gig-draft` (Round-3 follow-up). This is what lets the examples link drop its new tab (see «Examples Page Entry Point and Back Navigation»): the brief is no longer only in volatile component state.
+
+#### Scenario: The brief is restored on return to the creation screen
+- GIVEN a CLIENT has entered brief fields (title, category, description, goal, deliverables, budget, deadline, tags, criteria chips)
+- WHEN they navigate away from `/gigs/new` and return within the same session
+- THEN each field MUST be restored to its entered value from the persisted draft
+- AND the restore MUST happen after mount (post-hydration), so the server render and first client render still match
+
+#### Scenario: A successful publish clears the draft
+- GIVEN a CLIENT publishes a gig and lands on `/gigs/new/success`
+- WHEN the success screen mounts
+- THEN the persisted draft MUST be cleared
+- AND a subsequent «Создать ещё» (or any later visit to `/gigs/new`) MUST start from an empty form, not the just-published brief
+
+#### Scenario: Persistence is non-fatal when storage is unavailable
+- GIVEN `sessionStorage` is unavailable or throws (SSR, privacy mode, quota exceeded)
+- WHEN the form saves or restores the draft
+- THEN the operation MUST be a silent no-op and the form MUST remain fully usable in-memory
+
+**Acceptance Criteria:**
+- `lib/create-gig-draft.ts` owns `CREATE_GIG_DRAFT_KEY`, `loadDraft`, `saveDraft`, `clearDraft`; all storage access guarded + try/catch
+- `CreateGigDesign` restores once in a mount effect and saves on every field change (gated on a `restored` flag so the empty initial state never clobbers a saved draft)
+- `CreateGigSuccess` calls `clearDraft()` on mount
+- `loadDraft` tolerates a missing / corrupt / partially-shaped payload (returns null / a filtered partial)
 
 ---
 
@@ -7506,13 +7287,13 @@ open-dispute, admin history).
 ### Requirement: Срок/Бюджет Are Grotesk Numerics; the Company Sees the Fee Breakdown
 The conditions panel MUST render **Срок выполнения** and **Бюджет проекта** as large **`font-grotesk`** (Manrope)
 numbers with the «[N этап]» / «фикс. цена» sublabels. For the **company** viewer, the budget block MUST additionally
-show the **Сервисный сбор (10%)** and **Итого к оплате** breakdown (from the gig's `serviceFee` / `totalAmount`); the
+show the **Сервисный сбор (17,5%)** and **Итого к оплате** breakdown (from the gig's `serviceFee` / `totalAmount`); the
 specialist MUST NOT see it (gated in `getGigDetail` as `fee: isOwner ? … : undefined`).
 
 #### Scenario: Numerics use grotesk; company-only fee breakdown
 - GIVEN the conditions panel
 - WHEN it renders for a specialist and for the gig owner (company)
-- THEN Срок + Бюджет MUST use the `font-grotesk` token, and the **company** view MUST show the 10% fee + total while
+- THEN Срок + Бюджет MUST use the `font-grotesk` token, and the **company** view MUST show the 17.5% fee + total while
   the specialist view MUST NOT
 
 ### Requirement: GigHeader Reconciled to the main Shape (with description)
@@ -7752,7 +7533,7 @@ token-pure (F2) and composition-pure (F5); all on-screen text MUST be Russian.
 - GIVEN a CLIENT on `/gigs/new`
 - WHEN it renders
 - THEN it MUST show the four DoD sections and the right feedback panel
-- AND filling the required fields + publishing MUST call `createGig` (which creates the gig with the 10% fee)
+- AND filling the required fields + publishing MUST call `createGig` (which creates the gig with the 17.5% fee)
 - AND the screen MUST contain no `className=`/`style=`/hex literals (F5)
 
 ### Requirement: Gig Creation Redirects to a Success Screen
@@ -7777,14 +7558,15 @@ plus a nudge for the first unmet check. It MUST update **live**; it is advisory 
 - THEN the readiness meter MUST advance toward 7/7 and each corresponding checklist item MUST flip to done
 
 ### Requirement: Live Fee Panel
-The right panel MUST render a **«Сводка (комиссия)»** fee panel showing **Бюджет**, **Сервисный сбор (10%)**, and
-**Итого к оплате** (budget + 10%), computed **live** from the budget input using the same 10% the server applies, plus
-the «Опубликовать гиг» action.
+The right panel MUST render a **«Сводка (комиссия)»** fee panel showing **Бюджет**, **Сервисный сбор (17,5%)**, and
+**Итого к оплате** (budget + 17.5%), computed **live** from the budget input using the same rate the server applies
+(`SERVICE_FEE_RATE = 0.175`), plus the «Опубликовать гиг» action.
 
 #### Scenario: The fee updates live and matches the server
 - GIVEN a budget entered in roubles
 - WHEN it changes
-- THEN the panel MUST show Сервисный сбор = floor(budget × 0.10) and Итого = budget + fee
+- THEN the panel MUST show Сервисный сбор = `floor(budget × 0.175)` and Итого = budget + fee
+- AND the percent label MUST read «17,5%», sourced from `SERVICE_FEE_PCT_LABEL`
 - AND on publish the created gig's `serviceFee` / `totalAmount` MUST equal those figures
 
 ### Requirement: «Готово, когда…» Criteria Editor
@@ -7804,14 +7586,14 @@ reuses `ProgressBar` with its new `tone` prop; `CriteriaEditor` exposes add/remo
 #### Scenario: The three blocks render from fixtures
 - GIVEN the block fixtures
 - WHEN each renders
-- THEN `ReadinessMeter` MUST show the bar + the checklist, `FeePanel` MUST show Бюджет/Сервисный сбор (10%)/Итого, and
+- THEN `ReadinessMeter` MUST show the bar + the checklist, `FeePanel` MUST show Бюджет/Сервисный сбор (17,5%)/Итого, and
   `CriteriaEditor` MUST show the input + «Добавить» + the rows
 - AND none MUST contain `className=`/`style=`/hex literals beyond their kit primitives
 
 **Acceptance Criteria:**
 - `/gigs/new` rebuilt as a two-column F5 `@composed-screen`: DoD form (4 sections, category via `CheckField`, `CriteriaEditor`) + readiness meter + live fee panel
-- `ReadinessMeter` (ProgressBar + 7-check checklist + nudge), `FeePanel` (Бюджет/Сервисный сбор 10%/Итого + publish), `CriteriaEditor` (input + «Добавить» + suggestions + removable rows) — new blocks + fixtures + render tests; `ProgressBar` gains a `tone` prop
-- live fee mirrors the server's 10%; validation + fee math reused unchanged
+- `ReadinessMeter` (ProgressBar + 7-check checklist + nudge), `FeePanel` (Бюджет/Сервисный сбор 17,5%/Итого + publish), `CriteriaEditor` (input + «Добавить» + suggestions + removable rows) — new blocks + fixtures + render tests; `ProgressBar` gains a `tone` prop
+- live fee mirrors the server's 17.5% (`SERVICE_FEE_RATE`); validation + fee math reused unchanged
 - `createGig` success redirect `/dashboard` → `/gigs/new/success` (only action change); success screen «Гиг опубликован» + «К моим гигам»/«Создать ещё»
 - the createGig redirect-asserting test files updated to the new target (validation + fee assertions kept); F2 + F5 lints + `build` + `test:unit` + `compose-create-gig` E2E green; F1 = structural (≤1% Phase 4)
 - Reconciliation decisions recorded (§10.19 / RC-S34–S36)
@@ -8237,13 +8019,13 @@ The reconciliation MUST keep the build, lint, and the affected E2E route specs g
 - **THEN** the «Возникли разногласия? Открыть спор» link (→ `/disputes/new?gig=…`) MUST appear ONLY while the gig status is `IN_PROGRESS` or `REVIEW` (matching the prototype's `gigInProgress || gigReview`) — NOT on completed/paid (where "assigned" still holds but the reference shows no link)
 
 ### Requirement: Create Gig Reconciled To Reference
-`app/(protected)/gigs/new/CreateGigDesign.tsx` MUST match `design-reference/screens/createGig.company`, preserving the `createGig` wiring, the 10% fee math, and the stable `name=` field contract.
+`app/(protected)/gigs/new/CreateGigDesign.tsx` MUST match `design-reference/screens/createGig.company`, preserving the `createGig` wiring, the 17.5% fee math (SSOT: `lib/pricing.ts`), and the stable `name=` field contract.
 
 #### Scenario: Guided brief, readiness, and fee panels match
 - **GIVEN** the `/gigs/new` create screen (CLIENT) and live edits
 - **THEN** the guided-brief sections, the category chip select (inactive = neutral hairline border; active = `rgba(rgb,0.6)` border / `0.15` bg), and the criteria tag-editor MUST match; the criteria suggestions MUST be the prototype's real phrases (filtered-not-added, top-3) and an added criterion MUST render its raw text (the «Готово, когда…» lives only in the section label)
 - **AND** the «Готовность брифа» panel MUST show the score as «{n} из 7», the checklist, the progress bar, and a next-step box reading bold «Добавьте: {Поле}» + that field's hint (complete-state «Бриф готов ✓» / «Бриф готов — отличные шансы на сильные отклики.»)
-- **AND** the «Сводка» fee panel MUST compute Бюджет → Сервисный сбор (10%) → Итого live (`fee = floor(budget × 0.10)`), and publishing MUST call `createGig` and redirect to `/gigs/new/success`
+- **AND** the «Сводка» fee panel MUST compute Бюджет → Сервисный сбор (17,5%) → Итого live (`fee = floor(budget × 0.175)`), and publishing MUST call `createGig` and redirect to `/gigs/new/success`
 
 ### Requirement: Applications Reconciled To Reference
 `app/(protected)/gigs/[id]/applications/ApplicationsDesign.tsx` MUST match `design-reference/screens/applications.company`, preserving the owner-gated `GigApplicationsData` wiring and the accept/reject actions.
@@ -8289,7 +8071,7 @@ Reconciling these screens MUST keep the build, lint, and the affected E2E specs 
 
 #### Scenario: Stat-tile captions and the awaiting-payment status
 - **GIVEN** `/finances` for a SPECIALIST (earnings) or CLIENT (spend + fee)
-- **THEN** each stat tile MUST render its third caption line (e.g. «комиссия Gigly 10%» / «выплачено по завершённым») via `StatVM.caption`
+- **THEN** each stat tile MUST render its third caption line (e.g. «комиссия Gigly 17,5%» / «выплачено по завершённым») via `StatVM.caption`
 - **AND** a COMPLETED (work-done, payment-pending) ledger row MUST render the awaiting-payment green `rgb(52,199,89)` with the role-aware label «Ожидает оплаты» (specialist) / «К оплате» (client); a PAID row keeps «Оплачено»
 
 ### Requirement: Profile Reconciled For Both Roles

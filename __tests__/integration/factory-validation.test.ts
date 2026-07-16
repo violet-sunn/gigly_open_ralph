@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { setupTestDatabase, cleanupTestDatabase, withTestTransaction } from '../helpers/db'
 import { createTestUser, createTestGig, createTestApplication, createTestMessage } from '../helpers/seed'
+import { serviceFeeKopecks } from '@/lib/pricing'
 import { PrismaClient } from '@prisma/client'
 
 describe('Factory Validation Compliance', () => {
@@ -103,11 +104,11 @@ describe('Factory Validation Compliance', () => {
       })
     })
 
-    it('calculates serviceFee correctly (10% of budget)', async () => {
+    it('calculates serviceFee correctly (via the pricing SSOT)', async () => {
       await withTestTransaction(async (tx) => {
         const gig = await createTestGig(tx)
 
-        expect(gig.serviceFee).toBe(gig.budget * 0.1)
+        expect(gig.serviceFee).toBe(serviceFeeKopecks(gig.budget))
       })
     })
 

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { getTestPrismaClient } from '../helpers/db'
 import { withAuthContext, setTestSessionToken, getTestSessionToken } from '../helpers/auth'
 import { createTestUser } from '../helpers/seed'
+import { serviceFeeKopecks } from '@/lib/pricing'
 
 // Cross-cutting verification (fix-application-lifecycle × fix-terms-negotiation): a specialist who applied ON THEIR
 // OWN TERMS (a counter) withdraws — the one-free-withdrawal semantics must still hold, BOTH the client and specialist
@@ -42,7 +43,7 @@ const noSpace = (s: string) => s.replace(/\s/g, '')
 
 async function makeGig(prisma: TestPrisma, clientId: string) {
   const budget = 28000000 // 280 000 ₽
-  const serviceFee = Math.floor(budget * 0.1)
+  const serviceFee = serviceFeeKopecks(budget)
   return prisma.gig.create({
     data: {
       title: 'Counter+Withdraw Gig',

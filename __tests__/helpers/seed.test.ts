@@ -81,8 +81,8 @@ describe('Seed Data Helpers', () => {
         expect(gig.description).toMatch(/[А-Яа-я]/)
         // Check updated budget values
         expect(gig.budget).toBe(150000)
-        expect(gig.serviceFee).toBe(15000)
-        expect(gig.totalAmount).toBe(165000)
+        expect(gig.serviceFee).toBe(26250) // 17.5% of 150000 (SSOT: lib/pricing.ts)
+        expect(gig.totalAmount).toBe(176250)
         expect(gig.status).toBe('OPEN')
         expect(gig.tags).toBe('React,TypeScript')
         expect(gig.client).toBeTruthy()

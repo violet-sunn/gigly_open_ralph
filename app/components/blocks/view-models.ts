@@ -27,7 +27,7 @@ export interface RatingVM {
 export interface StatVM {
   label: string;
   value: string | number;
-  /** Optional muted caption line under the value (e.g. «комиссия Gigly 10%») — finance tiles. */
+  /** Optional muted caption line under the value (e.g. the «комиссия Gigly …%» fee note) — finance tiles. */
   caption?: string;
 }
 export interface KeyVal {
@@ -265,7 +265,7 @@ export interface BioVM {
  * ConditionsPanel block — the prototype gig-detail «УСЛОВИЯ» sunken panel (Gigly App.dc.html gigDetail col2):
  * a two-tab toggle (the gig's terms «Условия {company}» vs the specialist's «Мои условия») over a Статус row and
  * the Срок выполнения / Бюджет проекта figures rendered as large `grotesk` (Manrope) numerics with the «[N этап]» /
- * «фикс. цена» sublabels. For the company viewer the budget block additionally shows the Сервисный сбор (10%) /
+ * «фикс. цена» sublabels. For the company viewer the budget block additionally shows the Сервисный сбор /
  * Итого к оплате breakdown (`fee`). Schema-independent; figures arrive pre-formatted.
  */
 export interface ConditionsTermsVM {
@@ -430,7 +430,7 @@ export interface ReadinessMeterVM {
   nudge?: string;
 }
 
-/** FeePanel (reconcile-create-gig) — the «Сводка (комиссия)» live summary: Бюджет → Сервисный сбор (10%) → Итого. */
+/** FeePanel (reconcile-create-gig) — the «Сводка (комиссия)» live summary: Бюджет → Сервисный сбор → Итого. */
 export interface FeePanelVM {
   budget: Money;
   fee: Money;

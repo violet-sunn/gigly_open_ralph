@@ -123,8 +123,8 @@ test.describe('e2e-finances — finances screen', () => {
     await expect(page.getByText('Выплачено')).toBeVisible()
     await expect(page.getByText('В резерве')).toBeVisible()
     await expect(page.getByText('Сервисный сбор')).toBeVisible()
-    // The stat-tile caption line under the value (the only place the 10% fee rate is surfaced).
-    await expect(page.getByText('комиссия Gigly 10%')).toBeVisible()
+    // The stat-tile caption line under the value (the only place the fee rate is surfaced).
+    await expect(page.getByText('комиссия Gigly 17,5%')).toBeVisible()
 
     // «Операции» heading + its count badge (the adjacent sibling span — scoped away from the sidebar «Мои гиги»).
     await expect(page.getByRole('heading', { name: 'Операции' })).toBeVisible()

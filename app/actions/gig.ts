@@ -9,10 +9,11 @@ import { persistMessage } from '@/lib/messaging'
 import { createNotification, createNotificationsBulk } from '@/lib/notifications'
 import { isCategorySlug } from '@/lib/categories'
 import { GIG_DESCRIPTION_MIN } from '@/lib/gig-validation'
+import { serviceFeeKopecks } from '@/lib/pricing'
 
 /**
  * The normalized, validated set of gig fields shared by `createGig` and `updateGig` — every column a client can set,
- * already sanitized/trimmed with the budget converted to kopecks and the 10% fee/total computed. The two actions apply
+ * already sanitized/trimmed with the budget converted to kopecks and the fee/total computed (SSOT: lib/pricing.ts). The two actions apply
  * the SAME validation gates (description ≥ 20, criteria ≥ 50, goal + deliverables required, budget > 0, deadline
  * 1–365, stages 1–50, valid category) so create/edit can never drift. Numeric minimums live in `lib/gig-validation`.
  */
@@ -79,7 +80,7 @@ function parseGigForm(formData: FormData): { error: string } | { fields: ParsedG
   }
 
   const budgetKopecks = Math.round(budgetRoubles * 100)
-  const serviceFee = Math.floor(budgetKopecks * 0.10)
+  const serviceFee = serviceFeeKopecks(budgetKopecks)
   const totalAmount = budgetKopecks + serviceFee
 
   // Optional category — must be one of the canonical five if supplied (safe-default: null when absent)
@@ -175,7 +176,7 @@ export async function createGig(
  * Edit an already-published gig (gig-editing-with-notification). Owner-only, and ONLY while the gig is OPEN — once a
  * specialist is assigned (IN_PROGRESS) or later, terms are locked (the platform is fixed-price; renegotiation is
  * withdraw → re-apply, not a silent edit to active work). Reuses `parseGigForm` so validation matches `createGig`
- * exactly and recomputes the 10% fee. On a MATERIAL change (any persisted field's stored value actually moved), every
+ * exactly and recomputes the fee (SSOT: lib/pricing.ts). On a MATERIAL change (any persisted field's stored value actually moved), every
  * specialist with an active (PENDING) application is notified their terms were updated — a whitespace-only no-op save
  * changes nothing and notifies no one. The fan-out is fire-and-forget (a notification failure never fails the edit).
  */
@@ -535,7 +536,7 @@ export async function acceptApplication(
   if (application.proposedBudget != null) {
     const budget = application.proposedBudget
     gigTerms.budget = budget
-    gigTerms.serviceFee = Math.floor(budget * 0.10) // same 10% rule as createGig
+    gigTerms.serviceFee = serviceFeeKopecks(budget) // same fee rule as createGig (SSOT: lib/pricing.ts)
     gigTerms.totalAmount = budget + gigTerms.serviceFee
   }
   if (application.proposedDeadlineDays != null) {

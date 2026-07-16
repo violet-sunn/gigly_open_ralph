@@ -998,7 +998,7 @@ The platform SHALL enhance `createTestGig()` to use realistic Russian gig data b
 - Default description is Russian (2-4 sentences)
 - Default tags are "React,TypeScript" or similar realistic stack
 - Budget defaults to realistic value (e.g., 150000 kopecks = 1500 RUB)
-- serviceFee calculated correctly (10% of budget)
+- serviceFee calculated correctly (17.5% of budget, via the `SERVICE_FEE_RATE` SSOT in `lib/pricing.ts`)
 - totalAmount = budget + serviceFee
 
 #### Scenario: Create gig with structured requirements
@@ -1566,7 +1566,7 @@ The platform SHALL provide a comprehensive end-to-end test that validates the co
 - Test submits form
 - Test waits for navigation to `/gigs/[id]`
 - Test extracts gig ID from URL
-- Database contains gig with status OPEN, correct budget calculation (serviceFee = budget * 0.2, totalAmount = budget + serviceFee)
+- Database contains gig with status OPEN, correct budget calculation (serviceFee = budget * 0.175, totalAmount = budget + serviceFee)
 
 #### Scenario: Specialist applies to gig (programmatic)
 

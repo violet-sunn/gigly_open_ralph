@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { getTestPrismaClient } from '../helpers/db'
 import { withAuthContext, setTestSessionToken, getTestSessionToken } from '../helpers/auth'
 import { createTestUser } from '../helpers/seed'
+import { serviceFeeKopecks } from '@/lib/pricing'
 
 // Mock @/lib/prisma to use the test database (lazy getter)
 vi.mock('@/lib/prisma', () => ({
@@ -51,7 +52,7 @@ const noSpace = (s: string) => s.replace(/\s/g, '')
 
 async function makeGig(prisma: TestPrisma, clientId: string, opts?: { budget?: number; deadlineDays?: number }) {
   const budget = opts?.budget ?? 28000000 // 280 000 ₽ in kopecks
-  const serviceFee = Math.floor(budget * 0.1)
+  const serviceFee = serviceFeeKopecks(budget)
   return prisma.gig.create({
     data: {
       title: 'Terms Gig',
@@ -247,8 +248,8 @@ describe('terms-negotiation — accept-with-terms', () => {
 
     const updated = await prisma.gig.findUnique({ where: { id: gig.id } })
     expect(updated?.budget).toBe(35000000)
-    expect(updated?.serviceFee).toBe(Math.floor(35000000 * 0.1)) // 3 500 000
-    expect(updated?.totalAmount).toBe(35000000 + Math.floor(35000000 * 0.1))
+    expect(updated?.serviceFee).toBe(serviceFeeKopecks(35000000)) // 17.5% recompute on accept
+    expect(updated?.totalAmount).toBe(35000000 + serviceFeeKopecks(35000000))
     expect(updated?.deadlineDays).toBe(20)
     // existing accept behaviour preserved
     expect(updated?.status).toBe('IN_PROGRESS')

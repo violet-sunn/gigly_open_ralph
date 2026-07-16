@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import type { LedgerTableVM, StatPanelVM, Status } from '@/app/components/blocks/view-models'
+import { SERVICE_FEE_PCT_LABEL } from '@/lib/pricing'
 
 /**
  * LOGICAL finances view — NO payment gateway, NO real money movement, NO DB writes.
@@ -96,7 +97,7 @@ export async function getFinanceStats(userId: string, role: Role): Promise<StatP
       stats: [
         { label: 'Выплачено', value: money(sum(paid, (g) => g.totalAmount)), caption: 'по завершённым гигам' },
         { label: 'В резерве', value: money(sum(inProgress, (g) => g.totalAmount) + sum(review, (g) => g.totalAmount)), caption: 'в работе и на проверке' },
-        { label: 'Сервисный сбор', value: money(sum(paid, (g) => g.serviceFee)), caption: 'комиссия Gigly 10%' },
+        { label: 'Сервисный сбор', value: money(sum(paid, (g) => g.serviceFee)), caption: `комиссия Gigly ${SERVICE_FEE_PCT_LABEL}` },
       ],
     }
   }

@@ -294,8 +294,8 @@ test.describe('Complete Specialist Journey E2E', () => {
 
     // Verify budget calculations
     expect(finalGig?.budget).toBe(150000)
-    expect(finalGig?.serviceFee).toBe(15000) // 10% of budget
-    expect(finalGig?.totalAmount).toBe(165000)
+    expect(finalGig?.serviceFee).toBe(26250) // 17.5% of budget (SSOT: lib/pricing.ts)
+    expect(finalGig?.totalAmount).toBe(176250)
 
     console.log('✅ Complete specialist journey test passed!')
     console.log(`   Gig ID: ${gig.id}`)

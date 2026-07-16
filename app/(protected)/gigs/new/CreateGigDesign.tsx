@@ -5,12 +5,15 @@
 // live checklist + the fee «Сводка»). Controlled fields drive the live readiness AND submit via the (unchanged)
 // createGig action (which redirects to /gigs/new/success). Category/criteria/tags ride via hidden inputs.
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createGig } from "@/app/actions/gig";
 import { CAT_RGB } from "@/app/_design/util";
 import { CharacterCounter } from "./character-counter";
 import { GIG_DESCRIPTION_MIN, GIG_CRITERIA_MIN } from "@/lib/gig-validation";
+import { serviceFeeRoubles, SERVICE_FEE_PCT_LABEL } from "@/lib/pricing";
+import { loadDraft, saveDraft } from "@/lib/create-gig-draft";
 import { pluralRu } from "@/lib/utils/plural";
 import "@/app/_design/tokens.css";
 
@@ -65,8 +68,34 @@ export function CreateGigDesign({ categoryOptions }: { categoryOptions: { key: s
   const [criteria, setCriteria] = useState<string[]>([]);
   const [critInput, setCritInput] = useState("");
 
+  // Persist the in-progress brief so leaving to «Примеры» (now same-tab), an accidental reload, or a mobile
+  // tab-switch never discards a half-written gig. Restore ONCE after mount — post-hydration, so the server's empty
+  // markup and the first client render still match (no hydration mismatch) — then mirror every change into
+  // sessionStorage. A successful publish clears it on the success screen (see CreateGigSuccess).
+  const [restored, setRestored] = useState(false);
+  useEffect(() => {
+    const d = loadDraft();
+    if (d) {
+      if (d.title !== undefined) setTitle(d.title);
+      if (d.category !== undefined) setCategory(d.category);
+      if (d.description !== undefined) setDescription(d.description);
+      if (d.goal !== undefined) setGoal(d.goal);
+      if (d.deliverables !== undefined) setDeliverables(d.deliverables);
+      if (d.constraints !== undefined) setConstraints(d.constraints);
+      if (d.budget !== undefined) setBudget(d.budget);
+      if (d.deadline !== undefined) setDeadline(d.deadline);
+      if (d.tags !== undefined) setTags(d.tags);
+      if (d.criteria !== undefined) setCriteria(d.criteria);
+    }
+    setRestored(true);
+  }, []);
+  useEffect(() => {
+    if (!restored) return; // don't clobber a saved draft with the empty initial state before the restore runs
+    saveDraft({ title, category, description, goal, deliverables, constraints, budget, deadline, tags, criteria });
+  }, [restored, title, category, description, goal, deliverables, constraints, budget, deadline, tags, criteria]);
+
   const budgetNum = Number(budget) || 0;
-  const fee = budgetNum > 0 ? Math.floor(budgetNum * 0.1) : 0;
+  const fee = budgetNum > 0 ? serviceFeeRoubles(budgetNum) : 0;
 
   // Effective criteria = committed chips PLUS any text still sitting in the input, so a typed-but-uncommitted
   // criterion always counts toward readiness AND is submitted (no silent drop). Mirrors the server, which reads the
@@ -142,16 +171,15 @@ export function CreateGigDesign({ categoryOptions }: { categoryOptions: { key: s
         <span style={{ flex: 1, fontFamily: "'Manrope',sans-serif", fontSize: 13, lineHeight: "18px", color: "var(--text-2)" }}>
           Чем понятнее бриф — тем точнее отклики и меньше споров. Отвечайте простыми словами, без жаргона: панель «Готовность брифа» справа подскажет, чего не хватает.
         </span>
-        {/* Opens in a NEW TAB on purpose: the whole brief lives in this component's state, so an in-tab
-            navigation would silently discard a half-written gig. */}
-        <a
+        {/* Same-tab navigation: the brief is mirrored to sessionStorage on every change (draft effects above), so
+            leaving to «Примеры» and returning via «← Назад к созданию гига» restores it. Same tab (not a new one) is
+            deliberate — it stays reliable on mobile / in-app browsers, where a background tab is hard to find. */}
+        <Link
           href="/gigs/examples?from=new"
-          target="_blank"
-          rel="noopener"
           style={{ flex: "none", display: "inline-flex", alignItems: "center", gap: 6, whiteSpace: "nowrap", padding: "8px 12px", minHeight: 36, borderRadius: 8, background: "rgba(0,136,255,0.12)", boxShadow: "inset 0 0 0 1px rgba(0,136,255,0.35)", color: "var(--om-accent, #0088ff)", fontFamily: "'Handjet',monospace", fontSize: 15, textDecoration: "none" }}
         >
           💡 Посмотреть примеры
-        </a>
+        </Link>
       </div>
 
       <form action={action} style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
@@ -389,7 +417,7 @@ export function CreateGigDesign({ categoryOptions }: { categoryOptions: { key: s
                 <span style={{ color: "var(--text-1)" }}>{budgetNum > 0 ? rub(budgetNum) : "—"}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontFamily: "'Handjet',monospace", fontSize: 14, color: "var(--text-3)" }}>
-                <span>Сервисный сбор (10%)</span>
+                <span>Сервисный сбор ({SERVICE_FEE_PCT_LABEL})</span>
                 <span style={{ color: "var(--text-1)" }}>{rub(fee)}</span>
               </div>
               <div style={{ height: 1, background: "var(--hairline-08)" }} />
@@ -415,7 +443,7 @@ export function CreateGigDesign({ categoryOptions }: { categoryOptions: { key: s
             )}
             {state?.error && <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, color: "#ef4444" }}>{state.error}</span>}
             <span style={{ fontFamily: "'Handjet',monospace", fontSize: 12, textAlign: "center", color: "var(--text-4)" }}>
-              Сбор 10% — за нахождение специалиста и сопровождение сделки.
+              Сбор {SERVICE_FEE_PCT_LABEL} — за нахождение специалиста и сопровождение сделки.
             </span>
           </div>
         </div>
