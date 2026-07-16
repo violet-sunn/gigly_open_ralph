@@ -14,10 +14,16 @@ async function registerViaOnboarding(page: Page, role: 'CLIENT' | 'SPECIALIST', 
   await page.locator('input[name="password"]').fill('TestPass123')
   await page.locator('input[name="confirmPassword"]').fill('TestPass123')
   await page.getByRole('button', { name: 'Зарегистрироваться' }).click()
+  // Step-3 profile setup gates «Продолжить» until every required field is filled (AuthDesign OnboardingStep3):
+  //   CLIENT  → companyName, contactPerson, position, timezone
+  //   SPECIALIST → displayName, specialization, timezone
   if (role === 'CLIENT') {
     await page.locator('input[name="companyName"]').fill('ООО Тест')
+    await page.locator('input[name="contactPerson"]').fill('Иванов Иван Иванович')
+    await page.locator('input[name="position"]').fill('Директор')
   } else {
-    await page.locator('input[name="displayName"]').fill('Тест')
+    await page.locator('input[name="displayName"]').fill('Иванов Иван Иванович')
+    await page.getByLabel('Специализация').selectOption('Frontend')
   }
   await page.getByLabel('Местоположение и часовой пояс').selectOption('Europe/Moscow')
   await page.getByRole('button', { name: 'Продолжить' }).click()
@@ -25,16 +31,17 @@ async function registerViaOnboarding(page: Page, role: 'CLIENT' | 'SPECIALIST', 
 }
 
 test.describe('Auth Navigation Flow', () => {
-  test('homepage "Get Started" navigates to /login', async ({ page }) => {
+  test('homepage «Создать аккаунт» navigates to /register', async ({ page }) => {
     await page.goto('/')
-    await page.click('text=Get Started')
-    await expect(page).toHaveURL('/login')
-    await expect(page.getByRole('heading', { name: 'ВХОД В GIGLY' })).toBeVisible()
+    await page.getByRole('link', { name: 'Создать аккаунт' }).click()
+    await expect(page).toHaveURL('/register')
+    await expect(page.getByRole('heading', { name: 'СОЗДАЙТЕ СВОЙ АККАУНТ' })).toBeVisible()
   })
 
-  test('homepage "Sign in" navigates to /login', async ({ page }) => {
+  test('homepage «Войти» navigates to /login', async ({ page }) => {
     await page.goto('/')
-    await page.click('text=Sign in')
+    // Two «Войти» links point at /login (header + hero); either satisfies the intent.
+    await page.getByRole('link', { name: 'Войти' }).first().click()
     await expect(page).toHaveURL('/login')
     await expect(page.locator('input[name="email"]')).toBeVisible()
   })

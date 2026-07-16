@@ -84,7 +84,7 @@ test.describe('e2e-cross-cutting — keyboard navigation', () => {
       await setE2ESession(page, { id: specId, email: specEmail, role: 'SPECIALIST' })
       await page.goto('/dashboard')
 
-      const bell = page.locator('button[aria-label="Notifications"]')
+      const bell = page.locator('button[aria-label="Уведомления"]')
       await bell.focus()
       await page.keyboard.press('Enter') // open
 

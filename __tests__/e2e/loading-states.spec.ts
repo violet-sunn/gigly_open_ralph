@@ -34,9 +34,9 @@ test.describe('e2e-cross-cutting — loading states', () => {
     await setE2ESession(page, { id: specId, email: specEmail, role: 'SPECIALIST' })
     await page.goto('/profile')
 
-    // Open the «Редактировать описание» modal (the Опыт pencil = the 2nd owner pencil; all share one svg path).
-    await page.locator('span:has(path[d^="M12.146.146"])').nth(1).click()
-    await expect(page.getByRole('heading', { name: 'Редактировать описание' })).toBeVisible()
+    // Open the «Опыт и уровень» modal (the Опыт button = the 2nd owner «Редактировать» button; all share that name).
+    await page.getByRole('button', { name: 'Редактировать' }).nth(1).click()
+    await expect(page.getByRole('heading', { name: 'Опыт и уровень' })).toBeVisible()
     await page.locator('textarea[name="bio"]').fill('Обновлённое описание для проверки состояния ожидания.')
 
     // Slow ONLY the server-action POST (it posts to the page URL /profile) so the pending state is observable.

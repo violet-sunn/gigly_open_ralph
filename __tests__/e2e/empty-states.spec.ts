@@ -48,7 +48,7 @@ test.describe('Empty States', () => {
       await page.goto('/gigs')
 
       // The rebuilt browse leads with native filter <select>s + the «Найдено» heading (no content role="search").
-      await expect(page.getByRole('combobox')).toHaveCount(3)
+      await expect(page.getByRole('combobox')).toHaveCount(4)
       await expect(page.getByRole('heading', { name: 'Найдено' })).toBeVisible()
     })
 
@@ -84,7 +84,7 @@ test.describe('Empty States', () => {
 
       await expect(page.getByText('Здесь пока пусто.')).toBeVisible()
       await expect(page.getByText('Сообщений пока нет.')).toBeVisible()
-      await expect(page.getByRole('heading', { name: 'Создайте новый гиг' })).toBeVisible()
+      await expect(page.getByRole('heading', { name: 'Создайте первый гиг' })).toBeVisible()
     })
 
     test('my-gigs shows the «Здесь пока пусто» empty state', async ({ page }) => {

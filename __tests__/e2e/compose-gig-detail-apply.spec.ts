@@ -89,7 +89,7 @@ test.describe('compose-gig-detail-apply — rebuilt gig detail', () => {
     await expect(page.getByText('Технические требования')).toBeVisible() // col1 section
     await expect(page.getByText('Цель проекта')).toBeVisible() // a requirement card
     await expect(page.getByText('Критерии успеха')).toBeVisible() // col1 section
-    await expect(page.getByText('Мои условия')).toBeVisible() // conditions panel tab (a <div>, not role=tab)
+    await expect(page.getByText('Мои условия', { exact: true })).toBeVisible() // conditions panel tab (a <div>, not role=tab)
     await expect(page.getByText('Бюджет проекта')).toBeVisible() // conditions panel grotesk budget label
     await expect(page.getByText('Срок выполнения')).toBeVisible() // conditions panel grotesk deadline label
     await expect(page.getByRole('button', { name: 'Отправить заявку' })).toBeVisible() // apply form

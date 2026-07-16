@@ -185,4 +185,31 @@ Each is a separate `/ralphy-plan` → `/ralphy-implement` cycle. Ordered by prio
 
 **Result.** `npm run test:clean` = **1095/1095 passed, 0 failed** (was 72 failed). **New baseline is green** — a future integration failure now means a real regression, not drift.
 
-**Follow-ups still open (separate, flagged not fixed):** (a) the `createNotification` `@@unique([userId,gigId])` drop-events bug; (b) the Playwright E2E `e2e-greenup-residual` 13 (auth-wizard/csrf/browse) — a different suite, untouched here.
+**Follow-ups (both since resolved — see the two sections below):** (a) the `createNotification` `@@unique([userId,gigId])` drop-events bug → FIXED; (b) the E2E suite → GREENED (the `e2e-greenup-residual` auth/csrf/browse residual turned out already-resolved; the live suite had 13 *different* drift failures, now fixed).
+
+---
+
+### Notification drop-events bug FIXED — `createNotification` upsert
+
+> **✅ DONE & VERIFIED 2026-07-17.** Real product bug (not test drift). **Uncommitted.**
+
+**Bug.** `Notification` has `@@unique([userId, gigId])` (one row per user+gig, by design — `updatedAt`/`lastReadAt`/`markNotificationAsRead`-by-gigId all confirm it), but `createNotification` used `prisma.create()`. So the 2nd+ lifecycle event for the same (user, gig) — assigned → work submitted → approved → paid — threw a unique-constraint error that the fire-and-forget `catch` swallowed, and the notification was **silently dropped**. `createNotificationsBulk` had the same flaw (`createMany` can't upsert).
+
+**Fix (upsert, not remove-unique — the schema dictates one-row-per-gig).** Both now upsert on `userId_gigId`. The update branch bumps **`createdAt`** to the event time — deliberately createdAt, not `updatedAt`, because updatedAt also bumps when `markNotificationAsRead` writes `lastReadAt`, which would create a read/write timestamp race. Read side (`getUnreadNotifications`) non-message unread check became `!lastReadAt || createdAt > lastReadAt` so a re-fired event re-surfaces in the bell; `lastReadAt` is left untouched on new events because it's shared with message read-tracking (resetting it would wrongly re-flag old messages unread).
+
+**Verified.** 3 new tests (no-drop/update, re-surface-after-read, bulk-upsert-no-throw); full `npm run test:clean` **1098/1098**.
+
+---
+
+### E2E suite GREENED — 13 drift failures fixed (`e2e-drift-greenup`)
+
+> **✅ DONE & VERIFIED 2026-07-17.** Tests-only — zero app/lib changed (guarded). **Uncommitted.**
+
+**Finding.** The archived `e2e-greenup-residual` (auth-wizard «Продолжить»/border-color, csrf, browse) is **already resolved** by intervening work. A fresh full run showed **13 different, deterministic failures** (confirmed via `--last-failed` rerun) — **all test drift, no product bugs**: the app works, the specs had stale selectors/labels/counts after the UI evolved.
+
+**Fixed (7 spec files, 3 edit-only subagents reading the current source):**
+- **Auth (6)** — `registerViaOnboarding` helper now fills the fields step-3 actually requires (CLIENT: companyName/contactPerson/position/timezone; SPECIALIST: displayName/specialization/timezone — the button was correctly `disabled`); weak-password test asserts the button is `disabled` (client-gated now); homepage CTAs repointed from English "Get Started"/"Sign in" to «Создать аккаунт»→/register and «Войти»→/login.
+- **Profile pencil (3)** — the edit affordance is now an `EditButton` (`aria-label="Редактировать"`), not a bare SVG `<span>`; brittle `path[d^="M12.146…"]` selector replaced; bio-modal heading also drifted «Редактировать описание»→«Опыт и уровень».
+- **Misc (4)** — browse combobox count 3→4 (Рейтинг filter added); CLIENT dashboard empty heading «Создайте новый гиг»→«Создайте первый гиг»; bell `aria-label` "Notifications"→«Уведомления»; `getByText('Мои условия')`→`{ exact: true }` (strict-mode: tab vs «…(необязательно)» label).
+
+**Verified.** The 7 fixed specs: **36/36 green**. Guard: `git diff -- app lib prisma` shows only the 2 notification files (no agent overreach). Full-suite run: **178 passed, 2 failed, 7 did-not-run** — but the 2 failures (`compose-my-gigs:54`, `compose-profile:96` — neither is a repointed test, one is in an untouched file) **pass on isolated `--last-failed` rerun**, i.e. they are flaky casualties of a `ECONNRESET` Next dev-server abort during the 7-min serial run (which also stranded the 7 did-not-run). All 13 targeted drift failures are fixed; the residual is pre-existing dev-server flakiness, not test/product issues — a separate infra concern (the webserver destabilises under the long serial run).

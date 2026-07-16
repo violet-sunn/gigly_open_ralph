@@ -142,8 +142,8 @@ test.describe('e2e-profile — reconciled profile screen', () => {
     await expect(page.getByText('WebSocket')).toBeVisible()
     await expect(page.getByText('Опыт', { exact: true })).toBeVisible()
     await expect(page.getByText('Yandex')).toBeVisible()
-    // …but no edit Pencil is rendered to a non-owner (the owner-only pencil svg is absent everywhere on the page).
-    await expect(page.locator('span:has(path[d^="M12.146.146"])')).toHaveCount(0)
+    // …but no edit button is rendered to a non-owner (the owner-only «Редактировать» button is absent everywhere).
+    await expect(page.getByRole('button', { name: 'Редактировать' })).toHaveCount(0)
   })
 
   test('the retired /profile/edit route redirects to /profile', async ({ page }) => {
@@ -158,10 +158,11 @@ test.describe('e2e-profile — reconciled profile screen', () => {
     await setE2ESession(page, { id: specId, email: specEmail, role: 'SPECIALIST' })
     await page.goto('/profile')
 
-    // Owner pencils share one svg path; DOM order is [0]=Стек, [1]=Опыт(bio), [2]=Избранные категории (no name pencil).
-    // The Опыт pencil opens the «Редактировать описание» modal in place — no navigation to a separate edit screen.
-    await page.locator('span:has(path[d^="M12.146.146"])').nth(1).click()
-    await expect(page.getByRole('heading', { name: 'Редактировать описание' })).toBeVisible()
+    // Owner edit buttons share the accessible name «Редактировать»; DOM order is [0]=Стек, [1]=Опыт(bio),
+    // [2]=Избранные категории (no name button). The Опыт button opens the «Опыт и уровень» modal in place —
+    // no navigation to a separate edit screen.
+    await page.getByRole('button', { name: 'Редактировать' }).nth(1).click()
+    await expect(page.getByRole('heading', { name: 'Опыт и уровень' })).toBeVisible()
     await expect(page).not.toHaveURL(/\/profile\/edit/)
 
     const newBio = `Обновлённое описание ${Date.now()}`
@@ -169,7 +170,7 @@ test.describe('e2e-profile — reconciled profile screen', () => {
     await page.getByRole('button', { name: 'Сохранить' }).click()
 
     // Modal closes (noRedirect → refresh in place) and the new bio is persisted in the «Опыт» block.
-    await expect(page.getByRole('heading', { name: 'Редактировать описание' })).toHaveCount(0)
+    await expect(page.getByRole('heading', { name: 'Опыт и уровень' })).toHaveCount(0)
     await expect(page.getByText(newBio)).toBeVisible()
   })
 
@@ -178,8 +179,8 @@ test.describe('e2e-profile — reconciled profile screen', () => {
     await setE2ESession(page, { id: viewerId, email: viewerEmail, role: 'CLIENT' })
     await page.goto('/profile')
 
-    // The company has a single pencil (beside the name) → the «Редактировать реквизиты» modal.
-    await page.locator('span:has(path[d^="M12.146.146"])').first().click()
+    // The company has a single «Редактировать» button (beside the name) → the «Редактировать реквизиты» modal.
+    await page.getByRole('button', { name: 'Редактировать' }).first().click()
     await expect(page.getByRole('heading', { name: 'Редактировать реквизиты' })).toBeVisible()
 
     await page.locator('input[name="kpp"]').fill('770801001')

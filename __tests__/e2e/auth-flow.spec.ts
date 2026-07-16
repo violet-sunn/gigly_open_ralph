@@ -32,10 +32,16 @@ async function registerViaOnboarding(page: Page, role: 'CLIENT' | 'SPECIALIST', 
   await page.locator('input[name="password"]').fill(password)
   await page.locator('input[name="confirmPassword"]').fill(password)
   await page.getByRole('button', { name: 'Зарегистрироваться' }).click()
+  // Step-3 profile setup gates «Продолжить» until every required field is filled (AuthDesign OnboardingStep3):
+  //   CLIENT  → companyName, contactPerson, position, timezone
+  //   SPECIALIST → displayName, specialization, timezone
   if (role === 'CLIENT') {
     await page.locator('input[name="companyName"]').fill('ООО Тест')
+    await page.locator('input[name="contactPerson"]').fill('Иванов Иван Иванович')
+    await page.locator('input[name="position"]').fill('Директор')
   } else {
-    await page.locator('input[name="displayName"]').fill('Тест')
+    await page.locator('input[name="displayName"]').fill('Иванов Иван Иванович')
+    await page.getByLabel('Специализация').selectOption('Frontend')
   }
   await page.getByLabel('Местоположение и часовой пояс').selectOption('Europe/Moscow')
   await page.getByRole('button', { name: 'Продолжить' }).click()
@@ -119,9 +125,9 @@ test.describe('Auth Flow E2E — login + onboarding', () => {
     await page.fill('input[name="email"]', `test-auth-flow-weak-${Date.now()}@example.com`)
     await page.fill('input[name="password"]', 'weak')
     await page.fill('input[name="confirmPassword"]', 'weak')
-    await page.getByRole('button', { name: 'Зарегистрироваться' }).click()
-    // No account created → no advance to the setup step; the register button is still present.
-    await expect(page.getByRole('button', { name: 'Зарегистрироваться' })).toBeVisible()
+    // «Зарегистрироваться» is client-side disabled while the password fails validatePassword (canSubmit in
+    // OnboardingStep2), so no account is created and the user stays on the onboarding surface (step 2).
+    await expect(page.getByRole('button', { name: 'Зарегистрироваться' })).toBeDisabled()
     await expect(page).toHaveURL(/\/register/)
   })
 })
