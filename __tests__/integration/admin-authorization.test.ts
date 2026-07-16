@@ -138,7 +138,7 @@ describe('Admin Authorization Tests', () => {
 
     await withAuthContext(client, async () => {
       const result = await suspendUser(null, formData)
-      expect(result).toEqual({ error: 'Only admins can perform moderation actions.' })
+      expect(result).toEqual({ error: 'Действия модерации доступны только администраторам.' })
     })
 
     // Verify user was NOT suspended
@@ -179,7 +179,7 @@ describe('Admin Authorization Tests', () => {
 
     await withAuthContext(specialist, async () => {
       const result = await suspendUser(null, formData)
-      expect(result).toEqual({ error: 'Only admins can perform moderation actions.' })
+      expect(result).toEqual({ error: 'Действия модерации доступны только администраторам.' })
     })
 
     // Verify user was NOT suspended
@@ -307,7 +307,7 @@ describe('Admin Authorization Tests', () => {
     // Try to close as non-admin
     await withAuthContext(client2, async () => {
       const result = await closeGig(null, formData)
-      expect(result).toEqual({ error: 'Only admins can perform moderation actions.' })
+      expect(result).toEqual({ error: 'Действия модерации доступны только администраторам.' })
     })
 
     // Verify gig was NOT closed
@@ -408,7 +408,7 @@ describe('Admin Authorization Tests', () => {
 
     await withAuthContext(client, async () => {
       const result = await unsuspendUser(null, formData)
-      expect(result).toEqual({ error: 'Only admins can perform moderation actions.' })
+      expect(result).toEqual({ error: 'Действия модерации доступны только администраторам.' })
     })
 
     // Verify user was NOT unsuspended
@@ -450,7 +450,7 @@ describe('Admin Authorization Tests', () => {
 
     await withAuthContext(specialist, async () => {
       const result = await unsuspendUser(null, formData)
-      expect(result).toEqual({ error: 'Only admins can perform moderation actions.' })
+      expect(result).toEqual({ error: 'Действия модерации доступны только администраторам.' })
     })
 
     // Verify user was NOT unsuspended
@@ -619,7 +619,7 @@ describe('Admin Authorization Tests', () => {
     // CLIENT tries to close their own gig via admin action
     await withAuthContext(client, async () => {
       const result = await closeGig(null, formData)
-      expect(result).toEqual({ error: 'Only admins can perform moderation actions.' })
+      expect(result).toEqual({ error: 'Действия модерации доступны только администраторам.' })
     })
 
     // Verify gig was NOT closed

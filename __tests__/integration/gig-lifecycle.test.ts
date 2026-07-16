@@ -407,7 +407,7 @@ describe('Gig Lifecycle Tests', () => {
       await withAuthContext(client, async () => {
         const result = await approveWork(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toContain('can only be approved for gigs under review')
+        expect(result.error).toContain('Принять работу можно только по гигу на проверке — сначала специалист должен её сдать.')
       })
 
       // Verify gig status unchanged
@@ -439,7 +439,7 @@ describe('Gig Lifecycle Tests', () => {
       await withAuthContext(specialist, async () => {
         const result = await submitWork(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toContain('can only be submitted for gigs that are in progress')
+        expect(result.error).toContain('Сдать работу можно только по гигу в статусе «В работе».')
       })
 
       // Verify gig status unchanged
@@ -473,7 +473,7 @@ describe('Gig Lifecycle Tests', () => {
       await withAuthContext(client, async () => {
         const result = await approveWork(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toContain('can only be approved for gigs under review')
+        expect(result.error).toContain('Принять работу можно только по гигу на проверке — сначала специалист должен её сдать.')
       })
 
       // Verify gig status unchanged
@@ -507,7 +507,7 @@ describe('Gig Lifecycle Tests', () => {
       await withAuthContext(client, async () => {
         const result = await markAsPaid(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toContain('Only completed gigs can be marked as paid')
+        expect(result.error).toContain('Отметить оплату можно только по завершённому гигу — сначала нужно принять работу.')
       })
 
       // Verify gig status unchanged
@@ -539,7 +539,7 @@ describe('Gig Lifecycle Tests', () => {
       await withAuthContext(client, async () => {
         const result = await markAsPaid(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toContain('Only completed gigs can be marked as paid')
+        expect(result.error).toContain('Отметить оплату можно только по завершённому гигу — сначала нужно принять работу.')
       })
 
       // Verify gig status unchanged
@@ -572,7 +572,7 @@ describe('Gig Lifecycle Tests', () => {
       await withAuthContext(client, async () => {
         const result = await markAsPaid(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toContain('Only completed gigs can be marked as paid')
+        expect(result.error).toContain('Отметить оплату можно только по завершённому гигу — сначала нужно принять работу.')
       })
 
       // Verify gig status unchanged
@@ -609,7 +609,7 @@ describe('Gig Lifecycle Tests', () => {
       await withAuthContext(client, async () => {
         const result = await markAsPaid(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toContain('This gig has already been marked as paid')
+        expect(result.error).toContain('Этот гиг уже отмечен как оплаченный.')
       })
 
       // Verify gig status and paidAt unchanged
@@ -644,7 +644,7 @@ describe('Gig Lifecycle Tests', () => {
       await withAuthContext(specialist, async () => {
         const result = await markAsPaid(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toBe('Only clients can mark gigs as paid. If you\'re the specialist, wait for the client to confirm payment.')
+        expect(result.error).toBe('Отмечать оплату могут только заказчики. Если вы специалист — дождитесь подтверждения оплаты.')
       })
 
       // Verify gig status unchanged
@@ -672,7 +672,7 @@ describe('Gig Lifecycle Tests', () => {
       await withAuthContext(client, async () => {
         const result = await markAsPaid(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toBe('This gig no longer exists or has been removed.')
+        expect(result.error).toBe('Этот гиг больше не существует или был удалён.')
       })
 
       // Cleanup
@@ -736,7 +736,7 @@ describe('Gig Lifecycle Tests', () => {
 
       await withAuthContext(specialist, async () => {
         const result = await submitWork(null, formData)
-        expect(result).toEqual({ error: 'Work can only be submitted for gigs that are in progress.' })
+        expect(result).toEqual({ error: 'Сдать работу можно только по гигу в статусе «В работе».' })
       })
 
       // Verify gig status unchanged
@@ -767,7 +767,7 @@ describe('Gig Lifecycle Tests', () => {
 
       await withAuthContext(specialist, async () => {
         const result = await submitWork(null, formData)
-        expect(result).toEqual({ error: 'Work can only be submitted for gigs that are in progress.' })
+        expect(result).toEqual({ error: 'Сдать работу можно только по гигу в статусе «В работе».' })
       })
 
       // Verify gig status unchanged
@@ -798,7 +798,7 @@ describe('Gig Lifecycle Tests', () => {
 
       await withAuthContext(specialist, async () => {
         const result = await submitWork(null, formData)
-        expect(result).toEqual({ error: 'Work can only be submitted for gigs that are in progress.' })
+        expect(result).toEqual({ error: 'Сдать работу можно только по гигу в статусе «В работе».' })
       })
 
       // Verify gig status unchanged
@@ -829,7 +829,7 @@ describe('Gig Lifecycle Tests', () => {
 
       await withAuthContext(client, async () => {
         const result = await approveWork(null, formData)
-        expect(result).toEqual({ error: 'Work can only be approved for gigs under review. The specialist needs to submit their work first.' })
+        expect(result).toEqual({ error: 'Принять работу можно только по гигу на проверке — сначала специалист должен её сдать.' })
       })
 
       // Verify gig status unchanged
@@ -860,7 +860,7 @@ describe('Gig Lifecycle Tests', () => {
 
       await withAuthContext(client, async () => {
         const result = await approveWork(null, formData)
-        expect(result).toEqual({ error: 'Work can only be approved for gigs under review. The specialist needs to submit their work first.' })
+        expect(result).toEqual({ error: 'Принять работу можно только по гигу на проверке — сначала специалист должен её сдать.' })
       })
 
       // Verify gig status unchanged
@@ -937,7 +937,7 @@ describe('Gig Lifecycle Tests', () => {
       await withAuthContext(otherClient, async () => {
         const result = await approveWork(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toContain('Only the client who posted this gig can approve the work')
+        expect(result.error).toContain('Принять работу может только заказчик, опубликовавший гиг.')
       })
 
       // Verify gig status unchanged
@@ -973,7 +973,7 @@ describe('Gig Lifecycle Tests', () => {
       await withAuthContext(otherClient, async () => {
         const result = await markAsPaid(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toContain('Only the client who posted this gig can mark it as paid')
+        expect(result.error).toContain('Отметить оплату может только заказчик, опубликовавший гиг.')
       })
 
       // Verify gig status unchanged
@@ -1009,7 +1009,7 @@ describe('Gig Lifecycle Tests', () => {
       await withAuthContext(otherSpecialist, async () => {
         const result = await submitWork(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toContain('Only the assigned specialist can submit work')
+        expect(result.error).toContain('Сдать работу может только назначенный специалист.')
       })
 
       // Verify gig status unchanged

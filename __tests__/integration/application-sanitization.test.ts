@@ -280,7 +280,7 @@ describe('Application Sanitization Tests', () => {
       })
 
       expect(result).toEqual({
-        error: 'Technical approach must be at least 100 characters. Please provide more detail about your methodology.'
+        error: 'Описание подхода должно быть не короче 100 символов. Расскажите подробнее о вашем методе.'
       })
 
       // Verify no application created

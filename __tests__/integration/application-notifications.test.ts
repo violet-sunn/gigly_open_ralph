@@ -214,7 +214,7 @@ describe('Application Notification Tests', () => {
       });
 
       // Should return error, not create application or notification
-      expect(result.error).toContain('example gig');
+      expect(result.error).toContain('Это демонстрационный гиг. Откликайтесь на реальные гиги в поиске.');
 
       const notification = await prisma.notification.findFirst({
         where: { gigId: gig.id },

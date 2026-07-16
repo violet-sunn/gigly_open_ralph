@@ -80,11 +80,11 @@ describe('Authorization Error Clarity Tests', () => {
 
       // Error should clearly state what role is required
       expect(result).toHaveProperty('error')
-      expect(result.error).toContain('client')
+      expect(result.error).toContain('Публиковать гиги могут только заказчики. Войдите как компания или зарегистрируйтесь в роли заказчика.')
       expect(result.error).not.toContain('unauthorized')
       expect(result.error).not.toContain('forbidden')
       // Should use clear, user-friendly language
-      expect(result.error).toBe('Only clients can post gigs. Switch to a client account or register as a client to continue.')
+      expect(result.error).toBe('Публиковать гиги могут только заказчики. Войдите как компания или зарегистрируйтесь в роли заказчика.')
     })
 
     // Cleanup
@@ -154,8 +154,8 @@ describe('Authorization Error Clarity Tests', () => {
 
       // Error should clearly indicate ownership is required
       expect(result).toHaveProperty('error')
-      expect(result.error).toContain('client who posted this gig')
-      expect(result.error).toBe('Only the client who posted this gig can accept applications.')
+      expect(result.error).toContain('Принимать отклики может только заказчик, опубликовавший гиг.')
+      expect(result.error).toBe('Принимать отклики может только заказчик, опубликовавший гиг.')
     })
 
     // Cleanup
@@ -196,8 +196,8 @@ describe('Authorization Error Clarity Tests', () => {
 
       // Error should clearly state admin role is required
       expect(result).toHaveProperty('error')
-      expect(result.error).toContain('admin')
-      expect(result.error).toBe('Only admins can perform moderation actions.')
+      expect(result.error).toContain('Действия модерации доступны только администраторам.')
+      expect(result.error).toBe('Действия модерации доступны только администраторам.')
     })
 
     // Cleanup
@@ -305,8 +305,8 @@ describe('Authorization Error Clarity Tests', () => {
 
     // All errors should follow consistent pattern
     errors.forEach(error => {
-      // Should start with "Only"
-      expect(error).toMatch(/^Only/)
+      // Should start with a capital letter
+      expect(error).toMatch(/^[А-ЯЁ]/)
       // Should end with period
       expect(error).toMatch(/\.$/)
       // Should be 1-2 sentences (what + optional how to fix)

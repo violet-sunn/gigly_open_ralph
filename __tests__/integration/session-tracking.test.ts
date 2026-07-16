@@ -119,7 +119,7 @@ describe('terminateSession (ownership-enforced)', () => {
     const theirs = await prisma.session.create({ data: { userId: them.id, userAgent: 'x' } })
 
     const res = await terminateSession(theirs.id)
-    expect(res).toEqual({ error: 'Session not found.' })
+    expect(res).toEqual({ error: 'Сессия не найдена.' })
     expect(await prisma.session.findUnique({ where: { id: theirs.id } })).not.toBeNull()
   })
 })

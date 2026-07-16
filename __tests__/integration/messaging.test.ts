@@ -153,7 +153,7 @@ describe('Messaging System Tests', () => {
       await withAuthContext(otherSpecialist, async () => {
         const result = await sendMessage(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toBe('You can only send messages if you\'re the client who posted this gig or the assigned specialist.')
+        expect(result.error).toBe('Писать в этот чат может только заказчик, опубликовавший гиг, или назначенный специалист.')
       })
 
       // Verify no message was created
@@ -189,7 +189,7 @@ describe('Messaging System Tests', () => {
       await withAuthContext(otherClient, async () => {
         const result = await sendMessage(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toBe('You can only send messages if you\'re the client who posted this gig or the assigned specialist.')
+        expect(result.error).toBe('Писать в этот чат может только заказчик, опубликовавший гиг, или назначенный специалист.')
       })
 
       // Verify no message was created
@@ -498,7 +498,7 @@ describe('Messaging System Tests', () => {
       await withAuthContext(client, async () => {
         const result = await sendMessage(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toBe('Cannot send messages until a specialist is assigned to this gig. Wait for the client to accept an application.')
+        expect(result.error).toBe('Писать можно после назначения специалиста. Дождитесь, пока заказчик примет отклик.')
       })
 
       const messages = await prisma.message.findMany({ where: { gigId: gig.id } })
@@ -528,7 +528,7 @@ describe('Messaging System Tests', () => {
       await withAuthContext(client, async () => {
         const result = await sendMessage(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toBe('Cannot send messages to closed gigs. This gig has been closed by administrators.')
+        expect(result.error).toBe('Нельзя писать в закрытый гиг — он закрыт администрацией.')
       })
 
       const messages = await prisma.message.findMany({ where: { gigId: gig.id } })
@@ -624,7 +624,7 @@ describe('Messaging System Tests', () => {
       await withAuthContext(client, async () => {
         const result = await sendMessage(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toBe('Cannot send messages to a completed gig. The work has been finalized.')
+        expect(result.error).toBe('Нельзя писать в завершённый гиг — работа уже финализирована.')
       })
 
       const messages = await prisma.message.findMany({ where: { gigId: gig.id } })
@@ -655,7 +655,7 @@ describe('Messaging System Tests', () => {
       await withAuthContext(client, async () => {
         const result = await sendMessage(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toBe('Cannot send messages to a completed gig. The work has been finalized.')
+        expect(result.error).toBe('Нельзя писать в завершённый гиг — работа уже финализирована.')
       })
 
       const messages = await prisma.message.findMany({ where: { gigId: gig.id } })
@@ -686,7 +686,7 @@ describe('Messaging System Tests', () => {
       await withAuthContext(specialist, async () => {
         const result = await sendMessage(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toBe('Cannot send messages to a completed gig. The work has been finalized.')
+        expect(result.error).toBe('Нельзя писать в завершённый гиг — работа уже финализирована.')
       })
 
       const messages = await prisma.message.findMany({ where: { gigId: gig.id } })
@@ -718,7 +718,7 @@ describe('Messaging System Tests', () => {
       await withAuthContext(client, async () => {
         const result = await sendMessage(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toBe('Message cannot be empty. Please enter a message to send.')
+        expect(result.error).toBe('Сообщение не может быть пустым. Введите текст.')
       })
 
       const messages = await prisma.message.findMany({ where: { gigId: gig.id } })
@@ -748,7 +748,7 @@ describe('Messaging System Tests', () => {
       await withAuthContext(client, async () => {
         const result = await sendMessage(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toBe('Message cannot be empty. Please enter a message to send.')
+        expect(result.error).toBe('Сообщение не может быть пустым. Введите текст.')
       })
 
       const messages = await prisma.message.findMany({ where: { gigId: gig.id } })
@@ -778,7 +778,7 @@ describe('Messaging System Tests', () => {
       await withAuthContext(client, async () => {
         const result = await sendMessage(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toBe('Message is too long. Maximum 2000 characters allowed.')
+        expect(result.error).toBe('Сообщение слишком длинное. Максимум 2000 символов.')
       })
 
       const messages = await prisma.message.findMany({ where: { gigId: gig.id } })
@@ -905,7 +905,7 @@ describe('Messaging System Tests', () => {
       await withAuthContext(client, async () => {
         const result = await sendMessage(null, formData)
         expect(result).toHaveProperty('error')
-        expect(result.error).toBe('This gig no longer exists or has been removed.')
+        expect(result.error).toBe('Этот гиг больше не существует или был удалён.')
       })
 
       await prisma.user.delete({ where: { id: client.id } })
@@ -1039,7 +1039,7 @@ describe('sendMessageLive (chat-realtime optimistic send)', () => {
 
     const res = await withAuthContext(client, () => sendMessageLive(gig.id, 'too early'))
     expect('error' in res).toBe(true)
-    if ('error' in res) expect(res.error).toMatch(/specialist is assigned/)
+    if ('error' in res) expect(res.error).toMatch(/назначения специалиста/)
     expect(await prisma.message.count({ where: { gigId: gig.id } })).toBe(0)
   })
 

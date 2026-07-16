@@ -264,7 +264,7 @@ describe('Moderation Logging', () => {
 
     await withAuthContext(admin, async () => {
       const result = await suspendUser(null, formData)
-      expect(result.error).toBe('Reason is required for suspension.')
+      expect(result.error).toBe('Укажите причину блокировки.')
     })
 
     // Verify no ModerationLog entry was created

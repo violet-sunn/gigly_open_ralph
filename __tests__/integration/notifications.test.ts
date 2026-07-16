@@ -395,7 +395,7 @@ describe('Notification System', () => {
         return await markNotificationAsRead(gig.id)
       })
 
-      expect(result.error).toBe('You are not authorized to mark this notification as read.')
+      expect(result.error).toBe('Недостаточно прав, чтобы отметить это уведомление прочитанным.')
     })
 
     it('returns error for non-existent gig', async () => {
@@ -405,7 +405,7 @@ describe('Notification System', () => {
         return await markNotificationAsRead('non-existent-id')
       })
 
-      expect(result.error).toBe('This gig no longer exists or has been removed.')
+      expect(result.error).toBe('Этот гиг больше не существует или был удалён.')
     })
   })
 })

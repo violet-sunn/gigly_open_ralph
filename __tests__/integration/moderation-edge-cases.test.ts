@@ -82,7 +82,7 @@ describe('Moderation Edge Cases', () => {
 
     await withAuthContext(admin, async () => {
       const result = await suspendUser(null, formData)
-      expect(result).toEqual({ error: 'Reason is required for suspension.' })
+      expect(result).toEqual({ error: 'Укажите причину блокировки.' })
     })
 
     // Verify user was NOT suspended
@@ -123,7 +123,7 @@ describe('Moderation Edge Cases', () => {
 
     await withAuthContext(admin, async () => {
       const result = await suspendUser(null, formData)
-      expect(result).toEqual({ error: 'Reason is required for suspension.' })
+      expect(result).toEqual({ error: 'Укажите причину блокировки.' })
     })
 
     // Verify user was NOT suspended
@@ -165,7 +165,7 @@ describe('Moderation Edge Cases', () => {
 
     await withAuthContext(admin, async () => {
       const result = await suspendUser(null, formData)
-      expect(result).toEqual({ error: 'User is already suspended.' })
+      expect(result).toEqual({ error: 'Пользователь уже заблокирован.' })
     })
 
     // Verify no duplicate log was created
@@ -198,7 +198,7 @@ describe('Moderation Edge Cases', () => {
 
     await withAuthContext(admin, async () => {
       const result = await suspendUser(null, formData)
-      expect(result).toEqual({ error: 'This user no longer exists or has been removed.' })
+      expect(result).toEqual({ error: 'Этот пользователь больше не существует или был удалён.' })
     })
 
     // Verify no log was created
@@ -239,7 +239,7 @@ describe('Moderation Edge Cases', () => {
 
     await withAuthContext(admin, async () => {
       const result = await unsuspendUser(null, formData)
-      expect(result).toEqual({ error: 'Reason is required for unsuspension.' })
+      expect(result).toEqual({ error: 'Укажите причину разблокировки.' })
     })
 
     // Verify user was NOT unsuspended
@@ -281,7 +281,7 @@ describe('Moderation Edge Cases', () => {
 
     await withAuthContext(admin, async () => {
       const result = await unsuspendUser(null, formData)
-      expect(result).toEqual({ error: 'User is not suspended.' })
+      expect(result).toEqual({ error: 'Пользователь не заблокирован.' })
     })
 
     // Cleanup
@@ -308,7 +308,7 @@ describe('Moderation Edge Cases', () => {
 
     await withAuthContext(admin, async () => {
       const result = await unsuspendUser(null, formData)
-      expect(result).toEqual({ error: 'This user no longer exists or has been removed.' })
+      expect(result).toEqual({ error: 'Этот пользователь больше не существует или был удалён.' })
     })
 
     // Cleanup
@@ -356,7 +356,7 @@ describe('Moderation Edge Cases', () => {
 
     await withAuthContext(admin, async () => {
       const result = await closeGig(null, formData)
-      expect(result).toEqual({ error: 'Reason is required for closing a gig.' })
+      expect(result).toEqual({ error: 'Укажите причину закрытия гига.' })
     })
 
     // Verify gig was NOT closed
@@ -414,7 +414,7 @@ describe('Moderation Edge Cases', () => {
 
     await withAuthContext(admin, async () => {
       const result = await closeGig(null, formData)
-      expect(result).toEqual({ error: 'Gig is already closed.' })
+      expect(result).toEqual({ error: 'Гиг уже закрыт.' })
     })
 
     // Verify no duplicate log was created
@@ -448,7 +448,7 @@ describe('Moderation Edge Cases', () => {
 
     await withAuthContext(admin, async () => {
       const result = await closeGig(null, formData)
-      expect(result).toEqual({ error: 'This gig no longer exists or has been removed.' })
+      expect(result).toEqual({ error: 'Этот гиг больше не существует или был удалён.' })
     })
 
     // Verify no log was created

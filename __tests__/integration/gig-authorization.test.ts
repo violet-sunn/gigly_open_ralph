@@ -230,7 +230,7 @@ describe('Gig Authorization Tests', () => {
 
     await withAuthContext(client2, async () => {
       const result = await applyToGig(null, formData)
-      expect(result).toEqual({ error: 'Only specialists can apply to gigs. Switch to a specialist account or register as a specialist to continue.' })
+      expect(result).toEqual({ error: 'Откликаться на гиги могут только специалисты. Войдите как специалист или зарегистрируйтесь в этой роли.' })
     })
 
     // Cleanup
@@ -373,7 +373,7 @@ describe('Gig Authorization Tests', () => {
     // Try to accept as non-owner
     await withAuthContext(client2, async () => {
       const result = await acceptApplication(null, formData)
-      expect(result).toEqual({ error: 'Only the client who posted this gig can accept applications.' })
+      expect(result).toEqual({ error: 'Принимать отклики может только заказчик, опубликовавший гиг.' })
     })
 
     // Verify application status unchanged
@@ -499,7 +499,7 @@ describe('Gig Authorization Tests', () => {
     // Try to submit as non-assigned specialist
     await withAuthContext(specialist2, async () => {
       const result = await submitWork(null, formData)
-      expect(result).toEqual({ error: 'Only the assigned specialist can submit work for this gig.' })
+      expect(result).toEqual({ error: 'Сдать работу может только назначенный специалист.' })
     })
 
     // Verify gig status unchanged
@@ -624,7 +624,7 @@ describe('Gig Authorization Tests', () => {
     // Try to approve as non-owner
     await withAuthContext(client2, async () => {
       const result = await approveWork(null, formData)
-      expect(result).toEqual({ error: 'Only the client who posted this gig can approve the work.' })
+      expect(result).toEqual({ error: 'Принять работу может только заказчик, опубликовавший гиг.' })
     })
 
     // Verify gig status unchanged
@@ -750,7 +750,7 @@ describe('Gig Authorization Tests', () => {
     // Try to mark as paid as non-owner
     await withAuthContext(client2, async () => {
       const result = await markAsPaid(null, formData)
-      expect(result).toEqual({ error: 'Only the client who posted this gig can mark it as paid.' })
+      expect(result).toEqual({ error: 'Отметить оплату может только заказчик, опубликовавший гиг.' })
     })
 
     // Verify gig status unchanged
@@ -809,7 +809,7 @@ describe('Gig Authorization Tests', () => {
 
     await withAuthContext(client, async () => {
       const result = await submitWork(null, formData)
-      expect(result).toEqual({ error: 'Only specialists can submit work. If you\'re the client, wait for the specialist to submit their deliverables.' })
+      expect(result).toEqual({ error: 'Сдавать работу могут только специалисты. Если вы заказчик — дождитесь сдачи от специалиста.' })
     })
 
     // Verify gig status unchanged
@@ -863,7 +863,7 @@ describe('Gig Authorization Tests', () => {
 
     await withAuthContext(specialist, async () => {
       const result = await approveWork(null, formData)
-      expect(result).toEqual({ error: 'Only clients can approve work. If you\'re the specialist, wait for the client to review your submission.' })
+      expect(result).toEqual({ error: 'Принимать работу могут только заказчики. Если вы специалист — дождитесь проверки заказчиком.' })
     })
 
     // Verify gig status unchanged
@@ -895,7 +895,7 @@ describe('Gig Authorization Tests', () => {
 
     await withAuthContext(specialist, async () => {
       const result = await submitWork(null, formData)
-      expect(result).toEqual({ error: 'This gig no longer exists or has been removed.' })
+      expect(result).toEqual({ error: 'Этот гиг больше не существует или был удалён.' })
     })
 
     // Cleanup
@@ -920,7 +920,7 @@ describe('Gig Authorization Tests', () => {
 
     await withAuthContext(client, async () => {
       const result = await approveWork(null, formData)
-      expect(result).toEqual({ error: 'This gig no longer exists or has been removed.' })
+      expect(result).toEqual({ error: 'Этот гиг больше не существует или был удалён.' })
     })
 
     // Cleanup
