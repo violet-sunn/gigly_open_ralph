@@ -87,7 +87,11 @@ export async function getUnreadNotifications() {
     if (notification && (!notification.lastReadAt || notification.createdAt > (notification.lastReadAt || new Date(0)))) {
       // If notification type is not MESSAGE, or if it's more recent than messages
       if (notification.type && notification.type !== 'MESSAGE') {
-        const notificationIsUnread = !notification.lastReadAt;
+        // Unread when never read, OR when a newer event has bumped `createdAt` past the last read (createNotification
+        // upserts one row per gig and bumps createdAt per event). Without the second clause a new lifecycle event on an
+        // already-opened gig would never re-surface in the bell.
+        const notificationIsUnread =
+          !notification.lastReadAt || notification.createdAt > notification.lastReadAt;
 
         if (notificationIsUnread) {
           // Use this notification's display info
