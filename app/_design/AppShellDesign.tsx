@@ -74,12 +74,15 @@ export function AppShellDesign({
   role,
   counts,
   admin = false,
+  adminOpenDisputes,
   children,
 }: {
   profile: { name: string; sub: string };
   role: NavRole;
   counts: NavCounts;
   admin?: boolean;
+  /** OPEN-dispute count for the admin «Споры» nav badge (server-seeded; the admin shell does not poll). */
+  adminOpenDisputes?: number;
   children: React.ReactNode;
 }) {
   const pathname = usePathname() ?? "";
@@ -93,7 +96,7 @@ export function AppShellDesign({
   const live = useLiveCounts(counts, !admin);
   const liveCounts: NavCounts = admin ? counts : { gigs: live.gigs, chats: live.chats };
 
-  const items = markActive(admin ? buildAdminNav() : buildSidebarNav(role, liveCounts), pathname);
+  const items = markActive(admin ? buildAdminNav(adminOpenDisputes) : buildSidebarNav(role, liveCounts), pathname);
   const title = pageTitle(pathname);
 
   // Header filters refine the CURRENT route's query in place (no redirect): preserve existing params, set/clear the one

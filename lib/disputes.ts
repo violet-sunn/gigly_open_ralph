@@ -16,6 +16,21 @@ const STATUS_MAP: Record<string, Status> = {
 }
 const toDesignStatus = (s: string): Status => STATUS_MAP[s] ?? 'open'
 
+/**
+ * Whether the gig currently has an OPEN dispute. The lifecycle actions (approveWork / markAsPaid) use this to refuse
+ * settling a gig while it is contested — otherwise a client could open a dispute and be paid around it, and the dispute
+ * would sit OPEN forever after payment (the tester's «спор остаётся после оплаты»). Cheap: `@@index([gigId])`.
+ */
+export async function hasOpenDispute(gigId: string): Promise<boolean> {
+  const open = await prisma.dispute.findFirst({ where: { gigId, status: 'OPEN' }, select: { id: true } })
+  return open !== null
+}
+
+/** Count of OPEN disputes across the platform — the admin «Споры» nav badge (moderation queue length). */
+export async function countOpenDisputes(): Promise<number> {
+  return prisma.dispute.count({ where: { status: 'OPEN' } })
+}
+
 type OpenerUser = {
   email: string
   specialistProfile?: { displayName: string } | null

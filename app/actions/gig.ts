@@ -7,6 +7,7 @@ import { sanitizeInput } from '@/lib/sanitize'
 import { applicationRateLimiter, getRateLimitError } from '@/lib/ratelimit'
 import { persistMessage } from '@/lib/messaging'
 import { createNotification, createNotificationsBulk } from '@/lib/notifications'
+import { hasOpenDispute } from '@/lib/disputes'
 import { isCategorySlug } from '@/lib/categories'
 import { GIG_DESCRIPTION_MIN } from '@/lib/gig-validation'
 import { serviceFeeKopecks } from '@/lib/pricing'
@@ -724,6 +725,11 @@ export async function approveWork(
     return { error: 'Принять работу может только заказчик, опубликовавший гиг.' }
   }
 
+  // A contested gig cannot be settled around the dispute — resolve it first (fixes «спор остаётся после оплаты»).
+  if (await hasOpenDispute(gigId)) {
+    return { error: 'По гигу открыт спор — принять работу можно будет после решения модератора.' }
+  }
+
   await prisma.gig.update({
     where: { id: gigId },
     data: { status: 'COMPLETED' },
@@ -823,6 +829,12 @@ export async function markAsPaid(
 
   if (gig.status !== 'COMPLETED') {
     return { error: 'Отметить оплату можно только по завершённому гигу — сначала нужно принять работу.' }
+  }
+
+  // Belt-and-braces: a dispute opened on a COMPLETED-but-unpaid gig must still block payment (approveWork guards the
+  // REVIEW→COMPLETED edge, but a dispute can be raised after approval too).
+  if (await hasOpenDispute(gigId)) {
+    return { error: 'По гигу открыт спор — отметить оплату можно будет после решения модератора.' }
   }
 
   const paidAt = new Date()

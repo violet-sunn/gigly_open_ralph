@@ -44,13 +44,16 @@ export function buildSidebarNav(role: NavRole, counts: NavCounts = {}): SidebarN
  * Admin sidebar nav (prove-extensibility-admin) — the moderation routes. Nav DATA only (not a kit addition); the
  * admin shell builds the VM from this + `markActive`, exactly like the role-based nav.
  */
-export function buildAdminNav(): SidebarNavItemVM[] {
+export function buildAdminNav(openDisputes?: number): SidebarNavItemVM[] {
   // «Модерация» is the moderation console (overview); «Споры» is the dedicated full dispute list (all statuses +
   // filter); «Пользователи»/«Гиги» are the paginated management tables. The prototype only has the single console —
   // the dispute list + tables are the app's management extensions (see transport-admin-console).
+  //
+  // The «Споры» badge is the moderation queue length (OPEN disputes) — the admin's "a new dispute needs you" signal,
+  // since disputes are not participant notifications and never reached the bell. Seeded server-side per render.
   return [
     { icon: 'dashboard', label: 'Модерация', href: '/admin', active: false },
-    { icon: 'disputes', label: 'Споры', href: '/admin/disputes', active: false },
+    { icon: 'disputes', label: 'Споры', href: '/admin/disputes', count: openDisputes || undefined, active: false },
     { icon: 'search', label: 'Пользователи', href: '/admin/users', active: false },
     { icon: 'my-gigs', label: 'Гиги', href: '/admin/gigs', active: false },
   ]

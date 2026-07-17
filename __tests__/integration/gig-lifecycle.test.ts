@@ -1025,4 +1025,62 @@ describe('Gig Lifecycle Tests', () => {
       await prisma.user.delete({ where: { id: otherSpecialist.id } })
     })
   })
+
+  // A gig with an OPEN dispute must not be settled around the dispute — otherwise the client could pay past it and the
+  // dispute would sit OPEN forever (the tester's «спор остаётся после оплаты»). Resolving it re-opens the path.
+  describe('Open dispute blocks settlement', () => {
+    const gigForm = (gigId: string) => {
+      const f = new FormData()
+      f.append('gigId', gigId)
+      return f
+    }
+
+    it('approveWork is refused while an OPEN dispute exists on the gig', async () => {
+      const prisma = getTestPrismaClient()
+      const client = await createTestUser(prisma, { role: 'CLIENT' })
+      const spec = await createTestUser(prisma, { role: 'SPECIALIST' })
+      const gig = await createTestGig(prisma, { clientId: client.id, assignedSpecialistId: spec.id, status: 'REVIEW' })
+      await prisma.dispute.create({ data: { gigId: gig.id, openerId: spec.id, reason: 'Спор' } })
+
+      const result = await withAuthContext(client, async () => approveWork(null, gigForm(gig.id)))
+
+      expect(result).toEqual({ error: 'По гигу открыт спор — принять работу можно будет после решения модератора.' })
+      expect((await prisma.gig.findUnique({ where: { id: gig.id } }))!.status).toBe('REVIEW') // unchanged
+    })
+
+    it('markAsPaid is refused while an OPEN dispute exists (even after approval)', async () => {
+      const prisma = getTestPrismaClient()
+      const client = await createTestUser(prisma, { role: 'CLIENT' })
+      const spec = await createTestUser(prisma, { role: 'SPECIALIST' })
+      const gig = await createTestGig(prisma, { clientId: client.id, assignedSpecialistId: spec.id, status: 'COMPLETED' })
+      await prisma.dispute.create({ data: { gigId: gig.id, openerId: spec.id, reason: 'Спор' } })
+
+      const result = await withAuthContext(client, async () => markAsPaid(null, gigForm(gig.id)))
+
+      expect(result).toEqual({ error: 'По гигу открыт спор — отметить оплату можно будет после решения модератора.' })
+      expect((await prisma.gig.findUnique({ where: { id: gig.id } }))!.status).toBe('COMPLETED') // not PAID
+    })
+
+    it('once the dispute is no longer OPEN, approveWork proceeds', async () => {
+      const prisma = getTestPrismaClient()
+      const client = await createTestUser(prisma, { role: 'CLIENT' })
+      const spec = await createTestUser(prisma, { role: 'SPECIALIST' })
+      const gig = await createTestGig(prisma, { clientId: client.id, assignedSpecialistId: spec.id, status: 'REVIEW' })
+      const dispute = await prisma.dispute.create({ data: { gigId: gig.id, openerId: spec.id, reason: 'Спор' } })
+
+      // Blocked while OPEN…
+      expect(await withAuthContext(client, async () => approveWork(null, gigForm(gig.id)))).toHaveProperty('error')
+
+      // …resolved → the path re-opens.
+      await prisma.dispute.update({ where: { id: dispute.id }, data: { status: 'RESOLVED' } })
+      await withAuthContext(client, async () => {
+        try {
+          await approveWork(null, gigForm(gig.id))
+        } catch (e: any) {
+          expect(e.message).toContain('NEXT_REDIRECT')
+        }
+      })
+      expect((await prisma.gig.findUnique({ where: { id: gig.id } }))!.status).toBe('COMPLETED')
+    })
+  })
 })

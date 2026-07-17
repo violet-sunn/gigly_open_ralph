@@ -67,6 +67,37 @@ in a transaction.
 - `resolveDispute` (admin-only) resolves an `OPEN` dispute and writes a linked `ModerationLog` audit (`RESOLVE_DISPUTE`) in a transaction
 - Non-admin / non-open / empty resolution → error; `Dispute.resolutionLogId` links the audit entry
 
+### Requirement: An Open Dispute Blocks Settlement and Is Surfaced
+A gig with an `OPEN` dispute MUST NOT be settled around the dispute, and the dispute MUST be visible on the gig. Before
+this, a client could approve and pay a contested gig, leaving the dispute `OPEN` forever with no trace on the gig (the
+tester's «спор остаётся после оплаты», «никаких указаний на спор»). Resolving the dispute (→ `RESOLVED`/`REJECTED`)
+re-opens the settlement path — no separate unblock step.
+
+#### Scenario: approveWork and markAsPaid are refused while a dispute is open
+- GIVEN a gig with an `OPEN` dispute (checked via `hasOpenDispute(gigId)`)
+- WHEN the owner calls `approveWork` (on `REVIEW`) or `markAsPaid` (on `COMPLETED`)
+- THEN the action MUST be refused with a clear Russian error and the gig status MUST be unchanged
+- AND once the dispute is no longer `OPEN`, the same action MUST proceed
+
+#### Scenario: The gig shows an open-dispute marker and withholds the affordances
+- GIVEN a viewer of a gig with an `OPEN` dispute
+- THEN `getGigDetail` MUST return `hasOpenDispute: true` and MUST set `lifecycle.canApprove`/`canPay` to `false`
+  (the UI marker + hidden buttons mirror the server guard), WITHOUT placing any dispute detail in the payload
+- AND the gig detail screen MUST render a «Открыт спор» marker
+
+#### Scenario: Admins are alerted to the moderation queue
+- GIVEN OPEN disputes exist
+- THEN the admin «Споры» nav item MUST carry a badge with the OPEN-dispute count (`countOpenDisputes`) — disputes are
+  not participant notifications and never reach the bell, so this is the admin's "a dispute needs you" signal
+- AND the notification to the OTHER participant on open/resolve MUST use dispute-specific text (`dispute_opened` →
+  «По гигу открыт спор», `dispute_resolved` → «Спор по гигу разрешён»), never the generic «Статус гига обновлён»
+
+**Acceptance Criteria:**
+- `hasOpenDispute(gigId)` and `countOpenDisputes()` live in `lib/disputes.ts`
+- `approveWork`/`markAsPaid` refuse an `OPEN`-disputed gig; `getGigDetail.hasOpenDispute` gates `canApprove`/`canPay`
+- `dispute_opened`/`dispute_resolved` have dedicated `getNotificationDisplayText` cases
+- The admin «Споры» nav badge shows the OPEN-dispute count
+
 ### Requirement: Dispute Contract, Status to Participants, and Verification
 Query helpers MUST fulfil the `DisputeList` contract, participants MUST see their disputes' status, the `DisputeListVM`
 MUST be materialized, and the change MUST be additive with FK-safe test isolation.

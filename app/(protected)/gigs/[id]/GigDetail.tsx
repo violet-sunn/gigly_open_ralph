@@ -240,18 +240,41 @@ export function GigDetail({ data, from, viewerRole }: { data: GigDetailData; fro
           }}
         >
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <h1
-              style={{
-                margin: 0,
-                fontFamily: "'IBM Plex Sans',sans-serif",
-                fontWeight: 500,
-                fontSize: 22,
-                lineHeight: "28px",
-                color: "var(--text-1)",
-              }}
-            >
-              {data.header.title}
-            </h1>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <h1
+                style={{
+                  margin: 0,
+                  fontFamily: "'IBM Plex Sans',sans-serif",
+                  fontWeight: 500,
+                  fontSize: 22,
+                  lineHeight: "28px",
+                  color: "var(--text-1)",
+                }}
+              >
+                {data.header.title}
+              </h1>
+              {/* A contested gig — otherwise nothing on this screen signalled it, and it silently stayed «В работе». */}
+              {data.hasOpenDispute && (
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 5,
+                    flex: "none",
+                    fontFamily: "'Manrope',sans-serif",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: "var(--accents-red, #ff383c)",
+                    background: "rgba(255,56,60,0.12)",
+                    border: "1px solid var(--accents-red, #ff383c)",
+                    borderRadius: 8,
+                    padding: "2px 10px",
+                  }}
+                >
+                  <span aria-hidden>⚠</span> Открыт спор
+                </span>
+              )}
+            </div>
             <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
               {data.header.tags.map((tg, i) => (
                 <span

@@ -72,6 +72,50 @@ describe('getGigDetail payload (what actually ships to the browser)', () => {
   })
 })
 
+describe('getGigDetail — open-dispute marker', () => {
+  const buildGig = async (status: string) => {
+    const prisma = getTestPrismaClient()
+    const client = await createTestUser(prisma, { role: 'CLIENT' })
+    const spec = await createTestUser(prisma, { role: 'SPECIALIST' })
+    const gig = await createTestGig(prisma, { clientId: client.id, assignedSpecialistId: spec.id, status })
+    return { prisma, client, spec, gig }
+  }
+
+  it('hasOpenDispute is false with no dispute, and the owner can approve on REVIEW', async () => {
+    const { client, gig } = await buildGig('REVIEW')
+    const data = await getGigDetail(gig.id, { userId: client.id, role: 'CLIENT' })
+    expect(data!.hasOpenDispute).toBe(false)
+    expect(data!.lifecycle.canApprove).toBe(true)
+  })
+
+  it('an OPEN dispute flips hasOpenDispute and withholds canApprove (UI matches the server guard)', async () => {
+    const { prisma, client, spec, gig } = await buildGig('REVIEW')
+    await prisma.dispute.create({ data: { gigId: gig.id, openerId: spec.id, reason: 'Спор' } })
+
+    const data = await getGigDetail(gig.id, { userId: client.id, role: 'CLIENT' })
+    expect(data!.hasOpenDispute).toBe(true)
+    expect(data!.lifecycle.canApprove).toBe(false)
+  })
+
+  it('an OPEN dispute withholds canPay on a COMPLETED gig', async () => {
+    const { prisma, client, spec, gig } = await buildGig('COMPLETED')
+    await prisma.dispute.create({ data: { gigId: gig.id, openerId: spec.id, reason: 'Спор' } })
+
+    const data = await getGigDetail(gig.id, { userId: client.id, role: 'CLIENT' })
+    expect(data!.hasOpenDispute).toBe(true)
+    expect(data!.lifecycle.canPay).toBe(false)
+  })
+
+  it('a RESOLVED dispute does not count as open', async () => {
+    const { prisma, client, spec, gig } = await buildGig('REVIEW')
+    await prisma.dispute.create({ data: { gigId: gig.id, openerId: spec.id, reason: 'Спор', status: 'RESOLVED' } })
+
+    const data = await getGigDetail(gig.id, { userId: client.id, role: 'CLIENT' })
+    expect(data!.hasOpenDispute).toBe(false)
+    expect(data!.lifecycle.canApprove).toBe(true)
+  })
+})
+
 describe('getGigDetail', () => {
   it('returns null for a missing gig', async () => {
     const data = await getGigDetail('nonexistent', { userId: 'u', role: 'SPECIALIST' })

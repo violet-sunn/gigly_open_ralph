@@ -4,6 +4,7 @@ import { getSession } from '@/lib/session'
 import { prisma } from '@/lib/prisma'
 import { AppShellDesign } from '@/app/_design/AppShellDesign'
 import { computeNavCounts } from '@/lib/counts'
+import { countOpenDisputes } from '@/lib/disputes'
 
 /**
  * Protected app shell — rebuilt on the gigly_full_design prototype's own shell markup (AppShellDesign: sidebar with the
@@ -26,8 +27,15 @@ export default async function ProtectedLayout({ children }: { children: ReactNod
   // An ADMIN reaching a (protected) route — e.g. a dispute detail at /disputes/[id] — gets the admin shell (admin nav +
   // «Админ» indicator), NOT the CLIENT/«Компания» one. Mirrors app/admin/layout.tsx.
   if (session.role === 'ADMIN') {
+    const openDisputes = await countOpenDisputes()
     return (
-      <AppShellDesign role="CLIENT" counts={{}} admin profile={{ name: session.email, sub: 'Админ' }}>
+      <AppShellDesign
+        role="CLIENT"
+        counts={{}}
+        admin
+        adminOpenDisputes={openDisputes}
+        profile={{ name: session.email, sub: 'Админ' }}
+      >
         {children}
       </AppShellDesign>
     )

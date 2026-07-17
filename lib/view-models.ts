@@ -637,6 +637,8 @@ export interface GigDetailData {
    *  note in `getGigDetail`. Read the messages via `getChatThread` (/chats?gig=…), which authorises per request. */
   messaging: { assigned: boolean; canView: boolean; canSend: boolean }
   moderations: { id: string; action: string; reason: string; by: string; at: string }[]
+  /** True while an OPEN dispute exists on the gig — drives the «Спор» marker and withholds approve/pay. */
+  hasOpenDispute: boolean
 }
 
 /**
@@ -659,6 +661,8 @@ export async function getGigDetail(
         orderBy: { createdAt: 'desc' },
       },
       // Messages are deliberately NOT loaded here — see the payload note above `return` below.
+      // Only whether an OPEN dispute exists (a boolean is derived below); no dispute detail enters the payload.
+      disputes: { where: { status: 'OPEN' }, select: { id: true }, take: 1 },
       moderations: viewer.role === 'ADMIN' ? { include: { admin: true }, orderBy: { createdAt: 'desc' } } : false,
     },
   })
@@ -666,6 +670,8 @@ export async function getGigDetail(
 
   const isOwner = viewer.role === 'CLIENT' && gig.clientId === viewer.userId
   const isAssignedSpecialist = viewer.role === 'SPECIALIST' && gig.assignedSpecialistId === viewer.userId
+  // A contested gig: shown as a marker and used to withhold the approve/pay affordances (the server refuses them too).
+  const hasOpenDispute = (gig.disputes?.length ?? 0) > 0
   const myApp = viewer.role === 'SPECIALIST' ? gig.applications.find((a) => a.specialistId === viewer.userId) : undefined
   // Re-application eligibility (fix-application-lifecycle): only a reversible WITHDRAWN row (or no row)
   // lets a specialist (re-)apply. PENDING/ACCEPTED = active; WITHDRAWN_FINAL/REJECTED = blocked.
@@ -823,8 +829,10 @@ export async function getGigDetail(
         canReapply &&
         !isAssignedSpecialist,
       canSubmit: isAssignedSpecialist && gig.status === 'IN_PROGRESS',
-      canApprove: isOwner && gig.status === 'REVIEW',
-      canPay: isOwner && gig.status === 'COMPLETED',
+      // Withheld while a dispute is open — mirrors the approveWork / markAsPaid server guards so the button is not shown
+      // for an action that would be refused.
+      canApprove: isOwner && gig.status === 'REVIEW' && !hasOpenDispute,
+      canPay: isOwner && gig.status === 'COMPLETED' && !hasOpenDispute,
     },
     messaging: {
       assigned,
@@ -838,6 +846,7 @@ export async function getGigDetail(
       by: (log as { admin?: { email: string } }).admin?.email ?? 'Admin',
       at: new Date(log.createdAt).toLocaleString('ru-RU'),
     })),
+    hasOpenDispute,
   }
 }
 // ⚠️ EVERYTHING returned above is serialized into the RSC payload of `GigDetail` ("use client") and is therefore
