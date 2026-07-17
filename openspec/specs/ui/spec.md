@@ -5788,16 +5788,48 @@ only (no `className`/`style`/raw styled markup; imports only kit/`lib`/`actions`
 **Acceptance Criteria:**
 - `GigDetail` is an F5-pure `@composed-screen` composing the seven blocks; the page renders it + breadcrumb; redirect + not-found + notification preserved; bespoke `[id]/*` forms superseded
 
+### Requirement: Gig Detail Payload Is Public To Every Viewer
+`GigDetail` is a `"use client"` component, so **everything `getGigDetail` returns is serialized into the page's RSC
+payload and is readable in DevTools by ANY authenticated viewer of `/gigs/[id]`**, no matter what the screen renders.
+Render flags (`messaging.canView`, `isOwner`, …) gate DRAWING, never ACCESS.
+
+Therefore `getGigDetail` MUST NOT include data the viewer is not entitled to read. Private values MUST be gated at the
+source — the way `conditions.fee` is (`isOwner ? … : undefined`) — or kept out of the payload entirely and read through
+a per-request-authorising path instead.
+
+The message thread MUST NOT be part of this payload for anyone (not even a participant): messages are read via
+`getChatThread` (`/chats?gig=…`), which authorises each request. The gig's `messages` MUST NOT be fetched by
+`getGigDetail` at all. The assigned specialist's email MUST NOT be included.
+
+#### Scenario: A non-participant receives no private data in the gig payload
+- GIVEN a gig with an assigned specialist and a private chat
+- WHEN a specialist who is neither the owner nor the assigned specialist requests `getGigDetail`
+- THEN the serialized result MUST NOT contain any message body
+- AND it MUST NOT contain the assigned specialist's email address
+- AND `conditions.fee` MUST be `undefined`
+
+#### Scenario: The thread is absent even for a participant
+- GIVEN the gig's owner requests `getGigDetail`
+- THEN the serialized result MUST NOT contain any message body — the affordance (`messaging.canView`) remains, but the
+  thread is fetched only by `getChatThread`
+- AND this MUST be asserted against the SERIALIZED payload, so a future field that re-introduces private data fails too
+
+**Regression note:** this was a real defect (found 2026-07-17). `getGigDetail` fetched every message unconditionally and
+returned a `ChatPanelVM` that no screen ever rendered, plus `assignedSpecialistEmail`, which nothing read at all — so
+every private message body and a real email address shipped to any user who opened the gig page.
+
+---
+
 ### Requirement: Gig Detail Real Data Binding
 The screen MUST bind real data via the server-only, contract-typed `getGigDetail(gigId, viewer)` mapper: `GigHeaderVM`,
 `RequirementCardVM[]` (filled goal/deliverables/constraints), `CriteriaListVM` (from `acceptanceCriteria`),
 `ClientCardVM` (owner + `getRatingForUser(clientId)`), `TermsTabsVM` (proposed = the viewer's application counter,
-falling back to the gig's; client = the gig's), `ChatPanelVM` (messages thread), `ApplyPanelVM`, plus the role +
-lifecycle state. Returns `null` for a missing gig.
+falling back to the gig's; client = the gig's), `ApplyPanelVM`, plus the role + lifecycle state. Returns `null` for a
+missing gig. It MUST NOT return the message thread — see «Gig Detail Payload Is Public To Every Viewer» below.
 
 #### Scenario: Mapper returns the block VMs + role/lifecycle state
 - GIVEN `getGigDetail(gigId, viewer)`
-- THEN it MUST return the seven block VMs + `isOwner`/`isAssignedSpecialist`/`viewerApplication`/`applications`/
+- THEN it MUST return the block VMs + `isOwner`/`isAssignedSpecialist`/`viewerApplication`/`applications`/
   `lifecycle`/`messaging`/`moderations`; assignable to the view-model contracts (`import type`); the block contract
   gains **only** the additive `GigHeaderVM` (screen-data types live in `lib/view-models.ts`)
 

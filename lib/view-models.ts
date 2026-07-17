@@ -612,7 +612,6 @@ export interface GigDetailData {
   clientId: string
   terms: TermsTabsVM
   conditions: ConditionsPanelVM
-  chat: ChatPanelVM
   apply: ApplyPanelVM
   isOwner: boolean
   isAssignedSpecialist: boolean
@@ -634,9 +633,10 @@ export interface GigDetailData {
   } | null
   applications: GigDetailApplication[]
   lifecycle: { canApply: boolean; canSubmit: boolean; canApprove: boolean; canPay: boolean }
+  /** Render flags for the chat ENTRY POINT only. The thread itself is deliberately NOT part of this payload — see the
+   *  note in `getGigDetail`. Read the messages via `getChatThread` (/chats?gig=…), which authorises per request. */
   messaging: { assigned: boolean; canView: boolean; canSend: boolean }
   moderations: { id: string; action: string; reason: string; by: string; at: string }[]
-  assignedSpecialistEmail: string | null
 }
 
 /**
@@ -658,10 +658,7 @@ export async function getGigDetail(
         include: { specialist: { include: { specialistProfile: true } } },
         orderBy: { createdAt: 'desc' },
       },
-      messages: {
-        include: { sender: { include: { clientProfile: true, specialistProfile: true } } },
-        orderBy: { createdAt: 'asc' },
-      },
+      // Messages are deliberately NOT loaded here — see the payload note above `return` below.
       moderations: viewer.role === 'ADMIN' ? { include: { admin: true }, orderBy: { createdAt: 'desc' } } : false,
     },
   })
@@ -755,33 +752,6 @@ export async function getGigDetail(
     fee: isOwner ? { service: money(gig.serviceFee), total: money(gig.totalAmount) } : undefined,
   }
 
-  // Read-only once the engagement is finished/closed — same terminal gate as getChatThread / persistMessage.
-  const chatClosedReason = gig.closedByAdmin
-    ? 'Гиг закрыт администратором — переписка доступна только для просмотра.'
-    : gig.status === 'COMPLETED' || gig.status === 'PAID'
-      ? 'Гиг завершён — переписка доступна только для просмотра.'
-      : undefined
-  const chat: ChatPanelVM = {
-    thread: gig.messages.map((m) => {
-      // System/platform message (no sender) — centered, unattributed notice (chat-on-acceptance opener).
-      if (m.sender == null) {
-        return {
-          direction: 'system' as const,
-          author: 'Gigly',
-          timestamp: new Date(m.createdAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-          body: m.content,
-        }
-      }
-      return {
-        direction: (m.senderId === viewer.userId ? 'out' : 'in') as 'in' | 'out',
-        author: m.sender.clientProfile?.companyName || m.sender.specialistProfile?.displayName || m.sender.email,
-        timestamp: new Date(m.createdAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-        body: m.content,
-      }
-    }),
-    composer: { canAttach: false, canSend: !chatClosedReason, closedReason: chatClosedReason },
-  }
-
   const apply: ApplyPanelVM = {
     submitLabel: 'Откликнуться',
     fields: [
@@ -823,7 +793,6 @@ export async function getGigDetail(
     clientId: gig.clientId,
     terms,
     conditions,
-    chat,
     apply,
     isOwner,
     isAssignedSpecialist,
@@ -869,9 +838,19 @@ export async function getGigDetail(
       by: (log as { admin?: { email: string } }).admin?.email ?? 'Admin',
       at: new Date(log.createdAt).toLocaleString('ru-RU'),
     })),
-    assignedSpecialistEmail: gig.assignedSpecialist?.email ?? null,
   }
 }
+// ⚠️ EVERYTHING returned above is serialized into the RSC payload of `GigDetail` ("use client") and is therefore
+// readable in DevTools by ANY authenticated viewer of /gigs/[id], whatever the UI chooses to render. Flags like
+// `messaging.canView` gate RENDERING, never ACCESS.
+//
+// This is not hypothetical: the chat thread and the assigned specialist's email used to be included here and neither
+// was ever read by the screen — every message body of a private conversation, plus a real email address, shipped to
+// any user who opened the gig page. Both are gone; messages are not even fetched. Read them via `getChatThread`
+// (/chats?gig=…), which authorises per request.
+//
+// Before adding a field here, ask who may read it — not who will see it. Owner-only values MUST be gated at the
+// source, the way `conditions.fee` is (`isOwner ? … : undefined`).
 
 // ---- Profile (compose-profile) --------------------------------------------
 

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { getTestPrismaClient } from '../helpers/db'
-import { createTestUser, createTestGig, createTestApplication } from '../helpers/seed'
+import { createTestUser, createTestGig, createTestApplication, createTestMessage } from '../helpers/seed'
 
 vi.mock('@/lib/prisma', () => ({
   get prisma() {
@@ -17,6 +17,60 @@ vi.mock('next/navigation', () => ({
 }))
 
 import { getGigDetail } from '@/lib/view-models'
+
+// Everything getGigDetail returns is serialized into the RSC payload of the "use client" GigDetail component, so it is
+// readable in DevTools by anyone who opens /gigs/[id] — regardless of what the UI renders. These guards assert on the
+// SERIALIZED payload rather than on named fields, so a future field that smuggles private data in fails too.
+describe('getGigDetail payload (what actually ships to the browser)', () => {
+  const buildChattingGig = async () => {
+    const prisma = getTestPrismaClient()
+    const client = await createTestUser(prisma, { role: 'CLIENT', companyName: 'ООО Заказчик' })
+    const assigned = await createTestUser(prisma, { role: 'SPECIALIST' })
+    const outsider = await createTestUser(prisma, { role: 'SPECIALIST' })
+    const gig = await createTestGig(prisma, {
+      clientId: client.id,
+      assignedSpecialistId: assigned.id,
+      status: 'IN_PROGRESS',
+    })
+    const secret = 'СЕКРЕТНАЯ РЕПЛИКА ИЗ ПРИВАТНОГО ЧАТА 9f3a1c'
+    await createTestMessage(prisma, { gigId: gig.id, senderId: assigned.id, content: secret })
+    return { client, assigned, outsider, gig, secret }
+  }
+
+  it('does not ship the private chat thread to a non-participant', async () => {
+    const { outsider, gig, secret } = await buildChattingGig()
+    const payload = JSON.stringify(await getGigDetail(gig.id, { userId: outsider.id, role: 'SPECIALIST' }))
+    expect(payload).not.toContain(secret)
+  })
+
+  it("does not ship the assigned specialist's email to a non-participant", async () => {
+    const { assigned, outsider, gig } = await buildChattingGig()
+    const payload = JSON.stringify(await getGigDetail(gig.id, { userId: outsider.id, role: 'SPECIALIST' }))
+    expect(payload).not.toContain(assigned.email)
+  })
+
+  // The thread is not "hidden from outsiders" — it is not in this payload for ANYONE. Messages are read through
+  // getChatThread (/chats?gig=…), which authorises per request. Keeping the participant in this guard is what stops
+  // someone "helpfully" re-adding the thread here and gating it with a flag.
+  it('does not ship the chat thread even to the gig owner — the thread belongs to getChatThread', async () => {
+    const { client, gig, secret } = await buildChattingGig()
+    const payload = JSON.stringify(await getGigDetail(gig.id, { userId: client.id, role: 'CLIENT' }))
+    expect(payload).not.toContain(secret)
+  })
+
+  it('still reports the chat entry-point flags (the fix removed data, not the affordance)', async () => {
+    const { client, gig } = await buildChattingGig()
+    const data = await getGigDetail(gig.id, { userId: client.id, role: 'CLIENT' })
+    expect(data!.messaging.assigned).toBe(true)
+    expect(data!.messaging.canView).toBe(true)
+  })
+
+  it('keeps the owner-only fee out of a specialist payload (the gating pattern this file guards)', async () => {
+    const { outsider, gig } = await buildChattingGig()
+    const data = await getGigDetail(gig.id, { userId: outsider.id, role: 'SPECIALIST' })
+    expect(data!.conditions.fee).toBeUndefined()
+  })
+})
 
 describe('getGigDetail', () => {
   it('returns null for a missing gig', async () => {
