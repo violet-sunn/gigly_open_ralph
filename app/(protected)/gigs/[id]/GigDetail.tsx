@@ -168,6 +168,11 @@ export function GigDetail({ data, from, viewerRole }: { data: GigDetailData; fro
     (data.status === "IN_PROGRESS" || data.status === "REVIEW");
   const chatEntryLabel = data.isAssignedSpecialist ? "Написать заказчику" : "Написать исполнителю";
 
+  // Moderator read-only entry into the gig's correspondence. Unlike the participants' link this is NOT limited to the
+  // live window (в работе / на проверке): disputes are usually raised about work that is already completed or paid, so
+  // gating it the same way would hide the thread exactly when it is needed. Any assigned gig qualifies.
+  const showAdminChatEntry = viewerRole === "ADMIN" && data.messaging.assigned && !data.isExample;
+
   return (
     <div style={{ display: "flex", gap: 6, alignItems: "flex-start" }}>
       {/* ЛЕВАЯ КОЛОНКА */}
@@ -776,6 +781,16 @@ export function GigDetail({ data, from, viewerRole }: { data: GigDetailData; fro
               style={{ ...primaryBtn("#0088FF"), alignSelf: "flex-start", padding: "0 20px", display: "inline-flex", alignItems: "center", gap: 8 }}
             >
               <span aria-hidden>💬</span> {chatEntryLabel}
+            </button>
+          )}
+
+          {showAdminChatEntry && (
+            <button
+              type="button"
+              onClick={() => router.push(`/chats?gig=${data.gigId}`)}
+              style={{ ...primaryBtn("#0088FF"), alignSelf: "flex-start", padding: "0 20px", display: "inline-flex", alignItems: "center", gap: 8 }}
+            >
+              <span aria-hidden>💬</span> Посмотреть переписку
             </button>
           )}
 

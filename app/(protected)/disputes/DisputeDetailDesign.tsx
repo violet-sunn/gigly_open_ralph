@@ -7,6 +7,7 @@
 // (no backend action yet — known gap). The shell header supplies the «СПОР» title.
 
 import { useActionState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { resolveDispute } from "@/app/actions/dispute";
 import type { DisputeDetailVM } from "@/app/components/blocks/view-models";
@@ -60,7 +61,17 @@ export function DisputeDetailDesign({ dispute, isAdmin }: { dispute: DisputeDeta
       <div style={{ borderRadius: 12, background: "var(--surface-card)", boxShadow: "inset 0 0 0 1px var(--hairline-08)", padding: 20, display: "flex", flexDirection: "column", gap: 14 }}>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <h2 style={{ margin: 0, fontFamily: "'Handjet',monospace", fontWeight: 600, fontSize: 22, color: "var(--text-1)" }}>{dispute.gig}</h2>
+            {/* The title used to be plain text — the screen described a dispute you could not investigate. It now opens
+                the gig, which is where the requirements, the terms and (for a moderator) the chat live. */}
+            <h2 style={{ margin: 0, fontFamily: "'Handjet',monospace", fontWeight: 600, fontSize: 22, color: "var(--text-1)" }}>
+              {dispute.gigId ? (
+                <Link href={`/gigs/${dispute.gigId}`} title="Открыть гиг" style={{ color: "inherit", textDecoration: "underline", textDecorationColor: "var(--hairline-12)" }}>
+                  {dispute.gig}
+                </Link>
+              ) : (
+                dispute.gig
+              )}
+            </h2>
             <span style={{ fontFamily: "'Handjet',monospace", fontSize: 13, color: "var(--text-4)" }}>Причина: {dispute.reason} · открыл: {(dispute.openerRole && ROLE[dispute.openerRole]?.label) || dispute.opener}</span>
           </div>
           <span style={{ display: "inline-flex", alignItems: "center", gap: 6, flex: "none", fontFamily: "'Handjet',monospace", fontSize: 13, color: statusColor }}>

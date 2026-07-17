@@ -126,6 +126,9 @@ export async function getDisputeDetail(
   return {
     id: d.id,
     gig: d.gig?.title ?? '',
+    // The title alone made the screen a dead end: a moderator could read the complaint but never open the work it is
+    // about. Carry the id so the detail can link to /gigs/<id> (and from there to the correspondence).
+    gigId: d.gigId,
     counterparty,
     opener: openerName(d.opener),
     openerRole: (d.openerRole === 'company' ? 'company' : d.openerRole === 'specialist' ? 'specialist' : '') as

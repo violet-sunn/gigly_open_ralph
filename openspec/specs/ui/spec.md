@@ -8288,6 +8288,38 @@ Chat scope and lifetime MUST NOT change. A conversation MUST remain a Gig (no `C
 - **WHEN** a non-participant calls `getMessagesSince`/`sendMessageLive`, or any actor targets a gig with no assigned specialist, a `closedByAdmin` gig, or a **`COMPLETED`/`PAID`** gig
 - **THEN** the write MUST be refused (no message created), identically for both send paths
 
+#### Scenario: An ADMIN may READ any thread, and may never write to one
+- **GIVEN** a moderator resolving a dispute — which cannot be judged without the correspondence it is about
+- **WHEN** an ADMIN who is not a participant calls `getChatThread` for any gig
+- **THEN** the thread MUST be returned (read access is deliberately NOT limited to disputed gigs, and each view is NOT
+  logged — business decision 2026-07-17, chosen over the least-privilege and audited alternatives)
+- **AND** `composer.canSend` MUST be `false` in EVERY gig state, with a `closedReason` naming moderator mode
+- **AND** `persistMessage` MUST still refuse them: a moderator who forged a send is rejected server-side, because a
+  moderator writing into the correspondence they are judging destroys its value as evidence
+- **AND** the thread MUST be laid out from the client's vantage point and every bubble MUST carry its real author —
+  never «Вы». Direction is computed against the viewer's id, so without a perspective an admin (who sent nothing)
+  would see the whole conversation collapse onto one side, unreadable exactly when the parties must be told apart
+- **AND** `getConversations` MUST remain viewer-scoped: the admin's own inbox stays empty and the thread is reached by
+  link from the gig, not by browsing
+
+### Requirement: The Admin Console Can Reach What It Moderates
+Moderation actions MUST NOT be reachable without their subject. The console MUST link out to the entities it acts on:
+`/admin/users` rows to `/profile/[userId]` (ADMIN rows excepted — admins have no public profile, so the link would
+dead-end), `/admin/gigs` rows to `/gigs/[id]`, and the dispute detail's gig title to `/gigs/[gigId]` (which requires
+`gigId` on the dispute detail VM). From a gig, an ADMIN MUST get a read-only «Посмотреть переписку» entry to
+`/chats?gig=<id>`.
+
+#### Scenario: A moderator can walk from a dispute to the evidence
+- GIVEN an ADMIN on a dispute detail
+- THEN the gig title MUST open `/gigs/[gigId]`, and that gig MUST offer «Посмотреть переписку» → the thread
+- AND the admin chat entry MUST NOT be limited to the live window (`IN_PROGRESS`/`REVIEW`) the participants' link uses:
+  disputes are typically raised about `COMPLETED`/`PAID` work, so the same gating would hide the thread precisely when
+  it is needed. Any assigned, non-example gig qualifies
+
+#### Scenario: The moderator entry is read-only
+- GIVEN an ADMIN viewing a gig
+- THEN they MUST NOT see the participants' «Написать заказчику»/«Написать исполнителю» compose CTA
+
 #### Scenario: A finished conversation is read-only in the UI
 - **WHEN** a participant opens a `COMPLETED`/`PAID` (or admin-closed) conversation
 - **THEN** the message history MUST render, but the composer MUST be replaced by a read-only notice («…только для просмотра») — no text input, no send button — reflecting `composer.canSend === false`

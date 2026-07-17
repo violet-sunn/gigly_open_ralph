@@ -6,6 +6,7 @@
 // suspendUser/unsuspendUser actions. Pagination + count live in the page.
 
 import { useActionState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { suspendUser, unsuspendUser } from "@/app/actions/moderation";
 import type { AdminUserRow } from "@/lib/view-models";
@@ -78,7 +79,19 @@ export function AdminUsers({ rows }: { rows: AdminUserRow[] }) {
             <div key={u.id} data-row="user" style={rowBase}>
               <Avatar name={u.email} />
               <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
-                <span style={{ fontSize: 14, color: "var(--text-1)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{u.email}</span>
+                {/* Moderation needs the person behind the row: without this the console could ban an account but never
+                    look at it. ADMIN rows stay plain text — admins have no public profile, so a link would dead-end. */}
+                {u.role === "ADMIN" ? (
+                  <span style={{ fontSize: 14, color: "var(--text-1)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{u.email}</span>
+                ) : (
+                  <Link
+                    href={`/profile/${u.id}`}
+                    title="Открыть профиль"
+                    style={{ fontSize: 14, color: "var(--text-1)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textDecoration: "underline", textDecorationColor: "var(--hairline-12)" }}
+                  >
+                    {u.email}
+                  </Link>
+                )}
                 <span style={{ fontFamily: "'Handjet',monospace", fontSize: 12, color: "var(--text-4)" }}>{u.role} · {u.registered}</span>
               </div>
               <StatusDot color={u.suspended ? "#ef4444" : "#34c759"} label={u.suspended ? "Заблокирован" : "Активен"} />

@@ -192,6 +192,9 @@ export interface DisputeEntryVM {
 export interface DisputeDetailVM {
   id: string;
   gig: string;
+  /** The disputed gig's id — lets the screen link «Открыть гиг», without which a moderator can read the complaint but
+   *  never the work it is about. Optional so the design fixtures stay valid. */
+  gigId?: string;
   /** «Контрагент» — the other party in the dispute, viewer-relative (disputeDetail.* header). */
   counterparty?: string;
   opener: string;

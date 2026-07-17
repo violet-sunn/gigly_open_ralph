@@ -86,6 +86,9 @@ describe('getDisputes / getDispute', () => {
     expect(adminDetail!.gig).toBe('Гиг со спором')
     expect(adminDetail!.reason).toBe('Работа отклонена без причины')
     expect(adminDetail!.status).toBe('open') // OPEN → open
+    // The detail carries the gig's id, so the screen can link «Открыть гиг». Without it the dispute was a dead end:
+    // the title was plain text and a moderator could read the complaint but never the work it was about.
+    expect(adminDetail!.gigId).toBe(gig.id)
 
     // Opener (assigned specialist) → detail
     const openerDetail = await getDispute(dispute.id, { userId: spec.id, role: 'SPECIALIST' })

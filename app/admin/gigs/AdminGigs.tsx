@@ -4,6 +4,7 @@
 // has no own table screen). Status/closed filters (token selects → URL params) + console-style rows (avatar · title ·
 // client·budget · status · close-via-confirm) over the kept closeGig action. Pagination + count live in the page.
 
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { closeGig } from "@/app/actions/moderation";
 import type { AdminGigRow } from "@/lib/view-models";
@@ -81,7 +82,15 @@ export function AdminGigs({ rows }: { rows: AdminGigRow[] }) {
               <div key={g.id} data-row="gig" style={rowBase}>
                 <Avatar name={g.title} />
                 <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
-                  <span style={{ fontSize: 14, color: "var(--text-1)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.title}</span>
+                  {/* The console could close a gig without ever reading it; the title now opens it (and, from there,
+                      its correspondence) so a moderator can look before acting. */}
+                  <Link
+                    href={`/gigs/${g.id}`}
+                    title="Открыть гиг"
+                    style={{ fontSize: 14, color: "var(--text-1)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textDecoration: "underline", textDecorationColor: "var(--hairline-12)" }}
+                  >
+                    {g.title}
+                  </Link>
                   <span style={{ fontFamily: "'Handjet',monospace", fontSize: 12, color: "var(--text-4)" }}>{sub}</span>
                 </div>
                 <StatusDot color={color} label={g.closed ? "Закрыт" : meta.label} />

@@ -1192,8 +1192,10 @@ export async function getNewMessages(
 
 /**
  * The selected conversation: the gig's messages → MessageBubble thread (direction per viewer, time, long-date for day
- * separators) + the counterparty ChatHeader (name + avatar + rating + presence). Authorizes the viewer (gig owner or
- * assigned specialist) — returns null otherwise. Server-only; reuses getRatingForUser.
+ * separators) + the counterparty ChatHeader (name + avatar + rating + presence). Authorizes the viewer — gig owner,
+ * assigned specialist, or an ADMIN (read-only, for dispute moderation) — returns null otherwise. Server-only; reuses
+ * getRatingForUser. This is the ONLY authorised path to a gig's messages: the gig-detail payload deliberately carries
+ * no thread.
  */
 export async function getChatThread(
   gigId: string,
@@ -1209,13 +1211,28 @@ export async function getChatThread(
   })
   if (!gig) return null
 
+  // An ADMIN may READ any gig's thread (moderation: a dispute cannot be judged without the correspondence). They are
+  // never a party to it — see the authorship and composer handling below. Writing stays participant-only in
+  // `persistMessage`, which this does not touch.
+  const isAdminViewer = viewer.role === 'ADMIN'
   const isParticipant = gig.clientId === viewer.userId || gig.assignedSpecialistId === viewer.userId
-  if (!isParticipant) return null
+  if (!isParticipant && !isAdminViewer) return null
 
-  const thread: MessageBubbleVM[] = gig.messages.map((m) => toMessageBubble(m, viewer.userId))
+  // The bubble layout is computed from a PERSPECTIVE user. A participant sees their own messages on the right; an admin
+  // is nobody's counterpart, so `m.senderId === viewer.userId` would never match and the whole conversation would
+  // collapse onto one side — unreadable precisely when you need to tell who said what. Lay it out from the client's
+  // side (identical to what the client sees) and label every bubble with its real author: an observer must never be
+  // told «Вы».
+  const perspectiveId = isAdminViewer ? gig.clientId : viewer.userId
+  const thread: MessageBubbleVM[] = gig.messages.map((m) => {
+    const bubble = toMessageBubble(m, perspectiveId)
+    if (!isAdminViewer || bubble.direction === 'system') return bubble
+    return { ...bubble, author: m.sender?.email ?? 'Gigly' }
+  })
 
-  // Counterparty = the other party.
-  const viewerIsClient = gig.clientId === viewer.userId
+  // Counterparty = the other party. The admin inherits the client's vantage point (above), so the header names the
+  // specialist — the party whose messages sit on the left.
+  const viewerIsClient = isAdminViewer || gig.clientId === viewer.userId
   const counterpartyId = viewerIsClient ? gig.assignedSpecialistId : gig.clientId
   const counterpartyName = viewerIsClient
     ? gig.assignedSpecialist?.specialistProfile?.displayName || gig.assignedSpecialist?.email || 'Специалист'
@@ -1242,11 +1259,17 @@ export async function getChatThread(
 
   // Read-only once the engagement is finished/closed — mirrors the persistMessage gate so the composer isn't shown when
   // a send would be rejected. Active window is OPEN…REVIEW; COMPLETED/PAID/closedByAdmin are terminal.
-  const closedReason = gig.closedByAdmin
-    ? 'Гиг закрыт администратором — переписка доступна только для просмотра.'
-    : gig.status === 'COMPLETED' || gig.status === 'PAID'
-      ? 'Гиг завершён — переписка доступна только для просмотра.'
-      : undefined
+  //
+  // An admin is read-only in EVERY state, and this reuses the existing "closed" affordance to say why instead of
+  // inventing new UI. It is a render flag only: `persistMessage` refuses a non-participant regardless, so an admin who
+  // forged a send would still be rejected server-side.
+  const closedReason = isAdminViewer
+    ? 'Режим модератора — только просмотр, отправка недоступна.'
+    : gig.closedByAdmin
+      ? 'Гиг закрыт администратором — переписка доступна только для просмотра.'
+      : gig.status === 'COMPLETED' || gig.status === 'PAID'
+        ? 'Гиг завершён — переписка доступна только для просмотра.'
+        : undefined
   const canSend = !closedReason
 
   return { header, chat: { thread, composer: { canAttach: false, canSend, closedReason }, header } }

@@ -169,6 +169,74 @@ describe('getChatThread', () => {
   })
 })
 
+// A moderator cannot judge a dispute without the correspondence it is about. The admin reads it here — and ONLY reads:
+// getChatThread is the only authorised path to a gig's messages, and persistMessage still refuses non-participants.
+describe('getChatThread — ADMIN moderation view', () => {
+  it('an ADMIN who is not a participant can read any gig thread', async () => {
+    const { prisma, gig } = await seedConversation()
+    const admin = await createTestUser(prisma, { role: 'ADMIN' })
+
+    const thread = await getChatThread(gig.id, { userId: admin.id, role: 'ADMIN' })
+
+    expect(thread).not.toBeNull()
+    expect(thread!.chat.thread).toHaveLength(2)
+    expect(thread!.chat.thread.map((b) => b.body)).toEqual(['Первое сообщение', 'Второе сообщение'])
+  })
+
+  it('an ADMIN can never send — read-only in every gig state, with the reason surfaced', async () => {
+    const { prisma, gig } = await seedConversation() // IN_PROGRESS: sendable for a participant
+    const admin = await createTestUser(prisma, { role: 'ADMIN' })
+
+    const thread = await getChatThread(gig.id, { userId: admin.id, role: 'ADMIN' })
+
+    expect(thread!.chat.composer.canSend).toBe(false)
+    expect(thread!.chat.composer.closedReason).toMatch(/модератора/)
+  })
+
+  // The regression this guards: direction is computed against the viewer's id, and an admin sent nothing — so without
+  // a perspective the entire conversation collapses onto one side, exactly when you need to tell the parties apart.
+  it('lays the conversation out two-sided for an ADMIN instead of collapsing it', async () => {
+    const { prisma, client, gig } = await seedConversation()
+    await createTestMessage(prisma, { gigId: gig.id, senderId: client.id, content: 'Ответ клиента' })
+    const admin = await createTestUser(prisma, { role: 'ADMIN' })
+
+    const thread = await getChatThread(gig.id, { userId: admin.id, role: 'ADMIN' })
+    const directions = thread!.chat.thread.map((b) => b.direction)
+
+    expect(directions).toEqual(['in', 'in', 'out']) // specialist × 2 on one side, client on the other
+  })
+
+  it('never labels a bubble «Вы» for an ADMIN — an observer is not a party', async () => {
+    const { prisma, client, specialist, gig } = await seedConversation()
+    await createTestMessage(prisma, { gigId: gig.id, senderId: client.id, content: 'Ответ клиента' })
+    const admin = await createTestUser(prisma, { role: 'ADMIN' })
+
+    const thread = await getChatThread(gig.id, { userId: admin.id, role: 'ADMIN' })
+    const authors = thread!.chat.thread.map((b) => b.author)
+
+    expect(authors).not.toContain('Вы')
+    // Every bubble is attributed to whoever actually wrote it.
+    expect(authors).toEqual([specialist.email, specialist.email, client.email])
+  })
+
+  it('still marks a system message as Gigly for an ADMIN', async () => {
+    const { prisma, gig } = await seedConversation()
+    await createTestMessage(prisma, { gigId: gig.id, senderId: null, content: 'Заявка принята.' })
+    const admin = await createTestUser(prisma, { role: 'ADMIN' })
+
+    const thread = await getChatThread(gig.id, { userId: admin.id, role: 'ADMIN' })
+    const system = thread!.chat.thread.find((b) => b.direction === 'system')
+
+    expect(system!.author).toBe('Gigly')
+  })
+
+  it('a non-participant with a non-ADMIN role is still refused', async () => {
+    const { prisma, gig } = await seedConversation()
+    const stranger = await createTestUser(prisma, { role: 'CLIENT' })
+    expect(await getChatThread(gig.id, { userId: stranger.id, role: 'CLIENT' })).toBeNull()
+  })
+})
+
 describe('getUnreadChatCount', () => {
   it('counts conversations with ≥1 unread message', async () => {
     const { client } = await seedConversation()
