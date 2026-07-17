@@ -37,6 +37,7 @@ vi.mock('next/navigation', () => ({
 import { getLiveCounts } from '@/app/actions/counts'
 import { getUnreadCount } from '@/app/actions/notification'
 import { getUnreadChatCount } from '@/lib/view-models'
+import { createNotification } from '@/lib/notifications'
 
 /**
  * `getLiveCounts` is the single round trip behind the shell's live counters (live-counters change). Its whole job is
@@ -135,6 +136,22 @@ describe('getLiveCounts (live-counters)', () => {
     await withAuthContext(admin, async () => {
       const live = await getLiveCounts()
       expect(live).toEqual({ authenticated: true, notifications: 0, gigs: 0, chats: 0 })
+    })
+  })
+
+  // THE badge the shell actually renders comes from getLiveCounts, not getUnreadCount. So the "count events, not gigs"
+  // rule must hold HERE: two lifecycle events on ONE gig must raise live.notifications by 2, not sit at 1.
+  it('counts unread EVENTS, not gigs — a second event on the same gig raises live.notifications', async () => {
+    const spec = await createTestUser(prisma, { role: 'SPECIALIST' })
+    const client = await createTestUser(prisma, { role: 'CLIENT' })
+    const gig = await createTestGig(prisma, { clientId: client.id, assignedSpecialistId: spec.id, status: 'IN_PROGRESS' })
+
+    await withAuthContext(spec, async () => {
+      await createNotification(spec.id, gig.id, 'STATUS_CHANGE', 'work_returned', null)
+      expect((await getLiveCounts()).notifications).toBe(1)
+
+      await createNotification(spec.id, gig.id, 'STATUS_CHANGE', 'work_approved', null)
+      expect((await getLiveCounts()).notifications).toBe(2) // same gig, second event → +1, not stuck at 1
     })
   })
 })

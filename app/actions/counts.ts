@@ -1,8 +1,7 @@
 'use server'
 
 import { getSession } from '@/lib/session'
-import { computeNavCounts } from '@/lib/counts'
-import { getUnreadNotifications } from './notification'
+import { computeLiveCountsFor } from '@/lib/counts'
 
 /**
  * One round trip for every counter in the shell (bell + sidebar badges), so the live refresh is a single poll rather
@@ -29,16 +28,6 @@ export async function getLiveCounts(): Promise<LiveCounts> {
   // own — nothing to poll for.
   if (session.role === 'ADMIN') return { ...ZERO, authenticated: true }
 
-  const viewer = { userId: session.userId, role: session.role }
-  const [nav, notifications] = await Promise.all([
-    computeNavCounts(viewer),
-    getUnreadNotifications(),
-  ])
-
-  return {
-    authenticated: true,
-    notifications: notifications.length,
-    gigs: nav.gigs,
-    chats: nav.chats,
-  }
+  const counts = await computeLiveCountsFor({ userId: session.userId, role: session.role })
+  return { authenticated: true, ...counts }
 }

@@ -2,9 +2,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, act, waitFor, fireEvent } from '@testing-library/react'
 
 /**
- * Freshness contract for the shell's counters (live-counters change). These cover the scenarios the live E2E can't
- * cheaply prove — tab re-focus, standing down when logged out, and not disturbing an open dropdown. The
- * navigation/poll refreshes themselves are proven live (bell 3->4 on nav, 4->5 on the idle poll).
+ * Freshness contract for the shell's counters. The PRIMARY transport is now the SSE stream (`/api/live`); these tests
+ * cover the FALLBACK path — the 60s backstop poll, tab re-focus, standing down when logged out, and not disturbing an
+ * open dropdown. jsdom provides no `EventSource`, so the hook's SSE effect no-ops here and the poll path is exercised
+ * in isolation, which is exactly what we want to pin. (The SSE push itself is proven live.)
  */
 
 const getLiveCounts = vi.fn()
@@ -90,14 +91,14 @@ describe('NotificationBell freshness (live-counters)', () => {
     expect(getLiveCounts).toHaveBeenCalledTimes(1)
   })
 
-  it('polls on an interval as an idle backstop', async () => {
+  it('polls on an interval as an idle backstop (60s fallback)', async () => {
     getLiveCounts.mockResolvedValue(authed(1))
     render(<NotificationBell />)
     await waitFor(() => expect(badge()).toBe('1'))
 
     getLiveCounts.mockResolvedValue(authed(7))
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(31_000)
+      await vi.advanceTimersByTimeAsync(61_000)
     })
     await waitFor(() => expect(badge()).toBe('7'))
   })
@@ -110,7 +111,7 @@ describe('NotificationBell freshness (live-counters)', () => {
     // Session ends.
     getLiveCounts.mockResolvedValue({ authenticated: false, notifications: 0, gigs: 0, chats: 0 })
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(31_000)
+      await vi.advanceTimersByTimeAsync(61_000)
     })
     const callsAfterLogout = getLiveCounts.mock.calls.length
 
@@ -146,7 +147,7 @@ describe('NotificationBell freshness (live-counters)', () => {
 
     getLiveCounts.mockResolvedValue(authed(9))
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(31_000)
+      await vi.advanceTimersByTimeAsync(61_000)
     })
 
     // Count updated underneath, dropdown still open.

@@ -1,6 +1,7 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
+import { emitNotificationChange } from '@/lib/notification-bus';
 
 type NotificationType = 'MESSAGE' | 'APPLICATION' | 'STATUS_CHANGE' | 'PAYMENT';
 
@@ -44,6 +45,8 @@ export async function createNotification(
       // even when the gig was already unread from a previous one.
       update: { ...fields, createdAt: new Date(), unreadEvents: { increment: 1 } },
     });
+    // Push to the recipient's open tabs in real time (the bell updates without waiting for the fallback poll).
+    emitNotificationChange(userId);
   } catch (error) {
     console.error('[createNotification] Failed to create notification:', {
       userId,
@@ -78,6 +81,8 @@ export async function createNotificationsBulk(
         });
       })
     );
+    // Push to every recipient's open tabs in real time.
+    for (const n of notifications) emitNotificationChange(n.userId);
   } catch (error) {
     console.error('[createNotificationsBulk] Failed to create notifications:', {
       count: notifications.length,

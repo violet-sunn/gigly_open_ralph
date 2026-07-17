@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { sanitizeInput } from '@/lib/sanitize'
 import { messageRateLimiter, getRateLimitError } from '@/lib/ratelimit'
+import { emitNotificationChange } from '@/lib/notification-bus'
 
 /**
  * chat-realtime — the shared message-write core used by BOTH send paths (`sendMessage` form action and the optimistic
@@ -75,6 +76,7 @@ export async function persistMessage(
   })
 
   // Recipient = the other party. Upsert their unread Notification (fire-and-forget; mirrors original behavior).
+  // The bell counts the message itself (via the Message rows), so this row is only the read anchor — no unreadEvents.
   const recipientId = isOwner ? gig.assignedSpecialistId : gig.clientId
   try {
     await prisma.notification.upsert({
@@ -85,6 +87,9 @@ export async function persistMessage(
   } catch (error) {
     console.error('Failed to create/update notification:', error)
   }
+
+  // Push to the recipient's open tabs so a chat message lands on the bell in real time, not on the fallback poll.
+  emitNotificationChange(recipientId)
 
   return { message }
 }

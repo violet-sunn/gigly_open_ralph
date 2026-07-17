@@ -1350,8 +1350,21 @@ The system MUST display a notification bell icon in the navigation header that s
 - THEN `getUnreadCount` MUST increase (sum of `unreadEvents` + unread messages per gig), NOT stay unchanged
 - AND `Notification.unreadEvents` MUST accumulate one per `createNotification` and reset to 0 on `markNotificationAsRead`
 - Rationale: counting gigs (`.length`) left a 2nd event on an already-unread gig invisible until a reload — the
-  tester's «приходит только после обновления». Note: there is no realtime push; the badge still refreshes on the
-  ~30s poll / navigation / tab focus (`useLiveCounts`), not instantly.
+  tester's «приходит только после обновления».
+
+#### Scenario: The badge updates in real time (SSE push)
+- GIVEN an authenticated non-admin viewer with the shell open and idle (no navigation, no tab-focus change)
+- WHEN a notification changes for them (a lifecycle event, a chat message, or a read elsewhere)
+- THEN the badge MUST update within ~1s via a server push, NOT only on a poll
+- AND the transport MUST be a Server-Sent Events stream at `GET /api/live` (Node runtime, `text/event-stream`), fed by
+  an in-process bus (`emitNotificationChange` in the write paths → `subscribeNotifications` in the stream), returning
+  the same `computeLiveCountsFor` numbers as the `getLiveCounts` action
+- AND `useLiveCounts` MUST keep a relaxed fallback poll (≈60s) plus the navigation/tab-focus refreshes, so a missed
+  push degrades to poll latency, never a lost update
+- AND the client MUST NOT close the stream on a transient error (EventSource auto-reconnects, and auto-closes on the
+  401 a logged-out tab receives); a confirmed logout tears it down via the fallback poll
+- Single-instance by design (one Amvera instance / one SQLite db); multiple instances would need a cross-process bus
+  (e.g. Redis pub/sub) behind the same emit/subscribe API — a post-MVP change
 
 #### Scenario: Bell shows no badge when no unread messages
 - GIVEN an authenticated user with zero unread messages
