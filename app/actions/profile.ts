@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/session'
 import { sanitizeInput } from '@/lib/sanitize'
 import { isTimezone, isSpecialization } from '@/lib/profiles'
+import { validateInn, validateKpp } from '@/lib/requisites'
 
 export async function updateProfile(
   prevState: { error?: string; success?: boolean } | null,
@@ -100,6 +101,15 @@ export async function updateProfile(
       // verification is post-release per DATA-MODEL.md). Only the company name is mandatory.
       if (!companyName) {
         return { error: 'Укажите название компании, чтобы завершить профиль.' }
+      }
+      // Requisites are optional, but a SUPPLIED one must be well-formed (lib/requisites.ts owns the format).
+      const innValidation = validateInn(inn)
+      if (!innValidation.valid) {
+        return { error: innValidation.error }
+      }
+      const kppValidation = validateKpp(kpp)
+      if (!kppValidation.valid) {
+        return { error: kppValidation.error }
       }
       // Validate the dataset-backed timezone when supplied (mirrors the specialist branch).
       if (timezone && !isTimezone(timezone)) {

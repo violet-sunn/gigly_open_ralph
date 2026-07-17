@@ -17,14 +17,28 @@ The system MUST provide an `updateProfile` server action that creates or updates
 - AND the user has no ClientProfile record yet
 - WHEN `updateProfile` is called with valid profile data
 - THEN a ClientProfile record MUST be created with `userId` as primary key
-- AND companyName and inn MUST be non-empty strings
+- AND companyName MUST be a non-empty string
+- AND инн/кпп MUST be optional (clients register with the design's minimal set and fill requisites later)
 - AND the action MUST redirect to `/profile`
 
-#### Scenario: CLIENT submits without required fields
-- GIVEN a CLIENT user submits a form with empty companyName or inn
+#### Scenario: CLIENT submits without a company name
+- GIVEN a CLIENT user submits a form with an empty companyName
 - WHEN `updateProfile` is called
-- THEN it MUST return `{ error: 'Company name and INN are required.' }`
+- THEN it MUST return `{ error: 'Укажите название компании, чтобы завершить профиль.' }`
 - AND no records MUST be created or modified
+
+#### Scenario: CLIENT requisites (ИНН/КПП) are format-checked when supplied
+- GIVEN a CLIENT user submits a non-empty `inn` or `kpp`
+- WHEN `updateProfile` is called
+- THEN a non-digit value MUST be rejected with `{ error: 'ИНН может состоять только из цифр.' }` (or the КПП
+  equivalent) — ASCII digits only, so Arabic-Indic/fullwidth look-alikes and any embedded space are rejected
+- AND an `inn` whose length is not 10 (organisation) or 12 (ИП) MUST be rejected with
+  `{ error: 'ИНН должен содержать 10 цифр (для организации) или 12 (для ИП).' }`
+- AND a `kpp` whose length is not exactly 9 MUST be rejected with `{ error: 'КПП должен содержать ровно 9 цифр.' }`
+- AND the rejected value MUST NOT be persisted
+- AND an EMPTY inn/kpp MUST still pass, so a client without requisites can save the rest of the profile
+- AND the format MUST be owned once by `lib/requisites.ts` (`validateInn` / `validateKpp`), which stays client-safe so
+  the form can mirror it; `updateProfile` is the authority — the form's `inputMode`/`maxLength` are hints only
 
 #### Scenario: Invalid experience level
 - GIVEN a SPECIALIST user submits experienceLevel with value other than "", "MIDDLE", or "SENIOR"
@@ -43,7 +57,10 @@ The system MUST provide an `updateProfile` server action that creates or updates
 - Signature is `(prevState: { error?: string } | null, formData: FormData)`
 - Uses role-based logic to determine which profile table to upsert
 - For SPECIALIST: validates experienceLevel
-- For CLIENT: validates companyName and inn are non-empty
+- For CLIENT: validates companyName is non-empty; ИНН/КПП are optional but, when supplied, MUST satisfy
+  `validateInn`/`validateKpp` from `lib/requisites.ts` (digits only; ИНН 10 or 12, КПП exactly 9)
+- Requisite validation is format-only by decision (2026-07-17): no ИНН control-digit (checksum) check and no ФНС
+  registry lookup, so a well-formed but fake value such as `0000000000` still passes
 - Uses Prisma `upsert` to handle both create and update cases
 - On success: redirects to `/profile`
 - On failure: returns `{ error: string }`

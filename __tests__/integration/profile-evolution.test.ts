@@ -164,6 +164,90 @@ describe('profile-evolution — edit (scalar fields)', () => {
     const profile = await prisma.clientProfile.findUnique({ where: { userId: client.id } })
     expect(profile?.timezone).not.toBe('Mars/Olympus')
   })
+
+  // ИНН/КПП used to reach the DB unchecked — any characters, any length. The server action is the authority here
+  // (the form's inputMode/maxLength are only hints and are trivially bypassed).
+  it.each([
+    ['letters instead of digits', 'ООО-ТЕСТ12', 'ИНН может состоять только из цифр.'],
+    ['digits with a space', '7707 83893', 'ИНН может состоять только из цифр.'],
+    ['9 digits', '770708389', 'ИНН должен содержать 10 цифр (для организации) или 12 (для ИП).'],
+    ['11 digits', '77070838931', 'ИНН должен содержать 10 цифр (для организации) или 12 (для ИП).'],
+    ['a long random run', '1'.repeat(40), 'ИНН должен содержать 10 цифр (для организации) или 12 (для ИП).'],
+  ])('updateProfile rejects an ИНН with %s and does not persist it', async (_label, inn, expectedError) => {
+    const prisma = getTestPrismaClient()
+    const client = await createTestUser(prisma, { role: 'CLIENT' })
+
+    const result = await withAuthContext(client, async () =>
+      updateProfile(null, form({ companyName: 'ООО Тест', inn }))
+    )
+
+    expect(result).toEqual({ error: expectedError })
+    const profile = await prisma.clientProfile.findUnique({ where: { userId: client.id } })
+    expect(profile?.inn).not.toBe(inn)
+  })
+
+  it.each([
+    ['letters instead of digits', 'АБВГДЕЖЗИ', 'КПП может состоять только из цифр.'],
+    ['8 digits', '77010100', 'КПП должен содержать ровно 9 цифр.'],
+    ['10 digits', '7701010011', 'КПП должен содержать ровно 9 цифр.'],
+  ])('updateProfile rejects a КПП with %s and does not persist it', async (_label, kpp, expectedError) => {
+    const prisma = getTestPrismaClient()
+    const client = await createTestUser(prisma, { role: 'CLIENT' })
+
+    const result = await withAuthContext(client, async () =>
+      updateProfile(null, form({ companyName: 'ООО Тест', kpp }))
+    )
+
+    expect(result).toEqual({ error: expectedError })
+    const profile = await prisma.clientProfile.findUnique({ where: { userId: client.id } })
+    expect(profile?.kpp).not.toBe(kpp)
+  })
+
+  it('updateProfile persists well-formed requisites (10-digit ИНН + 9-digit КПП)', async () => {
+    const prisma = getTestPrismaClient()
+    const client = await createTestUser(prisma, { role: 'CLIENT' })
+
+    await withAuthContext(client, async () => {
+      await expect(
+        updateProfile(null, form({ companyName: 'ООО Тест', inn: '7707083893', kpp: '770101001' }))
+      ).rejects.toThrow('NEXT_REDIRECT')
+    })
+
+    const profile = await prisma.clientProfile.findUnique({ where: { userId: client.id } })
+    expect(profile?.inn).toBe('7707083893')
+    expect(profile?.kpp).toBe('770101001')
+  })
+
+  it('updateProfile accepts a 12-digit ИП ИНН', async () => {
+    const prisma = getTestPrismaClient()
+    const client = await createTestUser(prisma, { role: 'CLIENT' })
+
+    await withAuthContext(client, async () => {
+      await expect(
+        updateProfile(null, form({ companyName: 'ИП Петров', inn: '500100732259' }))
+      ).rejects.toThrow('NEXT_REDIRECT')
+    })
+
+    const profile = await prisma.clientProfile.findUnique({ where: { userId: client.id } })
+    expect(profile?.inn).toBe('500100732259')
+  })
+
+  // Requisites stay optional: a client who never filled them must still be able to save the rest of the profile.
+  it('updateProfile still saves the profile when ИНН/КПП are left empty', async () => {
+    const prisma = getTestPrismaClient()
+    const client = await createTestUser(prisma, { role: 'CLIENT' })
+
+    await withAuthContext(client, async () => {
+      await expect(
+        updateProfile(null, form({ companyName: 'ООО Без Реквизитов', inn: '', kpp: '' }))
+      ).rejects.toThrow('NEXT_REDIRECT')
+    })
+
+    const profile = await prisma.clientProfile.findUnique({ where: { userId: client.id } })
+    expect(profile?.companyName).toBe('ООО Без Реквизитов')
+    expect(profile?.inn).toBe('')
+    expect(profile?.kpp).toBe('')
+  })
 })
 
 describe('profile-evolution — validation', () => {

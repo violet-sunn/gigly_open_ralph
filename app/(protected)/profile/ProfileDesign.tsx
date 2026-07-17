@@ -9,6 +9,7 @@
 import { useState, useEffect, useActionState } from "react";
 import { useRouter } from "next/navigation";
 import type { ProfileData } from "@/lib/view-models";
+import { INN_LENGTH_PERSON, KPP_LENGTH } from "@/lib/requisites";
 import { updateProfile } from "@/app/actions/profile";
 import { setFavoriteCategories } from "@/app/actions/category";
 import { GigCard } from "@/app/_design/GigCard";
@@ -276,6 +277,14 @@ function CatsModal({ categories, onClose }: { categories: { slug: string; label:
 function CompanyModal({ fields, onClose }: { fields: Record<string, string>; onClose: () => void }) {
   const router = useRouter();
   const [state, action, pending] = useActionState(updateProfile, null);
+  // Controlled inputs so a REJECTED submit keeps what the user typed. React 19 resets uncontrolled <form> fields once
+  // the Server Action resolves, which wiped every field — not just the offending one — and sent the user back to the
+  // stored values with only an error to show for it (same defect fixed for the login form in Гигли баги #3). This modal
+  // only started rejecting when ИНН/КПП validation landed, so the reset was unreachable before.
+  const [companyName, setCompanyName] = useState(fields.companyName ?? "");
+  const [inn, setInn] = useState(fields.inn ?? "");
+  const [kpp, setKpp] = useState(fields.kpp ?? "");
+  const [about, setAbout] = useState(fields.about ?? "");
   useEffect(() => {
     if (state?.success) {
       onClose();
@@ -289,21 +298,50 @@ function CompanyModal({ fields, onClose }: { fields: Record<string, string>; onC
         <HiddenFields fields={fields} omit={["companyName", "inn", "kpp", "about"]} />
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           <span style={fieldLabel}>Название компании</span>
-          <input name="companyName" defaultValue={fields.companyName ?? ""} style={fieldInput} />
+          <input
+            name="companyName"
+            value={companyName}
+            onChange={(e) => setCompanyName(e.target.value)}
+            style={fieldInput}
+          />
         </div>
         <div style={{ display: "flex", gap: 12 }}>
+          {/* inputMode/maxLength make garbage hard to type (numeric keypad on mobile, no over-long paste); updateProfile
+              re-checks server-side via lib/requisites.ts, which is the actual authority. */}
           <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
             <span style={fieldLabel}>ИНН</span>
-            <input name="inn" defaultValue={fields.inn ?? ""} style={fieldInput} />
+            <input
+              name="inn"
+              value={inn}
+              onChange={(e) => setInn(e.target.value)}
+              inputMode="numeric"
+              maxLength={INN_LENGTH_PERSON}
+              placeholder="10 или 12 цифр"
+              style={fieldInput}
+            />
           </div>
           <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
             <span style={fieldLabel}>КПП</span>
-            <input name="kpp" defaultValue={fields.kpp ?? ""} style={fieldInput} />
+            <input
+              name="kpp"
+              value={kpp}
+              onChange={(e) => setKpp(e.target.value)}
+              inputMode="numeric"
+              maxLength={KPP_LENGTH}
+              placeholder="9 цифр"
+              style={fieldInput}
+            />
           </div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           <span style={fieldLabel}>О компании</span>
-          <textarea name="about" defaultValue={fields.about ?? ""} placeholder="Коротко о компании и задачах…" style={textareaStyle} />
+          <textarea
+            name="about"
+            value={about}
+            onChange={(e) => setAbout(e.target.value)}
+            placeholder="Коротко о компании и задачах…"
+            style={textareaStyle}
+          />
         </div>
         {state?.error && <span style={errStyle}>{state.error}</span>}
         <button type="submit" disabled={pending} style={saveBtn}>Сохранить</button>
