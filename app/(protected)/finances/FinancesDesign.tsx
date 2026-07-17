@@ -9,14 +9,21 @@ import "@/app/_design/tokens.css";
 export function FinancesDesign({ stats, ledger }: FinancesData) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      <div style={{ display: "flex", gap: 16 }}>
-        {stats.stats.map((s, i) => (
-          <div key={i} style={{ flex: 1, borderRadius: 12, background: "var(--surface-card)", boxShadow: "inset 0 0 0 1px var(--hairline-08)", padding: 20, display: "flex", flexDirection: "column", gap: 8 }}>
-            <span style={{ fontFamily: "'Handjet',monospace", fontSize: 14, color: "var(--text-3)" }}>{s.label}</span>
-            <span style={{ fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 28, color: "var(--text-1)" }}>{s.value}</span>
-            {s.caption && <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, color: "var(--text-4)" }}>{s.caption}</span>}
-          </div>
-        ))}
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div style={{ display: "flex", gap: 16 }}>
+          {stats.stats.map((s, i) => (
+            <div key={i} style={{ flex: 1, borderRadius: 12, background: "var(--surface-card)", boxShadow: "inset 0 0 0 1px var(--hairline-08)", padding: 20, display: "flex", flexDirection: "column", gap: 8 }}>
+              <span style={{ fontFamily: "'Handjet',monospace", fontSize: 14, color: "var(--text-3)" }}>{s.label}</span>
+              <span style={{ fontFamily: "'Manrope',sans-serif", fontWeight: 600, fontSize: 28, color: "var(--text-1)" }}>{s.value}</span>
+              {s.caption && <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, color: "var(--text-4)" }}>{s.caption}</span>}
+            </div>
+          ))}
+        </div>
+        {/* The tester asked whether «Выплачено» before a real transfer is intended — it is: payment here is the client's
+            manual «Отметить оплату», a logical status, not a gateway transfer (MVP). Say so, so the number isn't misread. */}
+        <span style={{ fontFamily: "'Manrope',sans-serif", fontSize: 12, color: "var(--text-4)" }}>
+          Суммы отражают статусы гигов. «Оплата» — ручная отметка заказчика, а не реальный перевод через платформу.
+        </span>
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>

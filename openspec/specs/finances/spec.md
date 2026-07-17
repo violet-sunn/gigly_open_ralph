@@ -84,8 +84,15 @@ MVP boundary.
   money movement, no DB writes), referencing `project.md` "Escrow / Payments (MVP)", and that real payment-gateway/
   escrow integration is a post-MVP change behind the same `LedgerTableVM`/`StatPanelVM` shapes
 
+#### Scenario: The screen tells the user the payment is a manual mark, not a transfer
+- GIVEN the «Финансы» screen renders
+- THEN it MUST show a note that the figures reflect gig statuses and that «Оплата» is the client's manual mark, not a
+  real transfer through the platform — so «Выплачено» appearing before any real money movement is not misread (the
+  tester asked whether this was intended; it is)
+
 **Acceptance Criteria:**
 - `lib/finances.ts` documents the logical/no-gateway/post-MVP boundary, referencing `project.md`
+- The finances screen surfaces a plain-language disclaimer that payment is a manual mark, not a real transfer
 
 ### Requirement: Additive Verification
 The change MUST be additive and read-only, with the suite green and no schema/seed/action/UI changes.
