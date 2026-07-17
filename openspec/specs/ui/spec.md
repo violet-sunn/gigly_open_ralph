@@ -370,8 +370,8 @@ This supersedes the prior kit/legacy login page (no English copy, no `bg-navy` T
 #### Scenario: Login view
 - GIVEN a user navigates to `/login`
 - THEN the «ВХОД В GIGLY» lockup (blue-G logomark + Handjet heading + Manrope subtitle), Email + Пароль, a
-  non-functional «Забыли пароль?» link, a «Войти» submit wired to `loginUser`, and a «Нет аккаунта? Создать аккаунт»
-  link are shown — no step-dots, no role selector, no English
+  «Забыли пароль?» disclosure (reveals the manual-recovery contact — see the authentication spec), a «Войти» submit
+  wired to `loginUser`, and a «Нет аккаунта? Создать аккаунт» link are shown — no step-dots, no role selector, no English
 
 #### Scenario: Token/font purity
 - GIVEN the auth screens render

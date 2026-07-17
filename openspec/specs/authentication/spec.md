@@ -134,7 +134,7 @@ messages MUST be in Russian.
 
 ### Requirement: Login Screen and Login↔Register State Machine
 `/login` MUST be rendered by `AuthDesign`'s `login` view (reground-auth-to-design): the «ВХОД В GIGLY» lockup
-(blue-G logomark, Handjet heading, Manrope subtitle), Email + Пароль, a non-functional «Забыли пароль?» link, a «Войти»
+(blue-G logomark, Handjet heading, Manrope subtitle), Email + Пароль, a «Забыли пароль?» disclosure, a «Войти»
 submit wired to `loginUser`, and a «Нет аккаунта? Создать аккаунт» link to onboarding. It MUST contain no English UI
 strings, no role selector, and no checkerboard background. Login and onboarding are linked siblings.
 
@@ -151,13 +151,17 @@ strings, no role selector, and no checkerboard background. Login and onboarding 
 - WHEN the user clicks «Войти» on onboarding step 2
 - THEN the login view is shown
 
-#### Scenario: Password reset entry is a placeholder
+#### Scenario: Password reset entry routes to manual recovery
 - GIVEN the login screen renders
-- THEN «Забыли пароль?» is visible and does not trigger a reset flow (`href="#"`)
+- WHEN the user clicks «Забыли пароль?»
+- THEN an inline note discloses that recovery is currently handled by hand and offers a `mailto:` contact
+- AND no automated reset flow is triggered — self-service reset (token + email delivery) remains out of scope
 
 **Acceptance Criteria:**
 - `/login` renders `AuthDesign initialView="login"`; no English/role-selector/checkerboard
-- «Создать аккаунт» ↔ «Войти» switch views; «Забыли пароль?» is a non-functional placeholder
+- «Создать аккаунт» ↔ «Войти» switch views
+- «Забыли пароль?» is a `type="button"` disclosure (never a form submit) that toggles the manual-recovery note; it MUST
+  NOT be a dead `href="#"` link
 
 ---
 

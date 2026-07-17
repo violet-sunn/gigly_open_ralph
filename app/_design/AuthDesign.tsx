@@ -20,6 +20,11 @@ const SANS = "'SF Compact',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
 const MONO = "'Handjet',monospace";
 const GROTESK = "'Manrope',sans-serif";
 
+// Password reset is handled by hand until the token/email infra lands, so «Забыли пароль?» routes the user to a person
+// instead of the design's dead `href="#"`.
+const SUPPORT_EMAIL = "a.pisotskiy@gmail.com";
+const RESET_MAILTO = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Восстановление пароля Gigly")}`;
+
 export function AuthDesign({ initialView }: { initialView: View }) {
   const [view, setView] = useState<View>(initialView);
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -453,6 +458,7 @@ function LoginView({
   // driven by React and survives that reset. The password stays entirely client-side — loginUser never echoes it back.
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [resetHelpOpen, setResetHelpOpen] = useState(false);
   return (
     <div style={centerColumn}>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20 }}>
@@ -475,10 +481,17 @@ function LoginView({
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <Label>Пароль</Label>
           <PasswordField name="password" required placeholder="Ваш пароль" value={password} onChange={setPassword} />
-          <a
-            href="#"
+          <button
+            type="button"
+            onClick={() => setResetHelpOpen((open) => !open)}
+            aria-expanded={resetHelpOpen}
+            aria-controls="reset-help"
             style={{
               alignSelf: "flex-end",
+              padding: 0,
+              border: "none",
+              background: "none",
+              cursor: "pointer",
               fontFamily: MONO,
               fontSize: 13,
               color: "var(--text-3)",
@@ -486,7 +499,32 @@ function LoginView({
             }}
           >
             Забыли пароль?
-          </a>
+          </button>
+          {resetHelpOpen && (
+            <div
+              id="reset-help"
+              role="status"
+              style={{
+                boxSizing: "border-box",
+                width: "100%",
+                marginTop: 4,
+                padding: "10px 12px",
+                borderRadius: 8,
+                background: "var(--surface-sunken)",
+                border: "1px solid var(--hairline-10)",
+                color: "var(--text-3)",
+                fontFamily: GROTESK,
+                fontSize: 12,
+                lineHeight: 1.5,
+              }}
+            >
+              Пока восстанавливаем пароль вручную. Напишите нам с адреса, на который зарегистрирован аккаунт, —{" "}
+              <a href={RESET_MAILTO} style={{ color: "var(--om-accent)", textDecoration: "underline" }}>
+                {SUPPORT_EMAIL}
+              </a>
+              .
+            </div>
+          )}
         </div>
         <LoginErrorAlert error={error} />
         <div style={{ marginTop: 6 }}>
