@@ -279,9 +279,29 @@ describe('Password Strength Requirements', () => {
 
     const result = await registerUser(null, formData)
 
-    expect(result).toEqual({ error: 'Пароль может содержать только латинские буквы, цифры и спецсимволы.' })
+    expect(result).toEqual({ error: 'Пароль может содержать только латинские буквы, цифры и спецсимволы — без пробелов.' })
 
     // Verify no user was created
+    const prisma = getTestPrismaClient()
+    const user = await prisma.user.findUnique({ where: { email } })
+    expect(user).toBeNull()
+  })
+
+  // The whitelist is enforced server-side, before hashing — so a password carrying an invisible U+FEFF never reaches
+  // bcrypt and never creates an account the user would be unable to log back into.
+  it('rejects registration with an invisible zero-width space in the password', async () => {
+    const email = `user-${Date.now()}-${Math.random()}@example.com`
+    testEmails.push(email)
+
+    const formData = new FormData()
+    formData.append('email', email)
+    formData.append('password', 'SecurePass123﻿') // looks identical to a valid password on screen
+    formData.append('role', 'CLIENT')
+
+    const result = await registerUser(null, formData)
+
+    expect(result).toEqual({ error: 'Пароль может содержать только латинские буквы, цифры и спецсимволы — без пробелов.' })
+
     const prisma = getTestPrismaClient()
     const user = await prisma.user.findUnique({ where: { email } })
     expect(user).toBeNull()

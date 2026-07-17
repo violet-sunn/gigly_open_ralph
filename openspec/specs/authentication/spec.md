@@ -421,13 +421,13 @@ The system MUST provide a password validation utility that enforces minimum stre
 #### Scenario: Password with invalid characters (Cyrillic/Unicode)
 - GIVEN a password "Пароль123" (contains Cyrillic characters)
 - WHEN `validatePassword` is called
-- THEN it MUST return `{ valid: false, error: "Password can only contain Latin letters, numbers, and special characters." }`
+- THEN it MUST return `{ valid: false, error: "Пароль может содержать только латинские буквы, цифры и спецсимволы — без пробелов." }`
 - AND character whitelist validation MUST reject non-Latin characters
 
 #### Scenario: Password with invalid characters checked first
 - GIVEN a password "Пароль" (Cyrillic, also too short and missing number)
 - WHEN `validatePassword` is called
-- THEN it MUST return `{ valid: false, error: "Password can only contain Latin letters, numbers, and special characters." }`
+- THEN it MUST return `{ valid: false, error: "Пароль может содержать только латинские буквы, цифры и спецсимволы — без пробелов." }`
 - AND character whitelist check MUST happen before other validations
 
 #### Scenario: Password with multiple violations
@@ -442,17 +442,22 @@ The system MUST provide a password validation utility that enforces minimum stre
 - THEN it MUST return `{ valid: true }`
 - AND special characters MUST NOT be required but MUST be allowed
 
-#### Scenario: Password with spaces is allowed
-- GIVEN a password "My Secure Pass 123"
+#### Scenario: Whitespace is rejected
+- GIVEN a password containing any whitespace — a plain space ("My Secure Pass 123"), a leading/trailing space, a TAB,
+  a newline, or a carriage return
 - WHEN `validatePassword` is called
-- THEN it MUST return `{ valid: true }`
-- AND spaces MUST be treated as valid characters
+- THEN it MUST return `{ valid: false }` with the character-whitelist error
+- AND this MUST hold for NON-ASCII blanks too: U+00A0 (NBSP), U+3000 (ideographic space), and U+FEFF (zero-width NBSP)
+- AND the rationale is that an invisible character in a password is unrecoverable in practice — registration succeeds,
+  the user later retypes the password by hand, and login fails; recovery here is manual (see «Забыли пароль?»)
 
 #### Scenario: Password at exactly 72 characters
 - GIVEN a password with exactly 72 characters meeting all requirements
 - WHEN `validatePassword` is called
 - THEN it MUST return `{ valid: true }`
 - AND 72 characters is the maximum allowed (bcrypt limit)
+- AND because the whitelist admits ASCII only, those 72 characters are exactly 72 bytes — so the value is never
+  silently truncated by bcrypt's 72-BYTE cap
 
 **Acceptance Criteria:**
 - `validatePassword` is exported from `lib/password.ts`
@@ -460,8 +465,14 @@ The system MUST provide a password validation utility that enforces minimum stre
 - Validation order: character whitelist → max length (72) → min length (8) → uppercase → lowercase → number
 - Returns specific error message for first failed requirement
 - Uses standard ASCII regex (`/[A-Z]/` and `/[a-z]/`) for Latin-only character validation
-- Character whitelist rejects Unicode/Cyrillic characters
-- Maximum length check prevents bcrypt DoS (72 character limit, safe with ASCII-only)
+- The character whitelist is the printable-ASCII range **excluding space** (`/^[\x21-\x7E]*$/`), which rejects
+  Unicode/Cyrillic, emoji, and every form of whitespace. It MUST stay expressed as a raw ASCII range rather than a
+  hand-listed punctuation set, because the max-length check depends on that range being exactly 1 byte per character
+- The whitelist MUST NOT use `\s`: it matches non-ASCII blanks (U+00A0, U+3000, U+FEFF), which are invisible on screen
+  and break the one-byte-per-character invariant (72 ideographic spaces = 210 bytes)
+- Maximum length check prevents bcrypt DoS (72 characters, which the ASCII-only whitelist makes exactly 72 bytes —
+  bcrypt truncates beyond 72 BYTES, so the character count is a valid proxy only while that whitelist holds)
+- Empty input MUST fall through the whitelist (`*`, not `+`) to the min-length error
 - No external dependencies (uses built-in JavaScript)
 - Pure function with no side effects
 

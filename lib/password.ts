@@ -18,15 +18,29 @@ export function checkPasswordRules(password: string): PasswordRule[] {
 }
 
 export function validatePassword(password: string): { valid: boolean; error?: string } {
-  // Check character whitelist first (Latin letters, numbers, special characters only)
-  // Rejects Unicode/Cyrillic characters to prevent encoding issues
-  const allowedChars = /^[A-Za-z0-9\s!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]*$/
+  // Character whitelist first: printable ASCII only, space excluded (0x21 '!' … 0x7E '~').
+  //
+  // The range is deliberately expressed as raw ASCII rather than a hand-listed set of punctuation, because the byte
+  // check below depends on it: `\x21-\x7E` is exactly the set where 1 character == 1 UTF-8 byte, which is what makes
+  // the 72 limit line up with bcrypt's hard 72-BYTE truncation.
+  //
+  // Whitespace is rejected outright — `\s` used to be in this class and quietly admitted NON-ASCII blanks (U+00A0
+  // NBSP, U+3000 ideographic space, U+FEFF zero-width NBSP). Those broke the byte assumption (72 ideographic spaces =
+  // 210 bytes) and, worse, let an invisible character into a password: registration succeeds, the user retypes it by
+  // hand, and login fails forever. Password recovery here is manual, so that lands on a human. Passphrases aren't lost
+  // by this — the upper/lower/digit rules below already make space-separated word phrases invalid anyway.
+  //
+  // Empty stays allowed HERE (note the `*`) so it falls through to the friendlier min-length error below.
+  const allowedChars = /^[\x21-\x7E]*$/
   if (!allowedChars.test(password)) {
-    return { valid: false, error: 'Пароль может содержать только латинские буквы, цифры и спецсимволы.' }
+    return {
+      valid: false,
+      error: 'Пароль может содержать только латинские буквы, цифры и спецсимволы — без пробелов.',
+    }
   }
 
-  // Check maximum length (bcrypt limit + DoS prevention)
-  // Since we enforce ASCII-only, 1 character = 1 byte, making this perfectly safe
+  // Maximum length (bcrypt truncates at 72 bytes; also caps hashing work). Safe as a character count only because the
+  // whitelist above guarantees ASCII, so 1 character == 1 byte.
   if (password.length > 72) {
     return { valid: false, error: 'Пароль не должен превышать 72 символа.' }
   }

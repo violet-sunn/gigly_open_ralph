@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { validatePassword } from '@/lib/password'
 
+const CHARSET_ERROR = 'Пароль может содержать только латинские буквы, цифры и спецсимволы — без пробелов.'
+
 describe('Password Validation', () => {
   describe('Valid passwords', () => {
     it('accepts password with all requirements', () => {
@@ -14,8 +16,8 @@ describe('Password Validation', () => {
       expect(result.valid).toBe(true)
     })
 
-    it('accepts password with spaces', () => {
-      const result = validatePassword('My Secure Pass 123')
+    it('accepts the full printable-ASCII punctuation range, including ` and ~', () => {
+      const result = validatePassword('Secure`Pass~123')
       expect(result.valid).toBe(true)
     })
 
@@ -35,13 +37,56 @@ describe('Password Validation', () => {
     it('rejects password with invalid characters (Cyrillic)', () => {
       const result = validatePassword('Пароль123')
       expect(result.valid).toBe(false)
-      expect(result.error).toBe('Пароль может содержать только латинские буквы, цифры и спецсимволы.')
+      expect(result.error).toBe(CHARSET_ERROR)
     })
 
     it('checks character whitelist before other validations', () => {
       const result = validatePassword('Пароль') // Cyrillic, also too short and missing number
       expect(result.valid).toBe(false)
-      expect(result.error).toBe('Пароль может содержать только латинские буквы, цифры и спецсимволы.')
+      expect(result.error).toBe(CHARSET_ERROR)
+    })
+
+    // Whitespace is rejected wholesale. The regression these guard: the class used to be `\s`, which matches far more
+    // than the space bar — including non-ASCII blanks that are invisible on screen and break the 1-char-per-byte
+    // assumption the 72 limit rests on.
+    it.each([
+      ['a plain space', 'My Secure Pass 123'],
+      ['a leading space (classic copy-paste artefact)', ' SecurePass123'],
+      ['a trailing space', 'SecurePass123 '],
+      ['a TAB', 'SecurePass123\t'],
+      ['a newline', 'SecurePass123\n'],
+      ['a carriage return', 'SecurePass123\r'],
+      ['U+00A0 NON-BREAKING SPACE (non-ASCII)', 'SecurePass123 '],
+      ['U+3000 IDEOGRAPHIC SPACE (non-ASCII)', 'SecurePass123　'],
+      ['U+FEFF ZERO-WIDTH NBSP (invisible!)', 'SecurePass123﻿'],
+    ])('rejects a password containing %s', (_label, password) => {
+      const result = validatePassword(password)
+      expect(result.valid).toBe(false)
+      expect(result.error).toBe(CHARSET_ERROR)
+    })
+
+    it('rejects emoji', () => {
+      const result = validatePassword('SecurePass123\u{1f600}')
+      expect(result.valid).toBe(false)
+      expect(result.error).toBe(CHARSET_ERROR)
+    })
+
+    // The whitelist is what lets the 72 check count CHARACTERS while bcrypt truncates at 72 BYTES. Without ASCII-only
+    // this password is 72 chars but 210 bytes — silently truncated by bcrypt.
+    it('rejects the 72-char / 210-byte password that the old `\\s` class let through', () => {
+      const password = 'Aa1' + '　'.repeat(69) // 72 chars, 210 bytes
+      expect(password.length).toBe(72)
+      expect(Buffer.byteLength(password, 'utf8')).toBe(210)
+
+      const result = validatePassword(password)
+      expect(result.valid).toBe(false)
+      expect(result.error).toBe(CHARSET_ERROR)
+    })
+
+    it('a password at the 72-char limit is also at the 72-byte bcrypt limit', () => {
+      const password = 'A' + 'a'.repeat(70) + '1'
+      expect(validatePassword(password).valid).toBe(true)
+      expect(Buffer.byteLength(password, 'utf8')).toBe(72) // never truncated by bcrypt
     })
 
     it('rejects password that is too long (> 72 chars)', () => {
