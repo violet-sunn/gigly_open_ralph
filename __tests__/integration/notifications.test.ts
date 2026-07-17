@@ -426,6 +426,44 @@ describe('Notification System', () => {
       expect(rows[0].eventData).toBe(JSON.stringify({ foo: 'bar' }))
     })
 
+    // The tester's «приходит только после обновления»: repeat events on ONE gig used to leave the badge unchanged,
+    // because it counted gigs. It now counts events — the badge climbs with each unread event on the same gig.
+    it('the bell badge counts unread EVENTS, so a second event on the same gig increases it', async () => {
+      const spec = await createTestUser(prisma, { role: 'SPECIALIST' })
+      const gig = await createTestGig(prisma, { clientId: (await createTestUser(prisma, { role: 'CLIENT' })).id, assignedSpecialistId: spec.id, status: 'IN_PROGRESS' })
+
+      await createNotification(spec.id, gig.id, 'STATUS_CHANGE', 'work_returned', null)
+      const afterOne = await withAuthContext(spec, () => getUnreadCount())
+      expect(afterOne.count).toBe(1)
+
+      // A second, distinct lifecycle event on the SAME gig — the badge must move, not sit at 1.
+      await createNotification(spec.id, gig.id, 'STATUS_CHANGE', 'work_approved', null)
+      const afterTwo = await withAuthContext(spec, () => getUnreadCount())
+      expect(afterTwo.count).toBe(2)
+
+      // The single gig entry carries the accumulated event count.
+      const bell = await withAuthContext(spec, () => getUnreadNotifications())
+      const entry = bell.find((n) => n.gigId === gig.id)
+      expect(entry!.unreadCount).toBe(2)
+    })
+
+    it('reading the gig clears the accumulated event count (badge drops to 0)', async () => {
+      const spec = await createTestUser(prisma, { role: 'SPECIALIST' })
+      const client = await createTestUser(prisma, { role: 'CLIENT' })
+      const gig = await createTestGig(prisma, { clientId: client.id, assignedSpecialistId: spec.id, status: 'IN_PROGRESS' })
+
+      await createNotification(spec.id, gig.id, 'STATUS_CHANGE', 'work_returned', null)
+      await createNotification(spec.id, gig.id, 'STATUS_CHANGE', 'work_approved', null)
+      expect((await withAuthContext(spec, () => getUnreadCount())).count).toBe(2)
+
+      await withAuthContext(spec, () => markNotificationAsRead(gig.id))
+      expect((await withAuthContext(spec, () => getUnreadCount())).count).toBe(0)
+
+      // And a fresh event after reading starts the count over at 1 (not a stale 3).
+      await createNotification(spec.id, gig.id, 'STATUS_CHANGE', 'payment_marked', null)
+      expect((await withAuthContext(spec, () => getUnreadCount())).count).toBe(1)
+    })
+
     it('a new event after the gig was read re-surfaces it as unread in the bell', async () => {
       const client = await createTestUser(prisma, { role: 'CLIENT' })
       const gig = await createTestGig(prisma, { clientId: client.id, status: 'IN_PROGRESS' })

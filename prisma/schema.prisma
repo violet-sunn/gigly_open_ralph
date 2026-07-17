@@ -262,6 +262,11 @@ model Notification {
   eventType  String?
   eventData  String?
   text       String? // optional denormalized display text (derived text in notification-utils stays primary)
+  // Count of unread LIFECYCLE events accumulated on this one row since it was last read. The row is one-per-(user,gig)
+  // and only remembers its latest event, so without this a 2nd/3rd event on an already-unread gig left the bell badge
+  // unchanged — the tester's «приходит только после обновления». Incremented on each createNotification, reset to 0 on
+  // read. The bell badge sums it (+ unread messages) so every event is countable, not just every gig.
+  unreadEvents Int     @default(0)
   lastReadAt DateTime?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt

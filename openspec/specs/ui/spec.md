@@ -1344,6 +1344,15 @@ The system MUST display a notification bell icon in the navigation header that s
 - AND the badge MUST be visually prominent (red background, white text)
 - AND the badge MUST be positioned at the top-right of the bell icon
 
+#### Scenario: The badge counts unread EVENTS, not gigs
+- GIVEN a gig on which the user already has one unread lifecycle event
+- WHEN a second lifecycle event fires on that SAME gig before it is read
+- THEN `getUnreadCount` MUST increase (sum of `unreadEvents` + unread messages per gig), NOT stay unchanged
+- AND `Notification.unreadEvents` MUST accumulate one per `createNotification` and reset to 0 on `markNotificationAsRead`
+- Rationale: counting gigs (`.length`) left a 2nd event on an already-unread gig invisible until a reload — the
+  tester's «приходит только после обновления». Note: there is no realtime push; the badge still refreshes on the
+  ~30s poll / navigation / tab focus (`useLiveCounts`), not instantly.
+
 #### Scenario: Bell shows no badge when no unread messages
 - GIVEN an authenticated user with zero unread messages
 - WHEN they view the navigation

@@ -107,8 +107,11 @@ export async function getUnreadNotifications() {
           if (!mostRecentTimestamp || notification.createdAt > mostRecentTimestamp) {
             mostRecentTimestamp = notification.createdAt;
             hasUnread = true;
-            // Count this notification plus any unread messages
-            unreadCount = 1 + (unreadCount || 0);
+            // Count EVERY unread lifecycle event on this gig (not just 1), plus any unread messages. `unreadEvents`
+            // accumulates one per event since the last read; a row created before this column existed defaults to 0,
+            // so floor at 1 while it is unread rather than under-counting a real event to zero.
+            const eventCount = Math.max(notification.unreadEvents ?? 0, 1);
+            unreadCount = eventCount + (unreadCount || 0);
           }
         }
       }
@@ -148,7 +151,10 @@ export async function getUnreadNotifications() {
 
 export async function getUnreadCount() {
   const notifications = await getUnreadNotifications();
-  return { count: notifications.length };
+  // The bell badge counts unread EVENTS, not gigs: sum each gig's unreadCount (unread messages + accumulated lifecycle
+  // events) so a second event on an already-unread gig still moves the number. Counting gigs (`.length`) was the root
+  // of «второе событие по гигу не меняет счётчик → кажется, что не пришло».
+  return { count: notifications.reduce((sum, n) => sum + (n.unreadCount || 0), 0) };
 }
 
 export async function markNotificationAsRead(gigId: string) {
@@ -180,7 +186,7 @@ export async function markNotificationAsRead(gigId: string) {
     return { error: 'Недостаточно прав, чтобы отметить это уведомление прочитанным.' };
   }
 
-  // Upsert notification record
+  // Upsert notification record. Reading the gig clears the unread-event count so the bell badge drops accordingly.
   await prisma.notification.upsert({
     where: {
       userId_gigId: {
@@ -192,9 +198,11 @@ export async function markNotificationAsRead(gigId: string) {
       userId,
       gigId,
       lastReadAt: new Date(),
+      unreadEvents: 0,
     },
     update: {
       lastReadAt: new Date(),
+      unreadEvents: 0,
     },
   });
 

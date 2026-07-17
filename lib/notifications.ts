@@ -39,8 +39,10 @@ export async function createNotification(
     };
     await prisma.notification.upsert({
       where: { userId_gigId: { userId, gigId } },
-      create: { userId, gigId, ...fields },
-      update: { ...fields, createdAt: new Date() },
+      create: { userId, gigId, ...fields, unreadEvents: 1 },
+      // Bump createdAt (re-surfaces the gig) AND increment the unread-event count so the bell badge reflects THIS event
+      // even when the gig was already unread from a previous one.
+      update: { ...fields, createdAt: new Date(), unreadEvents: { increment: 1 } },
     });
   } catch (error) {
     console.error('[createNotification] Failed to create notification:', {
@@ -71,8 +73,8 @@ export async function createNotificationsBulk(
         const fields = { type: n.type, eventType: n.eventType, eventData: n.eventData };
         return prisma.notification.upsert({
           where: { userId_gigId: { userId: n.userId, gigId: n.gigId } },
-          create: { userId: n.userId, gigId: n.gigId, ...fields },
-          update: { ...fields, createdAt: new Date() },
+          create: { userId: n.userId, gigId: n.gigId, ...fields, unreadEvents: 1 },
+          update: { ...fields, createdAt: new Date(), unreadEvents: { increment: 1 } },
         });
       })
     );
