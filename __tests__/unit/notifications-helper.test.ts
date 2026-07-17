@@ -221,6 +221,38 @@ describe('Notification Helpers', () => {
       expect(text).toContain('Оплата отмечена');
     });
 
+    // These three used to fall through to the generic «Статус гига обновлён» default — the tester's «никаких указаний
+    // на спор» / «Статус заявки обновлён» reports. Each MUST now name what happened.
+    it('returns a revision-specific text for work_returned (not the generic default)', () => {
+      const text = getNotificationDisplayText({
+        type: 'STATUS_CHANGE',
+        eventType: 'work_returned',
+        eventData: null,
+      });
+      expect(text).toBe('Работа возвращена на доработку');
+      expect(text).not.toBe('Статус гига обновлён');
+    });
+
+    it('returns a dispute-specific text for dispute_opened', () => {
+      const text = getNotificationDisplayText({
+        type: 'STATUS_CHANGE',
+        eventType: 'dispute_opened',
+        eventData: null,
+      });
+      expect(text).toBe('По гигу открыт спор');
+      expect(text).not.toBe('Статус гига обновлён');
+    });
+
+    it('returns a dispute-specific text for dispute_resolved', () => {
+      const text = getNotificationDisplayText({
+        type: 'STATUS_CHANGE',
+        eventType: 'dispute_resolved',
+        eventData: null,
+      });
+      expect(text).toBe('Спор по гигу разрешён');
+      expect(text).not.toBe('Статус гига обновлён');
+    });
+
     it('handles MESSAGE type for backward compatibility', () => {
       const text = getNotificationDisplayText({
         type: 'MESSAGE',
