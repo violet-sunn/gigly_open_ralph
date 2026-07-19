@@ -51,7 +51,7 @@ export default async function AdminUsersPage(props: { searchParams: SearchParams
           Showing {from}-{to} of {data.totalCount} users
         </p>
       )}
-      <AdminUsers rows={data.rows} />
+      <AdminUsers rows={data.rows} selfId={session.userId} />
       {data.totalPages > 1 && (
         <Suspense fallback={null}>
           <PaginationControls currentPage={page} totalPages={data.totalPages} totalCount={data.totalCount} />

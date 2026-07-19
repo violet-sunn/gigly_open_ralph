@@ -6,9 +6,9 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { closeGig } from "@/app/actions/moderation";
+import { closeGig, deleteGig, getGigDeletionImpact, type GigDeletionImpact } from "@/app/actions/moderation";
 import type { AdminGigRow } from "@/lib/view-models";
-import { ConfirmAction } from "@/app/_design/ConfirmDialog";
+import { ConfirmAction, DeletePreviewAction } from "@/app/_design/ConfirmDialog";
 import { STATUS_RGB } from "@/app/_design/util";
 import { cardBase, h2, rowBase, smallBtn, StatusDot, Avatar, FilterSelect } from "../_parts";
 import "@/app/_design/tokens.css";
@@ -45,6 +45,25 @@ function GigCloseAction({ id, title }: { id: string; title: string }) {
       title="Закрыть гиг?"
       body={`Гиг «${title}» будет снят с публикации. Действие обратимо.`}
       confirmLabel="Закрыть"
+    />
+  );
+}
+
+const gigImpactBody = (title: string) => (i: GigDeletionImpact) =>
+  `Гиг «${title}» и все связанные данные будут удалены безвозвратно: откликов — ${i.applications}, сообщений — ${i.messages}, отзывов — ${i.reviews}, споров — ${i.disputes}. Действие необратимо.`;
+
+function GigDeleteAction({ id, title }: { id: string; title: string }) {
+  return (
+    <DeletePreviewAction<GigDeletionImpact>
+      id={id}
+      hiddenKey="gigId"
+      deleteAction={deleteGig}
+      loadImpact={getGigDeletionImpact}
+      reason="Удалён модератором"
+      title="Удалить гиг?"
+      formatBody={gigImpactBody(title)}
+      // Mirror the server guard: an open dispute must be resolved before the gig can be purged.
+      blockReason={(i) => (i.hasOpenDispute ? "По гигу открыт спор — сначала решите его, затем удаляйте." : null)}
     />
   );
 }
@@ -95,6 +114,7 @@ export function AdminGigs({ rows }: { rows: AdminGigRow[] }) {
                 </div>
                 <StatusDot color={color} label={g.closed ? "Закрыт" : meta.label} />
                 {!g.closed && <GigCloseAction id={g.id} title={g.title} />}
+                <GigDeleteAction id={g.id} title={g.title} />
               </div>
             );
           })}

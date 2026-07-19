@@ -8,9 +8,9 @@
 import { useActionState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { suspendUser, unsuspendUser } from "@/app/actions/moderation";
+import { suspendUser, unsuspendUser, deleteUser, getUserDeletionImpact, type UserDeletionImpact } from "@/app/actions/moderation";
 import type { AdminUserRow } from "@/lib/view-models";
-import { ConfirmAction } from "@/app/_design/ConfirmDialog";
+import { ConfirmAction, DeletePreviewAction } from "@/app/_design/ConfirmDialog";
 import { cardBase, h2, rowBase, smallBtn, StatusDot, Avatar, FilterSelect } from "../_parts";
 import "@/app/_design/tokens.css";
 
@@ -50,7 +50,36 @@ function UserAction({ id, name, suspended }: { id: string; name: string; suspend
   );
 }
 
-export function AdminUsers({ rows }: { rows: AdminUserRow[] }) {
+const userImpactBody = (email: string) => (i: UserDeletionImpact) =>
+  `Пользователь ${email} и его данные будут удалены безвозвратно: откликов — ${i.applications}, отзывов (оставленных/полученных) — ${i.reviewsAuthored}/${i.reviewsReceived}, споров — ${i.disputesOpened}. Гиги, куда он откликался, сохранятся. Действие необратимо.`;
+
+// The block sentence for the guarded server-side cases, surfaced in the dialog with a disabled confirm.
+function userBlockReason(i: UserDeletionImpact): string | null {
+  if (i.blocked.isAdmin) return "Администратора нельзя удалить через консоль.";
+  if (i.blocked.isSelf) return "Нельзя удалить собственную учётную запись.";
+  if (i.blocked.ownsGigs) return `У пользователя есть гиги (${i.ownedGigs}). Сначала удалите их в разделе «Гиги», затем аккаунт.`;
+  if (i.blocked.hasOpenDispute) return "По пользователю открыт спор — сначала решите его.";
+  if (i.blocked.activeAssignment) return "Пользователь назначен на активный гиг — сначала закройте или переназначьте его.";
+  return null;
+}
+
+function UserDeleteAction({ id, email, disabledUpfront }: { id: string; email: string; disabledUpfront: string | null }) {
+  return (
+    <DeletePreviewAction<UserDeletionImpact>
+      id={id}
+      hiddenKey="userId"
+      deleteAction={deleteUser}
+      loadImpact={getUserDeletionImpact}
+      reason="Удалён модератором"
+      title="Удалить пользователя?"
+      formatBody={userImpactBody(email)}
+      blockReason={userBlockReason}
+      disabledUpfront={disabledUpfront}
+    />
+  );
+}
+
+export function AdminUsers({ rows, selfId }: { rows: AdminUserRow[]; selfId: string }) {
   const router = useRouter();
   const params = useSearchParams();
   const role = params.get("role") ?? "";
@@ -96,6 +125,17 @@ export function AdminUsers({ rows }: { rows: AdminUserRow[] }) {
               </div>
               <StatusDot color={u.suspended ? "#ef4444" : "#34c759"} label={u.suspended ? "Заблокирован" : "Активен"} />
               <UserAction id={u.id} name={u.email} suspended={u.suspended} />
+              <UserDeleteAction
+                id={u.id}
+                email={u.email}
+                disabledUpfront={
+                  u.role === "ADMIN"
+                    ? "Администратора нельзя удалить"
+                    : u.id === selfId
+                      ? "Нельзя удалить свою учётную запись"
+                      : null
+                }
+              />
             </div>
           ))}
         </div>
