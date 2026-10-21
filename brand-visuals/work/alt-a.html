@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<style>
+  :root { --desk: #e9e2d2; --paper: #faf7ef; --ink: #141414; --stamp: #2f3fb8; --red: #c8322b; }
+  html, body { margin: 0; }
+  * { box-sizing: border-box; }
+  .frame { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: var(--desk); color: var(--ink); font-family: 'Bahnschrift', 'Arial Narrow', sans-serif; -webkit-font-smoothing: antialiased; }
+  .cond { font-family: 'Bahnschrift'; font-stretch: 75%; font-weight: 800; text-transform: uppercase; line-height: 0.9; letter-spacing: -0.005em; }
+  .mark { position: absolute; left: 80px; top: 64px; width: 900px; display: flex; justify-content: space-between; font-family: 'Bahnschrift'; font-stretch: 75%; font-weight: 800; font-size: 44px; letter-spacing: 0.08em; }
+  .url { position: absolute; right: 120px; top: 66px; font-size: 26px; font-weight: 600; display: none; }
+  .copy { position: absolute; left: 80px; top: 290px; width: 1000px; }
+  .copy .cond { font-size: 140px; }
+  .copy .sub { margin-top: 40px; font-size: 34px; line-height: 1.35; font-weight: 500; max-width: 760px; }
+  .doc { position: absolute; right: 120px; top: 90px; width: 680px; height: 900px; background: var(--paper); padding: 56px 56px; font-family: 'Times New Roman', serif; font-size: 20px; line-height: 1.45; color: var(--ink); }
+  .doc h1 { margin: 0 0 6px; font-size: 26px; font-weight: 700; text-align: center; letter-spacing: 0.02em; }
+  .doc .date { text-align: center; margin-bottom: 28px; }
+  .doc p { margin: 0 0 10px; }
+  .doc .crit { margin: 18px 0 0; padding: 0; list-style: none; }
+  .doc .crit li { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 8px; }
+  .doc .box { width: 18px; height: 18px; flex: none; border: 2px solid var(--ink); margin-top: 4px; position: relative; }
+  .doc .box::after { content: ''; position: absolute; left: 4px; top: -2px; width: 7px; height: 12px; border: solid var(--ink); border-width: 0 3px 3px 0; transform: rotate(40deg); }
+  .doc .sum { margin-top: 18px; border-top: 2px solid var(--ink); padding-top: 12px; }
+  .doc .sig { display: flex; justify-content: space-between; margin-top: 36px; }
+  .doc .sig span { border-top: 2px solid var(--ink); padding-top: 6px; width: 46%; }
+  .round { position: absolute; right: 150px; top: 585px; width: 330px; height: 330px; transform: rotate(-14deg); mix-blend-mode: multiply; opacity: 0.88; }
+  .rect { position: absolute; right: 470px; top: 160px; transform: rotate(7deg); border: 6px solid var(--red); color: var(--red); padding: 10px 26px 14px; font-family: 'Bahnschrift'; font-stretch: 75%; font-weight: 800; font-size: 96px; line-height: 0.9; letter-spacing: 0.04em; mix-blend-mode: multiply; opacity: 0.9; }
+  .rect small { display: block; font-size: 26px; letter-spacing: 0.08em; font-weight: 700; margin-top: 2px; }
+</style></head>
+<body><div class="frame">
+  <div class="mark"><span>GIGLY</span><span style="font-stretch:100%; font-weight:600; letter-spacing:0; font-size:26px; align-self:center;">gigly-m0jo.amvera.io</span></div>
+  <div class="copy">
+    <div class="cond">Закрываем актом.<br>Не обещанием.</div>
+    <div class="sub">Критерии приёмки — до старта. Акт — после сдачи. Оплата — по акту. Сеньор получает бюджет целиком.</div>
+  </div>
+  <div class="url">gigly-m0jo.amvera.io</div>
+
+  <div class="doc">
+    <h1>АКТ ПРИЁМКИ ГИГА № 0147</h1>
+    <div class="date">26 октября 2026 г.</div>
+    <p><b>Заказчик:</b> ООО «ТехКорп»</p>
+    <p><b>Исполнитель:</b> Соколов Д. А., Senior</p>
+    <p><b>Гиг:</b> Чат-бот поддержки для интернет-магазина</p>
+    <p><b>Бюджет:</b> 150 000 ₽. <b>Сервисный сбор 17,5%:</b> 26 250 ₽. <b>Итого к оплате:</b> 176 250 ₽.</p>
+    <p style="margin-top:18px"><b>Критерии приёмки, зафиксированные до начала работ:</b></p>
+    <ul class="crit">
+      <li><span class="box"></span><span>Бот отвечает на 20 типовых сценариев из FAQ</span></li>
+      <li><span class="box"></span><span>Передача оператору при неизвестном вопросе</span></li>
+      <li><span class="box"></span><span>Время ответа не более 2 секунд</span></li>
+      <li><span class="box"></span><span>Документация и инструкция по развёртыванию</span></li>
+    </ul>
+    <p class="sum">Работа принята по всем критериям. Претензий у сторон нет.</p>
+    <div class="sig"><span>Заказчик</span><span>Исполнитель</span></div>
+  </div>
+
+  <div class="rect">Оплачено<small>26.10.2026</small></div>
+
+  <svg class="round" viewBox="0 0 330 330">
+    <defs><path id="ring" d="M165,165 m-122,0 a122,122 0 1,1 244,0 a122,122 0 1,1 -244,0"/></defs>
+    <circle cx="165" cy="165" r="158" fill="none" stroke="#2f3fb8" stroke-width="7"/>
+    <circle cx="165" cy="165" r="104" fill="none" stroke="#2f3fb8" stroke-width="4"/>
+    <text font-family="Bahnschrift" font-weight="800" font-size="30" fill="#2f3fb8" letter-spacing="3" style="font-stretch:75%">
+      <textPath href="#ring" startOffset="0" textLength="766" lengthAdjust="spacing">GIGLY · ПРИНЯТО ПО КРИТЕРИЯМ · GIGLY · ПРИНЯТО ПО КРИТЕРИЯМ ·</textPath>
+    </text>
+    <text x="165" y="158" text-anchor="middle" font-family="Bahnschrift" font-weight="800" font-size="56" fill="#2f3fb8" style="font-stretch:75%">ПРИНЯТО</text>
+    <text x="165" y="196" text-anchor="middle" font-family="Bahnschrift" font-weight="700" font-size="24" fill="#2f3fb8" letter-spacing="2">26.10.2026</text>
+  </svg>
+</div></body></html>

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<style>
+  :root { --paper: #faf7ef; --ink: #141414; --stamp: #2f3fb8; --red: #c8322b; }
+  html, body { margin: 0; } * { box-sizing: border-box; }
+  .frame { position: relative; width: 1080px; height: 1080px; overflow: hidden; background: var(--paper); color: var(--ink); font-family: 'Bahnschrift', sans-serif; }
+  .mark { position: absolute; left: 64px; top: 56px; font-family: 'Bahnschrift'; font-stretch: 75%; font-weight: 800; font-size: 40px; letter-spacing: 0.08em; }
+  .url { position: absolute; right: 64px; top: 58px; font-size: 24px; font-weight: 600; }
+  .round { position: absolute; left: 150px; top: 150px; width: 780px; height: 780px; transform: rotate(-12deg); mix-blend-mode: multiply; opacity: 0.9; }
+  .rect { position: absolute; right: 70px; bottom: 90px; transform: rotate(-6deg); border: 6px solid var(--red); color: var(--red); padding: 8px 22px 4px; font-family: 'Bahnschrift'; font-stretch: 75%; font-weight: 800; font-size: 84px; line-height: 0.9; letter-spacing: 0.04em; mix-blend-mode: multiply; opacity: 0.9; }
+</style></head>
+<body><div class="frame">
+  <div class="mark">GIGLY</div>
+  <div class="url">gigly-m0jo.amvera.io</div>
+  <svg class="round" viewBox="0 0 330 330">
+    <defs><path id="ring" d="M165,165 m-124,0 a124,124 0 1,1 248,0 a124,124 0 1,1 -248,0"/></defs>
+    <circle cx="165" cy="165" r="160" fill="none" stroke="#2f3fb8" stroke-width="6"/>
+    <circle cx="165" cy="165" r="108" fill="none" stroke="#2f3fb8" stroke-width="3.5"/>
+    <text font-family="Bahnschrift" font-weight="800" font-size="27" fill="#2f3fb8" letter-spacing="3" style="font-stretch:75%">
+      <textPath href="#ring" startOffset="0" textLength="779" lengthAdjust="spacing">GIGLY · ПРИНЯТО ПО КРИТЕРИЯМ · GIGLY · ПРИНЯТО ПО КРИТЕРИЯМ ·</textPath>
+    </text>
+    <text x="165" y="128" text-anchor="middle" font-family="Bahnschrift" font-weight="800" font-size="46" fill="#2f3fb8" style="font-stretch:75%">СДАЛ.</text>
+    <text x="165" y="176" text-anchor="middle" font-family="Bahnschrift" font-weight="800" font-size="46" fill="#2f3fb8" style="font-stretch:75%">ПРИНЯЛ.</text>
+    <text x="165" y="224" text-anchor="middle" font-family="Bahnschrift" font-weight="800" font-size="46" fill="#2f3fb8" style="font-stretch:75%">ОПЛАЧЕН.</text>
+  </svg>
+  <div class="rect">Оплачено</div>
+</div></body></html>

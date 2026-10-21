@@ -1,0 +1,24 @@
+@font-face { font-family: 'Manrope'; src: url('/public/fonts/Manrope.ttf') format('truetype'); font-weight: 200 800; }
+:root { --white: #ffffff; --black: #000000; --ink: #111114; --soft: #6e6e73; --blue: #0071e3; --card: #0e101a; --card-dark: #121318; }
+html, body { margin: 0; } * { box-sizing: border-box; }
+.frame { position: relative; width: 1920px; height: 1080px; overflow: hidden; font-family: 'Manrope', sans-serif; -webkit-font-smoothing: antialiased; }
+.nav { position: absolute; left: 0; right: 0; top: 0; height: 64px; display: flex; align-items: center; justify-content: space-between; padding: 0 96px; font-size: 15px; font-weight: 500; }
+.nav .links { display: flex; gap: 40px; }
+.nav .mark { font-weight: 700; font-size: 17px; letter-spacing: 0.02em; }
+.h { margin: 0; font-weight: 600; letter-spacing: -0.035em; line-height: 1.02; text-align: center; }
+.lead { margin: 0; font-weight: 400; text-align: center; line-height: 1.4; }
+.actions { display: flex; justify-content: center; gap: 36px; align-items: center; font-size: 21px; font-weight: 500; }
+.btn { display: inline-flex; align-items: center; height: 48px; padding: 0 24px; border-radius: 980px; background: var(--blue); color: #fff; }
+/* the object: the gig card, evolved for the premium register (no glow, one face, more air) */
+.obj { width: 1120px; border-radius: 28px; background: var(--card); color: #fff; padding: 44px 48px; font-family: 'Manrope', sans-serif; }
+.obj .row { display: flex; justify-content: space-between; align-items: center; }
+.obj .st { display: inline-flex; align-items: center; gap: 12px; font-size: 20px; font-weight: 500; color: #9aa3b2; }
+.obj .st i { width: 10px; height: 10px; border-radius: 50%; background: #3b82f6; display: inline-block; }
+.obj .co { font-size: 20px; font-weight: 500; color: #9aa3b2; }
+.obj .t { margin-top: 28px; font-size: 54px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.08; }
+.obj .tags { margin-top: 22px; display: flex; gap: 10px; }
+.obj .tags span { font-size: 17px; font-weight: 500; padding: 8px 14px; border-radius: 980px; background: rgba(255,255,255,0.08); color: #cfd4dc; }
+.obj .foot { margin-top: 40px; display: flex; align-items: flex-end; justify-content: space-between; }
+.obj .money { font-size: 64px; font-weight: 300; letter-spacing: -0.03em; line-height: 1; }
+.obj .money small { display: block; font-size: 17px; font-weight: 500; color: #9aa3b2; letter-spacing: 0; margin-bottom: 10px; }
+.obj .cta { height: 52px; padding: 0 28px; border-radius: 980px; background: var(--blue); color: #fff; font-size: 19px; font-weight: 600; display: inline-flex; align-items: center; }

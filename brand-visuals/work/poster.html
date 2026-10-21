@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><link rel="stylesheet" href="/brand.css">
+<style>
+  .frame { width: 1080px; height: 1350px; }
+  .frame.dark { background: var(--dark); color: var(--white); --wave: var(--blue); }
+  .frame.blue { background: var(--blue); color: var(--dark); --wave: var(--dark); }
+  .frame.paper { background: var(--paper); color: var(--ink); --wave: var(--blue); }
+  .wave { bottom: -8px; height: 194px; background: var(--wave); }
+  .top { position: absolute; left: 64px; right: 64px; top: 56px; display: flex; justify-content: space-between; align-items: baseline; }
+  .url { font-family: var(--text); font-weight: 600; font-size: 24px; }
+  .copy { position: absolute; left: 64px; right: 64px; top: 300px; }
+  .copy .display { font-size: 176px; }
+  .copy .sub { margin-top: 40px; font-size: 38px; max-width: 760px; }
+</style></head>
+<body><div class="frame" id="f">
+  <div class="top"><div class="mark" style="font-size:40px;">GIGLY</div><div class="url">gigly-m0jo.amvera.io</div></div>
+  <div class="copy"><div class="display" id="h"></div><div class="sub" id="s"></div></div>
+  <div class="wave"></div>
+</div>
+<script>
+  const P = {
+    1: ['dark', 'Джунов здесь нет.', 'Только Middle+ и Senior. Задачи от 10 000 ₽, обычно 150–200 тысяч.'],
+    2: ['blue', 'Отклик без «я крутой».', 'Подход, вопросы, срок. Принят один — остальные закрыты.'],
+    3: ['paper', 'Сдал. Принял. Оплачен.', 'Четыре статуса, чат и сбор 17,5% — на одном гиге.'],
+  };
+  const n = new URLSearchParams(location.search).get('n') || '1';
+  const [cls, h, s] = P[n];
+  document.getElementById('f').classList.add(cls);
+  document.getElementById('h').textContent = h;
+  document.getElementById('s').textContent = s;
+</script>
+</body></html>

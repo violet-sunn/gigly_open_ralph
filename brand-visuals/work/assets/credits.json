@@ -1,0 +1,63 @@
+[
+ {
+  "file": "assets/archive/marble-bust-of-a-youth.jpg",
+  "media": "image",
+  "ref": "met:250675",
+  "title": "Marble bust of a youth",
+  "creator": "Roman maker",
+  "creatorUrl": null,
+  "date": "ca. 140 CE",
+  "license": "public domain (CC0)",
+  "licenseCode": "cc0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "creditRequired": false,
+  "page": "https://www.metmuseum.org/art/collection/search/250675",
+  "via": "The Metropolitan Museum of Art",
+  "image": "https://images.metmuseum.org/CRDImages/gr/original/DP333732.jpg",
+  "width": 3000,
+  "height": 4000,
+  "bytes": 831896,
+  "credit": "\"Marble bust of a youth\" by Roman maker, ca. 140 CE, public domain (CC0), via The Metropolitan Museum of Art",
+  "notes": [],
+  "saved": "2026-10-20T15:11:04.757Z",
+  "note": "rejected direction (23-lavender), kept for history"
+ },
+ {
+  "file": "assets/hand-right.glb",
+  "title": "WebXR Input Profiles generic hand (right), rigged glTF",
+  "source": "https://www.npmjs.com/package/@webxr-input-profiles/assets",
+  "license": "MIT (c) 2019 Amazon",
+  "licenseFile": "assets/webxr-assets-LICENSE.txt",
+  "use": "prism.html hero hand, posed by bone rotation, toon-shaded"
+ },
+ {
+  "file": "assets/hand-close.png",
+  "media": "render",
+  "title": "poster for the footer loop and the no-script hero",
+  "creator": "own render",
+  "date": "2026-10-20",
+  "license": "own work (project asset)",
+  "creditRequired": false,
+  "source": "cyberluxe.html?bare=1 (three.js r170 scene in scene3d.js, hand = WebXR generic hand glb, MIT) captured by loopcap.mjs, cropped 920x950@960,130 by ffmpeg"
+ },
+ {
+  "file": "assets/cube-close.png",
+  "media": "render",
+  "title": "CTA flank tile",
+  "creator": "own render",
+  "date": "2026-10-20",
+  "license": "own work (project asset)",
+  "creditRequired": false,
+  "source": "cyberluxe.html?bare=1 (three.js r170 scene in scene3d.js, hand = WebXR generic hand glb, MIT) captured by loopcap.mjs, cropped 920x950@960,130 by ffmpeg"
+ },
+ {
+  "file": "assets/hand-loop.mp4",
+  "media": "render",
+  "title": "footer loop, 27 frames of the hold ping-ponged at 12 fps",
+  "creator": "own render",
+  "date": "2026-10-20",
+  "license": "own work (project asset)",
+  "creditRequired": false,
+  "source": "cyberluxe.html?bare=1 (three.js r170 scene in scene3d.js, hand = WebXR generic hand glb, MIT) captured by loopcap.mjs, cropped 920x950@960,130 by ffmpeg"
+ }
+]

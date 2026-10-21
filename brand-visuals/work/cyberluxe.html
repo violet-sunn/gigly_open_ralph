@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gigly — гиги для сеньоров и компаний</title>
+<script>document.documentElement.classList.add('js')</script>
+<script type="importmap">{ "imports": { "three": "/vendor/three.module.js", "three/addons/": "/vendor/addons/" } }</script>
+<link rel="preload" href="/fonts/Unbounded.ttf" as="font" type="font/ttf" crossorigin>
+<link rel="stylesheet" href="/scenes/stage.css">
+<style>
+  @font-face { font-family: 'Unbounded'; src: url('/fonts/Unbounded.ttf') format('truetype'); font-weight: 200 900; font-display: swap; }
+  @font-face { font-family: 'Golos'; src: url('/fonts/GolosText.ttf') format('truetype'); font-weight: 400 900; font-display: swap; }
+  :root {
+    --bg: #0d0b24; --ink: #f6f3ff; --soft: #c9b3ff; --accent: #ff6a3d; --accent-ink: #1a1340; --field: #16133a; --line: #2b2659; --muted: #b9b2d6;
+    --cyan: #22d3ee; --blue: #3d7bff; --violet: #7b5cff; --magenta: #ff5fd2; --lime: #cfff04; --dark-ink: #1a1340;
+    --font-display: 'Unbounded', sans-serif; --font-text: 'Golos', system-ui, sans-serif;
+    --step-small: 14px; --step-body: 17px; --step-lead: clamp(19px, 1.5vw, 22px); --step-head: clamp(32px, 2.6vw, 48px); --step-display: clamp(36px, 10vw, 190px);
+    --margin: clamp(20px, 3.3vw, 48px); --gutter: 10px; --radius: 14px; --section: clamp(96px, 11vw, 176px);
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1); --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); color: var(--ink); font-family: var(--font-text); font-size: var(--step-body); line-height: 1.5; -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
+  body { margin: 0; overflow-x: clip; }
+  ::selection { background: var(--magenta); color: var(--dark-ink); }
+  :focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; }
+  ::-webkit-scrollbar { width: 10px; } ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 5px; } ::-webkit-scrollbar-track { background: var(--bg); }
+  a { color: inherit; text-decoration: none; }
+  h1, h2, h3, p { margin: 0; }
+  h2 { font-family: var(--font-display); font-weight: 700; font-size: var(--step-head); line-height: 1.02; letter-spacing: -0.02em; text-wrap: balance; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; height: 56px; padding: 0 28px; border-radius: var(--radius); background: var(--accent); color: var(--accent-ink); font-weight: 600; font-size: var(--step-body); position: relative; overflow: clip; transition: transform 140ms var(--ease-out); }
+  .btn::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,0.45) 50%, transparent 70%); transform: translateX(-120%); transition: transform 600ms var(--ease-expo); }
+  .btn:hover::after { transform: translateX(120%); } .btn:active { transform: scale(0.98); }
+  .btn.ink { background: var(--dark-ink); color: var(--ink); } .btn.paper { background: var(--ink); color: var(--dark-ink); } .btn.soft { background: var(--soft); color: var(--dark-ink); } .btn.ghost { background: transparent; box-shadow: inset 0 0 0 1.5px currentColor; color: var(--ink); }
+  .phone-login { display: none; }
+  .textlink { font-weight: 600; text-underline-offset: 6px; text-decoration-thickness: 1.5px; } .textlink:hover { text-decoration: underline; }
+  .wrap { padding: 0 var(--margin); }
+  .grid { display: grid; grid-template-columns: repeat(12, 1fr); column-gap: var(--gutter); }
+
+  /* ---------- hero scene ---------- */
+  #hero .scene-stage { background: var(--bg); min-height: 100svh; }
+  .fog { position: absolute; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(55% 50% at 68% 22%, rgba(201,179,255,0.28), rgba(201,179,255,0) 70%), radial-gradient(45% 55% at 12% 95%, rgba(123,92,255,0.22), rgba(123,92,255,0) 70%); }
+  .topbar { position: absolute; left: var(--margin); right: var(--margin); top: 28px; z-index: 5; display: flex; justify-content: space-between; align-items: center; }
+  .mark { font-family: var(--font-display); font-weight: 800; font-size: var(--step-lead); letter-spacing: 0.02em; }
+  .display { position: absolute; left: var(--margin); top: 34svh; z-index: 1; font-family: var(--font-display); font-weight: 800; font-size: var(--step-display); line-height: 0.96; letter-spacing: -0.03em; text-transform: uppercase; }
+  .display .l { display: block; overflow: hidden; padding-bottom: 0.08em; margin-bottom: -0.08em; }
+  .display .l > span { display: block; position: relative; }
+  .display .l > span::before { content: attr(data-t); position: absolute; left: var(--ab, 2px); top: 0; color: var(--magenta); mix-blend-mode: screen; opacity: 0.85; z-index: -1; }
+  #gl { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; display: block; pointer-events: none; }
+  .hero-copy { position: absolute; left: var(--margin); top: calc(34svh + var(--step-display) * 2.0); z-index: 4; max-width: 46ch; }
+  .lead { font-size: var(--step-lead); line-height: 1.4; color: var(--soft); max-width: 44ch; }
+  .actions { margin-top: 28px; display: flex; gap: 28px; align-items: center; flex-wrap: wrap; }
+  .statuses { position: absolute; left: var(--margin); top: calc(34svh + var(--step-display) * 2.0); z-index: 4; max-width: 46ch; }
+  .statuses .lead { margin-top: 14px; }
+  .statuses h2 { font-size: var(--step-lead); font-family: var(--font-text); font-weight: 600; }
+  .labels { position: absolute; right: var(--margin); top: 40%; transform: translateY(-50%); z-index: 4; list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; width: max-content; }
+  .labels li { display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: var(--step-lead); }
+  .labels i { width: 14px; height: 14px; border-radius: 50%; background: var(--c); flex: none; }
+  @media (prefers-reduced-motion: no-preference) { .js .scene.is-live .statuses, .js .scene.is-live .labels li { opacity: 0; } }
+  .poster { display: none; }
+  /* finished composition: no script, reduced motion, phone */
+  .scene.is-rest .scene-stage, html:not(.js) .scene-stage { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; padding: 120px var(--margin) 80px; gap: 32px; }
+  .scene.is-rest .display, .scene.is-rest .hero-copy, .scene.is-rest .statuses, .scene.is-rest .labels, html:not(.js) .display, html:not(.js) .hero-copy, html:not(.js) .statuses, html:not(.js) .labels { position: static; opacity: 1; transform: none; max-width: 60ch; }
+  .scene.is-rest .labels li, html:not(.js) .labels li { opacity: 1; }
+  .scene.is-rest #gl, html:not(.js) #gl { display: none; }
+  .scene.is-rest .poster, html:not(.js) .poster { display: block; width: 100%; max-width: 820px; height: auto; border-radius: var(--radius); }
+  .scene.is-rest .display { font-size: clamp(36px, 9vw, 120px); }
+
+  /* ---------- how: tiles that grow ---------- */
+  #how { padding-top: var(--section); }
+  #how h2 { grid-column: 1 / 6; align-self: start; margin-bottom: 40px; }
+  .tiles { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(12, 1fr); column-gap: var(--gutter); align-items: end; }
+  .tile { border-radius: var(--radius); background: var(--c); display: grid; place-items: center; overflow: clip; position: relative; }
+  .tile::before { content: attr(data-stage); position: absolute; left: 20px; top: 16px; font-weight: 600; font-size: var(--step-lead); color: var(--dark-ink); }
+  .tile:nth-child(1) { grid-column: span 2; height: 36vh; } .tile:nth-child(2) { grid-column: span 3; height: 40vh; } .tile:nth-child(3) { grid-column: span 3; height: 50vh; } .tile:nth-child(4) { grid-column: span 4; height: 60vh; }
+  .tile .ui { transform-origin: center; }
+  .tile .ui { margin-top: 44px; width: calc(100% - 40px); max-width: 420px; } .tile:nth-child(1) .ui { zoom: 0.85; } .tile:nth-child(2) .ui { zoom: 0.9; } .tile:nth-child(3) .ui { zoom: 0.95; }
+  .stages { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(12, 1fr); column-gap: var(--gutter); margin-top: 24px; }
+  .stage { font-size: var(--step-body); line-height: 1.45; color: var(--muted); }
+  .stage b { display: block; font-size: var(--step-lead); font-weight: 500; color: var(--ink); margin-bottom: 6px; }
+  .stage:nth-child(1) { grid-column: span 2; } .stage:nth-child(2) { grid-column: span 3; } .stage:nth-child(3) { grid-column: span 3; } .stage:nth-child(4) { grid-column: span 4; }
+
+  /* ---------- product fragments ---------- */
+  .ui { width: 420px; max-width: 100%; background: var(--field); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 24px; color: var(--ink); font-size: var(--step-small); line-height: 1.45; text-align: left; }
+  .ui { position: relative; }
+  .ui::before { content: ""; position: absolute; inset: -1px; border-radius: var(--radius); padding: 1px; background: linear-gradient(135deg, var(--soft), var(--magenta) 45%, var(--blue)); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0.55; pointer-events: none; }
+  .ui.light { background: #fff; color: var(--dark-ink); border-color: #e6e0ff; } .ui.light::before { opacity: 0.35; }
+  .ui .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .ui .m { color: var(--muted); } .ui.light .m { color: #5d5680; }
+  .ui .pill { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
+  .ui .pill i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+  .ui .t { margin-top: 10px; font-size: var(--step-body); font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; }
+  .ui .money { font-family: var(--font-display); font-weight: 300; font-size: var(--step-lead); letter-spacing: -0.02em; line-height: 1; margin-top: 14px; }
+  .ui .money small { display: block; font-family: var(--font-text); color: var(--muted); margin-bottom: 6px; } .ui.light .money small { color: #5d5680; }
+  .ui ul { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 8px; }
+  .ui ul li { display: flex; gap: 10px; align-items: flex-start; } .ui ul svg { flex: none; margin-top: 3px; }
+  .ui .bar { height: 6px; border-radius: 3px; background: var(--line); margin-top: 14px; overflow: clip; } .ui .bar b { display: block; height: 100%; width: var(--w); background: var(--c); }
+  .ui .field { margin-top: 14px; } .ui .field span { display: block; color: var(--muted); margin-bottom: 6px; } .ui.light .field span { color: #5d5680; }
+  .ui .field div { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; min-height: 42px; } .ui.light .field div { border-color: #d9d2f5; }
+  .ui .field div.tall { min-height: 92px; }
+  .ui .sum { margin-top: 14px; display: grid; gap: 4px; } .ui .sum b { font-weight: 600; }
+  .ui .cta { margin-top: 16px; display: inline-flex; align-items: center; height: 40px; padding: 0 16px; border-radius: 8px; background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+
+  /* ---------- sides: two objects, two fields ---------- */
+  #sides { margin-top: var(--section); display: grid; grid-template-columns: 1fr 1fr; }
+  .panel { position: relative; height: 92svh; overflow: clip; background: var(--c); color: var(--ink); }
+  .panel.light { color: var(--dark-ink); }
+  .panel h2 { position: absolute; left: var(--margin); top: 40px; z-index: 2; max-width: 13ch; }
+  .panel .obj { position: absolute; left: 50%; top: 18%; translate: -50% 0; width: 140%; max-width: 640px; z-index: 1; }
+  .panel .obj .ui { width: 100%; }
+  .panel .foot { position: absolute; left: var(--margin); right: var(--margin); bottom: 28px; z-index: 2; display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; }
+  .panel .foot b { display: block; font-size: var(--step-lead); font-weight: 500; } .panel .foot span { font-size: var(--step-body); color: var(--muted); } .panel.light .foot span { color: #4a4470; }
+  .panel .foot .acts { display: flex; gap: 10px; }
+  .panel::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 42%; background: linear-gradient(to top, var(--c), transparent); z-index: 1; pointer-events: none; }
+
+  /* ---------- cta: the action tile ---------- */
+  #cta { margin-top: var(--section); }
+  #cta .row { display: grid; grid-template-columns: repeat(12, 1fr); column-gap: var(--gutter); }
+  #cta .t { height: 360px; border-radius: var(--radius); }
+  #cta .t.photo { grid-column: 1 / 3; margin-left: calc(-1 * var(--margin)); overflow: clip; } #cta .t.photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  #cta .t.main { grid-column: 3 / 11; background: var(--accent); color: var(--accent-ink); padding: 40px; display: grid; align-content: center; gap: 14px; }
+  #cta .t.main p { max-width: 60ch; } #cta .t.main .btn { justify-self: start; margin-top: 10px; }
+  #cta .t.flat { grid-column: 11 / 13; margin-right: calc(-1 * var(--margin)); background: var(--soft); }
+
+  /* ---------- footer: photograph half, menu half ---------- */
+  footer { margin-top: var(--section); display: grid; grid-template-columns: 1fr 1fr; min-height: 100svh; }
+  footer .photo { overflow: clip; } footer .photo video { width: 100%; height: 100%; object-fit: cover; object-position: 62% 40%; display: block; }
+  footer .menu { background: var(--field); padding: 80px var(--margin) 28px calc(var(--margin) + 4vw); display: flex; flex-direction: column; }
+  footer .menu .mark { margin-bottom: 48px; }
+  footer nav a { display: block; font-family: var(--font-display); font-weight: 700; font-size: var(--step-head); line-height: 1; margin-bottom: 28px; transition: transform 180ms var(--ease-out), color 180ms; }
+  footer nav:hover a { color: var(--muted); } footer nav a:hover { color: var(--ink); transform: translateX(12px); }
+  footer .blocks { margin-top: 36px; display: flex; justify-content: space-between; gap: 48px; font-size: var(--step-small); color: var(--muted); } footer .blocks > div:last-child { text-align: right; } footer .blocks b { display: block; color: var(--ink); font-weight: 500; margin-bottom: 6px; } footer .blocks a { display: block; }
+  footer .legal { margin-top: auto; padding-top: 40px; font-size: var(--step-small); color: var(--muted); }
+
+  /* ---------- entrances (once) ---------- */
+  html.capture { scroll-behavior: auto !important; } html.capture [data-reveal] { transition: none !important; }
+  @media (prefers-reduced-motion: no-preference) {
+    .js [data-reveal] { opacity: 0; transform: translateY(24px); transition: opacity 700ms var(--ease-out), transform 900ms var(--ease-out); transition-delay: var(--d, 0ms); }
+    .js [data-reveal].is-in { opacity: 1; transform: none; }
+    .js .tile[data-reveal]:not(.is-in) { transform: translateY(40px) scaleY(0.96); transform-origin: bottom; }
+    .js .panel [data-reveal]:not(.is-in) { transform: translateY(36px); }
+  }
+  @media (max-width: 1023px) {
+    #sides { grid-template-columns: 1fr; } .panel { height: auto; min-height: 78svh; padding: 40px var(--margin) 28px; display: flex; flex-direction: column; gap: 20px; }
+    .panel h2 { position: static; max-width: 12ch; } .panel .obj { position: relative; left: auto; top: auto; translate: none; width: 100%; max-width: none; height: auto; }
+    .panel .foot { position: static; margin-top: auto; } .panel::after { display: none; }
+    #cta .t.main { grid-column: 1 / -1; height: auto; min-height: 300px; } #cta .t.main h2 { font-size: 28px; }
+    #cta .t.photo, #cta .t.flat { grid-column: span 6; height: 120px; margin: 0; }
+    footer { grid-template-columns: 1fr; } footer .photo { height: 50svh; padding: 0 var(--margin); } footer .photo video { border-radius: var(--radius); } footer .menu { padding: 48px var(--margin) 28px; }
+  }
+  @media (max-width: 767px) {
+    .tiles, .stages { grid-template-columns: 1fr; } .tile, .stage { grid-column: 1 / -1 !important; } .tile:nth-child(1) { height: 34vw; } .tile:nth-child(2) { height: 46vw; } .tile:nth-child(3) { height: 54vw; } .tile:nth-child(4) { height: 62vw; }
+    .tile { height: auto !important; padding: 56px 16px 16px; } .tile::before { left: 16px; top: 14px; } .tile .ui { zoom: 1 !important; width: 100%; max-width: none; padding: 16px; margin-top: 0; } .stages { gap: 28px; } #how h2 { grid-column: 1 / -1; }
+    #cta .t.photo { grid-column: 1 / -1; height: 180px; } #cta .t.flat { grid-column: 1 / -1; height: 80px; }
+    .hero-copy .lead, .statuses { max-width: none; }
+    .hero-copy { top: auto; bottom: 64px; } .labels { position: static; transform: none; width: auto; grid-template-columns: 1fr 1fr; }
+    #sides { grid-template-columns: minmax(0, 1fr); } .panel { min-width: 0; }
+    .panel .foot { flex-direction: column; align-items: stretch; gap: 16px; } .panel .foot .acts { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; } .panel .foot .btn { padding: 0 16px; }
+    .top-login { display: none; } .phone-login { display: inline; }
+  }
+</style>
+</head>
+<body>
+
+<section class="scene" id="hero" data-scene="prism" data-options='{"hold":3}' aria-label="Гиг как кристалл: свет входит белым, выходит статусами">
+  <div class="scene-stage">
+    <div class="fog"></div>
+    <div class="topbar"><a class="mark" href="#top">GIGLY</a><a class="textlink top-login" href="/login">Войти</a></div>
+    <h1 class="display" data-move><span class="l"><span data-t="Сделано">Сделано</span></span><span class="l"><span data-t="сеньорами.">сеньорами.</span></span></h1>
+    <canvas id="gl" aria-hidden="true"></canvas>
+    <img class="poster" src="/assets/hand-close.png" width="900" height="1080" alt="Поднятая рука держит стеклянный куб: белый свет входит в него и выходит шестью цветами статусов гига">
+    <div class="hero-copy" data-move>
+      <p class="lead">Ограниченная задача с критериями приёмки и бюджетом в рублях, которую берёт Senior-специалист.</p>
+      <div class="actions"><a class="btn" href="/register">Создать аккаунт</a><a class="textlink" href="#how">Как идёт гиг</a><a class="textlink phone-login" href="/login">Войти</a></div>
+    </div>
+    <div class="statuses" data-move>
+      <h2>Один гиг.<br>Шесть состояний.</h2>
+      <p class="lead">Свет входит белым и выходит статусами. От «Открыт» до «Оплачен» — в одном месте, без переписки в мессенджерах.</p>
+    </div>
+    <ol class="labels" aria-label="Статусы гига">
+      <li style="--c: var(--cyan)" data-move><i></i>Открыт</li>
+      <li style="--c: var(--violet)" data-move><i></i>На рассмотрении</li>
+      <li style="--c: var(--blue)" data-move><i></i>В работе</li>
+      <li style="--c: var(--magenta)" data-move><i></i>На проверке</li>
+      <li style="--c: var(--lime)" data-move><i></i>Завершён</li>
+      <li style="--c: var(--accent)" data-move><i></i>Оплачен</li>
+    </ol>
+  </div>
+</section>
+
+<section id="how" class="wrap grid" aria-labelledby="how-h">
+  <h2 id="how-h" data-reveal>Как идёт гиг</h2>
+  <div class="tiles">
+    <div class="tile" style="--c: var(--cyan)" data-stage="Открыт" data-reveal>
+      <div class="ui" data-ui style="--c: var(--cyan)"><div class="row"><span class="m">Гиг № 2041</span><span class="m">3 отклика</span></div><div class="t">REST API для системы управления пользователями</div><div class="money"><small>Бюджет, специалисту целиком</small>150 000 ₽</div></div>
+    </div>
+    <div class="tile" style="--c: var(--blue)" data-stage="В работе" data-reveal data-d="80">
+      <div class="ui" data-ui style="--c: var(--blue)"><div class="row"><span class="m">Гиг № 2041</span><span class="m">срок 21 день</span></div><div class="t">REST API для системы управления пользователями</div><div class="bar"><b style="--w: 45%"></b></div><div class="m" style="margin-top: 8px">Исполнитель выбран, остальные отклики закрыты</div><div class="money"><small>Бюджет, специалисту целиком</small>150 000 ₽</div></div>
+    </div>
+    <div class="tile" style="--c: var(--magenta)" data-stage="На проверке" data-reveal data-d="160">
+      <div class="ui" data-ui style="--c: var(--magenta)"><div class="row"><span class="m">Гиг № 2041</span><span class="m">сдано сегодня</span></div><div class="t">REST API для системы управления пользователями</div><ul>
+        <li><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 7.5l3.2 3L12 3.5"/></svg>API проходит все автоматические тесты</li>
+        <li><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 7.5l3.2 3L12 3.5"/></svg>Swagger по /api-docs описывает все эндпоинты</li>
+        <li><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 7.5l3.2 3L12 3.5"/></svg>JWT: access 15 минут, refresh 7 дней</li>
+        <li><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="5"/></svg>Code review без критических замечаний</li>
+      </ul></div>
+    </div>
+    <div class="tile" style="--c: var(--accent)" data-stage="Оплачен" data-reveal data-d="240">
+      <div class="ui" data-ui style="--c: var(--accent)"><div class="row"><span class="m">Гиг № 2041</span><span class="m">отметка заказчика</span></div><div class="t">REST API для системы управления пользователями</div><div class="money"><small>Специалисту, без вычетов</small>150 000 ₽</div><div class="sum"><span>Бюджет гига <b>150 000 ₽</b></span><span>Сервисный сбор 17,5 % <b>26 250 ₽</b></span><span>Компания заплатила <b>176 250 ₽</b></span></div></div>
+    </div>
+  </div>
+  <div class="stages">
+    <p class="stage" data-reveal><b>Открыт</b>Компания описывает задачу, критерии приёмки и бюджет. Специалисты откликаются подходом, вопросами и оценкой.</p>
+    <p class="stage" data-reveal data-d="80"><b>В работе</b>Компания принимает один отклик, остальные закрываются сами. Чат по гигу и уведомления в одном месте.</p>
+    <p class="stage" data-reveal data-d="160"><b>На проверке</b>Специалист сдаёт работу, компания сверяет её с критериями, которые написаны до начала.</p>
+    <p class="stage" data-reveal data-d="240"><b>Оплачен</b>Сервисный сбор 17,5 % добавляется сверху бюджета. Специалист получает бюджет целиком.</p>
+  </div>
+</section>
+
+<section id="sides" aria-label="Две стороны одной задачи">
+  <div class="panel" style="--c: var(--field)">
+    <h2 data-reveal>Две стороны одной задачи</h2>
+    <div class="obj" data-reveal data-d="80">
+      <div class="ui" data-ui style="--c: var(--cyan)"><div class="row"><span class="m">Новый гиг</span><span class="m">шаг 2 из 3</span></div>
+        <div class="field"><span>Название</span><div>REST API для системы управления пользователями</div></div>
+        <div class="field"><span>Критерии приёмки</span><div class="tall">API проходит все автоматические тесты. Swagger по /api-docs описывает все эндпоинты. JWT: access 15 минут, refresh 7 дней. Code review без критических замечаний.</div></div>
+        <div class="row" style="gap: 16px"><div class="field" style="flex: 1"><span>Бюджет</span><div>150 000 ₽</div></div><div class="field" style="flex: 1"><span>Срок</span><div>21 день</div></div></div>
+        <div class="sum"><span>Сервисный сбор 17,5 % <b>26 250 ₽</b></span><span>К оплате после приёмки <b>176 250 ₽</b></span></div>
+        <span class="cta">Опубликовать гиг</span></div>
+    </div>
+    <div class="foot" data-reveal data-d="160"><div><b>Компаниям</b><span>Бюджет + 17,5 % сервисного сбора, оплата после приёмки</span></div><div class="acts"><a class="btn soft" href="/register">Создать гиг</a><a class="btn ghost" href="/guide">Гид для компаний</a></div></div>
+  </div>
+  <div class="panel light" style="--c: var(--soft)">
+    <div class="obj" data-reveal>
+      <div class="ui light" data-ui style="--c: var(--blue)"><div class="row"><span class="m">Гиг № 2041 · Открыт</span><span class="m">отклик</span></div><div class="t">REST API для системы управления пользователями</div>
+        <div class="field"><span>Подход</span><div class="tall">NestJS + Prisma, JWT с ротацией refresh-токенов, роли через guards. Swagger генерируется из декораторов, тесты на supertest.</div></div>
+        <div class="field"><span>Вопросы</span><div>Нужна ли миграция существующих пользователей?</div></div>
+        <div class="row" style="gap: 16px"><div class="field" style="flex: 1"><span>Оценка</span><div>14 дней</div></div><div class="field" style="flex: 1"><span>Получу целиком</span><div>150 000 ₽</div></div></div>
+        <span class="cta">Отправить отклик</span></div>
+    </div>
+    <div class="foot" data-reveal data-d="80"><div><b>Специалистам</b><span>Бюджет целиком, без вычетов; один отклик на гиг, без сопроводительных писем</span></div><div class="acts"><a class="btn ink" href="/gigs">Смотреть гиги</a><a class="btn ghost" style="color: var(--dark-ink)" href="/guide">Гид для специалистов</a></div></div>
+  </div>
+</section>
+
+<section id="cta" class="wrap" aria-labelledby="cta-h">
+  <div class="row">
+    <div class="t photo" data-reveal><img src="/assets/cube-close.png" width="560" height="560" alt="Стеклянный куб в пальцах крупным планом" loading="lazy"></div>
+    <div class="t main" data-reveal data-d="80"><h2 id="cta-h">Опубликуйте первый гиг</h2><p>Критерии приёмки, бюджет в рублях, оплата после приёмки. Сервисный сбор 17,5 % добавляется сверху бюджета, специалист получает его целиком.</p><a class="btn ink" href="/register">Создать аккаунт</a></div>
+    <div class="t flat" data-reveal data-d="160"></div>
+  </div>
+</section>
+
+<footer>
+  <div class="photo"><video src="/assets/hand-loop.mp4" poster="/assets/hand-close.png" width="920" height="950" muted loop playsinline autoplay aria-label="Рука поворачивает стеклянный куб, свет выходит шестью цветами"></video></div>
+  <div class="menu">
+    <span class="mark">GIGLY</span>
+    <nav aria-label="Разделы"><a href="/register">Компаниям</a><a href="/gigs">Специалистам</a><a href="#how">Как идёт гиг</a><a href="/guide">Гиды</a><a href="/login">Войти</a></nav>
+    <div class="blocks"><div><b>Документы</b><a href="/terms">Условия использования</a><a href="/privacy">Конфиденциальность</a></div><div><b>Сервис</b><span>Для юридических лиц, расчёты в рублях</span></div></div>
+    <p class="legal">© 2026 Gigly. «Оплачен» — отметка заказчика о переводе, платежи вне сервиса.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.3.26/dist/lenis.min.js"></script>
+<script src="/scenes/stage.js"></script>
+<script type="module">
+import { createPrism } from '/scene3d.js';
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const params = new URLSearchParams(location.search);
+const capture = params.has('capture');
+if (capture) { document.documentElement.classList.add('capture'); }
+window.ready = new Promise((r) => (window.__ready = r));
+
+// reveals, once, staggered by data-d
+const io = new IntersectionObserver((es) => { for (const e of es) if (e.isIntersecting) { e.target.style.setProperty('--d', (e.target.dataset.d || 0) + 'ms'); e.target.classList.add('is-in'); io.unobserve(e.target); } }, { rootMargin: '0px 0px -12% 0px', threshold: 0.1 });
+$$('[data-reveal]').forEach((el) => (capture ? el.classList.add('is-in') : io.observe(el)));
+
+// the hero scene on the shared stage: the forearm turns, then the light splits into the six statuses
+const root = $('#hero'), canvas = $('#gl');
+await document.fonts.load('800 100px Unbounded'); await document.fonts.load('500 20px Golos');
+let prism = null, live = false;
+const prog = { p: 0 };
+const labelTargets = () => { const st = canvas.getBoundingClientRect(); return $$('.labels li').map((li) => { const r = li.getBoundingClientRect(); return [r.left - st.left - 18, r.top - st.top + r.height / 2]; }); };
+const draw = () => { if (!prism) return; prism.setTargets(labelTargets()); prism.render(prog.p, performance.now() / 1000); };
+if (params.has('bare')) $$('.topbar, .display, .hero-copy, .statuses, .labels', root).forEach((el) => (el.style.visibility = 'hidden'));
+
+Scenes.prism = (r, o) => Stage.scene(r, {
+  hold: o.hold ?? 3, scrub: true, phone: 'rest',
+  build(tl, { q }) {
+    live = true;
+    tl.to(prog, { p: 1, duration: 1, onUpdate: draw }, 0);
+    tl.to(q('.display'), { yPercent: -6, duration: 1 }, 0)
+      .to(q('.hero-copy'), { y: -40, autoAlpha: 0, duration: 0.14 }, 0.4)
+      .fromTo(q('.statuses'), { y: 40, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.16 }, 0.5);
+    q('.labels li').forEach((li, i) => tl.fromTo(li, { x: 28, autoAlpha: 0 }, { x: 0, autoAlpha: 1, duration: 0.1 }, 0.5 + i * 0.045));
+  },
+});
+if (!capture) Stage.smooth(); Stage.init();
+if (root.classList.contains('is-live')) {
+  prism = await createPrism(canvas, { capture });
+  draw(); addEventListener('resize', () => { prism.resize(); draw(); });
+  if (!capture) { let last = 0; const idle = (t) => { if (t - last > 1000 / 30) { last = t; draw(); } requestAnimationFrame(idle); }; requestAnimationFrame(idle); }
+}
+// headline: the magenta offset follows the scroll speed (chromatic aberration as kinetic type)
+let lastY = scrollY, vel = 0;
+const onScroll = () => { if (capture) return; vel = vel * 0.8 + (scrollY - lastY) * 0.2; lastY = scrollY; $('.display').style.setProperty('--ab', `${2 + Math.min(14, Math.abs(vel) * 0.25)}px`); };
+addEventListener('scroll', onScroll, { passive: true });
+await Stage.ready();
+// capture: window.seek(t) scrolls the page to t/6 of its height and draws that frame
+window.seek = (t) => new Promise((res) => { const max = document.documentElement.scrollHeight - innerHeight; scrollTo(0, (t / 6) * max); requestAnimationFrame(() => { ScrollTrigger.update(); draw(); requestAnimationFrame(() => res({ t, y: scrollY, max })); }); });
+window.__ready(true);
+</script>
+</body>
+</html>

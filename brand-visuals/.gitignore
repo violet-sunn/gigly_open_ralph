@@ -1,0 +1,9 @@
+# render output and captures (regenerable)
+work/*-frames/
+work/*-stills/
+work/*-shots/
+work/probe-stills/
+work/loop-frames/
+work/scroll-frames/
+work/sites/
+work/*.log

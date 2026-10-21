@@ -80,3 +80,13 @@ MVP_BUSINESS_IMPROVEMENTS.md
 
 # Claude Code local (personal) settings — not shared
 .claude/settings.local.json
+
+demo-videos/
+demo-record.mjs
+demo-titles.mjs
+
+# taste-skill working files (screenshots, direction sheet, ad-hoc scripts)
+.taste-skill/
+
+# brag-slim launch-video output (frames, local ffmpeg, renders)
+brag-output*/

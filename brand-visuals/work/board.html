@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><link rel="stylesheet" href="/brand.css">
+<style>
+  .frame { width: 2400px; height: 1500px; background: var(--paper); color: var(--ink); padding: 56px 64px; }
+  .head { display: flex; justify-content: space-between; align-items: baseline; }
+  .head .mark { font-size: 120px; }
+  .head .meta { font-size: 26px; font-weight: 600; text-align: right; line-height: 1.4; }
+  .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 24px; margin-top: 40px; }
+  .tile { position: relative; overflow: hidden; }
+  .cap { font-size: 22px; font-weight: 600; margin-bottom: 12px; }
+  .lockup { grid-column: span 4; }
+  .colours { grid-column: span 4; }
+  .type { grid-column: span 4; }
+  .sw { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .sw div { height: 150px; padding: 12px; font-size: 20px; font-weight: 600; display: flex; align-items: flex-end; }
+  .px { display: flex; gap: 12px; margin-top: 12px; }
+  .px div { width: 54px; height: 54px; }
+  .motif { grid-column: span 5; }
+  .pieces { grid-column: span 7; display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; align-content: start; }
+  .pieces img { display: block; width: 100%; height: auto; }
+  .pieces .wide { grid-column: span 3; }
+  .pieces .card { grid-column: span 2; }
+  .pieces .sq { grid-column: span 2; }
+  .pieces .tall { grid-column: span 1; }
+</style></head>
+<body><div class="frame">
+  <div class="head">
+    <div class="mark">GIGLY</div>
+    <div class="meta">Визуальная система · октябрь 2026<br>Один мотив: гиг — это пиксель</div>
+  </div>
+  <div class="grid">
+    <div class="lockup">
+      <div class="cap">Знак и слово</div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+        <div class="tile" style="background:var(--dark); height:300px; display:flex; align-items:center; justify-content:center; gap:28px;">
+          <div class="g" style="width:120px; height:120px; font-size:78px;">G</div>
+          <div class="mark" style="font-size:64px; color:#fff;">GIGLY</div>
+        </div>
+        <div class="tile" style="background:var(--blue); height:300px; display:flex; align-items:center; justify-content:center;">
+          <div class="mark" style="font-size:230px; color:#fff; line-height:1;">G</div>
+        </div>
+      </div>
+      <div class="cap" style="margin-top:28px;">Голос</div>
+      <div class="sub" style="font-size:24px; max-width:700px;">На «вы», коротко, по делу. Заголовки — капителью в Handjet, одна мысль на строку. Никаких «стримлайн воркфлоу».</div>
+    </div>
+    <div class="colours">
+      <div class="cap">Цвета</div>
+      <div class="sw">
+        <div style="background:var(--dark); color:#fff;">#01030E</div>
+        <div style="background:var(--deep); color:#fff;">#1C2230</div>
+        <div style="background:var(--blue); color:#fff;">#0088FF</div>
+        <div style="background:var(--paper); color:var(--ink); outline:2px solid var(--ink); outline-offset:-2px;">#F4F5F7</div>
+      </div>
+      <div class="cap" style="margin-top:28px;">Статусы гига как пиксели</div>
+      <div class="px">
+        <div style="background:var(--dark);"></div>
+        <div style="background:var(--st-review);"></div>
+        <div style="background:var(--st-progress);"></div>
+        <div style="background:var(--st-verify);"></div>
+        <div style="background:var(--st-done);"></div>
+        <div style="background:var(--st-rejected);"></div>
+      </div>
+      <div class="sub" style="font-size:22px; margin-top:12px;">Открыт · На рассмотрении · В работе · На проверке · Завершён · Отклонён</div>
+    </div>
+    <div class="type">
+      <div class="cap">Шрифты</div>
+      <div class="display" style="font-size:118px;">IT-задачи<br>сеньорам</div>
+      <div class="sub" style="font-size:22px; margin-top:16px;">Handjet 700 — заголовки, цифры, знак.</div>
+      <div class="sub" style="font-size:30px; margin-top:28px; max-width:640px;">Компания ставит задачу с критериями приёмки, сеньор берёт её и сдаёт. Оплата после приёмки.</div>
+      <div class="sub" style="font-size:22px; margin-top:12px;">Manrope 500/600 — текст и интерфейс.</div>
+    </div>
+    <div class="motif">
+      <div class="cap">Мотив: пиксельная волна и клетка</div>
+      <div class="tile" style="background:var(--dark); height:300px;"><div class="wave" style="bottom:-6px; height:176px; background:var(--blue);"></div></div>
+      <div class="tile" style="height:120px; margin-top:12px; background: url('/public/assets/design-system/patterns/checkerboard.svg') left top / auto 120px repeat-x;"></div>
+      <div class="sub" style="font-size:22px; margin-top:12px;">Волна — из экранов входа. Клетка — из дизайн-системы. Ничего не рисуется заново.</div>
+    </div>
+    <div class="pieces">
+      <div class="cap" style="grid-column: 1 / -1;">Носители</div>
+      <img class="wide" src="/out/01-key-visual.png" alt="">
+      <img class="card" src="/out/02-social-card.png" alt="">
+      <img class="sq" src="/out/04-avatar.png" alt="">
+      <img class="tall" src="/out/03-poster-1.png" alt="">
+      <img class="tall" src="/out/03-poster-2.png" alt="">
+      <img class="tall" src="/out/03-poster-3.png" alt="">
+    </div>
+  </div>
+</div></body></html>

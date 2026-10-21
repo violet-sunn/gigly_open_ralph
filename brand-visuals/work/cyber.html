@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<style>
+  @font-face { font-family: 'Unbounded'; src: url('/fonts/Unbounded.ttf') format('truetype'); font-weight: 200 900; }
+  @font-face { font-family: 'Golos'; src: url('/fonts/GolosText.ttf') format('truetype'); font-weight: 400 900; }
+  :root { --bg: #07080c; --lime: #CFFF04; --lime-2: #9BC400; --mag: #FF2BD6; --mag-2: #BE129E; --cyan: #22D3EE; --white: #fff; --panel: #0e1017; }
+  html, body { margin: 0; background: var(--bg); } * { box-sizing: border-box; }
+  #stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); font-family: 'Golos', sans-serif; color: var(--white); -webkit-font-smoothing: antialiased; }
+  .shape { position: absolute; will-change: transform; }
+  /* magenta band: a slanted plane with one darker cel facet */
+  #band { left: 1120px; top: -700px; width: 560px; height: 2500px; background: var(--mag); transform-origin: 50% 50%; }
+  #band .facet { position: absolute; left: 0; top: 0; width: 170px; height: 100%; background: var(--mag-2); }
+  /* lime capsule: the streamlined form, with a cel shadow and a hard highlight */
+  #cap { left: 620px; top: 330px; width: 1700px; height: 380px; border-radius: 190px; background: var(--lime); overflow: hidden; }
+  #cap .facet { position: absolute; left: 0; right: 0; bottom: 0; height: 150px; background: var(--lime-2); clip-path: polygon(0 60%, 100% 0, 100% 100%, 0 100%); }
+  #cap .hi { position: absolute; left: 160px; top: 44px; width: 420px; height: 26px; border-radius: 13px; background: var(--white); }
+  #streak { left: -200px; top: 790px; width: 1500px; height: 22px; background: var(--cyan); }
+  .nav { position: absolute; left: 96px; right: 96px; top: 40px; display: flex; align-items: center; justify-content: space-between; font-size: 16px; font-weight: 500; z-index: 5; }
+  .nav .mark { font-family: 'Unbounded'; font-weight: 800; font-size: 20px; letter-spacing: 0.02em; }
+  .nav .links { display: flex; gap: 36px; }
+  h1 { position: absolute; left: 92px; top: 150px; margin: 0; font-family: 'Unbounded'; font-weight: 800; font-size: 126px; line-height: 1.0; letter-spacing: -0.025em; text-transform: uppercase; z-index: 4; }
+  h1 .line { display: block; overflow: hidden; padding-bottom: 0.06em; margin-bottom: -0.06em; }
+  h1 .line > span { display: block; }
+  .sub { position: absolute; left: 96px; top: 436px; margin: 0; font-size: 24px; font-weight: 500; color: var(--lime); z-index: 4; }
+  .actions { position: absolute; left: 96px; top: 498px; display: flex; gap: 28px; align-items: center; font-size: 19px; font-weight: 600; z-index: 4; }
+  .btn { display: inline-flex; align-items: center; height: 52px; padding: 0 26px; border-radius: 999px; background: var(--lime); color: #000; }
+  /* the object: the gig, as a HUD panel with one chamfered corner */
+  #card { position: absolute; left: 96px; top: 606px; width: 900px; height: 424px; background: var(--panel); clip-path: polygon(0 0, calc(100% - 52px) 0, 100% 52px, 100% 100%, 0 100%); padding: 40px 44px; z-index: 6; }
+  #card .row { display: flex; justify-content: space-between; align-items: center; font-size: 18px; font-weight: 500; color: #aab2c2; }
+  #card .st { display: inline-flex; align-items: center; gap: 10px; color: var(--lime); }
+  #card .st i { width: 10px; height: 10px; border-radius: 50%; background: var(--lime); display: inline-block; will-change: transform; }
+  #card .t { margin-top: 22px; font-size: 44px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.08; }
+  #card .tags { margin-top: 18px; display: flex; gap: 8px; }
+  #card .tags span { font-size: 15px; font-weight: 500; padding: 7px 12px; border-radius: 999px; background: rgba(255,255,255,0.08); color: #d7dbe3; }
+  #card .foot { margin-top: 34px; display: flex; align-items: flex-end; justify-content: space-between; }
+  #card .money { font-family: 'Unbounded'; font-weight: 300; font-size: 56px; letter-spacing: -0.02em; line-height: 1; }
+  #card .money small { display: block; font-family: 'Golos'; font-size: 15px; font-weight: 500; color: #aab2c2; margin-bottom: 10px; }
+  #card .cta { height: 48px; padding: 0 22px; border-radius: 999px; background: var(--mag); color: #000; font-size: 17px; font-weight: 600; display: inline-flex; align-items: center; }
+</style></head>
+<body><div id="stage">
+  <div class="shape" id="band"><div class="facet"></div></div>
+  <div class="shape" id="cap"><div class="facet"></div><div class="hi"></div></div>
+  <div class="shape" id="streak"></div>
+
+  <nav class="nav"><span class="mark">GIGLY</span><span class="links"><span>Компаниям</span><span>Специалистам</span><span>Как это работает</span></span><span>Войти</span></nav>
+  <h1><span class="line"><span id="l1">Сделано</span></span><span class="line"><span id="l2">сеньорами.</span></span></h1>
+  <p class="sub" id="sub">Критерии приёмки · Оплата по факту · Бюджет целиком</p>
+  <div class="actions" id="act"><span class="btn">Создать аккаунт</span><span>Подробнее ›</span></div>
+
+  <div id="card">
+    <div class="row"><span class="st"><i id="dot"></i>В работе</span><span>ТехКорп · до 4 ноября</span></div>
+    <div class="t">Миграция платежей на новый API</div>
+    <div class="tags"><span>Node.js</span><span>PostgreSQL</span><span>Senior</span></div>
+    <div class="foot"><div class="money"><small>Бюджет, специалисту целиком</small>150 000 ₽</div><span class="cta">К проекту</span></div>
+  </div>
+</div>
+<script>
+const DUR = 6.0;
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const expo = (t) => (t >= 1 ? 1 : 1 - Math.pow(2, -10 * t));
+const out = (t) => 1 - Math.pow(1 - t, 3);
+const inq = (t) => t * t * t;
+const seg = (t, a, b, e = out) => e(clamp((t - a) / (b - a)));
+const $ = (id) => document.getElementById(id);
+const ROT = -22;
+
+window.seek = function seek(t) {
+  t = ((t % DUR) + DUR) % DUR;
+  const exit = seg(t, 4.95, 5.55, inq);             // everything leaves to the right / down
+  // planes
+  const bandIn = seg(t, 0.0, 0.6, expo);
+  $('band').style.transform = `rotate(${ROT}deg) translateX(${(1 - bandIn) * 900 + exit * 1400}px)`;
+  const capIn = seg(t, 0.15, 0.8, expo);
+  const drift = Math.sin((t - 1.2) * 1.3) * 8;
+  $('cap').style.transform = `rotate(${ROT}deg) translateX(${(1 - capIn) * 1900 + exit * 2200}px) translateY(${drift}px)`;
+  $('cap').querySelector('.hi').style.opacity = String(seg(t, 0.75, 0.95) * (1 - exit));
+  // the streak zips across twice
+  const z1 = seg(t, 1.25, 1.75, (x) => x), z2 = seg(t, 3.9, 4.4, (x) => x);
+  const zx = (t < 2.6 ? z1 : z2);
+  const zOn = (t > 1.25 && t < 1.75) || (t > 3.9 && t < 4.4);
+  $('streak').style.opacity = zOn ? '1' : '0';
+  $('streak').style.transform = `rotate(${ROT}deg) translateX(${-1600 + zx * 3600}px)`;
+  // type
+  const lineUp = (el, a) => { const p = seg(t, a, a + 0.75, expo); el.style.transform = `translateY(${(1 - p) * 120 + exit * 120}%)`; };
+  lineUp($('l1'), 0.35); lineUp($('l2'), 0.46);
+  const rise = (el, a, d = 0.5, dy = 24) => { const p = seg(t, a, a + d); el.style.opacity = String(p * (1 - exit)); el.style.transform = `translateY(${(1 - p) * dy + exit * 40}px)`; };
+  rise($('sub'), 0.9); rise($('act'), 1.0);
+  // the object
+  const cardIn = seg(t, 0.85, 1.5, expo);
+  $('card').style.opacity = String(cardIn * (1 - exit));
+  $('card').style.transform = `translateY(${(1 - cardIn) * 90 + exit * 160}px)`;
+  const pulse = 1 + 0.25 * Math.max(0, Math.sin((t - 1.5) * Math.PI / 0.6));
+  $('dot').style.transform = `scale(${t > 1.5 ? pulse : 1})`;
+  return t;
+};
+window.ready = (async () => { await document.fonts.load('800 100px Unbounded'); await document.fonts.load('500 20px Golos'); await document.fonts.ready; return true; })();
+</script>
+</body></html>

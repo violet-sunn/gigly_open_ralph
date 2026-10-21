@@ -1,0 +1,45 @@
+{
+  "buildPath": "code",
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          "brand-visuals/work/board.html"
+        ],
+        "createdAt": "2026-10-20T14:17:47.211Z",
+        "reason": "brand board: white hex label on the product's own binding accent #0088ff (PRODUCT.md / gigly_full_design); 20px bold = WCAG large text, 3.5:1 passes 3:1"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "brand-visuals/work/*.html"
+        ],
+        "createdAt": "2026-10-20T14:18:21.346Z",
+        "reason": "brand artwork sources, not product UI: the giant G and the pixel wave bleed off the frame on purpose, and the logomark plate is the auth screen's own geometry (flex-centred G, no inset)"
+      },
+      {
+        "rule": "tight-leading",
+        "value": "*",
+        "files": [
+          "brand-visuals/work/*.html"
+        ],
+        "createdAt": "2026-10-20T14:18:21.605Z",
+        "reason": "display type in Handjet set at 0.86 leading per the taste-skill house style (display 0.85–1.05); body text on the same pages is 1.35–1.4"
+      },
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          "brand-visuals/work/cyber2.html"
+        ],
+        "createdAt": "2026-10-20T15:22:48.542Z",
+        "reason": "user confirmed: brief is cyberpunk-grotesque / anime light, glow is the subject's material here (refs in brand-visuals/refs); brand sketch, not product UI"
+      }
+    ]
+  }
+}

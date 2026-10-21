@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<style>
+  @font-face { font-family: 'Unbounded'; src: url('/fonts/Unbounded.ttf') format('truetype'); font-weight: 200 900; }
+  @font-face { font-family: 'Golos'; src: url('/fonts/GolosText.ttf') format('truetype'); font-weight: 400 900; }
+  :root { --bg: #0d0b24; --lav: #c9b3ff; --vio: #7b5cff; --mag: #ff5fd2; --blue: #3d7bff; --orange: #ff6a3d; --white: #fff; }
+  html, body { margin: 0; background: var(--bg); } * { box-sizing: border-box; }
+  #stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); font-family: 'Golos', sans-serif; color: var(--white); -webkit-font-smoothing: antialiased; }
+  .abs { position: absolute; }
+  /* light: a lavender field of light behind the figure, and a cold blue one low-left */
+  #glow1 { left: 900px; top: -500px; width: 1700px; height: 1700px; border-radius: 50%; background: radial-gradient(closest-side, rgba(201,179,255,0.55), rgba(123,92,255,0.18) 45%, rgba(13,11,36,0) 72%); }
+  #glow2 { left: -500px; top: 500px; width: 1300px; height: 1300px; border-radius: 50%; background: radial-gradient(closest-side, rgba(61,123,255,0.35), rgba(13,11,36,0) 70%); }
+  /* the figure: a synthetic head, flat shapes with cel facets, panel lines and one iridescent visor */
+  #figure { left: 1180px; top: 20px; width: 900px; height: 1200px; will-change: transform; }
+  .fig, .fig-back { position: absolute; inset: 0; transform: rotate(-13deg); transform-origin: 40% 55%; }
+  .fig-back { filter: blur(46px); opacity: 0.5; }
+  .fig-back::before { content: ''; position: absolute; left: 150px; top: 30px; width: 520px; height: 780px; border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%; background: #a78bff; }
+  .fig .head { position: absolute; left: 150px; top: 30px; width: 520px; height: 780px; border-radius: 50% 50% 34% 34% / 62% 62% 38% 38%; background: #5a48e6; overflow: hidden; clip-path: polygon(0 0, 100% 0, 100% 78%, 72% 100%, 18% 100%, 0 84%); }
+  .fig .head .f { position: absolute; inset: 0; background: #3a2bb5; clip-path: polygon(56% 0, 100% 0, 100% 100%, 34% 100%, 48% 60%); }
+  .fig .head .jaw { position: absolute; left: 0; right: 0; bottom: 0; height: 170px; background: #c9b3ff; clip-path: polygon(0 46%, 100% 14%, 100% 100%, 0 100%); }
+  .fig .head .crest { position: absolute; left: 50%; top: 0; width: 6px; height: 240px; background: #1a1340; transform: translateX(-50%); }
+  .fig .head .line { position: absolute; height: 5px; background: #1a1340; border-radius: 3px; transform: rotate(-14deg); }
+  .fig .head .l1 { left: 30px; top: 520px; width: 230px; } .fig .head .l2 { left: 30px; top: 555px; width: 160px; }
+  .fig .head .visor { position: absolute; left: -40px; right: -40px; top: 230px; height: 250px; background: linear-gradient(100deg, #e9dcff 0%, #c9b3ff 16%, #ff5fd2 44%, #3d7bff 76%, #e9dcff 100%); overflow: hidden; clip-path: polygon(0 18%, 100% 0, 100% 72%, 62% 100%, 0 86%); }
+  .fig .head .visor .vhi { position: absolute; left: 70px; top: 34px; width: 46%; height: 30px; border-radius: 999px; background: rgba(255,255,255,0.95); transform: rotate(-4deg); }
+  .fig .head .visor .vedge { position: absolute; left: 0; right: 0; bottom: 0; height: 44px; background: rgba(26,19,64,0.6); }
+  .fig .head .hi { position: absolute; left: 150px; top: 60px; width: 180px; height: 34px; border-radius: 999px; background: #fff; transform: rotate(-16deg); }
+  .fig .module { position: absolute; left: 596px; top: 470px; width: 120px; height: 190px; border-radius: 36px; background: #2f24a0; clip-path: polygon(0 0, 100% 10%, 100% 100%, 0 90%); }
+  .fig .module .lamp { position: absolute; left: 44px; top: 60px; width: 30px; height: 30px; border-radius: 50%; background: var(--orange); box-shadow: 0 0 30px var(--orange); }
+  .fig .neck { position: absolute; left: 290px; top: 780px; width: 240px; height: 230px; border-radius: 60px; background: #4b3bd0; overflow: hidden; }
+  .fig .neck .f { position: absolute; inset: 0; background: #2f24a0; clip-path: polygon(55% 0, 100% 0, 100% 100%, 22% 100%); }
+  .fig .neck .ring { position: absolute; left: 0; right: 0; height: 12px; background: #1a1340; }
+  .fig .neck .r1 { top: 60px; } .fig .neck .r2 { top: 120px; }
+  .fig .shoulders { position: absolute; left: -140px; top: 960px; width: 1200px; height: 560px; border-radius: 160px; background: #5a48e6; overflow: hidden; clip-path: polygon(0 30%, 44% 0, 100% 12%, 100% 100%, 0 100%); }
+  .fig .shoulders .f { position: absolute; inset: 0; background: #3a2bb5; clip-path: polygon(50% 0, 100% 0, 100% 100%, 25% 100%, 40% 40%); }
+  .fig .shoulders .plate { position: absolute; left: 60px; top: 130px; width: 360px; height: 18px; background: #1a1340; transform: rotate(-10deg); border-radius: 9px; }
+  /* streamlined forms, cel-shaded: a facet is a darker flat tone, a highlight a hard white sliver */
+  .rib { position: absolute; border-radius: 999px; overflow: hidden; will-change: transform; }
+  .rib .f { position: absolute; left: 0; right: 0; bottom: 0; height: 42%; clip-path: polygon(0 55%, 100% 0, 100% 100%, 0 100%); }
+  .rib .h { position: absolute; left: 10%; top: 14%; width: 26%; height: 9%; border-radius: 999px; background: #fff; }
+  #r1 { left: 760px; top: 560px; width: 1500px; height: 210px; background: var(--vio); transform-origin: 50% 50%; }
+  #r1 .f { background: #5438c7; }
+  #r2 { left: 1250px; top: 30px; width: 1100px; height: 120px; background: var(--orange); }
+  #r2 .f { background: #c84a24; }
+  #r3 { left: 560px; top: 860px; width: 900px; height: 60px; background: var(--blue); }
+  #r3 .f { background: #2653b8; }
+  .nav { position: absolute; left: 96px; right: 96px; top: 40px; display: flex; align-items: center; justify-content: space-between; font-size: 16px; font-weight: 500; z-index: 8; }
+  .nav .mark { font-family: 'Unbounded'; font-weight: 800; font-size: 20px; letter-spacing: 0.02em; }
+  .nav .links { display: flex; gap: 36px; }
+  h1 { position: absolute; left: 92px; top: 160px; margin: 0; font-family: 'Unbounded'; font-weight: 800; font-size: 124px; line-height: 1.0; letter-spacing: -0.025em; text-transform: uppercase; z-index: 7; text-shadow: 0 0 60px rgba(201,179,255,0.35); }
+  h1 .line { display: block; overflow: hidden; padding-bottom: 0.06em; margin-bottom: -0.06em; }
+  h1 .line > span { display: block; position: relative; }
+  h1 .line > span::before { content: attr(data-t); position: absolute; left: 0; top: 0; color: var(--mag); mix-blend-mode: screen; transform: translateX(var(--ab, 0px)); opacity: 0.8; z-index: -1; }
+  .sub { position: absolute; left: 96px; top: 446px; margin: 0; font-size: 24px; font-weight: 500; color: var(--lav); z-index: 7; }
+  .actions { position: absolute; left: 96px; top: 508px; display: flex; gap: 28px; align-items: center; font-size: 19px; font-weight: 600; z-index: 7; }
+  .btn { display: inline-flex; align-items: center; height: 54px; padding: 0 28px; border-radius: 999px; background: var(--orange); color: #1a1340; box-shadow: 0 0 40px rgba(255,106,61,0.45); }
+  /* the object: the gig as iridescent glass */
+  #card { position: absolute; left: 96px; top: 640px; width: 820px; height: 380px; border-radius: 28px; padding: 36px 40px; z-index: 9; background: rgba(18,14,52,0.62); backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px); will-change: transform; }
+  #card::before { content: ''; position: absolute; inset: 0; border-radius: 28px; padding: 1.5px; background: linear-gradient(135deg, #e9dcff, #ff5fd2 35%, #3d7bff 70%, #c9b3ff); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; }
+  #card::after { content: ''; position: absolute; left: 40px; right: 40px; top: 0; height: 1px; background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.9), rgba(255,255,255,0)); }
+  #card .row { display: flex; justify-content: space-between; align-items: center; font-size: 17px; font-weight: 500; color: #b9b4d6; }
+  #card .st { display: inline-flex; align-items: center; gap: 10px; color: var(--lav); }
+  #card .st i { width: 10px; height: 10px; border-radius: 50%; background: var(--mag); box-shadow: 0 0 14px var(--mag); display: inline-block; }
+  #card .t { margin-top: 20px; font-size: 40px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.08; }
+  #card .tags { margin-top: 16px; display: flex; gap: 8px; }
+  #card .tags span { font-size: 14px; font-weight: 500; padding: 7px 12px; border-radius: 999px; background: rgba(255,255,255,0.09); color: #e6e1ff; }
+  #card .foot { margin-top: 30px; display: flex; align-items: flex-end; justify-content: space-between; }
+  #card .money { font-family: 'Unbounded'; font-weight: 300; font-size: 50px; letter-spacing: -0.02em; line-height: 1; }
+  #card .money small { display: block; font-family: 'Golos'; font-size: 14px; font-weight: 500; color: #b9b4d6; margin-bottom: 10px; }
+  #card .cta { height: 46px; padding: 0 22px; border-radius: 999px; background: #fff; color: #1a1340; font-size: 16px; font-weight: 600; display: inline-flex; align-items: center; }
+</style></head>
+<body><div id="stage">
+  <div class="abs" id="glow1"></div><div class="abs" id="glow2"></div>
+  <div class="rib" id="r2"><div class="f"></div><div class="h"></div></div>
+  <div id="figure" class="abs">
+    <div class="fig-back" id="figback"></div>
+    <div class="fig" id="fig">
+      <div class="shoulders"><div class="f"></div><div class="plate"></div></div>
+      <div class="neck"><div class="f"></div><div class="ring r1"></div><div class="ring r2"></div></div>
+      <div class="head">
+        <div class="f"></div>
+        <div class="jaw"></div>
+        <div class="crest"></div>
+        <div class="line l1"></div><div class="line l2"></div>
+        <div class="visor"><div class="vhi" id="vhi"></div><div class="vedge"></div></div>
+        <div class="hi"></div>
+      </div>
+      <div class="module"><div class="lamp" id="lamp"></div></div>
+    </div>
+  </div>
+  <div class="rib" id="r1"><div class="f"></div><div class="h"></div></div>
+  <div class="rib" id="r3"><div class="f"></div></div>
+
+  <nav class="nav"><span class="mark">GIGLY</span><span class="links"><span>Компаниям</span><span>Специалистам</span><span>Как это работает</span></span><span>Войти</span></nav>
+  <h1><span class="line"><span id="l1" data-t="Сделано">Сделано</span></span><span class="line"><span id="l2" data-t="сеньорами.">сеньорами.</span></span></h1>
+  <p class="sub" id="sub">Критерии приёмки · Оплата по факту · Бюджет целиком</p>
+  <div class="actions" id="act"><span class="btn">Создать аккаунт</span><span>Подробнее ›</span></div>
+
+  <div id="card">
+    <div class="row"><span class="st"><i></i>В работе</span><span>ТехКорп · до 4 ноября</span></div>
+    <div class="t">Миграция платежей на новый API</div>
+    <div class="tags"><span>Node.js</span><span>PostgreSQL</span><span>Senior</span></div>
+    <div class="foot"><div class="money"><small>Бюджет, специалисту целиком</small>150 000 ₽</div><span class="cta">К проекту</span></div>
+  </div>
+</div>
+<script>
+const DUR = 6.0;
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const expo = (t) => (t >= 1 ? 1 : 1 - Math.pow(2, -10 * t));
+const out = (t) => 1 - Math.pow(1 - t, 3);
+const inq = (t) => t * t * t;
+const seg = (t, a, b, e = out) => e(clamp((t - a) / (b - a)));
+const $ = (id) => document.getElementById(id);
+
+window.seek = function seek(t) {
+  t = ((t % DUR) + DUR) % DUR;
+  const exit = seg(t, 5.0, 5.6, inq);
+  // the figure: a slow push in, breathing, a visor highlight sweep and a blinking lamp
+  const bIn = seg(t, 0.0, 1.1, expo);
+  const breathe = 1.0 + 0.03 * seg(t, 1.0, 6.0, (x) => x);
+  const bob = Math.sin((t - 1.0) * 1.1) * 10;
+  $('figure').style.opacity = String(bIn * (1 - exit));
+  $('figure').style.transform = `translateX(${(1 - bIn) * 140 + exit * 260}px) translateY(${bob}px) scale(${breathe})`;
+  const glitch = (t > 2.0 && t < 2.14) || (t > 4.2 && t < 4.3) ? 1 : 0;
+  const sw = seg(t, 2.3, 3.2, (x) => x);
+  $('vhi').style.transform = `translateX(${-200 + sw * 620}px)`;
+  $('lamp').style.opacity = String(0.55 + 0.45 * Math.max(0, Math.sin(t * 5.2)));
+  // ribbons: in from the right with expo, then drift
+  const r = (id, a, dx, dy, rot) => { const p = seg(t, a, a + 0.8, expo); const d = Math.sin((t - a) * 1.1) * 6; $(id).style.transform = `rotate(${rot}deg) translateX(${(1 - p) * dx + exit * dx}px) translateY(${d + dy}px)`; };
+  r('r2', 0.2, 1400, 0, -24); r('r1', 0.35, 1800, 0, -16); r('r3', 0.5, 1200, 0, -10);
+  // glow breathes
+  $('glow1').style.transform = `scale(${1 + 0.06 * Math.sin(t * 1.2)})`;
+  // type
+  const lineUp = (el, a) => { const p = seg(t, a, a + 0.75, expo); el.style.transform = `translateY(${(1 - p) * 120 + exit * 120}%)`; el.style.setProperty('--ab', `${(3 + glitch * 18) * (p < 1 ? 0 : 1)}px`); };
+  lineUp($('l1'), 0.5); lineUp($('l2'), 0.61);
+  const rise = (el, a, d = 0.5, dy = 24) => { const p = seg(t, a, a + d); el.style.opacity = String(p * (1 - exit)); el.style.transform = `translateY(${(1 - p) * dy + exit * 40}px)`; };
+  rise($('sub'), 1.05); rise($('act'), 1.15);
+  const cIn = seg(t, 0.95, 1.6, expo);
+  $('card').style.opacity = String(cIn * (1 - exit)); $('card').style.transform = `translateY(${(1 - cIn) * 90 + exit * 160}px)`;
+  return t;
+};
+window.ready = (async () => {
+  await document.fonts.load('800 100px Unbounded'); await document.fonts.load('500 20px Golos'); await document.fonts.ready;
+  await Promise.all([...document.images].map((im) => im.complete ? 1 : new Promise((r) => { im.onload = r; im.onerror = r; })));
+  return true;
+})();
+</script>
+</body></html>

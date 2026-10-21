@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<script type="importmap">{ "imports": { "three": "/vendor/three.module.js", "three/addons/": "/vendor/addons/" } }</script>
+<script>window.ready = new Promise((r) => (window.__ready = r));</script>
+<style>
+  @font-face { font-family: 'Unbounded'; src: url('/fonts/Unbounded.ttf') format('truetype'); font-weight: 200 900; }
+  @font-face { font-family: 'Golos'; src: url('/fonts/GolosText.ttf') format('truetype'); font-weight: 400 900; }
+  :root { --bg: #0d0b24; --lav: #c9b3ff; --vio: #7b5cff; --mag: #ff5fd2; --blue: #3d7bff; --orange: #ff6a3d; --ink: #f6f3ff; }
+  html, body { margin: 0; background: var(--bg); } * { box-sizing: border-box; }
+  #stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); font-family: 'Golos', sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+  #gl { position: absolute; inset: 0; z-index: 2; }
+  .nav { position: absolute; left: 96px; right: 96px; top: 40px; display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 500; z-index: 5; }
+  .nav .mark { font-family: 'Unbounded'; font-weight: 800; font-size: 20px; letter-spacing: 0.02em; }
+  .nav .links { display: flex; gap: 36px; }
+  .copy { position: absolute; left: 96px; top: 318px; z-index: 4; width: 980px; }
+  h1 { margin: 0; font-family: 'Unbounded'; font-weight: 800; font-size: 112px; line-height: 1.0; letter-spacing: -0.025em; text-transform: uppercase; }
+  h1 .l { display: block; overflow: hidden; padding-bottom: 0.06em; margin-bottom: -0.06em; }
+  h1 .l > span { display: block; position: relative; }
+  h1 .l > span::before { content: attr(data-t); position: absolute; left: var(--ab, 0px); top: 0; color: var(--mag); mix-blend-mode: screen; opacity: 0.9; z-index: -1; }
+  .sub { margin: 28px 0 0; font-size: 24px; font-weight: 500; color: var(--lav); }
+  .actions { margin-top: 34px; display: flex; gap: 28px; align-items: center; font-size: 19px; font-weight: 600; }
+  .btn { display: inline-flex; align-items: center; height: 56px; padding: 0 28px; border-radius: 999px; background: var(--orange); color: #1a1340; }
+  #card { position: absolute; left: 1540px; top: 760px; width: 320px; z-index: 4; padding: 26px 28px 24px; border-radius: 16px; background: rgba(20,16,54,0.55); backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px); }
+  #card::before { content: ""; position: absolute; inset: 0; border-radius: 16px; padding: 1.5px; background: linear-gradient(135deg, var(--lav), var(--mag) 45%, var(--blue)); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; }
+  #card .row { display: flex; justify-content: space-between; font-size: 15px; font-weight: 500; color: #b9b2d6; }
+  #card .st { color: var(--blue); }
+  #card .t { margin-top: 12px; font-size: 24px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.15; }
+  #card .foot { margin-top: 18px; display: flex; align-items: flex-end; justify-content: space-between; }
+  #card .money { font-family: 'Unbounded'; font-weight: 300; font-size: 30px; letter-spacing: -0.02em; line-height: 1; }
+  #card .money small { display: block; font-family: 'Golos'; font-size: 13px; font-weight: 500; color: #b9b2d6; margin-bottom: 8px; }
+  #sheet { position: absolute; inset: 0; z-index: 6; background: var(--lav); transform: translateY(100%); }
+  #sheet h2 { position: absolute; left: 96px; top: 120px; margin: 0; font-family: 'Unbounded'; font-weight: 800; font-size: 96px; line-height: 1; text-transform: uppercase; color: #1a1340; letter-spacing: -0.02em; }
+</style></head>
+<body><div id="stage">
+  <canvas id="gl" width="1920" height="1080"></canvas>
+  <nav class="nav"><span class="mark">GIGLY</span><span class="links"><span>Компаниям</span><span>Специалистам</span><span>Как это работает</span></span><span>Войти</span></nav>
+  <div class="copy" id="copy">
+    <h1><span class="l"><span data-t="Сделано">Сделано</span></span><span class="l"><span data-t="сеньорами.">сеньорами.</span></span></h1>
+    <p class="sub">Критерии приёмки · Оплата по факту · Бюджет целиком</p>
+    <div class="actions"><span class="btn">Создать аккаунт</span><span>Подробнее ›</span></div>
+  </div>
+  <div id="card">
+    <div class="row"><span class="st">● В работе</span><span>до 4 ноября</span></div>
+    <div class="t">Миграция платежей на новый API</div>
+    <div class="foot"><div class="money"><small>Бюджет, специалисту целиком</small>150 000 ₽</div></div>
+  </div>
+  <div id="sheet"><h2>Как это<br>работает</h2></div>
+</div>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+
+const DUR = 6.0, W = 1920, H = 1080;
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const expo = (t) => (t >= 1 ? 1 : 1 - Math.pow(2, -10 * t));
+const out = (t) => 1 - Math.pow(1 - t, 3);
+const inq = (t) => t * t * t;
+const seg = (t, a, b, e = out) => e(clamp((t - a) / (b - a)));
+const $ = (id) => document.getElementById(id);
+const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
+
+// ---------- renderer / scene ----------
+// opaque canvas on purpose: with a transparent canvas three.js clears the transmission buffer to white, which turns glass milky
+const renderer = new THREE.WebGLRenderer({ canvas: $('gl'), antialias: true, alpha: false, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1); renderer.setSize(W, H, false); renderer.setClearColor(0x0d0b24, 1);
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.15;
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(30, W / H, 0.1, 50); camera.position.set(0, 0, 6); camera.lookAt(0, 0, 0);
+const UNIT = H / (2 * 6 * Math.tan(THREE.MathUtils.degToRad(15)));   // px per world unit at z=0
+const px = (x, y) => V((x - W / 2) / UNIT, (H / 2 - y) / UNIT, 0);
+const toPx = (v) => [Math.round(W / 2 + v.x * UNIT), Math.round(H / 2 - v.y * UNIT)];
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environmentIntensity = 0.45;
+scene.background = (() => {   // the fog lives in the scene background (the canvas is opaque)
+  const c = document.createElement('canvas'); c.width = 960; c.height = 540; const g = c.getContext('2d');
+  g.fillStyle = '#0d0b24'; g.fillRect(0, 0, 960, 540);
+  const blob = (x, y, r, col) => { const gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, col); gr.addColorStop(1, 'rgba(13,11,36,0)'); g.fillStyle = gr; g.fillRect(0, 0, 960, 540); };
+  blob(640, 150, 320, 'rgba(201,179,255,0.40)'); blob(170, 486, 300, 'rgba(123,92,255,0.22)');
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+})();
+scene.add(new THREE.HemisphereLight(0x2a2360, 0x05040f, 0.9));
+const key = new THREE.DirectionalLight(0xc9b3ff, 1.6); key.position.set(-2, 3, 4); scene.add(key);
+const glow = new THREE.PointLight(0xfff1e0, 8, 3, 2); scene.add(glow);   // the cube's own light on the fingertips
+
+// ---------- the cube: dichroic glass, square as in the reference; the word sits in its middle ----------
+const S = 0.46;
+const cubeMat = new THREE.MeshPhysicalMaterial({
+  color: 0xffffff, metalness: 0, roughness: 0.03, transmission: 1, thickness: 0.5, ior: 1.5, dispersion: 5,
+  iridescence: 1, iridescenceIOR: 1.6, iridescenceThicknessRange: [200, 620], clearcoat: 1, clearcoatRoughness: 0.03,
+  attenuationColor: new THREE.Color(0xd9ccff), attenuationDistance: 2.5, envMapIntensity: 1.6, emissive: 0x2a1f6e, emissiveIntensity: 0.2,
+});
+const cube = new THREE.Mesh(new RoundedBoxGeometry(S, S, S, 3, 0.03), cubeMat);
+{
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 512; const g = c.getContext('2d');
+  g.fillStyle = '#ffffff'; g.font = '800 300px Unbounded'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('Gigly', 512, 270);
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
+  // opaque + alphaTest, not transparent: only opaque objects are captured in the transmission buffer the glass refracts
+  const word = new THREE.Mesh(new THREE.PlaneGeometry(S * 0.8, S * 0.4), new THREE.MeshBasicMaterial({ map: tex, alphaTest: 0.2, toneMapped: false, side: THREE.DoubleSide }));
+  cube.add(word);
+}
+
+// ---------- hand: WebXR generic hand (MIT), toon-shaded with a lavender rim ----------
+const gradient = new THREE.DataTexture(new Uint8Array([70, 150, 255]), 3, 1, THREE.RedFormat); gradient.needsUpdate = true;
+gradient.minFilter = gradient.magFilter = THREE.NearestFilter;
+const handMat = new THREE.MeshToonMaterial({ color: 0x171436, gradientMap: gradient, side: THREE.DoubleSide });   // the asset's wrist is an open cut
+handMat.onBeforeCompile = (sh) => {
+  sh.uniforms.uRim = { value: new THREE.Color(0xc9b3ff) };
+  sh.fragmentShader = sh.fragmentShader
+    .replace('#include <common>', '#include <common>\nuniform vec3 uRim;')
+    .replace('#include <dithering_fragment>', 'float fres = pow(1.0 - saturate(dot(normalize(vNormal), normalize(vViewPosition))), 3.2); gl_FragColor.rgb += uRim * fres * 0.9;\n#include <dithering_fragment>');
+};
+const hand = new THREE.Group(); scene.add(hand);
+const bones = {};
+const gltf = await new GLTFLoader().loadAsync('/assets/hand-right.glb');
+gltf.scene.traverse((o) => { if (o.isBone) bones[o.name] = o; if (o.isMesh) { o.material = handMat; o.frustumCulled = false; } });
+hand.add(gltf.scene);
+hand.rotation.set(Math.PI, 0, 0);                  // in this asset the fingers run along model -Y; now they point up
+hand.scale.set(-11, 11, 11);                     // mirrored: a LEFT hand, thumb toward the beam, free fingers under the spectrum
+scene.updateMatrixWorld(true);
+const at = (n) => { const v = V(); bones[n].getWorldPosition(v); return v; };
+// the asset's joints are all siblings under one Armature node (no parent chain), so bending a joint must carry the
+// joints after it in the chain by the same rigid motion: M_j' = M_k · R · M_k⁻¹ · M_j, all in Armature space
+const bend = (chain, k, R) => {
+  const J = bones[chain[k]]; const Mk = new THREE.Matrix4().compose(J.position, J.quaternion, J.scale);
+  const Mk2 = Mk.clone().multiply(R), delta = Mk2.clone().multiply(Mk.clone().invert());
+  Mk2.decompose(J.position, J.quaternion, J.scale);
+  for (let i = k + 1; i < chain.length; i++) { const B = bones[chain[i]]; delta.clone().multiply(new THREE.Matrix4().compose(B.position, B.quaternion, B.scale)).decompose(B.position, B.quaternion, B.scale); }
+};
+const rotX = (a) => new THREE.Matrix4().makeRotationX(a), rotY = (a) => new THREE.Matrix4().makeRotationY(a);
+const curl = (chain, k, a) => bend(chain, k, rotX(-a));   // flexion = negative X in the WebXR joint frame (+Y is out of the back of the hand)
+const CHAIN = (f) => [`${f}-finger-phalanx-proximal`, `${f}-finger-phalanx-intermediate`, `${f}-finger-phalanx-distal`, `${f}-finger-tip`];
+const THUMB = ['thumb-metacarpal', 'thumb-phalanx-proximal', 'thumb-phalanx-distal', 'thumb-tip'];
+const wrist0 = at('wrist'), knuckle0 = at('middle-finger-phalanx-proximal');
+const AXIS = knuckle0.clone().sub(wrist0).normalize();   // forearm axis
+
+// pose, as in the reference: middle/ring/pinky up with a natural curve; the index and thumb close on the cube.
+// Joint search: index flexion × thumb metacarpal yaw/pitch/roll × thumb curl, for the least contorted pinch one cube wide.
+const rotZ = (a) => new THREE.Matrix4().makeRotationZ(a);
+const REST = { middle: [0.45, 0.45, 0.15], ring: [0.5, 0.5, 0.18], pinky: [0.55, 0.55, 0.2] };
+const SPREAD = { index: 0.12, middle: 0.04, ring: -0.08, pinky: -0.2 };
+for (const f of ['middle', 'ring', 'pinky']) { const ch = CHAIN(f); bend(ch, 0, rotY(SPREAD[f])); REST[f].forEach((a, k) => curl(ch, k, a)); }
+bend(CHAIN('index'), 0, rotY(SPREAD.index));
+const GAP = S + 0.03, DIGITS = [...CHAIN('index'), ...THUMB];
+const snap = DIGITS.map((n) => ({ p: bones[n].position.clone(), q: bones[n].quaternion.clone() }));
+const restore = () => { DIGITS.forEach((n, i) => { bones[n].position.copy(snap[i].p); bones[n].quaternion.copy(snap[i].q); }); };
+const tipGap = () => { hand.updateMatrixWorld(true); return at('thumb-tip').distanceTo(at('index-finger-tip')); };
+const poseIndex = (fi) => { const ch = CHAIN('index'); curl(ch, 0, fi); curl(ch, 1, fi * 0.8); curl(ch, 2, fi * 0.3); };
+const poseThumb = (b) => { bend(THUMB, 0, rotY(b.yaw).multiply(rotX(b.pitch)).multiply(rotZ(b.roll))); for (let c = 0; c < b.c - 1e-6; c += 0.07) { curl(THUMB, 1, 0.07); curl(THUMB, 2, 0.05); } };
+let best = { cost: Infinity }; const t0 = performance.now();
+for (const fi of [0.35, 0.55, 0.75, 0.95]) for (let yaw = -1.4; yaw <= 1.41; yaw += 0.2) for (let pitch = -0.8; pitch <= 0.81; pitch += 0.27) for (let roll = -1.2; roll <= 1.21; roll += 0.4) {
+  restore(); poseIndex(fi); bend(THUMB, 0, rotY(yaw).multiply(rotX(pitch)).multiply(rotZ(roll)));
+  let c = 0, d = tipGap();
+  while (d > GAP && c < 1.3) { curl(THUMB, 1, 0.07); curl(THUMB, 2, 0.05); c += 0.07; d = tipGap(); }
+  const cost = (d > GAP ? (d - GAP) * 20 : 0) + Math.abs(yaw) * 0.4 + Math.abs(pitch) * 0.6 + Math.abs(roll) * 0.4 + c * 0.3 + fi * 0.5;
+  if (cost < best.cost) best = { fi, yaw, pitch, roll, c, d, cost };
+}
+restore(); poseIndex(best.fi); poseThumb(best);
+best.finalGap = +tipGap().toFixed(3); best.ms = Math.round(performance.now() - t0);
+console.log('pinch search', JSON.stringify(best));
+scene.updateMatrixWorld(true);
+
+// palm normal (the side the fingers curl toward), measured; THETA0 turns it to the camera
+const palmSide = (() => {
+  const ch = CHAIN('middle'), t0 = at('middle-finger-tip');
+  curl(ch, 0, 0.4); hand.updateMatrixWorld(true); const t1 = at('middle-finger-tip'); curl(ch, 0, -0.4); hand.updateMatrixWorld(true);
+  const d = t1.sub(t0); d.addScaledVector(AXIS, -d.dot(AXIS)); return d.normalize();
+})();
+const THETA0 = Math.atan2(-palmSide.x, palmSide.z);
+// pivot at the wrist: the scroll turns the forearm about its own axis
+const TILT = new THREE.Quaternion().setFromAxisAngle(V(1, 0, 0), -0.38);   // the arm leans back from the wrist
+const turn = (a) => TILT.clone().multiply(new THREE.Quaternion().setFromAxisAngle(AXIS, a));
+const pivot = new THREE.Group(); pivot.position.copy(at('wrist')); scene.add(pivot); pivot.attach(hand);
+pivot.quaternion.copy(turn(THETA0)); scene.updateMatrixWorld(true);
+// forearm: the asset ends at the wrist; a toon cylinder continues it below the frame along the axis
+const forearm = new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.24, 2.0, 24), handMat);
+forearm.position.copy(at('wrist')).addScaledVector(V(0, 1, 0), -0.75);   // its top sits inside the hand, capping the open wrist forearm.quaternion.setFromUnitVectors(V(0, 1, 0), AXIS); scene.add(forearm); pivot.attach(forearm);
+// place it: the pinch point lands at x 1230, y 330
+const pinch = () => at('thumb-tip').add(at('index-finger-tip')).multiplyScalar(0.5);
+pivot.position.add(px(1230, 330).sub(pinch())); scene.updateMatrixWorld(true);
+const pivotHome = pivot.position.clone();
+// the cube sits in the pinch, one axis along the pinch line, turned for a three-face view, and travels with the hand
+{
+  const Y = at('index-finger-tip').sub(at('thumb-tip')).normalize();
+  const Z = V(0, 0, 1).addScaledVector(Y, -Y.z).normalize(), X = V().crossVectors(Y, Z);
+  cube.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(X, Y, Z)); cube.rotateY(0.55);
+  cube.position.copy(pinch()); scene.add(cube); pivot.attach(cube);
+}
+scene.updateMatrixWorld(true);
+
+// ---------- the light: a white beam enters from the left, six status colours leave to the right ----------
+const beamMat = (color) => new THREE.MeshBasicMaterial({ color, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, side: THREE.DoubleSide });
+const quad = (mat) => { const m = new THREE.Mesh(new THREE.BufferGeometry(), mat); m.frustumCulled = false; scene.add(m); return m; };
+const setQuad = (m, a, b, wa, wb, aa, ab) => {   // a→b with half-widths wa, wb and alphas aa, ab (vertex alpha fades the ends)
+  const d = b.clone().sub(a).normalize(), n = V(-d.y, d.x, 0);
+  const p = [a.clone().addScaledVector(n, wa), b.clone().addScaledVector(n, wb), b.clone().addScaledVector(n, -wb), a.clone().addScaledVector(n, -wa)];
+  const al = [aa, ab, ab, aa], idx = [0, 1, 2, 0, 2, 3];
+  m.geometry.setFromPoints(idx.map((i) => p[i]));
+  m.geometry.setAttribute('color', new THREE.Float32BufferAttribute(idx.flatMap((i) => [1, 1, 1, al[i]]), 4));
+};
+const beamCore = quad(beamMat(0xffffff)), beamHalo = quad(beamMat(0xe9ddff));
+const STATUS = [0xff5fd2, 0x7b5cff, 0x3d7bff, 0x22d3ee, 0xcfff04, 0xff6a3d];   // Открыт … Оплачен as colours
+const fan = STATUS.map((c) => quad(beamMat(c)));
+const SRC = px(-80, 150);
+const layBeams = (k = 1) => {
+  const C = cube.getWorldPosition(V()); C.z = 0;
+  const inDir = C.clone().sub(SRC).normalize(), hit = C.clone().addScaledVector(inDir, -S * 0.45);
+  setQuad(beamCore, SRC, hit, 0.01, 0.018, 0.12 * k, 1.0 * k);
+  setQuad(beamHalo, SRC, hit, 0.05, 0.1, 0.03 * k, 0.28 * k);
+  const base = 0.06;   // the exit fan runs almost level, a touch upward, as in the reference
+  fan.forEach((m, i) => {
+    const a = base + (i - 2.5) * 0.075, d = V(Math.cos(a), Math.sin(a), 0);
+    setQuad(m, C.clone().addScaledVector(d, S * 0.42), C.clone().addScaledVector(d, 3.4), 0.016, 0.135, 0.75 * k, 0.0);
+  });
+};
+window.T = { cubeMat, scene, renderer, hand, cube, glow, key, pivot };
+window.info = { theta0: +THETA0.toFixed(2), palmSide: palmSide.toArray().map((v) => +v.toFixed(2)), thumb: best, wristPx: toPx(at('wrist')), pinchPx: toPx(pinch()), thumbPx: toPx(at('thumb-tip')), indexPx: toPx(at('index-finger-tip')), middlePx: toPx(at('middle-finger-tip')) };
+
+// ---------- the clock: everything is a function of t ----------
+window.seek = function seek(t) {
+  t = ((t % DUR) + DUR) % DUR; const p = t / DUR;
+  const exit = seg(p, 0.8, 1.0, inq);
+  // the forearm turns about its axis: −26° → +20° around the palm-to-camera pose, with a slow breath
+  const angle = THETA0 - 0.45 + p * 0.8 + Math.sin(t * 0.8) * 0.03;
+  pivot.quaternion.copy(turn(angle));
+  pivot.position.copy(pivotHome).add(V(0, Math.sin(t * 1.3) * 0.02 - exit * 1.8, 0));
+  scene.updateMatrixWorld(true);
+  const cw = cube.getWorldPosition(V());
+  glow.position.copy(cw).add(V(0, -0.1, 0.45)); glow.intensity = 7 + Math.sin(t * 2.2) * 1.5;
+  layBeams(1 - exit);
+  // copy and card (HTML)
+  $('copy').style.transform = `translateY(${-exit * 160}px)`; $('copy').style.opacity = String(1 - exit);
+  $('copy').style.setProperty('--ab', `${2 + Math.sin(t * 3) * 1.5}px`);
+  const cardIn = seg(p, 0.36, 0.6, expo);
+  $('card').style.opacity = String(cardIn * (1 - exit)); $('card').style.transform = `translateY(${(1 - cardIn) * 80 + exit * 120}px)`;
+  $('sheet').style.transform = `translateY(${(1 - seg(p, 0.8, 1.0, expo)) * 100}%)`;
+  renderer.render(scene, camera);
+  return t;
+};
+// live mode: open prism.html#scroll in a browser and the page scrolls the scene over two screens
+if (location.hash === '#scroll') { document.body.style.height = '300vh'; $('stage').style.position = 'sticky'; $('stage').style.top = '0'; const on = () => seek(clamp(scrollY / (2 * innerHeight)) * (DUR - 0.001)); addEventListener('scroll', on); }
+await document.fonts.load('800 100px Unbounded'); await document.fonts.load('500 20px Golos'); await document.fonts.ready;
+seek(0);
+window.__ready(true);
+</script>
+</body></html>

@@ -1,0 +1,8 @@
+file 'cyber-stills/t-0.30.png'
+file 'cyber-stills/t-0.70.png'
+file 'cyber-stills/t-1.10.png'
+file 'cyber-stills/t-1.50.png'
+file 'cyber-stills/t-2.60.png'
+file 'cyber-stills/t-4.10.png'
+file 'cyber-stills/t-5.20.png'
+file 'cyber-stills/t-5.60.png'

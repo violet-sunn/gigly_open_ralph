@@ -1,0 +1,18 @@
+@font-face { font-family: 'Handjet'; src: url('/public/fonts/Handjet.ttf') format('truetype'); font-weight: 100 900; }
+@font-face { font-family: 'Manrope'; src: url('/public/fonts/Manrope.ttf') format('truetype'); font-weight: 200 800; }
+:root {
+  --dark: #01030e; --deep: #1c2230; --blue: #0088ff; --paper: #f4f5f7; --ink: #0e121b; --white: #fff;
+  --st-open: #ffffff; --st-review: #f59e0b; --st-progress: #3b82f6; --st-verify: #8b5cf6; --st-done: #10b981; --st-rejected: #ef4444;
+  --display: 'Handjet', monospace; --text: 'Manrope', sans-serif;
+}
+html, body { margin: 0; }
+body { font-family: var(--text); -webkit-font-smoothing: antialiased; }
+* { box-sizing: border-box; }
+.frame { position: relative; overflow: hidden; }
+.display { font-family: var(--display); font-weight: 700; line-height: 0.86; text-transform: uppercase; }
+.mark { font-family: var(--display); font-weight: 700; letter-spacing: 0.06em; line-height: 1; }
+.sub { font-family: var(--text); font-weight: 500; line-height: 1.35; }
+/* the pixel wave: the product's own asset (public/assets/pixel-wave.svg), recoloured through a mask */
+.wave { position: absolute; left: 0; right: 0; aspect-ratio: 1512 / 271; -webkit-mask: url('/public/assets/pixel-wave.svg') no-repeat center / 100% 100%; mask: url('/public/assets/pixel-wave.svg') no-repeat center / 100% 100%; }
+/* the logomark: the auth screen's own (blue plate, Handjet G), scaled */
+.g { display: flex; align-items: center; justify-content: center; background: var(--blue); color: #fff; font-family: var(--display); font-weight: 700; border-radius: 24%; }

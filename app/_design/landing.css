@@ -1,0 +1,260 @@
+/* Public landing page (app/page.tsx). Art direction: «colour chapters» (taste-skill, seed 1498868290):
+   every section is a flat colour field, floor to ceiling, and the page performs the gig lifecycle as the
+   visitor scrolls. Poster colours are literal brand values and do NOT follow data-theme on purpose (a poster,
+   not an app screen); the product fragments ([data-ui]) use the app tokens and follow the theme like the app. */
+
+.lp {
+  --lp-dark: #01030e;
+  --lp-deep: #1c2230;
+  --lp-blue: #0088ff;
+  --lp-blue-hover: #0070d6;
+  --lp-paper: #f4f5f7;
+  --lp-white: #ffffff;
+  --lp-ink-dark: #0e121b;
+  --lp-ink-soft-dark: #3f4654;   /* secondary ink on paper (9:1) */
+  --lp-ink-soft-light: #cfd2d8;  /* secondary ink on dark */
+  --lp-link-paper: #0a66c2;      /* accent ink on paper, 5.1:1 */
+  --lp-link-dark: #4ea3ff;       /* accent ink on dark, 8:1 */
+
+  --lp-margin: clamp(16px, 2.2vw, 32px);
+  --lp-gutter: clamp(12px, 1.4vw, 24px);
+
+  /* five type steps for the whole page (fragments keep the product's own sizes) */
+  --t1: clamp(72px, 9vw, 140px);
+  --t2: clamp(48px, 6.6vw, 104px);
+  --t3: clamp(24px, 2.2vw, 34px);
+  --t4: 19px;
+  --t5: 15px;
+  --t-story: clamp(20px, 1.7vw, 26px); /* the one paragraph set large (about) */
+
+  --display: 'Handjet', monospace;
+  --text: 'Manrope', sans-serif;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --t-press: 140ms;
+  --t-hover: 180ms;
+
+  font-family: var(--text);
+  font-size: var(--t4);
+  line-height: 1.5;
+  color: var(--lp-white);
+  background: var(--lp-dark);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+.lp *, .lp *::before, .lp *::after { box-sizing: border-box; }
+.lp h1, .lp h2, .lp h3, .lp p, .lp ul, .lp dl, .lp dd { margin: 0; }
+.lp ul { padding: 0; list-style: none; }
+.lp a { color: inherit; }
+.lp p { text-wrap: pretty; }
+
+.lp .wrap { padding-inline: var(--lp-margin); }
+.lp .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--lp-gutter); }
+.lp .display { font-family: var(--display); font-weight: 700; line-height: 0.86; text-wrap: balance; }
+.lp .num { font-variant-numeric: tabular-nums; }
+
+/* ---- controls: one button shape (brand radius 8), one link style ---------------------------------- */
+.lp-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 56px; padding: 0 28px; border: 0; border-radius: 8px; cursor: pointer;
+  background: var(--lp-blue); color: #fff;
+  font: 600 17px/1 var(--text); text-decoration: none; white-space: nowrap;
+  transition: transform var(--t-press) var(--ease-out), background-color var(--t-hover) ease;
+}
+.lp-btn:active { transform: scale(0.97); }
+.lp-btn.dark { background: var(--lp-dark); color: #fff; }
+.lp-btn.small { height: 44px; padding: 0 20px; font-size: 15px; }
+.lp .link {
+  text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 0.2em;
+  text-decoration-thickness: 0.07em; transition: text-decoration-color var(--t-hover) ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .lp-btn:hover { background: var(--lp-blue-hover); }
+  .lp-btn.dark:hover { background: var(--lp-deep); }
+  .lp .link:hover { text-decoration-color: currentColor; }
+}
+.lp :focus-visible { outline: 3px solid var(--lp-link-dark); outline-offset: 3px; }
+.lp .on-paper :focus-visible { outline-color: var(--lp-link-paper); }
+
+/* ---- navigation: on the first chapter's colour, same margins as the page ------------------------- */
+.lp-nav {
+  position: absolute; inset: 0 0 auto 0; z-index: 3;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 20px var(--lp-margin);
+}
+.lp-nav .mark { font-family: var(--display); font-weight: 700; font-size: var(--t3); line-height: 1; letter-spacing: 0.06em; text-decoration: none; }
+.lp-nav .right { display: flex; align-items: center; gap: 24px; font-size: var(--t5); }
+.lp-nav form { display: contents; }
+.lp-nav .plain { background: none; border: 0; padding: 0; color: inherit; font: inherit; cursor: pointer; }
+
+/* ---- hero: waterline. Two fields meet at half height; the seam cuts through the second line ------- */
+.lp-hero { position: relative; height: 100svh; min-height: 640px; overflow: clip; --seam: 50%; }
+.lp-hero .field { position: absolute; left: 0; right: 0; }
+.lp-hero .field-a { top: 0; height: var(--seam); background: var(--lp-dark); }
+.lp-hero .field-b { top: var(--seam); bottom: 0; background: var(--lp-blue); color: var(--lp-dark); }
+/* line 1 occupies 0–0.86em, line 2 0.86–1.72em: its centre (1.29em) sits exactly on the seam */
+.lp-hero .head {
+  position: absolute; z-index: 2; left: 50%; top: calc(var(--seam) - 1.29em);
+  margin-left: max(-46vw, -700px); width: min(92vw, 1400px);
+  text-align: center; font-size: var(--t1); line-height: 0.86; text-transform: uppercase; color: var(--lp-white);
+}
+.lp-hero .lead {
+  position: absolute; left: 0; right: 0; bottom: 40px; margin: 0 auto; padding: 0 var(--lp-margin);
+  max-width: 62ch; text-align: center; font-size: var(--t4); line-height: 1.45; font-weight: 500;
+}
+.lp .lines .line { display: block; overflow: hidden; padding-bottom: 0.08em; margin-bottom: -0.08em; }
+.lp .lines [data-line] { display: block; }
+
+/* ---- chapter: features (paper). Sticky heading, blocks pass on the right ------------------------- */
+.lp-features { background: var(--lp-paper); color: var(--lp-ink-dark); padding-block: clamp(96px, 12vh, 160px); }
+.lp-features .grid { align-items: start; }
+.lp-features h2 { grid-column: 1 / 6; position: sticky; top: 32px; font-size: var(--t2); }
+.lp-features .blocks { grid-column: 7 / 13; display: flex; flex-direction: column; gap: 120px; }
+.lp-block h3 { font-family: var(--display); font-weight: 700; font-size: var(--t3); line-height: 1; margin-bottom: 24px; }
+.lp-block .row { display: flex; gap: 32px; align-items: flex-start; }
+.lp-block:nth-child(even) .row { flex-direction: row-reverse; }
+.lp-block .frag { flex: none; width: 320px; }
+.lp-block ul { display: flex; flex-direction: column; gap: 14px; font-size: var(--t4); line-height: 1.4; padding-top: 4px; }
+
+/* ---- chapter: the gig's path. Four fields, the same card further along in each --------------------- */
+.lp-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.lp-strip .f { position: relative; min-height: 84svh; padding: var(--lp-margin); display: flex; flex-direction: column; }
+.lp-strip .f1 { background: var(--lp-deep); color: var(--lp-white); }
+.lp-strip .f2 { background: var(--lp-paper); color: var(--lp-ink-dark); }
+.lp-strip .f3 { background: var(--lp-dark); color: var(--lp-white); }
+.lp-strip .f4 { background: var(--lp-blue); color: var(--lp-dark); }
+.lp-strip h2, .lp-strip .clause { font-family: var(--display); font-weight: 700; font-size: var(--t3); line-height: 1.02; }
+.lp-strip h2 { margin-bottom: 0.5em; }
+.lp-strip .slot { position: absolute; left: var(--lp-margin); right: var(--lp-margin); top: 34%; display: flex; justify-content: center; }
+.lp-strip .card { width: 300px; max-width: 100%; transition: transform 150ms var(--ease-out); }
+@media (hover: hover) and (pointer: fine) { .lp-strip .f:hover .card { transform: translateY(-6px); } }
+.lp-strip .clause { margin-top: auto; max-width: 15ch; }
+
+/* ---- chapter: the fee (dark). The price, very large, with the product's own fee panel over it ------ */
+.lp-fee { background: var(--lp-dark); color: var(--lp-white); min-height: 80svh; display: flex; align-items: center; padding-block: clamp(96px, 12vh, 160px); }
+.lp-fee .grid { width: 100%; align-items: center; }
+.lp-fee .intro { grid-column: 1 / 5; display: flex; flex-direction: column; gap: 20px; }
+.lp-fee h2 { font-family: var(--display); font-weight: 700; font-size: var(--t3); line-height: 1; }
+.lp-fee .figure-wrap { grid-column: 6 / 13; position: relative; width: max-content; max-width: 100%; padding-top: 224px; }
+.lp-fee .figure { position: relative; font-family: var(--display); font-weight: 700; font-size: var(--t1); line-height: 0.85; letter-spacing: -0.01em; white-space: nowrap; }
+.lp-fee .figure .cur { font-size: 0.5em; vertical-align: top; line-height: 1; margin-left: 0.08em; }
+/* the product's fee panel sits above the figure and overlaps its top edge by a sliver (house rule: nothing covers a statement) */
+.lp-fee .overlap { position: absolute; right: -140px; top: 0; width: 300px; z-index: 1; }
+.lp-fee .lines { margin-top: 28px; display: flex; flex-direction: column; gap: 8px; font-size: var(--t4); }
+.lp-fee .range { display: flex; flex-direction: column; gap: 10px; margin-top: 28px; max-width: 420px; }
+.lp-fee .range label { font-size: var(--t5); color: var(--lp-ink-soft-light); display: flex; justify-content: space-between; }
+.lp-fee input[type="range"] { width: 100%; height: 44px; margin: 0; accent-color: var(--lp-blue); cursor: pointer; background: transparent; }
+.lp-fee .cta { margin-top: 28px; }
+
+/* ---- chapter: who it is for (paper). Facts beside a wide paragraph, rules beneath ------------------ */
+.lp-about { background: var(--lp-paper); color: var(--lp-ink-dark); padding-block: clamp(96px, 12vh, 160px); }
+.lp-about .row { display: grid; grid-template-columns: 34% 1fr; column-gap: var(--lp-gutter); }
+.lp-about .row + .row { margin-top: 120px; }
+.lp-about h2 { font-family: var(--display); font-weight: 700; font-size: var(--t2); line-height: 0.9; margin-bottom: 28px; }
+.lp-about .facts { order: -1; display: flex; flex-direction: column; gap: 20px; max-width: 220px; }
+.lp-about .facts dt { font-size: var(--t5); color: var(--lp-ink-soft-dark); }
+.lp-about .facts dd { margin-top: 2px; font-size: var(--t5); font-weight: 600; }
+.lp-about .story { font-size: var(--t-story); line-height: 1.35; max-width: 56ch; font-weight: 500; }
+.lp-about .story + .story { margin-top: 0.9em; }
+.lp-about .word { font-size: var(--t5); font-weight: 600; padding-top: 4px; }
+.lp-about .rules { display: grid; grid-template-columns: repeat(2, 340px); column-gap: 64px; row-gap: 12px; font-size: var(--t4); line-height: 1.4; }
+
+/* ---- close: the idea again, on the hero's blue -------------------------------------------------- */
+.lp-cta { background: var(--lp-blue); color: var(--lp-dark); min-height: 72svh; position: relative; display: flex; flex-direction: column; padding: clamp(96px, 12vh, 160px) var(--lp-margin) 40px; }
+.lp-cta h2 { font-size: var(--t1); line-height: 0.9; text-transform: uppercase; }
+.lp-cta .foot { margin-top: auto; padding-top: 64px; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--lp-gutter); align-items: end; }
+.lp-cta .foot p { grid-column: 1 / 6; font-size: var(--t4); line-height: 1.45; font-weight: 500; }
+.lp-cta .foot .act { grid-column: 10 / 13; justify-self: end; }
+
+/* ---- footer: the name first, then the ways in --------------------------------------------------- */
+.lp-footer { background: var(--lp-dark); color: var(--lp-white); padding: 64px var(--lp-margin) 40px; }
+.lp-footer .name { display: block; width: 100%; height: auto; }
+.lp-footer .rows { margin-top: 56px; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--lp-gutter); }
+.lp-footer .big { grid-column: 1 / 6; display: flex; flex-direction: column; gap: 10px; }
+.lp-footer .big a { font-family: var(--display); font-weight: 700; font-size: var(--t3); line-height: 1.05; color: var(--lp-link-dark); }
+.lp-footer .small { grid-column: 7 / 13; display: grid; grid-template-columns: repeat(2, max-content); column-gap: 64px; row-gap: 10px; align-content: start; font-size: var(--t5); }
+.lp-footer .legal { margin-top: 96px; display: flex; justify-content: space-between; gap: 16px; font-size: var(--t5); color: var(--lp-ink-soft-light); }
+
+/* ---- motion. Hidden states exist only with JS and without reduced motion ------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+  .js .lp-hero [data-line] {
+    transform: translateY(105%);
+    animation: lp-line-up 900ms var(--ease-expo) forwards;
+    animation-delay: calc(var(--i) * 110ms + 150ms);
+  }
+  .js .lp-hero [data-load] { opacity: 0; transform: translateY(12px); animation: lp-rise 500ms var(--ease-out) forwards; animation-delay: var(--d, 420ms); }
+  .js .lp [data-reveal] > [data-i] {
+    opacity: 0; transform: translateY(24px);
+    transition: opacity 700ms var(--ease-out), transform 900ms var(--ease-out);
+    transition-delay: calc(var(--i, 0) * 80ms);
+  }
+  .js .lp [data-reveal].is-in > [data-i] { opacity: 1; transform: none; }
+  /* the one moving picture: the checklist ticks itself as its chapter enters */
+  .js .lp [data-ui] .tick .mark { opacity: 0; transform: scale(0.6); transition: transform 320ms var(--ease-out), opacity 320ms ease; transition-delay: calc(600ms + var(--k, 0) * 220ms); }
+  .js .lp .is-in [data-ui] .tick .mark { opacity: 1; transform: none; }
+}
+@keyframes lp-line-up { to { transform: none; } }
+@keyframes lp-rise { to { opacity: 1; transform: none; } }
+
+/* ---- tablet ------------------------------------------------------------------------------------ */
+@media (max-width: 1100px) {
+  .lp-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lp-strip .f { min-height: 72svh; }
+  .lp-features .grid { display: block; }
+  .lp-features h2 { position: sticky; top: 0; z-index: 2; background: var(--lp-paper); padding: 12px 0; margin-bottom: 48px; }
+  .lp-features .blocks { gap: 96px; }
+  .lp-fee .intro { grid-column: 1 / 13; }
+  .lp-fee .figure-wrap { grid-column: 1 / 13; margin-top: 56px; padding-top: 0; }
+  .lp-fee .overlap { position: static; width: 100%; max-width: 320px; margin-top: 24px; }
+  .lp-about .rules { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 32px; }
+}
+
+/* ---- phone: its own composition ---------------------------------------------------------------- */
+@media (max-width: 760px) {
+  .lp { --t1: 15.5vw; --t2: 11vw; --t3: 24px; --t4: 18px; --t-story: 18px; }
+  .lp-nav { padding: 16px var(--lp-margin); }
+  .lp-nav .right { gap: 16px; }
+
+  .lp-hero { min-height: 600px; --seam: 46%; }
+  .lp-hero .head { width: calc(100vw - 32px); margin-left: calc(-50vw + 16px); }
+  .lp-hero .lead { text-align: left; bottom: 24px; max-width: none; }
+
+  .lp-features { padding-block: 72px; }
+  .lp-features h2 { font-size: 9vw; margin-bottom: 40px; }
+  .lp-features .blocks { gap: 72px; }
+  .lp-block .row, .lp-block:nth-child(even) .row { flex-direction: column; gap: 24px; }
+  .lp-block .frag { width: 100%; }
+
+  .lp-strip { grid-template-columns: 1fr; }
+  .lp-strip .f { min-height: 64svh; padding: 20px; }
+  .lp-strip .clause { order: -1; margin-top: 0; max-width: none; }
+  .lp-strip h2 { order: -2; }
+  .lp-strip .slot { position: static; margin: 32px 0 0; justify-content: flex-start; }
+  .lp-strip .card { width: 100%; }
+
+  .lp-fee { padding-block: 72px; min-height: 0; }
+  .lp-fee .grid { display: block; }
+  .lp-fee .figure-wrap { margin-top: 40px; width: 100%; }
+  .lp-fee .overlap { max-width: none; }
+  .lp-fee .cta { width: 100%; }
+  .lp-fee .cta .lp-btn { width: 100%; }
+
+  .lp-about { padding-block: 72px; }
+  .lp-about .row { display: block; }
+  .lp-about .row + .row { margin-top: 64px; }
+  .lp-about .story { max-width: none; }
+  .lp-about .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: none; margin-top: 32px; }
+  .lp-about .word { display: block; margin-bottom: 16px; }
+  .lp-about .rules { grid-template-columns: 1fr; }
+
+  .lp-cta { min-height: 80svh; padding: 72px var(--lp-margin) 20px; }
+  .lp-cta h2 { font-size: var(--t2); }
+  .lp-cta .foot { display: flex; flex-direction: column; align-items: stretch; gap: 24px; padding-top: 48px; }
+  .lp-cta .foot .act { width: 100%; }
+  .lp-cta .foot .lp-btn { width: 100%; }
+
+  .lp-footer { padding: 40px var(--lp-margin) 24px; }
+  .lp-footer .rows { display: flex; flex-direction: column; gap: 32px; margin-top: 32px; }
+  .lp-footer .legal { margin-top: 48px; }
+}
