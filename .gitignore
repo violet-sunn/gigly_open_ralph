@@ -90,3 +90,14 @@ demo-titles.mjs
 
 # brag-slim launch-video output (frames, local ffmpeg, renders)
 brag-output*/
+
+# Agent configuration with local paths/keys — never shared
+.claude/settings.json
+.claude/config.json
+
+# Test credentials and local env
+test-credentials.md
+.env.test
+
+# Legacy OpenSpec UI spec snapshot (kept locally during migration)
+docs/archive/legacy-design/*.bak

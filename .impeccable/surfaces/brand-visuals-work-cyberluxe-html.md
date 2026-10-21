@@ -7,6 +7,11 @@ related_targets: []
 
 # Landing (brand-visuals/work/cyberluxe.html) — surface brief
 
+> **Superseded (2026-10-21).** This brief predates `DESIGN.md`. Where they disagree, `DESIGN.md` wins:
+> chamfer instead of the 14px radius; scene hue derived from the season (no fixed `#0d0b24` ground);
+> the primary action is the L0 spectrum element, not a fixed orange; the six status colours are kept
+> as L2 signal tokens (`--status-*`). The hand-and-prism hero composition remains a valid MVP direction.
+
 Scope: the public landing page, Persuade mode. Audience: CTO/tech lead/founder at a Russian IT company who has one bounded piece of work to hand off, and a Middle+/Senior engineer with a day job who wants a well-paid bounded gig. Job: understand what a гиг is and start one (companies) or go to the gig list (specialists). Proof on hand: the product's own interface fragments and its real mechanics (acceptance criteria, RUB budget, 17,5 % fee on top, the specialist receives the full budget, five lifecycle statuses plus the derived «На рассмотрении»). Constraints: Russian only, no customers/testimonials/numbers may be invented, no payment-gateway claims, desktop-first but phone must work, `gigly_full_design/` stays binding for the app itself (this landing is the first surface of a new brand world, type and colour depart from the app's Handjet/Manrope on purpose).
 
 ## Direction contract
