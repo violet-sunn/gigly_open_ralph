@@ -20,6 +20,8 @@ Spec-driven via ralphy-spec (OpenSpec + Ralph loop). Commands: `/ralphy-plan`, `
 
 For `design:` changes `/ralphy-validate` also runs the design checks (see `.claude/commands/ralphy-validate.md` §Design).
 
+Campaigns (multi-change initiatives) live in `openspec/planning/` per its `README.md`: one document per initiative with the ordered `/ralphy-plan` commands, archived to `planning/archive/` when done. The design migration is `openspec/planning/design-migration.md`; it has a user-approved pilot checkpoint, and nothing after the pilot starts until the user approves its screenshots.
+
 ## 3. Before any UI work
 
 1. Read `DESIGN.md` fully. Note `DESIGN_PATH` in `design.config.ts`.
