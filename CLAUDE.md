@@ -33,13 +33,13 @@ Campaigns (multi-change initiatives) live in `openspec/planning/` per its `READM
 
 | Skill | Scope | Does not apply to |
 | --- | --- | --- |
-| `design-taste-frontend` (taste-skill) | Exploration stage only: anti-slop check of a variant before review | Workspace components; anything after a variant is chosen |
-| `emil-design-eng` | `data-mode="workspace"`: micro-interactions, component craft, when NOT to animate | Scenes and thresholds — their motion is `DESIGN.md` §10 |
-| `review-animations` | Review pass on workspace motion, Before/After/Why table | Scene transitions |
+| `design-taste-frontend` (taste-skill) | (a) Exploration in `app/lab/`: composition and section blueprints only, always `draw.mjs --keep palette,type` (palette and type come from `DESIGN.md`). (b) Gate on any changed page: `inspect.mjs` (scenes) or `inspect.mjs --app` (workspace), always with `--allow gradient,button-fx,shadow,heavy-shadow,glass,hairline,outlined-box,palette-purple` — these are DESIGN.md decisions (light fall-off, L0 glow, glass forms, 1px chamfer edges, violet seasons). Every other rule (eyebrows, mono, numbering, micro-labels, icon cards, emoji, gradient text, placeholder data…) stays enforced. (c) `references/critique.md` look loop, three rounds max | Its palette and type draws; its house rules where they contradict `DESIGN.md` |
+| `emil-design-eng` | `data-mode="workspace"` and workspace-grade controls inside scenes (form fields, the player): component craft, micro-interactions, when NOT to animate | Scene transitions, thresholds, the accepted moment, landing scenes — their motion is `DESIGN.md` §10 (beats, cuts, holds), which Emil's <300ms / ease-out rules would wrongly "fix" |
+| `review-animations` | Review of the same workspace motion, Before/After/Why table | Anything Emil does not apply to |
 | `gigly-design-dod` | The DoD checklist as a pass/fail report; invoked by `/ralphy-validate` on `design:` changes | — |
-| Impeccable (`.impeccable/`) | `/audit`, `/normalize`, `/polish` against `DESIGN.md`. Never run `document`: it would re-derive the old prototype as truth | — |
+| Impeccable (`.impeccable/`) | `/audit` on every changed surface; `/normalize` when a migrated screen drifted from tokens; `/polish` as the last pass of a screen; `/critique` in the lab. Rules that contradict `DESIGN.md` (`dark-glow` first) go to `.impeccable/config.json` `ignoreRules` once, with the DESIGN.md section as the reason. Never run `document`: it would re-derive the old prototype as truth | — |
 
-Two skills with an opinion on the same thing = pick by this table, not by preference. If the table is silent, `DESIGN.md` wins.
+Two skills with an opinion on the same thing = pick by this table, not by preference. If the table is silent, `DESIGN.md` wins. Which skills a given change uses is listed in that change's command in `openspec/planning/design-migration.md`.
 
 ## 5. When the rules are silent
 
