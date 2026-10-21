@@ -1,7 +1,7 @@
 # Design Migration: from the transported prototype to DESIGN.md
 
 **Created:** 2026-10-21
-**Status:** PLANNED
+**Status:** IN_PROGRESS
 **Supersedes:** `archive/transport-design-from-prototype.md` as the design source of truth (its method and its lessons stay)
 
 ## Problem

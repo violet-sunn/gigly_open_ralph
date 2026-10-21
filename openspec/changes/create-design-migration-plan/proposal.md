@@ -3,6 +3,7 @@
 **Type:** Planning Document Change (generates a strategic planning document)
 **Created:** 2026-10-21
 **Generates:** `openspec/planning/design-migration.md`
+**Status:** ACTIVE — stays in `openspec/changes/` until all 12 campaign changes are done; then `/ralphy-archive create-design-migration-plan` and the plan moves to `openspec/planning/archive/` (README, step 4)
 **References spec:** `openspec/specs/planning/spec.md` (planning-document format — not duplicated here)
 
 ## Why
