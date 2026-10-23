@@ -10,7 +10,7 @@ Three levels. Only the vector is hard; the rest is meant to be varied on the spo
 
 | Level | What | How to treat it |
 | --- | --- | --- |
-| **LAW** | The macro decisions from the manifesto: the artwork sets the scene; one dominant hue per scene; light is emitted, not cast, and is rendered, not faked; spectrum is an event; screen-native, never photographic; three screen modes; exactly one L0 per screen; artwork is a work, never a mascot; no fake collaborations or imitated artists; no achromatic gray/black base | Non-negotiable. If a request conflicts, say so and follow the law |
+| **LAW** | The macro decisions from the manifesto: the artwork sets the scene; one dominant hue per scene; light is emitted, not cast, and is rendered, not faked; spectrum is an event; screen-native, never photographic; nothing drifts — every shape has an edge (the frozen instant); three screen modes; exactly one L0 per screen; artwork is a work, never a mascot; no fake collaborations or imitated artists; no achromatic gray/black base | Non-negotiable. If a request conflicts, say so and follow the law |
 | **DEFAULT** | Decisions made so you do not start from zero: chamfer instead of radius, Cyrillic-first typefaces and the declared pair, tempo from the soundtrack, cut-style thresholds, slot formats, L1/L2 budgets, the copy and "do not" lists | Apply unless you have a reason. Deviate when the screen needs it, record the reason in one line in the PR, and check the result against section 14 |
 | **EXAMPLE** | Every concrete number: OKLCH lightness and chroma, chamfer sizes, type sizes, milliseconds, blur radii, ratios, grid columns | Starting values for the first exploration. Change freely; what gets approved becomes the token |
 
@@ -30,13 +30,16 @@ Current state of the codebase: the shipped prototype uses an older design (`gigl
 
 Working name: cyber-luxe. Loud, cinematic, screen-native color and light, led by commissioned artwork whose style changes by season (anime, abstraction, web art, digital painting, hyper-tribal, folk-print motifs) and whose criteria do not: bright, bold, luminous, stylish. The opposite of muted "safe premium" and the opposite of crypto-style neon on black. The emotional target is the moment in a music video when the beat drops and the screen floods with light.
 
-Five principles, in priority order:
+Six principles, in priority order:
 
-1. **The artwork sets the scene; the interface lives in its light.** The color source of any screen is the current seasonal artwork, not a palette picked from tokens. The artwork's hue defines shadows, surfaces, accents and glow; everything that is not art is rendered in the same light or in slight contrast to it. UI may partially overlay the art (a glass form over flowing hair) or sit beside it — decided per artwork composition, never by template.
+1. **The artwork sets the scene; the interface lives in its light.** The color source of any screen is the current seasonal artwork, not a palette picked from tokens. The artwork's hue defines shadows, surfaces, accents and glow; everything that is not art is rendered in the same light or in slight contrast to it. UI may partially overlay the art (a glass form over hair caught mid-motion) or sit beside it — decided per artwork composition, never by template.
 2. **One dominant per scene.** Each screen is a scene with one dominant hue across the full lightness range (deep shadow to blown-out highlight) and one contrast point. Two saturated hues never blend in a gradient; they meet at an edge, or through shadow / blown-out white. Shadows are dark versions of the scene hue, never neutral black; there is no achromatic gray-black background in this system.
 3. **Light is emitted, not cast.** Light sources are the artwork and the UI objects themselves. No top-down lighting, no drop shadows imitating a sun. Glow scales with the object's brightness and falls off into the scene's shadow. Hard outline + soft halo is the base formula for any glowing element.
 4. **Spectrum is an event.** Full iridescent / dichroic color appears in exactly three places: the logo, the primary CTA, and the work-accepted state. Never more than one spectral element per screen.
-5. **Screen-native, never photographic.** Anything that reads as photographed, printed or painted is out. Illustration is drawn or digital in any style; materials are glass, liquid and light; there are no photographs of people.
+5. **Screen-native, never photographic.** Anything that reads as photographed, printed or painted is out. Illustration is drawn or digital in any style; materials are glass, frozen liquid and light; there are no photographs of people.
+6. **The frozen instant: nothing drifts.** Every shape has an edge — figures, liquid, light itself. Light is drawn as planes with borders (the way cel animation paints light and shadow), not as fog. Softness exists in exactly two places: the bloom around the brightest point, and depth-of-field blur on a different plane than the subject. Liquid appears caught mid-flight, with a crisp rim and a highlight, never as a cloud that spreads. When art moves by itself, it cuts from one frozen frame to the next on the beat; it never flows, pans or morphs continuously. (Parallax under the user's own scroll is movement through space, not drift, and stays allowed.) A soft blob with no edge anywhere — aurora, mesh gradient, drifting noise — is the failure this principle exists to prevent.
+
+**The law is the form, not the genre.** Anime cel-shading is the most familiar language of the frozen instant, which is why the moodboard leans on it, but any season may speak another one with the same law: light through a prism (caustics and spectral bands with hard borders), hard-edge light art (James Turrell's fields with a knife-edge, Dan Flavin's lines, Anthony McCall's solid light), hard-edge painting in screen colours, cybersigilism linework, lubok flat fills with contour, a liquid splash frozen in 3D. Check a season's art against principle 6, not against "is it anime".
 
 ### 2.1 Screen modes
 
@@ -44,7 +47,7 @@ LAW. There is no fixed art-to-UI ratio. Every screen belongs to one of three mod
 
 | Mode | Screens | Artwork | Interface | Priority |
 | --- | --- | --- | --- | --- |
-| Scene | Site hero, sign-in / sign-up, work-accepted | Dominates, animated, most of the viewport | Minimal, liquid prismatic glass that transmits the art's light; placement follows the artwork's zones | Impact |
+| Scene | Site hero, sign-in / sign-up, work-accepted | Dominates, most of the viewport; moves only by cuts between frozen frames | Minimal, liquid prismatic glass that transmits the art's light; placement follows the artwork's zones | Impact |
 | Workspace | Gig search / feed, gig card, Definition of Done, applications, dashboard, settings | Confined to its slot (strip, edge, sidebar fragment); never under readable content | Dense opaque surfaces in the scene hue, high-contrast text; glass is never placed over content that must be read | Usability, legibility, speed |
 | Threshold | Transitions between screens and state changes | Shows through for a beat | Flash, light leak, fall-off | Continuity |
 
@@ -56,14 +59,14 @@ DEFAULT, formats are EXAMPLES. A seasonal series is commissioned against this sl
 
 | Screen | Mode | Slot | Format (desktop / mobile) | Behavior |
 | --- | --- | --- | --- | --- |
-| Landing hero | Scene | Full viewport | 16:9 / 9:16 | Animated (hair, liquid, light); copy and CTA placed in the artwork's open zones |
+| Landing hero | Scene | Full viewport | 16:9 / 9:16 | Frozen frames (hair, liquid, light caught mid-motion) cutting on the beat; copy and CTA placed in the artwork's open zones |
 | Landing sections | Scene | Half viewport or strip | 1:1, 2:1 / 4:5 | Parallax, cropped by viewport edge |
-| Sign-in / sign-up | Scene | Full viewport, form overlaid | 16:9 / 9:16 | Animated; glass form transmits light; credit `Gigly × {Artist}` in a corner |
-| Gig search / feed | Workspace | Horizontal season strip at top | 6:1 / 3:1 | Slow motion or static; sits under the glass header |
+| Sign-in / sign-up | Scene | Full viewport, form overlaid | 16:9 / 9:16 | Frozen frames cutting on the beat; glass form transmits light; credit `Gigly × {Artist}` in a corner |
+| Gig search / feed | Workspace | Horizontal season strip at top | 6:1 / 3:1 | Static, or rare cuts between frozen frames; never drifts; sits under the glass header |
 | Gig card, DoD, applications | Workspace | None, or a thin vertical edge strip | 1:8 | Static; never under text |
 | Master / company profile | Workspace | Profile cover | 3:1 / 2:1 | Static; artist credit in the cover corner |
-| Sidebar menu | Workspace | Vertical fragment under glass | 1:3 | Static or slow light; menu items stay legible |
-| Work accepted | Scene | Full-screen state or modal | 16:9 / 9:16 | The only spectrum moment in the app; light animation |
+| Sidebar menu | Workspace | Vertical fragment under glass | 1:3 | Static; its light changes only on a cut; menu items stay legible |
+| Work accepted | Scene | Full-screen state or modal | 16:9 / 9:16 | The only spectrum moment in the app; the prism splits light in a cut, then holds |
 | Emails, empty states, icons | — | None | — | Art is never repeated where it is not a work |
 
 A series is 6–8 works, some of them crops of one composition for several slots. All credited.
@@ -170,7 +173,7 @@ LAW for the principle, EXAMPLES for the numbers. Light is rendered, not faked wi
 - Fallback (no canvas, `prefers-reduced-motion`, or low-power): `box-shadow` two-layer halo (`0 0 3px` at 80% and `0 0 36px` at 15% of the emitter color). The fallback is a fallback, never the default.
 - Rim light replaces drop shadow on raised surfaces: `inset 0 1px 0 color-mix(in oklch, var(--fg-0) 14%, transparent)`.
 - Glass: `backdrop-filter: blur(14px)` over `--bg-1` at 72–85% alpha, with a 1px `--line` edge and a chamfer (section 7). Never milky, never over text that must be read.
-- Liquid backgrounds: a fragment shader (simplex or curl noise, 2 octaves) in `--hue` across the full lightness range, from `--bg-0` to `--accent-bloom`. One per scene. Static PNG fallback rendered at build time.
+- Frozen liquid (what fills art slots on the MVP path, and the season's background on both paths): a set of frozen frames per scene, 6–12 of them — liquid caught mid-flight, cel-shaded: light painted as flat planes with crisp borders across the full lightness range of `--hue` (from `--bg-0` to blown-out white), one bloom around the brightest point, depth blur only on a separate plane. Frames come from the designer or are rendered by script at build time; the method is an EXAMPLE, the frozen look is the LAW (principle 6). The slot cuts between frames on the beat (section 10); no continuous noise shader, no aurora or mesh gradient, no slow pan or morph. First frame is the static fallback.
 - Light leaks and flashes: scene transitions only (section 10). Never in workspace mode.
 
 ## 6. Dichroic
@@ -217,19 +220,20 @@ DEFAULT, numbers are EXAMPLES. Motion is cut like a music video, not eased like 
 
 - Scene transitions (thresholds): hold 2 frames (`--hold-2f`), cut to a flash frame in `--accent-bloom`, hold 2 frames, land. Total ≤ one beat. Easing `steps()` for the holds, linear for the flash. Never a crossfade, never easeOutExpo.
 - Micro-interactions (workspace): one sixteenth (`--sixteenth`, 109 ms). Glow rises on hover/focus and falls on blur with `cubic-bezier(0.2, 0, 0, 1)` (fast in, no overshoot). Pressed state: `--accent-deep`, 2-frame hold. In workspace mode the `emil-design-eng` skill's rules apply on top of this: frequent actions may not animate at all.
-- Scroll-driven motion on the site: parallax layers at 0.3–0.7× via CSS scroll-driven animations or GSAP ScrollTrigger; `IntersectionObserver` for reveals. `window.addEventListener('scroll')` is banned.
+- Scroll-driven motion on the site: parallax layers at 0.3–0.7× via CSS scroll-driven animations or GSAP ScrollTrigger — crisp layers moving under the user's scroll, never autonomous drift; `IntersectionObserver` for reveals. `window.addEventListener('scroll')` is banned.
+- Art slots: the frozen instant (principle 6). A slot holds a frozen frame and cuts to the next one on a beat, holding 2–4 beats per frame; on the cut, a single `--hold-2f` flash in `--accent-bloom` is allowed. No crossfade between frames, no continuous drift, pan, morph or noise animation of art or backgrounds. Workspace slots cut rarely (once per section visit is enough) or stay static.
 - Entrance animation: one orchestrated moment per page load (the scene lights up), not a fade-and-slide on every section.
-- `prefers-reduced-motion: reduce`: thresholds become a single ≤150 ms opacity cut; shaders are replaced by static frames; parallax off; the light layer freezes at its default state.
+- `prefers-reduced-motion: reduce`: thresholds become a single ≤150 ms opacity cut; art slots show their first frame and do not cut; shaders are replaced by static frames; parallax off; the light layer freezes at its default state.
 
 ## 11. Artwork (branches by path)
 
-**HOUSE.** Seasonal series of 6–8 works by one commissioned artist, filling the slot map (2.2). Style changes by season. Fixed criteria: screen-native, high chroma, strong light, crisp form; bright, bold, luminous, stylish. Credited in-slot: `Artwork — {Artist}`. Figures are anonymous: no names, roles, story, mascots. The season hue is extracted from the hero work (section 4).
+**HOUSE.** Seasonal series of 6–8 works by one commissioned artist, filling the slot map (2.2). Style changes by season. Fixed criteria: principle 6 first (the frozen instant: every shape has an edge, light as planes, softness only as bloom or a separate blurred plane), then screen-native, high chroma, a blown-out highlight and a deep hue-tinted shadow; bright, bold, luminous, stylish. Any language that keeps principle 6 is valid (see 'The law is the form, not the genre' in section 2). Credited in-slot: `Artwork — {Artist}`. Figures are anonymous: no names, roles, story, mascots. The season hue is extracted from the hero work (section 4).
 
-**MVP.** No series and no imitation of one. Slots are filled with rendered light:
-- Landing hero: a refractive glass prism in WebGL (Three.js, transmission material with dispersion), the season liquid behind it, the headline lit from inside by the light layer. An object, not a character.
-- Sign-in / sign-up: season liquid full-viewport, the same glass form as in HOUSE.
-- Feed strip, profile cover, sidebar fragment: the season liquid shader in the slot's format; profile cover is user-replaceable.
-- Work accepted: the prism splits light across the whole screen. Spectrum only.
+**MVP.** No series and no imitation of one. Slots are filled with rendered light and the season's frozen liquid (section 5):
+- Landing hero: a refractive glass prism in WebGL (Three.js, transmission material with dispersion), the season's frozen liquid behind it; the prism's caustics and spectral bands are hard-edged light, not haze; the headline lit from inside by the light layer. An object, not a character.
+- Sign-in / sign-up: the season's frozen-liquid frames full-viewport, cutting on the beat, the same glass form as in HOUSE.
+- Feed strip, profile cover, sidebar fragment: a frozen-liquid frame in the slot's format (static, or rare cuts); profile cover is user-replaceable.
+- Work accepted: the prism splits light across the whole screen in one cut, then holds. Spectrum only.
 - Optional: one licensed existing artwork for the hero, credited `Artwork — {Artist}`, licensed for web use. Never called a collaboration, never part of a "collection".
 - Banned on MVP: generated images imitating a specific artist or studio; stock illustration; "friendly" illustration kits; placeholder art of any kind.
 
@@ -241,7 +245,7 @@ On both paths the moodboard frames in `brand-visuals/refs/` are for mood only. N
 - **HOUSE:** one commissioned track or mini-album per season, credited; `--beat` is recomputed from its BPM.
 - **MVP:** one licensed track in the genre, credited `Music — {Artist}`; `--beat` set from its BPM (default 138).
 - Player: a compact chamfered glass object in a viewport corner. Never autoplay; starts only on user action; persists on/off and volume in `localStorage` (wrapped in try/catch). Never overlaps the primary action on mobile.
-- When playing, drive the light layer's global intensity and `--spectrum-angle` from the Web Audio `AnalyserNode` amplitude (low band). Sound and light must read as one phenomenon.
+- When playing, the light answers the beat, not the waveform: detect onsets in the low band (Web Audio `AnalyserNode`), and on each beat step the light layer's global intensity up and let it fall off within one sixteenth; art slots may take their frame cuts from the same beats. No continuous wobble. Sound and light must read as one phenomenon.
 - No third-party streaming embeds.
 
 ## 13. Copy
@@ -261,7 +265,8 @@ On both paths the moodboard frames in `brand-visuals/refs/` are for mood only. N
 - No easeOutExpo, no fade-and-slide entrances per section, no `window.addEventListener('scroll')`.
 - No monospace; no tracked uppercase eyebrows; no single highlighted word in a headline.
 - No glass over content that must be read.
-- No cyberpunk grime, rain, glitch, HUD chrome; no retro-synthwave grids or sunsets; no purple-blue blob gradients, milky glassmorphism, particle backgrounds.
+- No cyberpunk grime, rain, glitch, HUD chrome; no retro-synthwave grids or sunsets; no purple-blue blob gradients, aurora or mesh-gradient backgrounds, drifting noise shaders, milky glassmorphism, particle backgrounds.
+- No shape without an edge: nothing that drifts, spreads or melts across the frame (principle 6). Softness only as bloom around the brightest point or as depth blur on another plane.
 - No mascots, role characters, stickers; no photographs of people; no stock imagery.
 - No fake collaborations, no AI art imitating a named artist.
 - No hue outside the token system; no hard-coded hex.
@@ -275,6 +280,7 @@ On both paths the moodboard frames in `brand-visuals/refs/` are for mood only. N
 - [ ] Light rendered by the light layer; `box-shadow` present only as the documented fallback.
 - [ ] All corners chamfered with the `--cut-*` scale; no `border-radius` except avatars.
 - [ ] Motion timed to `--beat` / `--sixteenth`; thresholds are cuts with holds, not fades; one entrance moment per page.
+- [ ] The frozen instant (principle 6): art and backgrounds have edges and a light source; slots cut between frozen frames, nothing drifts. A quick measure on the slot's image, EXAMPLE thresholds taken from the moodboard: some of the frame blown out (L ≥ 0.95; refs 5–37%), a deep hue-tinted shadow in dark scenes (L < 0.25; refs 20–68%), crisp edges present (refs 3–14% edge pixels). The blurred aurora concept that prompted this rule measured 0%, 0–7% and 0%.
 - [ ] Typeface is the declared pair; three type steps plus meta; tabular figures for numbers; no monospace.
 - [ ] Text contrast ≥ 7:1 primary, ≥ 4.5:1 secondary; non-text contrast ≥ 3:1 for L0–L2; state never conveyed by color alone (`npm run lint:contrast`).
 - [ ] Every interactive element has default / hover / focus-visible / active / disabled; focus visible via glow.
