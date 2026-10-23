@@ -12,7 +12,7 @@ This file routes; it does not explain. Each line points to the one document that
 
 A change is either `feat:` or `design:`, never both. A `design:` change does not touch `openspec/specs/` or business logic; a `feat:` change does not introduce new visual decisions. If a task needs both, split it into two changes and ship the `feat:` first.
 
-Current codebase state ≠ target. `gigly_full_design/`, `app/_design/` and `scripts/generated-tokens.css` are the shipped prototype on the OLD design. They are not a reference for new UI work; `DESIGN.md` is. They are retired screen by screen through `design: migrate <screen>` changes.
+Current codebase state ≠ target. `gigly_full_design/`, `app/_design/` and `scripts/generated-tokens.css` are the shipped prototype on the OLD design. They are not a reference for new UI work; `DESIGN.md` is. They are retired screen by screen through `design: migrate <screen>` changes. The notes and sketches in `brand-visuals/` (everything except `refs/`) are the 20 Oct exploration that preceded `DESIGN.md`: history, not reference.
 
 ## 2. Process
 
